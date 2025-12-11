@@ -15,7 +15,9 @@
     "dev": "tsc",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "with-env": "dotenv -e ../../.env --",
+    "seed": "pnpm with-env tsx ./src/index.ts"
   },
   "dependencies": {
     "@acme/db": "workspace:*",
