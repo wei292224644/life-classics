@@ -1,0 +1,39 @@
+import { sql } from "drizzle-orm";
+import {
+  boolean,
+  jsonb,
+  pgTable,
+  serial,
+  text,
+  varchar,
+} from "drizzle-orm/pg-core";
+
+export const NutritionItemTable = pgTable("nutrition_items", {
+  id: serial("id").primaryKey(),
+
+  // 基本信息
+  name: varchar("name", { length: 255 }).notNull(),
+  alias: jsonb("alias").default(sql`'[]'::jsonb`), // 别名数组
+
+  // 分类
+  category: varchar("category", { length: 255 }), // 如：维生素
+  sub_category: varchar("sub_category", { length: 255 }), // 如：维生素B族
+
+  // 单位与说明
+  unit: varchar("unit", { length: 50 }), // g / mg / kcal 等
+  description: text("description"),
+
+  // 营养指南
+  daily_value: varchar("daily_value", { length: 255 }), // 推荐摄入
+  upper_limit: varchar("upper_limit", { length: 255 }), // 上限 UL
+  is_essential: boolean("is_essential").default(false), // 是否必需
+
+  // 风险信息
+  risk_info: text("risk_info"),
+  pregnancy_note: text("pregnancy_note"),
+
+  // 功能性
+  metabolism_role: varchar("metabolism_role", { length: 255 }), // 抗氧化/免疫等
+
+  metadata: jsonb("metadata").default(sql`'{}'::jsonb`),
+});
