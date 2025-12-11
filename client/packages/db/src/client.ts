@@ -1,16 +1,31 @@
-import { drizzle } from "drizzle-orm/vercel-postgres";
+// import { sql } from "./db";
+// export const db = drizzle({
+//   client: sql,
+//   schema,
+//   casing: "snake_case",
+// });
 
-import { sql } from "./db";
+// import { sql } from "@vercel/postgres";
+// import { drizzle } from "drizzle-orm/vercel-postgres";
+
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+
+import { env } from "./env";
 import * as schema from "./schema";
 
-export const db = drizzle({
-  client: sql,
-  schema,
-  casing: "snake_case",
+console.log("POSTGRES_URL:", env.POSTGRES_URL);
+const client = new Pool({
+  connectionString: env.POSTGRES_URL,
 });
 
-// import { drizzle } from "drizzle-orm/node-postgres";
+export const db = drizzle({
+  client: client,
+  schema,
+});
 
-// const db: any = drizzle("postgres://admin:123456@localhost:5432/life-classics");
-
+// const db = drizzle({
+//   client: sql,
+//   schema,
+// });
 // export { db };
