@@ -3,7 +3,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { useTRPC } from "~/trpc/react";
-import DateFormat from "./date-format";
 
 export function FoodList() {
   const trpc = useTRPC();
@@ -54,9 +53,10 @@ export function FoodList() {
             />
           </dl>
 
-          {food.created_at && food.updated_at && (
+          {(food.created_at ?? food.updated_at) && (
             <p className="text-muted-foreground mt-3 text-xs">
-              <DateFormat date={food.created_at} />
+              创建: {formatDate(food.created_at)} · 更新:{" "}
+              {formatDate(food.updated_at)}
             </p>
           )}
         </article>
@@ -77,9 +77,14 @@ function InfoRow(props: { label: string; value?: string | null }) {
   );
 }
 
+const fmt = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "UTC",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 function formatDate(value?: string | Date | null) {
   if (!value) return "—";
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString();
+  const d = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(d.getTime()) ? "—" : fmt.format(d);
 }
