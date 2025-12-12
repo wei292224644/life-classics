@@ -1,4 +1,5 @@
 import type { TRPCRouterRecord } from "@trpc/server";
+import z from "zod";
 
 import { desc } from "@acme/db";
 import { FoodTable } from "@acme/db/schema";
@@ -27,13 +28,17 @@ export const foodRouter = {
     });
   }),
 
-  //   byId: publicProcedure
-  //     .input(z.object({ id: z.string().min(1) }))
-  //     .query(({ ctx, input }) => {
-  //       return ctx.db.query.FoodTable.findFirst({
-  //         where: eq(FoodTable.id, input.id),
-  //       });
-  //     }),
+  getId: publicProcedure
+    .input(z.object({ id: z.string().min(1).max(32) }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.query.FoodTable.findFirst({
+        where: (foodTable, { eq }) => eq(foodTable.id, input.id),
+        with: {
+          ingredients: true,
+          nutritionItems: true,
+        },
+      });
+    }),
 
   //   create: publicProcedure
   //     .input(createFoodInput)

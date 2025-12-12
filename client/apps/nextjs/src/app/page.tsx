@@ -2,6 +2,7 @@ import { HydrateClient, prefetch, trpc } from "~/trpc/server";
 import { FoodList } from "./_components/food-list";
 
 export default function HomePage() {
+  // Ensure trpc.food.getId exists and is properly typed before using
   prefetch(trpc.food.all.queryOptions());
   return (
     <HydrateClient>
