@@ -23,6 +23,7 @@ catalog:
   typescript: ^5.9.3
   zod: ^4.1.12
   vite: 7.1.12
+  superjson: ^2.2.3
 
 catalogs:
   react19:
@@ -30,6 +31,12 @@ catalogs:
     "@types/react-dom": ~19.1.0
     react: 19.1.2
     react-dom: 19.1.2
+
+  react18:
+    "@types/react": ~18.0.0
+    "@types/react-dom": ~18.0.0
+    react: 18.0.0
+    react-dom: 18.0.0
 
 linkWorkspacePackages: true
 
