@@ -1,5 +1,5 @@
 packages:
-  - apps/*
+  - apps/nextjs
   - packages/*
   - tooling/*
 
