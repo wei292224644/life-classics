@@ -84,24 +84,19 @@ export function FoodDetail(props: FoodDetailProps) {
     [],
   );
 
-  const ingredients =
-    food?.ingredients && food.ingredients.length > 0
-      ? food.ingredients.map((item) => String(item))
-      : ["暂无配料信息"];
-
   const infoRows = [
-    { label: "生产商", value: food?.manufacturer },
-    { label: "产地", value: food?.origin_place },
-    { label: "生产许可", value: food?.production_license },
-    { label: "产品分类", value: food?.product_category },
-    { label: "执行标准", value: food?.product_standard_code },
-    { label: "保质期", value: food?.shelf_life },
-    { label: "生产地址", value: food?.production_address },
-    { label: "净含量", value: food?.net_content },
+    { label: "生产商", value: food.manufacturer },
+    { label: "产地", value: food.origin_place },
+    { label: "生产许可", value: food.production_license },
+    { label: "产品分类", value: food.product_category },
+    { label: "执行标准", value: food.product_standard_code },
+    { label: "保质期", value: food.shelf_life },
+    { label: "生产地址", value: food.production_address },
+    { label: "净含量", value: food.net_content },
   ].filter((item) => item.value);
 
-  const title = food?.name ?? "食品详情";
-  const code = food?.id ?? props.code;
+  const title = food.name;
+  const code = food.id;
   const heroImage = `https://dummyimage.com/1600x800/ffe4c7/111111&text=${encodeURIComponent(title)}`;
 
   async function handleShare() {
@@ -174,12 +169,8 @@ export function FoodDetail(props: FoodDetailProps) {
               <span className="text-foreground font-medium">{title}</span>
               <Separator orientation="vertical" className="h-4" />
               <span>编号 {code}</span>
-              {food?.net_content ? (
-                <>
-                  <Separator orientation="vertical" className="h-4" />
-                  <span>{food.net_content}</span>
-                </>
-              ) : null}
+              <Separator orientation="vertical" className="h-4" />
+              <span>{food.net_content}</span>
             </div>
             {infoRows.length > 0 ? (
               <div className="bg-card border-border rounded-2xl border p-4 shadow-sm">
@@ -262,14 +253,15 @@ export function FoodDetail(props: FoodDetailProps) {
             </div>
             <div className="bg-card border-border rounded-2xl border p-4 shadow-sm">
               <div className="flex flex-wrap gap-2">
-                {ingredients.map((item, index) => (
-                  <span
-                    key={`${item}-${index}`}
-                    className="bg-muted text-muted-foreground rounded-full px-3 py-1 text-xs"
-                  >
-                    {item}
-                  </span>
-                ))}
+                {food.ingredients.length > 0 &&
+                  food.ingredients.map((item) => (
+                    <span
+                      key={item.id + ""}
+                      className="bg-muted text-muted-foreground rounded-full px-3 py-1 text-xs"
+                    >
+                      {item.name}
+                    </span>
+                  ))}
               </div>
 
               <div className="border-border text-muted-foreground mt-4 flex items-start gap-2 border-t pt-3 text-sm">

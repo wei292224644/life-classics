@@ -1,15 +1,17 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  integer,
   jsonb,
   pgTable,
-  serial,
   text,
   varchar,
 } from "drizzle-orm/pg-core";
 
+import { FullyAuditedColumns } from "./share-schema";
+
 export const NutritionItemTable = pgTable("nutrition_items", {
-  id: serial("id").primaryKey(),
+  id: integer().generatedAlwaysAsIdentity().primaryKey(),
 
   // 基本信息
   name: varchar("name", { length: 255 }).notNull(),
@@ -36,4 +38,7 @@ export const NutritionItemTable = pgTable("nutrition_items", {
   metabolism_role: varchar("metabolism_role", { length: 255 }), // 抗氧化/免疫等
 
   metadata: jsonb("metadata").default(sql`'{}'::jsonb`),
+
+  // --- 审计字段 ---
+  ...FullyAuditedColumns,
 });
