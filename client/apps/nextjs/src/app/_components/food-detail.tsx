@@ -1,12 +1,20 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 
 import { cn } from "@acme/ui";
 import { Button } from "@acme/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@acme/ui/carousel";
 import {
   ArrowLeftIcon,
   CheckCircledIcon,
@@ -97,7 +105,6 @@ export function FoodDetail(props: FoodDetailProps) {
 
   const title = food.name;
   const code = food.id;
-  const heroImage = `https://dummyimage.com/1600x800/ffe4c7/111111&text=${encodeURIComponent(title)}`;
 
   async function handleShare() {
     const shareText = `${title}（${code}）`;
@@ -145,18 +152,23 @@ export function FoodDetail(props: FoodDetailProps) {
       </motion.header>
 
       <main className="animate-in fade-in flex-1 pb-28 duration-300">
-        <div
-          ref={heroRef}
-          className="bg-muted relative h-64 w-full overflow-hidden"
-        >
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `linear-gradient(135deg, rgba(250, 132, 60, 0.8), rgba(232, 121, 249, 0.6)), url(${heroImage})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
+        <div ref={heroRef} className="bg-muted relative w-full overflow-hidden">
+          <Carousel>
+            <CarouselContent>
+              {food.image_url_list?.map((item) => (
+                <CarouselItem key={item}>
+                  <div className="relative h-64 w-full">
+                    <Image
+                      src={item}
+                      alt={title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
           <div className="text-primary-foreground from-primary to-secondary absolute right-4 bottom-4 inline-flex items-center gap-1.5 rounded-xl bg-linear-to-tr px-3 py-1.5 text-sm font-medium shadow-md backdrop-blur-sm">
             <CheckCircledIcon className="h-4 w-4" />
             低风险
@@ -165,12 +177,12 @@ export function FoodDetail(props: FoodDetailProps) {
 
         <div className="space-y-6 px-4 py-6">
           <section className="space-y-2">
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <span className="text-foreground font-medium">{title}</span>
+            <div className="text-muted-foreground flex items-baseline gap-2">
+              <span className="text-foreground text-lg font-medium">
+                {title}
+              </span>
               <Separator orientation="vertical" className="h-4" />
-              <span>编号 {code}</span>
-              <Separator orientation="vertical" className="h-4" />
-              <span>{food.net_content}</span>
+              <span className="text-sm">{food.net_content}</span>
             </div>
             {infoRows.length > 0 ? (
               <div className="bg-card border-border rounded-2xl border p-4 shadow-sm">

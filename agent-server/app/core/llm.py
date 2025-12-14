@@ -13,9 +13,17 @@ except ImportError:
 
     warnings.warn("无法导入DashScope，请安装: pip install llama-index-llms-dashscope")
 
+# 缓存LLM实例，避免每次创建新实例
+_llm_instance = None
+
 
 def get_llm():
-    """获取Qwen LLM实例"""
+    """获取Qwen LLM实例（单例模式）"""
+    global _llm_instance
+    
+    if _llm_instance is not None:
+        return _llm_instance
+    
     if not settings.DASHSCOPE_API_KEY:
         raise ValueError("DASHSCOPE_API_KEY未设置，请在.env文件中配置")
 
@@ -24,9 +32,12 @@ def get_llm():
             "DashScope LLM不可用，请安装: pip install llama-index-llms-dashscope"
         )
 
-    return DashScope(
+    _llm_instance = DashScope(
         model=settings.QWEN_MODEL,
         api_key=settings.DASHSCOPE_API_KEY,
+        # 温度
         temperature=0.7,
         max_tokens=2048,
     )
+    
+    return _llm_instance

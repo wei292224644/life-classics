@@ -14,6 +14,10 @@ export const FoodTable = pgTable("foods", {
 
   name: varchar("name", { length: 255 }).notNull(), // 商品名称
 
+  image_url_list: varchar("image_url_list", { length: 255 })
+    .array()
+    .default([]),
+
   // --- 工商生产类信息 ---
   manufacturer: varchar("manufacturer", { length: 255 }), // 委托商
   production_address: varchar("production_address", { length: 255 }),

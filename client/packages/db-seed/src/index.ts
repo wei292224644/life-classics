@@ -461,6 +461,7 @@ function generateFoodData(): {
   const rows: {
     barcode: string;
     name: string;
+    image_url_list: string[];
     manufacturer?: string;
     production_address?: string;
     origin_place?: string;
@@ -501,6 +502,10 @@ function generateFoodData(): {
     rows.push({
       barcode,
       name,
+      image_url_list: [
+        `https://picsum.photos/200/300?random=${Math.random()}`,
+        `https://picsum.photos/200/300?random=${Math.random()}`,
+      ],
       manufacturer,
       production_address: `${originPlace}省${manufacturer}生产厂`,
       origin_place: originPlace,
