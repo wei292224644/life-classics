@@ -1,5 +1,6 @@
 import { db } from "@acme/db/client";
 import {
+  FoodAiAnalysisTable,
   FoodIngredientTable,
   FoodNutritionItemTable,
   FoodTable,
@@ -679,6 +680,33 @@ async function seedFoodNutrition(): Promise<SeedResult> {
   return { table: "food_nutrition_items", inserted: rows.length };
 }
 
+async function seedFoodAiAnalysis(): Promise<SeedResult> {
+  // 获取所有已插入的food id
+  const foods = await db.select({ id: FoodTable.id }).from(FoodTable);
+  const rows = foods.map((f, idx) => ({
+    food_id: f.id,
+    analysis_type: "nutrition" as const,
+    analysis_version: "v1" as const,
+    ai_model: "seed-model",
+    summaries: ["富含碳水与适量脂肪，适合作为能量补充。"],
+    risk_level: "low" as const,
+    pregnancy_level: "low" as const,
+    confidence_score: 90 + (idx % 5),
+    raw_output: {
+      reasoning: "基于种子数据的示例分析，实际逻辑由AI生成。",
+    },
+    createdByUser: SYSTEM_USER_ID,
+    lastUpdatedByUser: SYSTEM_USER_ID,
+  }));
+
+  if (rows.length === 0) {
+    return { table: "food_ai_analysis", inserted: 0 };
+  }
+
+  await db.insert(FoodAiAnalysisTable).values(rows).onConflictDoNothing();
+  return { table: "food_ai_analysis", inserted: rows.length };
+}
+
 async function main() {
   const results: SeedResult[] = [];
 
@@ -686,6 +714,7 @@ async function main() {
   results.push(await seedNutritionItems());
   results.push(await seedFoods());
   results.push(await seedFoodNutrition());
+  // results.push(await seedFoodAiAnalysis());
 
   for (const r of results) {
     console.log(`Seeded ${r.inserted} rows into ${r.table}`);

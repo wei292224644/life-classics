@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -8,13 +8,7 @@ import { motion, useMotionValueEvent, useScroll } from "motion/react";
 
 import { cn } from "@acme/ui";
 import { Button } from "@acme/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@acme/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "@acme/ui/carousel";
 import {
   ArrowLeftIcon,
   CheckCircledIcon,
@@ -35,7 +29,7 @@ export function FoodDetail(props: FoodDetailProps) {
   const router = useRouter();
   const trpc = useTRPC();
   const { data: food } = useSuspenseQuery(
-    trpc.food.getId.queryOptions({ id: props.code }),
+    trpc.food.fetchByBarcode.queryOptions({ barcode: props.code }),
   );
 
   const heroRef = useRef<HTMLDivElement | null>(null);
@@ -79,15 +73,6 @@ export function FoodDetail(props: FoodDetailProps) {
       "含有丰富的维生素 C，有助于增强免疫力",
       "低热量，适合作为健康零食，有助于控制体重",
       "含有抗氧化物质，有助于延缓衰老",
-    ],
-    [],
-  );
-
-  const suggestions = useMemo(
-    () => [
-      "建议每天食用 1-2 份，作为健康零食",
-      "最好在餐前 30 分钟食用，有助于控制血糖",
-      "建议连皮食用，以获得更多膳食纤维和营养",
     ],
     [],
   );
@@ -307,14 +292,9 @@ export function FoodDetail(props: FoodDetailProps) {
               <h3 className="text-lg font-semibold">食用建议</h3>
             </div>
             <div className="bg-card border-border rounded-2xl border p-4 shadow-sm">
-              <ul className="flex list-none flex-col gap-2.5 text-sm">
-                {suggestions.map((item) => (
-                  <li key={item} className="flex items-start gap-2.5">
-                    <CheckCircledIcon className="text-primary mt-0.5 h-5 w-5 shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
+              <Suspense fallback={<div>AI分析中...</div>}>
+                <FoodAdviceAnalysis id={food.id} />
+              </Suspense>
             </div>
           </section>
         </div>
@@ -336,3 +316,17 @@ export function FoodDetail(props: FoodDetailProps) {
     </div>
   );
 }
+
+const FoodAdviceAnalysis = (props: { id: number }) => {
+  const trpc = useTRPC();
+  const { data } = useSuspenseQuery(
+    trpc.analysis.advice.queryOptions({ id: props.id }),
+  );
+
+  return data.usage_suggestion_results.map((item: string) => (
+    <li key={item} className="flex items-start gap-2.5">
+      <CheckCircledIcon className="text-primary mt-0.5 h-5 w-5 shrink-0" />
+      <span>{item}</span>
+    </li>
+  ));
+};

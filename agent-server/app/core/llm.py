@@ -1,43 +1,34 @@
 """
-LLM配置 - 使用Qwen模型
+LLM配置 - 使用统一的模型提供者工厂
+支持多种提供者：DashScope/Qwen、Ollama、OpenRouter
 """
 
-from app.core.config import settings
-
-# 动态导入DashScope，如果不可用则提示错误
-try:
-    from llama_index.llms.dashscope import DashScope
-except ImportError:
-    DashScope = None
-    import warnings
-
-    warnings.warn("无法导入DashScope，请安装: pip install llama-index-llms-dashscope")
-
-# 缓存LLM实例，避免每次创建新实例
-_llm_instance = None
+from typing import Optional, Dict
+from app.core.providers.factory import ModelFactory
 
 
-def get_llm():
-    """获取Qwen LLM实例（单例模式）"""
-    global _llm_instance
-    
-    if _llm_instance is not None:
-        return _llm_instance
-    
-    if not settings.DASHSCOPE_API_KEY:
-        raise ValueError("DASHSCOPE_API_KEY未设置，请在.env文件中配置")
+def get_llm(provider_name: Optional[str] = None, provider_config: Optional[Dict] = None):
+    """
+    获取LLM实例（单例模式）
+    使用统一的模型提供者工厂，支持多种提供者
 
-    if DashScope is None:
-        raise ImportError(
-            "DashScope LLM不可用，请安装: pip install llama-index-llms-dashscope"
-        )
+    Args:
+        provider_name: 可选的提供者名称，如果为 None 则使用配置中的默认值
+                      支持的提供者: "dashscope", "ollama", "openrouter"
 
-    _llm_instance = DashScope(
-        model=settings.QWEN_MODEL,
-        api_key=settings.DASHSCOPE_API_KEY,
-        # 温度
-        temperature=0.7,
-        max_tokens=2048,
-    )
-    
-    return _llm_instance
+    Returns:
+        LLM 实例（兼容 LlamaIndex）
+
+    Examples:
+        # 使用默认配置的提供者
+        llm = get_llm()
+
+        # 使用指定的提供者
+        llm = get_llm("ollama")
+        llm = get_llm("dashscope")
+        llm = get_llm("openrouter")
+    Args:
+        provider_name: 指定提供者名称（可覆盖配置）
+        provider_config: 运行时配置覆盖，例如自定义模型名称、温度等
+    """
+    return ModelFactory.get_llm(provider_name, provider_config=provider_config)

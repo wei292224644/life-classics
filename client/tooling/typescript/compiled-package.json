@@ -8,5 +8,6 @@
     "emitDeclarationOnly": true,
     "noEmit": false,
     "outDir": "${configDir}/dist"
+    
   }
 }

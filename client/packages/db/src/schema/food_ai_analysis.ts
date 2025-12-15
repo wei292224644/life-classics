@@ -1,17 +1,14 @@
-import { integer, jsonb, pgEnum, pgTable, varchar } from "drizzle-orm/pg-core";
+import {
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 import { FoodTable } from "./food";
 import { FullyAuditedColumns } from "./share-schema";
-
-export const AnalysisTypeEnum = pgEnum("analysis_type", [
-  "nutrition", // 营养分析
-  "ingredient", // 成分分析
-  "risk", // 风险分析，如致癌物分析，重金属分析等
-  "pregnancy", // 母婴分析，如孕妇禁忌物分析，婴幼儿禁忌物分析等
-  "dietary", // 饮食分析，如饮食禁忌分析，饮食推荐分析等
-  "allergen", // 过敏分析
-  "other", // 其他分析，如包装材料分析，添加剂分析等
-]);
 
 export const AnalysisVersionEnum = pgEnum("analysis_version", [
   "v1", // 分析版本1
@@ -35,10 +32,33 @@ export const FoodAiAnalysisTable = pgTable("food_ai_analysis", {
     .references(() => FoodTable.id)
     .notNull(),
 
-  analysis_type: AnalysisTypeEnum("analysis_type").notNull(), // 分析类型：nutrition, ingredient, risk, pregnancy, etc.
   analysis_version: AnalysisVersionEnum("analysis_version").notNull(), // 分析版本
   ai_model: varchar("ai_model", { length: 255 }).notNull(), // 使用的AI模型
-  summary: varchar("summary", { length: 255 }).notNull(), // 分析摘要
+
+  //食用建议
+  usage_suggestion_results: text("usage_suggestion_results")
+    .array()
+    .default([])
+    .notNull(),
+
+  //健康益处
+  health_benefit_results: text("health_benefit_results")
+    .array()
+    .default([])
+    .notNull(),
+
+  //配料分析结果
+  ingredient_analysis_results: text("ingredient_analysis_results")
+    .array()
+    .default([])
+    .notNull(),
+
+  //针对母婴分析结果
+  pregnancy_analysis_results: text("pregnancy_analysis_results")
+    .array()
+    .default([])
+    .notNull(),
+
   risk_level: RiskLevelEnum("risk_level").notNull(), // 风险等级
   pregnancy_level: PregnancyLevelEnum("pregnancy_level").notNull(), // 母婴等级
   confidence_score: integer("confidence_score").notNull(), // 置信度

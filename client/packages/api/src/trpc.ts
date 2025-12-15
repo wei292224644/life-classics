@@ -72,6 +72,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
  * @see https://trpc.io/docs/router
  */
 export const createTRPCRouter = t.router;
+export const createMiddleware = t.middleware;
 
 /**
  * Middleware for timing procedure execution and adding an articifial delay in development.

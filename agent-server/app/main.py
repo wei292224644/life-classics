@@ -27,12 +27,6 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api")
 
 
-@app.get("/")
-async def root():
-    """根路径"""
-    return {"message": "个人知识库系统API", "version": "0.1.0", "docs": "/docs"}
-
-
 @app.get("/swagger")
 async def custom_swagger_ui():
     """自定义 Swagger UI 页面，便于直接调用 API"""
@@ -41,9 +35,3 @@ async def custom_swagger_ui():
         title="个人知识库系统 - Swagger UI",
         swagger_favicon_url="https://fastapi.tiangolo.com/img/favicon.png",
     )
-
-
-@app.get("/health")
-async def health_check():
-    """健康检查"""
-    return {"status": "healthy"}

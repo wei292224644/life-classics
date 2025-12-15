@@ -16,7 +16,10 @@
 - **LangChain**: LLM 应用开发框架
 - **LlamaIndex**: 数据索引和检索框架
 - **ChromaDB**: 开源向量数据库
-- **Qwen (DashScope)**: 阿里云通义千问大语言模型和嵌入模型
+- **多模型提供者支持**: 统一的模型提供者中间层，支持灵活配置
+  - **DashScope/Qwen**: 阿里云通义千问大语言模型和嵌入模型
+  - **Ollama**: 本地大语言模型服务
+  - **OpenRouter**: 统一的 API 网关，支持多种模型（OpenAI、Anthropic 等）
 
 ## 项目结构
 
@@ -32,7 +35,14 @@ agent/
 │   │   ├── vector_store.py  # 向量存储
 │   │   ├── document_loader.py  # 文档加载
 │   │   ├── embeddings.py  # 嵌入模型
-│   │   └── llm.py        # LLM 配置
+│   │   ├── llm.py        # LLM 配置
+│   │   └── providers/    # 模型提供者中间层
+│   │       ├── base.py   # 提供者基类
+│   │       ├── factory.py  # 提供者工厂
+│   │       ├── dashscope.py  # DashScope 提供者
+│   │       ├── ollama.py  # Ollama 提供者
+│   │       ├── openrouter.py  # OpenRouter 提供者
+│   │       └── utils.py  # 工具函数
 │   └── main.py           # FastAPI 应用入口
 ├── main.py               # 旧入口（可删除）
 ├── pyproject.toml        # 项目配置
@@ -72,15 +82,86 @@ pip install -e .
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，设置你的 DashScope API Key（用于Qwen模型）：
+编辑 `.env` 文件，配置模型提供者：
+
+**重要说明：**
+- `LLM_PROVIDER` 和 `EMBEDDING_PROVIDER` 可以**独立配置**
+- 例如：LLM 使用 Ollama（本地），Embedding 使用 DashScope（云端）
+- 支持的提供者：`dashscope`、`ollama`、`openrouter`
+
+**方式一：使用 DashScope/Qwen（云端）**
 
 ```env
+LLM_PROVIDER=dashscope
+EMBEDDING_PROVIDER=dashscope
 DASHSCOPE_API_KEY=your_dashscope_api_key_here
 QWEN_MODEL=qwen-turbo
 QWEN_EMBEDDING_MODEL=text-embedding-v2
 ```
 
 > 注意：DashScope API Key 可以在阿里云控制台获取：https://dashscope.console.aliyun.com/
+
+**方式二：使用 Ollama（本地）**
+
+首先确保已安装并启动 Ollama 服务：
+
+```bash
+# 安装 Ollama（如果还没有）
+# macOS: brew install ollama
+# Linux: curl -fsSL https://ollama.com/install.sh | sh
+
+# 启动 Ollama 服务
+ollama serve
+
+# 在另一个终端拉取模型（例如 llama2 和 embedding 模型）
+ollama pull llama2
+ollama pull qwen3-embedding:4b  # 或其他 embedding 模型
+```
+
+然后在 `.env` 文件中配置：
+
+```env
+LLM_PROVIDER=ollama
+EMBEDDING_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama2
+OLLAMA_EMBEDDING_MODEL=qwen3-embedding:4b
+```
+
+**方式三：使用 OpenRouter（统一 API 网关）**
+
+OpenRouter 支持多种模型（OpenAI、Anthropic、Google 等）：
+
+```env
+LLM_PROVIDER=openrouter
+EMBEDDING_PROVIDER=openrouter
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_MODEL=openai/gpt-3.5-turbo
+OPENROUTER_EMBEDDING_MODEL=text-embedding-ada-002
+```
+
+> 注意：
+> - OpenRouter API Key 可以在 https://openrouter.ai/ 获取
+> - 支持的模型列表：https://openrouter.ai/models
+> - 模型名称格式：`provider/model-name`，如 `openai/gpt-4`、`anthropic/claude-3-opus`
+
+**混合配置示例：LLM 使用 Ollama，Embedding 使用 DashScope**
+
+```env
+# LLM 使用本地 Ollama
+LLM_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama2
+
+# Embedding 使用云端 DashScope
+EMBEDDING_PROVIDER=dashscope
+DASHSCOPE_API_KEY=your_dashscope_api_key_here
+QWEN_EMBEDDING_MODEL=text-embedding-v2
+```
+
+> 提示：
+> - Ollama 支持多种 LLM 模型，如 `llama2`、`mistral`、`qwen` 等。使用前需要先通过 `ollama pull <model_name>` 下载模型。
+> - Ollama 也支持多种 embedding 模型，如 `qwen3-embedding:4b`、`nomic-embed-text` 等。同样需要先通过 `ollama pull <embedding_model_name>` 下载。
 
 ### 4. 启动服务
 
@@ -188,12 +269,65 @@ curl -X POST "http://localhost:8000/api/query/" \
 curl "http://localhost:8000/api/documents/info"
 ```
 
+## 模型提供者架构
+
+系统采用统一的模型提供者中间层设计，支持灵活的配置和扩展：
+
+### 核心特性
+
+1. **独立配置**: LLM 和 Embedding 提供者可以独立选择
+2. **易于扩展**: 通过实现基类接口即可添加新的提供者
+3. **统一接口**: 所有提供者都兼容 LlamaIndex 接口
+4. **单例缓存**: 自动缓存实例，避免重复创建
+
+### 支持的提供者
+
+- **DashScope/Qwen**: 阿里云通义千问
+  - 获取 API Key: https://dashscope.console.aliyun.com/
+  - LLM 模型: qwen-turbo、qwen-plus、qwen-max
+  - Embedding 模型: text-embedding-v2
+
+- **Ollama**: 本地大语言模型服务
+  - 安装: https://ollama.com/
+  - 默认地址: http://localhost:11434
+  - LLM 模型: llama2、mistral、qwen 等（需先 `ollama pull`）
+  - Embedding 模型: qwen3-embedding:4b、nomic-embed-text 等（需先 `ollama pull`）
+
+- **OpenRouter**: 统一的 API 网关
+  - 获取 API Key: https://openrouter.ai/
+  - 支持多种模型: OpenAI、Anthropic、Google 等
+  - 模型列表: https://openrouter.ai/models
+
+### 验证提供者配置
+
+使用 Python 脚本验证配置：
+
+```python
+from app.core.providers.utils import print_provider_status, validate_all_providers
+
+# 打印当前状态
+print_provider_status()
+
+# 验证所有配置的提供者
+results = validate_all_providers()
+print(results)
+```
+
 ## 注意事项
 
-1. **DashScope API Key**: 需要有效的 DashScope API Key 才能使用 Qwen 模型和嵌入功能
-   - 获取地址：https://dashscope.console.aliyun.com/
-   - 支持的模型：qwen-turbo、qwen-plus、qwen-max
-   - 嵌入模型：text-embedding-v2
+1. **提供者配置**: LLM 和 Embedding 提供者可以独立配置
+   - 例如：LLM 使用本地 Ollama，Embedding 使用云端 DashScope
+   - 配置项：`LLM_PROVIDER` 和 `EMBEDDING_PROVIDER`
+
+2. **依赖安装**: 不同提供者需要不同的依赖包
+   - DashScope: `llama-index-llms-dashscope`, `llama-index-embeddings-dashscope`
+   - Ollama: `llama-index-llms-ollama`, `llama-index-embeddings-ollama`
+   - OpenRouter: `llama-index-llms-openai`, `llama-index-embeddings-openai`
+
+3. **扩展新提供者**: 要实现新的提供者，只需：
+   - 继承 `BaseLLMProvider` 或 `BaseEmbeddingProvider`
+   - 实现 `create_instance()` 和 `validate_config()` 方法
+   - 在 `ModelFactory` 中注册新提供者
 2. **数据存储**: ChromaDB 数据存储在 `./chroma_db` 目录，删除此目录会清空所有数据
 3. **临时文件**: 上传的文件会临时存储在 `./uploads` 目录，处理完成后自动删除
 4. **CORS 配置**: 建议在生产环境中配置适当的 CORS 策略

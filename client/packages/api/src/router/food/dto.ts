@@ -10,3 +10,5 @@ export const foodDetail = createSelectSchema(schema.FoodTable).extend({
 });
 
 export type IngredientDetail = z.infer<typeof ingredientDetail>;
+
+export type FoodDetail = z.infer<typeof foodDetail>;
