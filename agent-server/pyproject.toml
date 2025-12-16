@@ -1,24 +1,23 @@
 [project]
 name = "agent"
 version = "0.1.0"
-description = "个人知识库系统 - 基于FastAPI + LangChain + LlamaIndex + ChromaDB"
+description = "个人知识库系统 - 基于FastAPI + LangChain + ChromaDB"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "fastapi>=0.104.1",
-    "uvicorn[standard]>=0.24.0",
+    "fastapi>=0.124.4",
+    "uvicorn[standard]>=0.38.0",
     "python-multipart>=0.0.6",
-    "langchain>=0.1.0",
-    "langchain-community>=0.0.10",
-    "llama-index>=0.9.0",
-    "llama-index-vector-stores-chroma>=0.1.0",
-    "llama-index-llms-dashscope>=0.1.0",
-    "llama-index-embeddings-dashscope>=0.1.0",
-    "llama-index-readers-file>=0.1.0",
-    "chromadb>=0.4.15",
+    "langchain>=1.2.0",
+    "langchain-community>=0.4.1",
+    "langchain-chroma>=1.1.0",
+    "langchain-ollama>=1.0.1",
+    "langchain-openai>=1.1.3",
+    "langchain-text-splitters>=0.3.0",
+    "chromadb>=1.3.7",
     "dashscope>=1.17.0",
-    "pydantic>=2.5.0",
-    "pydantic-settings>=2.1.0",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.6.1",
     "python-dotenv>=1.0.0",
     "pypdf>=3.17.0",
     "pdfplumber>=0.10.0",
@@ -27,9 +26,7 @@ dependencies = [
     "markdown>=3.5.0",
     "tiktoken>=0.5.0",
     "requests>=2.31.0",
-    "llama-index-llms-ollama>=0.9.0",
-    "llama-index-embeddings-ollama>=0.8.4",
-    "duckduckgo-search>=6.0.0",  # 网络搜索工具（DuckDuckGo）
+    "ddgs>=9.0.0",  # 网络搜索工具（DuckDuckGo，原 duckduckgo-search）
 ]
 
 [build-system]

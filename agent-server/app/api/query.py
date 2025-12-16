@@ -26,40 +26,38 @@ class QueryResponse(BaseModel):
 @router.post("/", response_model=QueryResponse)
 async def query_knowledge_base(request: QueryRequest):
     """查询知识库"""
-    try:
-        if not request.query.strip():
-            raise HTTPException(status_code=400, detail="查询内容不能为空")
-        
-        # 执行向量查询
-        response = vector_store_manager.query(
-            query_str=request.query,
-            top_k=request.top_k
-        )
-        
-        # 提取答案和来源
-        answer = str(response)
-        sources = []
-        
-        # 尝试提取来源信息
-        if hasattr(response, "source_nodes"):
-            for node in response.source_nodes:
-                source_info = {
-                    "text": node.text[:200] + "..." if len(node.text) > 200 else node.text,
-                    "metadata": node.metadata if hasattr(node, "metadata") else {}
-                }
-                sources.append(source_info)
-        
-        return QueryResponse(
-            answer=answer,
-            sources=sources,
-            metadata={
-                "query": request.query,
-                "top_k": request.top_k
-            }
-        )
+    if not request.query.strip():
+        raise HTTPException(status_code=400, detail="查询内容不能为空")
     
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"查询失败: {str(e)}")
+    # 执行向量查询
+    documents = vector_store_manager.query(
+        query_str=request.query,
+        top_k=request.top_k
+    )
+    
+    # 提取答案和来源
+    answer_parts = []
+    sources = []
+    
+    for i, doc in enumerate(documents, 1):
+        text = doc.page_content[:200] + "..." if len(doc.page_content) > 200 else doc.page_content
+        answer_parts.append(f"[文档{i}]\n{text}")
+        source_info = {
+            "text": text,
+            "metadata": doc.metadata if hasattr(doc, "metadata") else {}
+        }
+        sources.append(source_info)
+    
+    answer = "\n\n".join(answer_parts) if answer_parts else "未找到相关文档"
+    
+    return QueryResponse(
+        answer=answer,
+        sources=sources,
+        metadata={
+            "query": request.query,
+            "top_k": request.top_k
+        }
+    )
 
 
 @router.get("/test")

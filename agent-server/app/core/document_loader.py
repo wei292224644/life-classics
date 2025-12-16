@@ -1,39 +1,23 @@
 """
-文档加载和处理模块 - 支持多种分割策略，特别优化表格和公式处理
+文档加载和处理模块 - 支持多种分割策略，特别优化表格和公式处理 (LangChain版本)
 """
 import os
 import re
 from typing import List, Optional, Dict, Tuple
 from pathlib import Path
-from llama_index.core import Document
-from llama_index.core.node_parser import (
-    SimpleNodeParser,
-    SentenceSplitter,
-    MarkdownNodeParser,
-    HierarchicalNodeParser,
+from langchain_core.documents import Document
+from langchain_text_splitters import (
+    RecursiveCharacterTextSplitter,
+    MarkdownHeaderTextSplitter,
+    CharacterTextSplitter,
 )
-try:
-    from llama_index.core.node_parser import SemanticSplitterNodeParser
-    SEMANTIC_AVAILABLE = True
-except ImportError:
-    SEMANTIC_AVAILABLE = False
-try:
-    from llama_index.readers.file import PDFReader, MarkdownReader
-    from llama_index.readers.file.docs_reader import DocxReader
-except ImportError:
-    # 兼容不同版本的导入路径
-    try:
-        from llama_index.core.readers import SimpleDirectoryReader
-        PDFReader = None
-        MarkdownReader = None
-        DocxReader = None
-    except ImportError:
-        SimpleDirectoryReader = None
-try:
-    import pdfplumber
-    PDFPLUMBER_AVAILABLE = True
-except ImportError:
-    PDFPLUMBER_AVAILABLE = False
+from langchain_community.document_loaders import (
+    PyPDFLoader,
+    TextLoader,
+    UnstructuredMarkdownLoader,
+    UnstructuredWordDocumentLoader,
+)
+import pdfplumber
 from app.core.config import settings
 from app.core.embeddings import get_embedding_model
 
@@ -55,75 +39,55 @@ class DocumentLoader:
                 - "structured": 结构化分割（推荐用于包含表格和公式的PDF，使用pdfplumber）
         """
         self.split_strategy = split_strategy or settings.SPLIT_STRATEGY
-        self.node_parser = self._create_node_parser()
+        self.text_splitter = self._create_text_splitter()
     
-    def _create_node_parser(self):
-        """根据策略创建对应的节点解析器"""
+    def _create_text_splitter(self):
+        """根据策略创建对应的文本分割器"""
         if self.split_strategy == "simple":
-            return SimpleNodeParser.from_defaults(
+            return RecursiveCharacterTextSplitter(
                 chunk_size=settings.CHUNK_SIZE,
                 chunk_overlap=settings.CHUNK_OVERLAP
             )
         
         elif self.split_strategy == "semantic":
-            # 语义分割：基于语义相似度，能更好地保持表格和公式的完整性
-            if not SEMANTIC_AVAILABLE:
-                print("警告: SemanticSplitterNodeParser 不可用，回退到 SimpleNodeParser")
-                return SimpleNodeParser.from_defaults(
-                    chunk_size=settings.SEMANTIC_CHUNK_SIZE,
-                    chunk_overlap=settings.CHUNK_OVERLAP
-                )
-            try:
-                embedding_model = get_embedding_model()
-                return SemanticSplitterNodeParser(
-                    buffer_size=1,
-                    similarity_cutoff=settings.SEMANTIC_SIMILARITY_THRESHOLD,
-                    embed_model=embedding_model
-                )
-            except Exception as e:
-                print(f"警告: 无法创建语义分割器 ({e})，回退到 SimpleNodeParser")
-                return SimpleNodeParser.from_defaults(
-                    chunk_size=settings.SEMANTIC_CHUNK_SIZE,
-                    chunk_overlap=settings.CHUNK_OVERLAP
-                )
+            # 语义分割：使用递归字符分割，但chunk_size更大
+            return RecursiveCharacterTextSplitter(
+                chunk_size=settings.SEMANTIC_CHUNK_SIZE,
+                chunk_overlap=settings.CHUNK_OVERLAP
+            )
         
         elif self.split_strategy == "sentence":
-            # 按句子分割：保持句子完整性，适合包含公式的文档
-            return SentenceSplitter(
+            # 按句子分割：保持句子完整性
+            return CharacterTextSplitter(
                 chunk_size=settings.SENTENCE_CHUNK_SIZE,
                 chunk_overlap=settings.SENTENCE_CHUNK_OVERLAP,
-                separator=" "  # 空格分隔，保持句子结构
+                separator="。"
             )
         
         elif self.split_strategy == "markdown":
             # Markdown分割：按标题层级分割
-            return MarkdownNodeParser.from_defaults()
+            return MarkdownHeaderTextSplitter(
+                headers_to_split_on=[
+                    ("#", "Header 1"),
+                    ("##", "Header 2"),
+                    ("###", "Header 3"),
+                ]
+            )
         
         elif self.split_strategy == "hybrid":
-            # 混合策略：优先使用语义分割，失败时回退到句子分割
-            if SEMANTIC_AVAILABLE:
-                try:
-                    embedding_model = get_embedding_model()
-                    return SemanticSplitterNodeParser(
-                        buffer_size=1,
-                        similarity_cutoff=settings.SEMANTIC_SIMILARITY_THRESHOLD,
-                        embed_model=embedding_model
-                    )
-                except Exception:
-                    pass
-            return SentenceSplitter(
+            # 混合策略：使用递归字符分割
+            return RecursiveCharacterTextSplitter(
                 chunk_size=settings.SENTENCE_CHUNK_SIZE,
                 chunk_overlap=settings.SENTENCE_CHUNK_OVERLAP
             )
         
         elif self.split_strategy == "structured":
-            # 结构化分割：不使用node_parser，在split_documents中特殊处理
-            # 这里返回None，split_documents会检测并使用结构化分割
+            # 结构化分割：不使用text_splitter，在split_documents中特殊处理
             return None
         
         else:
-            print(f"警告: 未知的分割策略 '{self.split_strategy}'，使用默认 SimpleNodeParser")
-            return SimpleNodeParser.from_defaults(
+            print(f"警告: 未知的分割策略 '{self.split_strategy}'，使用默认 RecursiveCharacterTextSplitter")
+            return RecursiveCharacterTextSplitter(
                 chunk_size=settings.CHUNK_SIZE,
                 chunk_overlap=settings.CHUNK_OVERLAP
             )
@@ -138,32 +102,23 @@ class DocumentLoader:
         
         # 对于PDF且使用structured策略，使用结构化加载
         if file_ext == ".pdf" and self.split_strategy == "structured":
-            if not PDFPLUMBER_AVAILABLE:
-                print("警告: pdfplumber 未安装，无法使用结构化加载，回退到普通PDF加载")
-                return self._load_pdf_fallback(file_path, file_path_obj)
             return self._load_pdf_structured(file_path, file_path_obj)
         
         # 根据文件类型选择对应的加载器
         if file_ext == ".txt":
-            # 文本文件直接读取
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            return [Document(text=content, metadata={"file_name": file_path_obj.name})]
-        elif PDFReader and file_ext == ".pdf":
-            loader = PDFReader()
-            documents = loader.load_data(file=file_path)
-        elif MarkdownReader and file_ext == ".md":
-            loader = MarkdownReader()
-            documents = loader.load_data(file=file_path)
-        elif DocxReader and file_ext == ".docx":
-            loader = DocxReader()
-            documents = loader.load_data(file=file_path)
-        elif SimpleDirectoryReader:
-            # 使用SimpleDirectoryReader作为后备方案
-            loader = SimpleDirectoryReader(input_files=[file_path])
-            documents = loader.load_data()
+            loader = TextLoader(file_path, encoding="utf-8")
+            documents = loader.load()
+        elif file_ext == ".pdf":
+            loader = PyPDFLoader(file_path)
+            documents = loader.load()
+        elif file_ext == ".md":
+            loader = UnstructuredMarkdownLoader(file_path)
+            documents = loader.load()
+        elif file_ext == ".docx":
+            loader = UnstructuredWordDocumentLoader(file_path)
+            documents = loader.load()
         else:
-            raise ValueError(f"未实现的文件类型加载器: {file_ext}，请安装相应的读取器包")
+            raise ValueError(f"未实现的文件类型加载器: {file_ext}")
         
         # 添加文件元数据
         for doc in documents:
@@ -173,58 +128,36 @@ class DocumentLoader:
         
         return documents
     
-    def _load_pdf_fallback(self, file_path: str, file_path_obj: Path) -> List[Document]:
-        """PDF加载的后备方案"""
-        if PDFReader:
-            loader = PDFReader()
-            documents = loader.load_data(file=file_path)
-        elif SimpleDirectoryReader:
-            loader = SimpleDirectoryReader(input_files=[file_path])
-            documents = loader.load_data()
-        else:
-            raise ValueError("无法加载PDF文件，请安装相应的读取器包")
-        
-        for doc in documents:
-            doc.metadata["file_name"] = file_path_obj.name
-            doc.metadata["file_path"] = str(file_path_obj)
-            doc.metadata["file_type"] = ".pdf"
-        
-        return documents
-    
     def _load_pdf_structured(self, file_path: str, file_path_obj: Path) -> List[Document]:
         """
         使用pdfplumber结构化加载PDF，提取表格、识别章节和公式
         """
         documents = []
         
-        try:
-            with pdfplumber.open(file_path) as pdf:
-                for page_num, page in enumerate(pdf.pages, 1):
-                    # 提取文本
-                    text = page.extract_text()
-                    if not text:
-                        continue
-                    
-                    # 提取表格
-                    tables = page.extract_tables()
-                    
-                    # 创建页面文档，包含表格信息
-                    page_doc = Document(
-                        text=text,
-                        metadata={
-                            "file_name": file_path_obj.name,
-                            "file_path": str(file_path_obj),
-                            "file_type": ".pdf",
-                            "page_number": page_num,
-                            "table_count": len(tables),
-                            "_tables": tables,  # 内部使用，用于后续分割
-                            "_raw_text": text  # 保留原始文本
-                        }
-                    )
-                    documents.append(page_doc)
-        except Exception as e:
-            print(f"结构化加载PDF失败 {file_path}: {e}")
-            return self._load_pdf_fallback(file_path, file_path_obj)
+        with pdfplumber.open(file_path) as pdf:
+            for page_num, page in enumerate(pdf.pages, 1):
+                # 提取文本
+                text = page.extract_text()
+                if not text:
+                    continue
+                
+                # 提取表格
+                tables = page.extract_tables()
+                
+                # 创建页面文档，包含表格信息
+                page_doc = Document(
+                    page_content=text,
+                    metadata={
+                        "file_name": file_path_obj.name,
+                        "file_path": str(file_path_obj),
+                        "file_type": ".pdf",
+                        "page_number": page_num,
+                        "table_count": len(tables),
+                        "_tables": tables,  # 内部使用，用于后续分割
+                        "_raw_text": text  # 保留原始文本
+                    }
+                )
+                documents.append(page_doc)
         
         return documents
     
@@ -248,9 +181,9 @@ class DocumentLoader:
         """
         将文档分割成更小的块
         
-        如果启用父子chunk模式，使用HierarchicalNodeParser生成父子节点结构
+        如果启用父子chunk模式，使用分层分割
         """
-        # 如果启用父子chunk模式，使用HierarchicalNodeParser
+        # 如果启用父子chunk模式，使用分层分割
         if settings.ENABLE_PARENT_CHILD:
             return self._split_with_hierarchical(documents)
         
@@ -258,21 +191,15 @@ class DocumentLoader:
         if self.split_strategy == "structured":
             split_docs = self._split_documents_structured(documents)
         else:
-            if self.node_parser is None:
-                raise ValueError(f"分割策略 '{self.split_strategy}' 需要node_parser，但未创建")
+            if self.text_splitter is None:
+                raise ValueError(f"分割策略 '{self.split_strategy}' 需要text_splitter，但未创建")
             
-            nodes = self.node_parser.get_nodes_from_documents(documents)
-            split_docs = []
-            for node in nodes:
-                doc = Document(
-                    text=node.text,
-                    metadata={
-                        **node.metadata,
-                        "split_strategy": self.split_strategy,
-                        "chunk_id": len(split_docs)
-                    }
-                )
-                split_docs.append(doc)
+            split_docs = self.text_splitter.split_documents(documents)
+            
+            # 添加分割策略元数据
+            for i, doc in enumerate(split_docs):
+                doc.metadata["split_strategy"] = self.split_strategy
+                doc.metadata["chunk_id"] = i
         
         # 清理所有内部使用的元数据字段
         for doc in split_docs:
@@ -290,73 +217,39 @@ class DocumentLoader:
     
     def _split_with_hierarchical(self, documents: List[Document]) -> List[Document]:
         """
-        使用HierarchicalNodeParser生成父子节点结构
-        
-        注意：这里返回的是Document格式，但实际存储时会在vector_store中
-        重新解析为Node以建立父子关系
+        使用分层分割生成父子chunk结构
         """
-        # 在解析前清理文档的metadata，避免metadata过大
-        cleaned_documents = []
-        for doc in documents:
-            # 只保留必要的metadata
-            essential_metadata = {}
-            for key in ['file_name', 'file_path', 'file_type', 'page_number']:
-                if key in doc.metadata:
-                    value = doc.metadata[key]
-                    if isinstance(value, (str, int, float, type(None))):
-                        essential_metadata[key] = value
-            
-            # 创建清理后的文档
-            cleaned_doc = Document(
-                text=doc.text,
-                metadata=essential_metadata
-            )
-            cleaned_documents.append(cleaned_doc)
-        
-        # 创建HierarchicalNodeParser
-        hierarchical_parser = HierarchicalNodeParser.from_defaults(
-            chunk_sizes=[
-                settings.PARENT_CHUNK_SIZE,  # 父chunk大小
-                settings.CHILD_CHUNK_SIZE,    # 子chunk大小
-            ]
+        # 创建父chunk分割器
+        parent_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=settings.PARENT_CHUNK_SIZE,
+            chunk_overlap=settings.CHUNK_OVERLAP,
         )
         
-        # 生成节点（包含父子关系）
-        nodes = hierarchical_parser.get_nodes_from_documents(cleaned_documents)
+        # 创建子chunk分割器
+        child_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=settings.CHILD_CHUNK_SIZE,
+            chunk_overlap=settings.CHUNK_OVERLAP,
+        )
         
-        # 转换为Document格式，只保留必要的metadata
+        # 先创建父chunk
+        parent_docs = parent_splitter.split_documents(documents)
+        
+        # 为每个父chunk创建子chunk
         split_docs = []
-        for node in nodes:
-            # 只保留必要的metadata，避免metadata过大
-            essential_metadata = {}
+        for parent_doc in parent_docs:
+            # 添加父chunk
+            parent_doc.metadata["chunk_type"] = "parent"
+            parent_doc.metadata["split_strategy"] = "hierarchical"
+            split_docs.append(parent_doc)
             
-            # 保留文件基本信息
-            for key in ['file_name', 'file_path', 'file_type', 'page_number']:
-                if key in node.metadata:
-                    value = node.metadata[key]
-                    if isinstance(value, (str, int, float, type(None))):
-                        essential_metadata[key] = value
-            
-            # 保留内容类型信息（如果有）
-            if 'content_type' in node.metadata:
-                essential_metadata['content_type'] = node.metadata['content_type']
-            if 'section' in node.metadata:
-                section = node.metadata['section']
-                # 限制section长度
-                if isinstance(section, str) and len(section) > 100:
-                    essential_metadata['section'] = section[:100]
-                else:
-                    essential_metadata['section'] = section
-            
-            doc = Document(
-                text=node.text,
-                metadata={
-                    **essential_metadata,
-                    "split_strategy": "hierarchical",
-                    "chunk_id": len(split_docs)
-                }
-            )
-            split_docs.append(doc)
+            # 创建子chunk
+            child_docs = child_splitter.split_documents([parent_doc])
+            for i, child_doc in enumerate(child_docs):
+                child_doc.metadata["chunk_type"] = "child"
+                child_doc.metadata["parent_id"] = id(parent_doc)
+                child_doc.metadata["split_strategy"] = "hierarchical"
+                child_doc.metadata["chunk_id"] = len(split_docs)
+                split_docs.append(child_doc)
         
         return split_docs
     
@@ -369,7 +262,7 @@ class DocumentLoader:
         for doc in documents:
             # 检查是否有表格信息（来自结构化加载）
             tables = doc.metadata.get("_tables", [])
-            raw_text = doc.metadata.get("_raw_text", doc.text)
+            raw_text = doc.metadata.get("_raw_text", doc.page_content)
             
             if tables:
                 # 有表格，使用结构化分割
@@ -424,7 +317,7 @@ class DocumentLoader:
                     text_content = '\n'.join(current_text)
                     if text_content.strip():
                         chunks.append(Document(
-                            text=text_content,
+                            page_content=text_content,
                             metadata={
                                 **base_metadata,
                                 "content_type": "text",
@@ -435,8 +328,7 @@ class DocumentLoader:
                 current_text = [line]
                 continue
             
-            # 检查是否包含表格标记（简化处理，实际可能需要更复杂的定位）
-            # 这里我们假设表格在文本中会有"表1"、"表2"等标记
+            # 检查是否包含表格标记
             table_found = False
             for table_info in table_texts:
                 if table_info["marker"] in line or f"表{table_info['index']+1}" in line:
@@ -445,7 +337,7 @@ class DocumentLoader:
                         text_content = '\n'.join(current_text)
                         if text_content.strip():
                             chunks.append(Document(
-                                text=text_content,
+                                page_content=text_content,
                                 metadata={
                                     **base_metadata,
                                     "content_type": "text",
@@ -459,7 +351,7 @@ class DocumentLoader:
                     # 添加表格块
                     table_content = f"{table_title}\n{table_info['text']}"
                     chunks.append(Document(
-                        text=table_content,
+                        page_content=table_content,
                         metadata={
                             **base_metadata,
                             "content_type": "table",
@@ -480,7 +372,7 @@ class DocumentLoader:
             text_content = '\n'.join(current_text)
             if text_content.strip():
                 chunks.append(Document(
-                    text=text_content,
+                    page_content=text_content,
                     metadata={
                         **base_metadata,
                         "content_type": "text",
@@ -488,11 +380,11 @@ class DocumentLoader:
                     }
                 ))
         
-        # 如果表格没有被插入（可能文本中没有表格标记），单独添加所有表格
+        # 如果表格没有被插入，单独添加所有表格
         if not any(chunk.metadata.get("content_type") == "table" for chunk in chunks):
             for table_info in table_texts:
                 chunks.append(Document(
-                    text=table_info['text'],
+                    page_content=table_info['text'],
                     metadata={
                         **base_metadata,
                         "content_type": "table",
@@ -508,7 +400,7 @@ class DocumentLoader:
                 final_chunks.append(chunk)
             else:
                 # 文本块如果太大，进行分割
-                text = chunk.text
+                text = chunk.page_content
                 if len(text) > settings.STRUCTURED_TEXT_CHUNK_SIZE:
                     # 使用句子分割
                     text_chunks = self._split_large_text(
@@ -554,7 +446,7 @@ class DocumentLoader:
                         chunks.extend(text_chunks)
                     else:
                         chunks.append(Document(
-                            text=section_text,
+                            page_content=section_text,
                             metadata={
                                 **base_metadata,
                                 "content_type": "text",
@@ -573,7 +465,7 @@ class DocumentLoader:
                 chunks.extend(text_chunks)
             else:
                 chunks.append(Document(
-                    text=text,
+                    page_content=text,
                     metadata={
                         **base_metadata,
                         "content_type": "text"
@@ -644,7 +536,7 @@ class DocumentLoader:
                 # 遇到公式，保存之前的上下文
                 if current_chunk:
                     chunks.append(Document(
-                        text='\n'.join(current_chunk),
+                        page_content='\n'.join(current_chunk),
                         metadata={
                             **base_metadata,
                             "content_type": "text",
@@ -654,12 +546,11 @@ class DocumentLoader:
                     current_chunk = []
                 
                 # 公式+上下文
-                # 添加上下文（保留最近的N个句子）
                 context_count = min(settings.STRUCTURED_FORMULA_CONTEXT, len(formula_context))
                 context_sentences = formula_context[-context_count:] + [sentence] if formula_context else [sentence]
                 
                 chunks.append(Document(
-                    text='\n'.join(context_sentences),
+                    page_content='\n'.join(context_sentences),
                     metadata={
                         **base_metadata,
                         "content_type": "formula",
@@ -674,7 +565,7 @@ class DocumentLoader:
                 # 如果当前块太大，保存它
                 if len('\n'.join(current_chunk)) > settings.STRUCTURED_TEXT_CHUNK_SIZE:
                     chunks.append(Document(
-                        text='\n'.join(current_chunk),
+                        page_content='\n'.join(current_chunk),
                         metadata={
                             **base_metadata,
                             "content_type": "text",
@@ -686,7 +577,7 @@ class DocumentLoader:
         # 保存最后一部分
         if current_chunk:
             chunks.append(Document(
-                text='\n'.join(current_chunk),
+                page_content='\n'.join(current_chunk),
                 metadata={
                     **base_metadata,
                     "content_type": "text",
@@ -695,7 +586,7 @@ class DocumentLoader:
             ))
         
         return chunks if chunks else [Document(
-            text=text,
+            page_content=text,
             metadata={
                 **base_metadata,
                 "content_type": "formula",
@@ -721,7 +612,7 @@ class DocumentLoader:
             if current_length + sentence_length > chunk_size and current_chunk:
                 # 保存当前块
                 chunks.append(Document(
-                    text='\n'.join(current_chunk),
+                    page_content='\n'.join(current_chunk),
                     metadata=base_metadata.copy()
                 ))
                 
@@ -736,11 +627,11 @@ class DocumentLoader:
         # 保存最后一块
         if current_chunk:
             chunks.append(Document(
-                text='\n'.join(current_chunk),
+                page_content='\n'.join(current_chunk),
                 metadata=base_metadata.copy()
             ))
         
-        return chunks if chunks else [Document(text=text, metadata=base_metadata)]
+        return chunks if chunks else [Document(page_content=text, metadata=base_metadata)]
     
     def _table_to_markdown(self, table: List[List]) -> str:
         """将表格转换为Markdown格式"""
@@ -774,13 +665,12 @@ class DocumentLoader:
         """
         original_strategy = self.split_strategy
         self.split_strategy = strategy
-        self.node_parser = self._create_node_parser()
+        self.text_splitter = self._create_text_splitter()
         result = self.split_documents(documents)
         self.split_strategy = original_strategy
-        self.node_parser = self._create_node_parser()
+        self.text_splitter = self._create_text_splitter()
         return result
 
 
 # 全局文档加载器实例
 document_loader = DocumentLoader()
-

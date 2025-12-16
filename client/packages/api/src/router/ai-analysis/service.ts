@@ -127,19 +127,22 @@ export class FoodAiAnalysisService {
         }[];
       };
 
-      return [
-        {
+      const analysisList: FoodAiAnalysisCreate[] = [];
+
+      for (const result of data.results) {
+        analysisList.push({
           food_id: foodDetail.id,
           analysis_version: "v1",
-          ai_model: "agent-server/chat",
-          analysis_type: "usage",
-          results: [],
-          level: "t0",
-          confidence_score: 0,
-          raw_output: {},
+          ai_model: data.model,
+          analysis_type: result.analysis_type,
+          results: result.summaries,
+          level: result.level,
+          confidence_score: result.confidence_score,
+          raw_output: result.raw_output,
           createdByUser: "00000000-0000-0000-0000-000000000000",
-        },
-      ];
+        });
+      }
+      return analysisList;
     } catch (error) {
       // 记录错误并返回兜底数据
       console.error("generateAiAnalysis failed:", error);

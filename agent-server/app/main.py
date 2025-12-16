@@ -10,7 +10,7 @@ from app.core.config import settings
 
 app = FastAPI(
     title="个人知识库系统",
-    description="基于FastAPI + LangChain + LlamaIndex + ChromaDB的个人知识库",
+    description="基于FastAPI + LlamaIndex + ChromaDB的个人知识库",
     version="0.1.0",
 )
 

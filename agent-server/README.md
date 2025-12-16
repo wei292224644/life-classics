@@ -1,6 +1,6 @@
 # 个人知识库系统
 
-基于 Python + FastAPI + LangChain + LlamaIndex + ChromaDB 开发的个人知识库系统。
+基于 Python + FastAPI + LlamaIndex + ChromaDB 开发的个人知识库系统。
 
 ## 功能特性
 
@@ -13,7 +13,6 @@
 ## 技术栈
 
 - **FastAPI**: 现代化的 Python Web 框架
-- **LangChain**: LLM 应用开发框架
 - **LlamaIndex**: 数据索引和检索框架
 - **ChromaDB**: 开源向量数据库
 - **多模型提供者支持**: 统一的模型提供者中间层，支持灵活配置

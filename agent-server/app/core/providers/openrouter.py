@@ -20,20 +20,15 @@ class OpenRouterLLMProvider(BaseLLMProvider):
 
     def create_instance(self) -> Any:
         """创建 OpenRouter LLM 实例"""
-        try:
-            from llama_index.llms.openai import OpenAI
-        except ImportError:
-            raise ImportError(
-                "OpenAI LLM不可用，请安装: pip install llama-index-llms-openai"
-            )
+        from langchain_openai import ChatOpenAI
 
         self.validate_config()
 
         # OpenRouter 兼容 OpenAI API，使用 OpenAI 客户端
-        return OpenAI(
+        return ChatOpenAI(
             model=self.config.get("model", "openai/gpt-3.5-turbo"),
             api_key=self.config["api_key"],
-            api_base="https://openrouter.ai/api/v1",
+            base_url="https://openrouter.ai/api/v1",
             temperature=self.config.get("temperature", 0.7),
             max_tokens=self.config.get("max_tokens", 2048),
         )
@@ -50,18 +45,13 @@ class OpenRouterEmbeddingProvider(BaseEmbeddingProvider):
 
     def create_instance(self) -> Any:
         """创建 OpenRouter Embedding 实例"""
-        try:
-            from llama_index.embeddings.openai import OpenAIEmbedding
-        except ImportError:
-            raise ImportError(
-                "OpenAIEmbedding 不可用，请安装: pip install llama-index-embeddings-openai"
-            )
+        from langchain_openai import OpenAIEmbeddings
 
         self.validate_config()
 
         # OpenRouter 兼容 OpenAI API
-        return OpenAIEmbedding(
+        return OpenAIEmbeddings(
             model=self.config.get("model", "text-embedding-ada-002"),
-            api_key=self.config["api_key"],
-            api_base="https://openrouter.ai/api/v1",
+            openai_api_key=self.config["api_key"],
+            openai_api_base="https://openrouter.ai/api/v1",
         )
