@@ -78,6 +78,14 @@ class Settings(BaseSettings):
     CHILD_CHUNK_SIZE: int = 300  # 子chunk大小（字符数，约200-400 tokens）
     ENABLE_PARENT_CHILD: bool = False  # 是否启用父子chunk模式
 
+    # 网络搜索配置
+    ENABLE_WEB_SEARCH: bool = True  # 是否启用网络搜索功能
+    SEARCH_PROVIDER: str = "duckduckgo"  # 搜索提供者: "duckduckgo", "tavily", "serper"
+    # Tavily Search API 配置（https://tavily.com）
+    TAVILY_API_KEY: str = ""
+    # Serper API 配置（https://serper.dev）
+    SERPER_API_KEY: str = ""
+
     # 服务器配置
     HOST: str = "0.0.0.0"
     PORT: int = 9999

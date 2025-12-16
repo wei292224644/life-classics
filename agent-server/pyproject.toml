@@ -29,6 +29,7 @@ dependencies = [
     "requests>=2.31.0",
     "llama-index-llms-ollama>=0.9.0",
     "llama-index-embeddings-ollama>=0.8.4",
+    "duckduckgo-search>=6.0.0",  # 网络搜索工具（DuckDuckGo）
 ]
 
 [build-system]

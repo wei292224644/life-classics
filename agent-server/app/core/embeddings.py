@@ -40,4 +40,3 @@ def get_embedding_model(
         provider_config: 运行时配置覆盖，例如自定义模型名称、base_url 等
     """
     return ModelFactory.get_embedding(provider_name, provider_config=provider_config)
-

@@ -12,7 +12,7 @@ class FoodAiAnalysisRepository extends BaseRepository<
   }
 
   public async fetchDetailByFoodId(foodId: number) {
-    return this.db.query.FoodAiAnalysisTable.findFirst({
+    return this.db.query.FoodAiAnalysisTable.findMany({
       where: and(eq(FoodAiAnalysisTable.food_id, foodId)),
     });
   }

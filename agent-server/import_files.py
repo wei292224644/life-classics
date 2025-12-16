@@ -3,18 +3,25 @@
 批量导入 files 目录下的所有 PDF 文件到向量数据库
 """
 import sys
+import argparse
 from pathlib import Path
 from app.core.document_loader import document_loader
 from app.core.vector_store import vector_store_manager
 from app.core.config import settings
 
 
-def import_pdfs_from_directory(directory_path: str = "files"):
+def import_pdfs_from_directory(
+    directory_path: str = "files",
+    start_index: int = 0,
+    batch_size: int = 10,
+):
     """
     导入目录下所有 PDF 文件到向量数据库
     
     Args:
         directory_path: PDF 文件目录路径
+        start_index: 从第几个文件开始（从0开始计数）
+        batch_size: 每次处理多少个文件，如果为 None 则处理所有剩余文件
     """
     directory = Path(directory_path)
     
@@ -29,7 +36,21 @@ def import_pdfs_from_directory(directory_path: str = "files"):
         print(f"在 {directory_path} 目录中未找到 PDF 文件")
         return
     
-    print(f"找到 {len(pdf_files)} 个 PDF 文件")
+    # 按文件名排序，确保处理顺序一致
+    pdf_files.sort(key=lambda x: x.name)
+    
+    total_files = len(pdf_files)
+    print(f"找到 {total_files} 个 PDF 文件")
+    
+    # 应用起始索引和批量大小
+    if start_index >= total_files:
+        print(f"错误: 起始索引 {start_index} 超出文件总数 {total_files}")
+        return
+    
+    end_index = start_index + batch_size if batch_size else total_files
+    pdf_files = pdf_files[start_index:end_index]
+    
+    print(f"处理范围: 第 {start_index + 1} 到第 {min(end_index, total_files)} 个文件（共 {len(pdf_files)} 个）")
     print(f"父子chunk模式: {settings.ENABLE_PARENT_CHILD}")
     if settings.ENABLE_PARENT_CHILD:
         print(f"父chunk大小: {settings.PARENT_CHUNK_SIZE}, 子chunk大小: {settings.CHILD_CHUNK_SIZE}")
@@ -40,7 +61,8 @@ def import_pdfs_from_directory(directory_path: str = "files"):
     error_count = 0
     
     for i, pdf_file in enumerate(pdf_files, 1):
-        print(f"\n[{i}/{len(pdf_files)}] 处理: {pdf_file.name}")
+        actual_index = start_index + i
+        print(f"\n[{i}/{len(pdf_files)}] (总第 {actual_index}/{total_files}) 处理: {pdf_file.name}")
         
         try:
             # 加载文档
@@ -83,6 +105,51 @@ def import_pdfs_from_directory(directory_path: str = "files"):
 
 
 if __name__ == "__main__":
-    directory = sys.argv[1] if len(sys.argv) > 1 else "files"
-    import_pdfs_from_directory(directory)
+    parser = argparse.ArgumentParser(
+        description="批量导入 PDF 文件到向量数据库",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+示例:
+  # 处理所有文件
+  python import_files.py
+  
+  # 从第5个文件开始处理
+  python import_files.py --start 4
+  
+  # 只处理前10个文件
+  python import_files.py --batch-size 10
+  
+  # 从第5个文件开始，处理10个文件
+  python import_files.py --start 4 --batch-size 10
+  
+  # 指定目录
+  python import_files.py files --start 0 --batch-size 5
+        """,
+    )
+    parser.add_argument(
+        "directory",
+        nargs="?",
+        default="files",
+        help="PDF 文件目录路径（默认: files）",
+    )
+    parser.add_argument(
+        "--start",
+        type=int,
+        default=0,
+        help="从第几个文件开始（从0开始计数，默认: 0）",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="每次处理多少个文件（默认: 处理所有剩余文件）",
+    )
+    
+    args = parser.parse_args()
+    
+    import_pdfs_from_directory(
+        directory_path=args.directory,
+        start_index=args.start,
+        batch_size=args.batch_size,
+    )
 

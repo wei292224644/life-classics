@@ -27,10 +27,10 @@ class VectorStoreManager:
         os.makedirs(settings.CHROMA_PERSIST_DIR, exist_ok=True)
 
         # 配置LlamaIndex设置（包括嵌入模型和LLM）
+        # 不传provider_config，让factory根据provider_name自动选择正确的配置
         try:
             embedding_model = get_embedding_model(
                 provider_name=settings.EMBEDDING_PROVIDER,
-                provider_config={"model": settings.OLLAMA_EMBEDDING_MODEL},
             )
             LlamaIndexSettings.embed_model = embedding_model
         except Exception as e:
@@ -39,7 +39,6 @@ class VectorStoreManager:
         try:
             llm = get_llm(
                 provider_name=settings.LLM_PROVIDER,
-                provider_config={"model": settings.OLLAMA_MODEL},
             )
             LlamaIndexSettings.llm = llm
         except Exception as e:

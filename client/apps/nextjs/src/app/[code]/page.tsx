@@ -6,6 +6,7 @@ export default async function FoodDetailPage(props: {
 }) {
   const { code } = await props.params;
   prefetch(trpc.food.fetchByBarcode.queryOptions({ barcode: code }));
+
   return (
     <HydrateClient>
       <FoodDetail code={code} />
