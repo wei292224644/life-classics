@@ -4,7 +4,7 @@ import z from "zod";
 
 import { createIdempotencyWindow } from "../../middleware/idempotency";
 import { publicProcedure } from "../../trpc";
-import { analysisDetailDetail, analysisTargetType, analysisType } from "./dto";
+import { analysisDetail, analysisTargetType, analysisType } from "./dto";
 import { analysisDetailRepository } from "./repository";
 
 const adviceIdempotency = createIdempotencyWindow<{ id: number }>({
@@ -22,7 +22,7 @@ export const aiAnalysisRouter = {
         targetType: analysisTargetType,
       }),
     )
-    .output(analysisDetailDetail.nullable())
+    .output(analysisDetail.nullable())
     .query(async ({ input }) => {
       try {
         const res =

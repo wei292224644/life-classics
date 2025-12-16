@@ -1,7 +1,10 @@
 import { Suspense } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import type { AnalysisDetailDetail, AnalysisTargetType } from "@acme/api/type";
+import type {
+  AnalysisDetailWithResults,
+  AnalysisTargetType,
+} from "@acme/api/type";
 
 import { AIBadge } from "~/app/_components/ai-badge";
 import { CheckCircledIcon } from "~/app/_icons/CheckCircledIcon";
@@ -12,7 +15,7 @@ export function HealthAnalysis({
   id,
   targetType = "food",
 }: {
-  analysis?: AnalysisDetailDetail;
+  analysis?: AnalysisDetailWithResults<"ingredient_health_summary">;
   id: number;
   targetType?: AnalysisTargetType;
 }) {
@@ -30,8 +33,12 @@ export function HealthAnalysis({
 function HealthAnalysisContent({
   analysis,
 }: {
-  analysis: AnalysisDetailDetail;
+  analysis?: AnalysisDetailWithResults<"ingredient_health_summary"> | null;
 }) {
+  if (!analysis) {
+    return null;
+  }
+
   return (
     <section className="gap-3">
       <div className="mb-3 flex items-center gap-2">
@@ -40,11 +47,8 @@ function HealthAnalysisContent({
       </div>
       <div className="bg-card border-border rounded-2xl border p-4">
         <ul className="flex list-none flex-col gap-3">
-          {analysis.results?.map((item: string, index: number) => (
-            <li
-              key={index}
-              className="flex items-start gap-2 text-sm leading-relaxed"
-            >
+          {analysis.results.summaries.map((item) => (
+            <li className="flex items-start gap-2 text-sm leading-relaxed">
               <CheckCircledIcon className="text-primary h-5 w-5 shrink-0" />
               <span>{item}</span>
             </li>

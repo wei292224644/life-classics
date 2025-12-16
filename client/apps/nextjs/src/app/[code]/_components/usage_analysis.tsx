@@ -1,7 +1,10 @@
 import { Suspense } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import type { AnalysisDetailDetail, AnalysisTargetType } from "@acme/api/type";
+import type {
+  AnalysisDetailWithResults,
+  AnalysisTargetType,
+} from "@acme/api/type";
 
 import { AIBadge } from "~/app/_components/ai-badge";
 import { CheckCircledIcon } from "~/app/_icons/CheckCircledIcon";
@@ -12,7 +15,7 @@ export function UsageAnalysis({
   id,
   targetType = "food",
 }: {
-  analysis?: AnalysisDetailDetail;
+  analysis?: AnalysisDetailWithResults<"ingredient_usage_advice">;
   id: number;
   targetType?: AnalysisTargetType;
 }) {
@@ -30,7 +33,7 @@ export function UsageAnalysis({
 function UsageAnalysisContent({
   analysis,
 }: {
-  analysis: AnalysisDetailDetail;
+  analysis?: AnalysisDetailWithResults<"ingredient_usage_advice"> | null;
 }) {
   if (!analysis) {
     return null;
@@ -46,12 +49,12 @@ function UsageAnalysisContent({
       </div>
       <div className="bg-card border-border rounded-2xl border p-4">
         <ul className="flex list-none flex-col gap-2.5">
-          {analysis.results?.map((item: string, index: number) => (
+          {analysis.results.summaries.map((item, index: number) => (
             <li
               key={index}
               className="flex items-start gap-2 text-sm leading-relaxed"
             >
-              <CheckCircledIcon className="text-primary h-5 w-5 shrink-0" />
+              <CheckCircledIcon className="h-5 w-5 shrink-0" />
               <span>{item}</span>
             </li>
           ))}
@@ -78,7 +81,13 @@ function UsageAsyncAnalysis({
     }),
   );
 
-  return <UsageAnalysisContent analysis={analysis} />;
+  return (
+    <UsageAnalysisContent
+      analysis={
+        analysis as AnalysisDetailWithResults<"ingredient_usage_advice">
+      }
+    />
+  );
 }
 
 function UsageAnalysisSkeleton() {

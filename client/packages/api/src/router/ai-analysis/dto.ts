@@ -6,7 +6,7 @@ import {
   AnalysisTargetEnum,
 } from "@acme/db/schema";
 
-export const analysisDetailDetail = createSelectSchema(AnalysisDetailTable);
+export const analysisDetail = createSelectSchema(AnalysisDetailTable);
 
 export const analysisLevel = createSelectSchema(LevelEnum);
 

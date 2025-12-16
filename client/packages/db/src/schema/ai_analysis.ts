@@ -36,7 +36,7 @@ export const AnalysisDetailTable = pgTable("analysis_details", {
   target_id: integer().notNull(),
   target_type: AnalysisTargetEnum("analysis_target").notNull(),
 
-  analysis_type: varchar("analysis_type", { length: 255 }).notNull(), // 分析类型
+  analysis_type: AnalysisTypeEnum("analysis_type").notNull(), // 分析类型
   analysis_version: AnalysisVersionEnum("analysis_version").notNull(), // 分析版本
   ai_model: varchar("ai_model", { length: 255 }).notNull(), // 使用的AI模型
 

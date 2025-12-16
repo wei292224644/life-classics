@@ -165,6 +165,7 @@ async function seedIngredients(): Promise<SeedResult> {
     {
       name: "明胶",
       alias: [],
+
       description: "增稠剂",
       is_additive: true,
       additive_code: "E441",
@@ -493,10 +494,17 @@ function generateFoodData(availableIngredientIds: number[]): {
     // 随机生成配料（1-4个）
     const ingredientCount = Math.floor(Math.random() * 4) + 1;
     const ingredients: number[] = [];
-    
+
     if (availableIngredientIds.length > 0) {
-      for (let j = 0; j < ingredientCount && ingredients.length < availableIngredientIds.length; j++) {
-        const randomIndex = Math.floor(Math.random() * availableIngredientIds.length);
+      for (
+        let j = 0;
+        j < ingredientCount &&
+        ingredients.length < availableIngredientIds.length;
+        j++
+      ) {
+        const randomIndex = Math.floor(
+          Math.random() * availableIngredientIds.length,
+        );
         const ingId = availableIngredientIds[randomIndex];
         if (ingId && !ingredients.includes(ingId)) {
           ingredients.push(ingId);
@@ -520,7 +528,10 @@ function generateFoodData(availableIngredientIds: number[]): {
       shelf_life: shelfLife,
       net_content: netContent,
       createdByUser: SYSTEM_USER_ID,
-      ingredientIds: ingredients.length > 0 ? ingredients : availableIngredientIds.slice(0, 2),
+      ingredientIds:
+        ingredients.length > 0
+          ? ingredients
+          : availableIngredientIds.slice(0, 2),
     });
   }
 
@@ -529,13 +540,15 @@ function generateFoodData(availableIngredientIds: number[]): {
 
 async function seedFoods(): Promise<SeedResult> {
   // 获取所有已插入的ingredient id
-  const ingredients = await db.select({ id: IngredientTable.id }).from(IngredientTable);
+  const ingredients = await db
+    .select({ id: IngredientTable.id })
+    .from(IngredientTable);
   const ingredientIds = ingredients.map((ing) => ing.id);
-  
+
   if (ingredientIds.length === 0) {
     return { table: "foods", inserted: 0 };
   }
-  
+
   const foodData = generateFoodData(ingredientIds);
 
   // 分离 food 数据和 ingredient 关联数据
@@ -623,10 +636,7 @@ function generateNutritionData(
   }
 
   // 营养成分范围（每100g/100mL），根据名称匹配
-  const nutritionRanges: Record<
-    string,
-    { min: number; max: number }
-  > = {
+  const nutritionRanges: Record<string, { min: number; max: number }> = {
     能量: { min: 100, max: 2500 },
     蛋白质: { min: 0.1, max: 30 },
     脂肪: { min: 0, max: 50 },
@@ -642,7 +652,13 @@ function generateNutritionData(
   };
 
   // 基础营养成分名称（必须包含）
-  const essentialNutritionNames = ["能量", "蛋白质", "脂肪", "碳水化合物", "钠"];
+  const essentialNutritionNames = [
+    "能量",
+    "蛋白质",
+    "脂肪",
+    "碳水化合物",
+    "钠",
+  ];
 
   // 创建名称到 nutrition item 的映射
   const nutritionMap = new Map<string, { id: number; unit: string }>();
@@ -668,9 +684,7 @@ function generateNutritionData(
       selectedNutritions.size < nutritionCount &&
       selectedNutritions.size < nutritionItems.length
     ) {
-      const randomIndex = Math.floor(
-        Math.random() * nutritionItems.length,
-      );
+      const randomIndex = Math.floor(Math.random() * nutritionItems.length);
       const nutrition = nutritionItems[randomIndex];
       if (nutrition) {
         selectedNutritions.add(nutrition.id);
@@ -689,7 +703,8 @@ function generateNutritionData(
       if (!range) continue;
 
       const amount = (
-        Math.random() * (range.max - range.min) + range.min
+        Math.random() * (range.max - range.min) +
+        range.min
       ).toFixed(1);
 
       rows.push({
@@ -713,7 +728,11 @@ async function seedFoodNutrition(): Promise<SeedResult> {
 
   // 获取所有已插入的nutrition items
   const nutritionItems = await db
-    .select({ id: NutritionItemTable.id, name: NutritionItemTable.name, unit: NutritionItemTable.unit })
+    .select({
+      id: NutritionItemTable.id,
+      name: NutritionItemTable.name,
+      unit: NutritionItemTable.unit,
+    })
     .from(NutritionItemTable);
 
   if (foodIds.length === 0 || nutritionItems.length === 0) {
@@ -730,7 +749,7 @@ async function seedFoodNutrition(): Promise<SeedResult> {
 async function seedFoodAiAnalysis(): Promise<SeedResult> {
   // 获取所有已插入的food id
   const foods = await db.select({ id: FoodTable.id }).from(FoodTable);
-  
+
   if (foods.length === 0) {
     return { table: "analysis_details", inserted: 0 };
   }
@@ -746,8 +765,8 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
   const levels = ["t0", "t1", "t2", "t3", "t4", "unknown"] as const;
   const aiModels = ["gpt-4", "claude-3", "seed-model"];
 
-  type AnalysisType = typeof analysisTypes[number];
-  type Level = typeof levels[number];
+  type AnalysisType = (typeof analysisTypes)[number];
+  type Level = (typeof levels)[number];
 
   const rows: {
     target_id: number;
@@ -755,7 +774,9 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
     analysis_type: AnalysisType;
     analysis_version: "v1";
     ai_model: string;
-    results: string[]; // JSONB 字段，存储字符串数组
+    results: {
+      summaries: string[];
+    }; // JSONB 字段，存储字符串数组
     level: Level;
     confidence_score: number;
     raw_output: Record<string, unknown>;
@@ -769,7 +790,8 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
     for (const analysisType of analysisTypes) {
       const levelIndex = Math.floor(Math.random() * levels.length);
       const level = levels[levelIndex] ?? ("unknown" as Level);
-      const aiModel = aiModels[Math.floor(Math.random() * aiModels.length)] ?? "seed-model";
+      const aiModel =
+        aiModels[Math.floor(Math.random() * aiModels.length)] ?? "seed-model";
       const confidenceScore = Math.floor(Math.random() * 20) + 75; // 75-95
 
       // 根据分析类型生成不同的结果
@@ -809,7 +831,10 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
           ];
           rawOutput = {
             summary: "基于配料表的成分分析",
-            key_points: ["主要配料：小麦粉、白砂糖、植物油", "添加剂：维生素C、柠檬酸"],
+            key_points: [
+              "主要配料：小麦粉、白砂糖、植物油",
+              "添加剂：维生素C、柠檬酸",
+            ],
             uncertainties: ["需注意麸质含量"],
           };
           break;
@@ -845,7 +870,7 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
         analysis_type: analysisType,
         analysis_version: "v1",
         ai_model: aiModel,
-        results,
+        results: { summaries: results },
         level,
         confidence_score: confidenceScore,
         raw_output: rawOutput,
@@ -871,29 +896,29 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
 
 async function clearAllData(): Promise<void> {
   console.log("Clearing all data from database...");
-  
+
   try {
     // 按照外键依赖关系的逆序删除数据
     // 先删除有外键依赖的表
     await db.delete(AnalysisDetailTable);
     console.log("Cleared analysis_details table");
-    
+
     await db.delete(FoodIngredientTable);
     console.log("Cleared food_ingredients table");
-    
+
     await db.delete(FoodNutritionItemTable);
     console.log("Cleared food_nutrition_items table");
-    
+
     // 然后删除主表
     await db.delete(FoodTable);
     console.log("Cleared foods table");
-    
+
     await db.delete(IngredientTable);
     console.log("Cleared ingredients table");
-    
+
     await db.delete(NutritionItemTable);
     console.log("Cleared nutrition_items table");
-    
+
     console.log("All data cleared successfully!");
   } catch (error) {
     console.error("Error clearing data:", error);
@@ -904,7 +929,7 @@ async function clearAllData(): Promise<void> {
 async function main() {
   // 先清除所有数据
   await clearAllData();
-  
+
   const results: SeedResult[] = [];
 
   results.push(await seedIngredients());

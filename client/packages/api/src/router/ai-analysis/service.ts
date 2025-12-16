@@ -1,10 +1,5 @@
 import type { FoodDetail } from "../food/type";
-import type {
-  AnalysisDetailCreate,
-  AnalysisDetailDetail,
-  AnalysisLevel,
-  AnalysisType,
-} from "./type";
+import type { AnalysisDetailCreate, AnalysisLevel, AnalysisType } from "./type";
 
 /**
  * 通过调用 agent-server 的 /api/chat 接口生成 AI 分析
@@ -16,7 +11,7 @@ export class FoodAiAnalysisService {
 
   public async generateAiAnalysisList(
     foodDetail: FoodDetail,
-  ): Promise<AnalysisDetailDetail[]> {
+  ): Promise<AnalysisDetailCreate[]> {
     // 默认兜底提示语
 
     try {
@@ -147,7 +142,7 @@ export class FoodAiAnalysisService {
           raw_output: result.raw_output,
         });
       }
-      return analysisList as AnalysisDetailDetail[];
+      return analysisList;
     } catch (error) {
       // 记录错误并返回兜底数据
       console.error("generateAiAnalysis failed:", error);
