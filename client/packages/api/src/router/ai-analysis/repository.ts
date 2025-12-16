@@ -1,20 +1,36 @@
 import { and, eq } from "@acme/db";
 import { BaseRepository } from "@acme/db/baseRepository";
 import { db } from "@acme/db/client";
-import { FoodAiAnalysisTable } from "@acme/db/schema";
+import { AnalysisDetailTable } from "@acme/db/schema";
 
-class FoodAiAnalysisRepository extends BaseRepository<
-  typeof FoodAiAnalysisTable,
+import type { AnalysisTargetType, AnalysisType } from "./type";
+
+class AnalysisDetailRepository extends BaseRepository<
+  typeof AnalysisDetailTable,
   "id"
 > {
   constructor() {
-    super(db, FoodAiAnalysisTable, "id");
+    super(db, AnalysisDetailTable, "id");
   }
 
-  public async fetchDetailByFoodId(foodId: number) {
-    return this.db.query.FoodAiAnalysisTable.findMany({
-      where: and(eq(FoodAiAnalysisTable.food_id, foodId)),
+  public fetchDetailByTargetId(targetId: number) {
+    return this.db.query.AnalysisDetailTable.findMany({
+      where: and(eq(AnalysisDetailTable.target_id, targetId)),
+    });
+  }
+
+  public fetchDetailByTargetIdAndTargetTypeAndAnalysisType(
+    targetId: number,
+    targetType: AnalysisTargetType,
+    analysisType: AnalysisType,
+  ) {
+    return this.db.query.AnalysisDetailTable.findFirst({
+      where: and(
+        eq(AnalysisDetailTable.target_id, targetId),
+        eq(AnalysisDetailTable.target_type, targetType),
+        eq(AnalysisDetailTable.analysis_type, analysisType),
+      ),
     });
   }
 }
-export const foodAiAnalysisRepository = new FoodAiAnalysisRepository();
+export const analysisDetailRepository = new AnalysisDetailRepository();

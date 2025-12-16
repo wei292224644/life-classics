@@ -30,9 +30,14 @@ export const foodRouter = {
         });
       }
 
-      const ingredients = res.foodIngredients.map((val) => val.ingredient);
+      const ingredients = res.ingredients.map((val) => val.ingredient);
+      const analysis = res.analysis;
 
-      return { ...res, ingredients: ingredients };
+      return {
+        ...res,
+        ingredients: ingredients,
+        analysis: analysis,
+      };
     }),
 
   fetchDetailById: publicProcedure
@@ -48,7 +53,7 @@ export const foodRouter = {
         });
       }
 
-      const ingredients = res.foodIngredients.map((val) => val.ingredient);
+      const ingredients = res.ingredients.map((val) => val.ingredient);
 
       return { ...res, ingredients: ingredients };
     }),

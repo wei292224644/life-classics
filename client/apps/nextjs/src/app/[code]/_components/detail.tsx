@@ -6,20 +6,17 @@ import { useRouter } from "next/navigation";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 
-import type { RiskLevel } from "@acme/api/type";
 import { cn } from "@acme/ui";
 import { Button } from "@acme/ui/button";
 import { Carousel, CarouselContent, CarouselItem } from "@acme/ui/carousel";
-import {
-  ArrowLeftIcon,
-  CheckCircledIcon,
-  ChevronDownIcon,
-  InfoCircledIcon,
-  Share2Icon,
-  StarFilledIcon,
-} from "@acme/ui/icons";
+import { ArrowLeftIcon, ChevronDownIcon, Share2Icon } from "@acme/ui/icons";
 
+import { AIBadge } from "~/app/_components/ai-badge";
 import { useTRPC } from "~/trpc/react";
+import { FoodRiskLevelAnalysis } from "./food-risk-level";
+import { HealthAnalysis } from "./health_analysis";
+import { Ingredients } from "./ingredients";
+import { UsageAnalysis } from "./usage_analysis";
 
 interface FoodDetailProps {
   code: string;
@@ -81,6 +78,18 @@ export function FoodDetail(props: FoodDetailProps) {
   const title = food.name;
   const code = food.id;
 
+  const usageAnalysis = useMemo(() => {
+    return food.analysis.find(
+      (item) => item.analysis_type === "ingredient_usage_advice",
+    );
+  }, [food.analysis]);
+
+  const healthAnalysis = useMemo(() => {
+    return food.analysis.find(
+      (item) => item.analysis_type === "ingredient_health_summary",
+    );
+  }, [food.analysis]);
+
   async function handleShare() {
     const shareText = `${title}（${code}）`;
     if ("share" in navigator && typeof navigator.share === "function") {
@@ -126,7 +135,7 @@ export function FoodDetail(props: FoodDetailProps) {
         </div>
       </motion.header>
 
-      <main className="animate-in fade-in flex-1 pb-28 duration-300">
+      <main className="animate-in fade-in flex-1 duration-300">
         <div ref={heroRef} className="bg-muted relative w-full overflow-hidden">
           <Carousel>
             <CarouselContent>
@@ -145,7 +154,7 @@ export function FoodDetail(props: FoodDetailProps) {
             </CarouselContent>
           </Carousel>
           <div className="absolute right-4 bottom-4">
-            <Suspense fallback={<div>AI分析中...</div>}>
+            <Suspense fallback={null}>
               <FoodRiskLevelAnalysis id={food.id} />
             </Suspense>
           </div>
@@ -233,53 +242,17 @@ export function FoodDetail(props: FoodDetailProps) {
             </div>
           </section>
 
-          <section className="gap-3">
-            <div className="mb-3 flex items-center gap-2">
-              <h3 className="text-lg font-semibold">配料信息</h3>
-            </div>
-            <div className="bg-card border-border rounded-2xl border p-4 shadow-sm">
-              <div className="flex flex-wrap gap-2">
-                {food.ingredients.length > 0 &&
-                  food.ingredients.map((item) => (
-                    <span
-                      key={item.id + ""}
-                      className="bg-muted text-muted-foreground rounded-full px-3 py-1 text-xs"
-                    >
-                      {item.name}
-                    </span>
-                  ))}
-              </div>
+          <Ingredients food={food} />
 
-              <div className="border-border text-muted-foreground mt-4 flex items-start gap-2 border-t pt-3 text-sm">
-                <Suspense fallback={<div>AI分析中...</div>}>
-                  <FoodIngredientAnalysis id={food.id} />
-                </Suspense>
-              </div>
-            </div>
-          </section>
-
-          <section className="gap-3">
-            <div className="mb-3 flex items-center gap-2">
-              <h3 className="text-lg font-semibold">健康益处</h3>
-            </div>
-            <div className="bg-card border-border rounded-2xl border p-4 shadow-sm">
-              <Suspense fallback={<div>AI分析中...</div>}>
-                <FoodHealthBenefitAnalysis id={food.id} />
-              </Suspense>
-            </div>
-          </section>
-
-          <section className="gap-3">
-            <div className="mb-3 flex items-center gap-2">
-              <StarFilledIcon className="text-primary h-5 w-5" />
-              <h3 className="text-lg font-semibold">食用建议</h3>
-            </div>
-            <div className="bg-card border-border rounded-2xl border p-4 shadow-sm">
-              <Suspense fallback={<div>AI分析中...</div>}>
-                <FoodUsageSuggestionAnalysis id={food.id} />
-              </Suspense>
-            </div>
-          </section>
+          <HealthAnalysis analysis={healthAnalysis} id={food.id} />
+          <UsageAnalysis analysis={usageAnalysis} id={food.id} />
+          <div className="text-muted-foreground border-border mt-20 flex items-start gap-2 rounded-xl border px-3 py-3 text-[11px] leading-relaxed">
+            <AIBadge />
+            <span className="mt-0.5 flex-1">
+              带有 AI
+              标识的内容由模型生成，仅供参考，不能替代专业医疗或营养建议。
+            </span>
+          </div>
         </div>
       </main>
 
@@ -287,11 +260,15 @@ export function FoodDetail(props: FoodDetailProps) {
         <div className="flex gap-3">
           <Button
             variant="outline"
-            className="flex-1 rounded-xl px-4 py-3 text-sm font-medium"
+            size="lg"
+            className="flex-1 rounded-md font-medium"
           >
             添加到记录
           </Button>
-          <Button className="from-primary to-secondary text-primary-foreground flex-1 rounded-xl bg-linear-to-tr px-4 py-3 text-sm font-medium shadow-md transition-all duration-150 hover:shadow-lg">
+          <Button
+            size="lg"
+            className="gradient-primary text-primary-foreground flex-1 rounded-md font-medium shadow-md"
+          >
             咨询 AI 助手
           </Button>
         </div>
@@ -299,117 +276,3 @@ export function FoodDetail(props: FoodDetailProps) {
     </div>
   );
 }
-
-/**
- * 食用建议分析
- */
-const FoodUsageSuggestionAnalysis = (props: { id: number }) => {
-  const trpc = useTRPC();
-  const { data } = useSuspenseQuery(
-    trpc.analysis.advice.queryOptions({ id: props.id }),
-  );
-
-  return (
-    <ul className="flex list-none flex-col gap-3">
-      {/* {data.usage_suggestion_results.map((item: string) => (
-        <li key={item} className="flex items-start gap-3 text-sm">
-          <CheckCircledIcon className="text-primary h-5 w-5 shrink-0" />
-          <span>{item}</span>
-        </li>
-      ))} */}
-    </ul>
-  );
-};
-
-/**
- * 健康益处分析
- */
-const FoodHealthBenefitAnalysis = (props: { id: number }) => {
-  const trpc = useTRPC();
-  const { data } = useSuspenseQuery(
-    trpc.analysis.advice.queryOptions({ id: props.id }),
-  );
-
-  return (
-    <ul className="flex list-none flex-col gap-3">
-      {/* {data.health_benefit_results.map((item: string) => (
-        <li key={item} className="flex items-start gap-3 text-sm">
-          <CheckCircledIcon className="text-primary h-5 w-5 shrink-0" />
-          <span>{item}</span>
-        </li>
-      ))} */}
-    </ul>
-  );
-};
-
-/**
- * 配料分析
- */
-const FoodIngredientAnalysis = (props: { id: number }) => {
-  const trpc = useTRPC();
-  const { data } = useSuspenseQuery(
-    trpc.analysis.advice.queryOptions({ id: props.id }),
-  );
-  return (
-    <ul className="flex list-none flex-col gap-3">
-      {/* {data.ingredient_analysis_results.map((item: string) => (
-        <li key={item} className="flex items-start gap-2 text-sm">
-          <InfoCircledIcon className="mt-[2px] h-4 w-4 shrink-0" />
-          <span>{item}</span>
-        </li>
-      ))} */}
-    </ul>
-  );
-};
-
-/**
- * 母婴分析
- */
-const FoodPregnancyAnalysis = (props: { id: number }) => {
-  const trpc = useTRPC();
-  const { data } = useSuspenseQuery(
-    trpc.analysis.advice.queryOptions({ id: props.id }),
-  );
-  return (
-    <ul className="flex list-none flex-col gap-3">
-      {data.pregnancy_analysis_results.map((item: string) => (
-        <li key={item} className="flex items-start gap-3 text-sm">
-          <CheckCircledIcon className="text-primary h-5 w-5 shrink-0" />
-          <span>{item}</span>
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-/**
- * 风险等级分析
- */
-const FoodRiskLevelAnalysis = (props: { id: number }) => {
-  const trpc = useTRPC();
-  const { data } = useSuspenseQuery(
-    trpc.analysis.advice.queryOptions({ id: props.id }),
-  );
-  return (
-    <div className="from-chart-1 to-chart-2 text-primary-foreground flex items-center gap-1.5 rounded-md bg-linear-to-br px-3 py-1.5 text-sm font-medium shadow-md">
-      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-        <path
-          fill-rule="evenodd"
-          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-          clip-rule="evenodd"
-        />
-      </svg>
-      <span className="font-medium capitalize">
-        {/* {getRishLevelLabel(data.risk_level)} */}
-      </span>
-    </div>
-  );
-};
-
-const getRishLevelLabel = (riskLevel: RiskLevel) => {
-  return riskLevel === "low"
-    ? "低风险"
-    : riskLevel === "medium"
-      ? "中风险"
-      : "高风险";
-};

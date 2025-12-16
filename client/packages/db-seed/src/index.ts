@@ -1,6 +1,6 @@
 import { db } from "@acme/db/client";
 import {
-  FoodAiAnalysisTable,
+  AnalysisDetailTable,
   FoodIngredientTable,
   FoodNutritionItemTable,
   FoodTable,
@@ -285,7 +285,7 @@ async function seedNutritionItems(): Promise<SeedResult> {
   return { table: "nutrition_items", inserted: rows.length };
 }
 
-function generateFoodData(): {
+function generateFoodData(availableIngredientIds: number[]): {
   barcode: string;
   name: string;
   manufacturer?: string;
@@ -493,10 +493,14 @@ function generateFoodData(): {
     // 随机生成配料（1-4个）
     const ingredientCount = Math.floor(Math.random() * 4) + 1;
     const ingredients: number[] = [];
-    for (let j = 0; j < ingredientCount; j++) {
-      const ingId = Math.floor(Math.random() * 15) + 1;
-      if (!ingredients.includes(ingId)) {
-        ingredients.push(ingId);
+    
+    if (availableIngredientIds.length > 0) {
+      for (let j = 0; j < ingredientCount && ingredients.length < availableIngredientIds.length; j++) {
+        const randomIndex = Math.floor(Math.random() * availableIngredientIds.length);
+        const ingId = availableIngredientIds[randomIndex];
+        if (ingId && !ingredients.includes(ingId)) {
+          ingredients.push(ingId);
+        }
       }
     }
 
@@ -516,7 +520,7 @@ function generateFoodData(): {
       shelf_life: shelfLife,
       net_content: netContent,
       createdByUser: SYSTEM_USER_ID,
-      ingredientIds: ingredients.length > 0 ? ingredients : [1, 2],
+      ingredientIds: ingredients.length > 0 ? ingredients : availableIngredientIds.slice(0, 2),
     });
   }
 
@@ -524,7 +528,15 @@ function generateFoodData(): {
 }
 
 async function seedFoods(): Promise<SeedResult> {
-  const foodData = generateFoodData();
+  // 获取所有已插入的ingredient id
+  const ingredients = await db.select({ id: IngredientTable.id }).from(IngredientTable);
+  const ingredientIds = ingredients.map((ing) => ing.id);
+  
+  if (ingredientIds.length === 0) {
+    return { table: "foods", inserted: 0 };
+  }
+  
+  const foodData = generateFoodData(ingredientIds);
 
   // 分离 food 数据和 ingredient 关联数据
   const foodRows = foodData.map(
@@ -586,7 +598,10 @@ async function seedFoods(): Promise<SeedResult> {
   return { table: "foods", inserted: foodRows.length };
 }
 
-function generateNutritionData(foodIds: number[]): {
+function generateNutritionData(
+  foodIds: number[],
+  nutritionItems: { id: number; name: string; unit: string | null }[],
+): {
   food_id: number;
   nutrition_id: number;
   amount: string;
@@ -603,38 +618,63 @@ function generateNutritionData(foodIds: number[]): {
     createdByUser: string;
   }[] = [];
 
-  // 营养成分范围（每100g/100mL）
+  if (nutritionItems.length === 0) {
+    return rows;
+  }
+
+  // 营养成分范围（每100g/100mL），根据名称匹配
   const nutritionRanges: Record<
-    number,
-    { min: number; max: number; unit: string }
+    string,
+    { min: number; max: number }
   > = {
-    1: { min: 100, max: 2500, unit: "kJ" }, // 能量
-    2: { min: 0.1, max: 30, unit: "g" }, // 蛋白质
-    3: { min: 0, max: 50, unit: "g" }, // 脂肪
-    4: { min: 0, max: 100, unit: "g" }, // 碳水化合物
-    5: { min: 1, max: 2000, unit: "mg" }, // 钠
-    6: { min: 10, max: 500, unit: "mg" }, // 钙
-    7: { min: 0.1, max: 20, unit: "mg" }, // 铁
-    8: { min: 0, max: 1000, unit: "μg" }, // 维生素A
-    9: { min: 0, max: 2, unit: "mg" }, // 维生素B1
-    10: { min: 0, max: 2, unit: "mg" }, // 维生素B2
-    11: { min: 0, max: 200, unit: "mg" }, // 维生素C
-    12: { min: 0, max: 30, unit: "g" }, // 膳食纤维
+    能量: { min: 100, max: 2500 },
+    蛋白质: { min: 0.1, max: 30 },
+    脂肪: { min: 0, max: 50 },
+    碳水化合物: { min: 0, max: 100 },
+    钠: { min: 1, max: 2000 },
+    钙: { min: 10, max: 500 },
+    铁: { min: 0.1, max: 20 },
+    维生素A: { min: 0, max: 1000 },
+    维生素B1: { min: 0, max: 2 },
+    维生素B2: { min: 0, max: 2 },
+    维生素C: { min: 0, max: 200 },
+    膳食纤维: { min: 0, max: 30 },
   };
+
+  // 基础营养成分名称（必须包含）
+  const essentialNutritionNames = ["能量", "蛋白质", "脂肪", "碳水化合物", "钠"];
+
+  // 创建名称到 nutrition item 的映射
+  const nutritionMap = new Map<string, { id: number; unit: string }>();
+  for (const item of nutritionItems) {
+    nutritionMap.set(item.name, { id: item.id, unit: item.unit ?? "g" });
+  }
+
+  // 获取基础营养成分的 IDs
+  const essentialNutritionIds = essentialNutritionNames
+    .map((name) => nutritionMap.get(name)?.id)
+    .filter((id): id is number => id !== undefined);
 
   for (const foodId of foodIds) {
     // 每个食品生成5-8个营养成分数据
     const nutritionCount = Math.floor(Math.random() * 4) + 5;
     const selectedNutritions = new Set<number>();
 
-    // 确保包含基础营养成分（能量、蛋白质、脂肪、碳水化合物、钠）
-    const essentialNutritions = [1, 2, 3, 4, 5];
-    essentialNutritions.forEach((id) => selectedNutritions.add(id));
+    // 确保包含基础营养成分
+    essentialNutritionIds.forEach((id) => selectedNutritions.add(id));
 
     // 随机添加其他营养成分
-    while (selectedNutritions.size < nutritionCount) {
-      const nutritionId = Math.floor(Math.random() * 12) + 1;
-      selectedNutritions.add(nutritionId);
+    while (
+      selectedNutritions.size < nutritionCount &&
+      selectedNutritions.size < nutritionItems.length
+    ) {
+      const randomIndex = Math.floor(
+        Math.random() * nutritionItems.length,
+      );
+      const nutrition = nutritionItems[randomIndex];
+      if (nutrition) {
+        selectedNutritions.add(nutrition.id);
+      }
     }
 
     // 判断是液体还是固体（根据foodId的某些特征，这里简单随机）
@@ -642,19 +682,21 @@ function generateNutritionData(foodIds: number[]): {
     const per = isLiquid ? "100mL" : "100g";
 
     for (const nutritionId of selectedNutritions) {
-      const range = nutritionRanges[nutritionId];
+      const nutrition = nutritionItems.find((item) => item.id === nutritionId);
+      if (!nutrition) continue;
+
+      const range = nutritionRanges[nutrition.name];
       if (!range) continue;
 
       const amount = (
-        Math.random() * (range.max - range.min) +
-        range.min
+        Math.random() * (range.max - range.min) + range.min
       ).toFixed(1);
 
       rows.push({
         food_id: foodId,
         nutrition_id: nutritionId,
         amount,
-        unit: range.unit,
+        unit: nutrition.unit ?? "g",
         per,
         createdByUser: SYSTEM_USER_ID,
       });
@@ -669,11 +711,16 @@ async function seedFoodNutrition(): Promise<SeedResult> {
   const foods = await db.select({ id: FoodTable.id }).from(FoodTable);
   const foodIds = foods.map((f) => f.id);
 
-  if (foodIds.length === 0) {
+  // 获取所有已插入的nutrition items
+  const nutritionItems = await db
+    .select({ id: NutritionItemTable.id, name: NutritionItemTable.name, unit: NutritionItemTable.unit })
+    .from(NutritionItemTable);
+
+  if (foodIds.length === 0 || nutritionItems.length === 0) {
     return { table: "food_nutrition_items", inserted: 0 };
   }
 
-  const rows = generateNutritionData(foodIds);
+  const rows = generateNutritionData(foodIds, nutritionItems);
 
   await db.insert(FoodNutritionItemTable).values(rows).onConflictDoNothing();
 
@@ -683,38 +730,188 @@ async function seedFoodNutrition(): Promise<SeedResult> {
 async function seedFoodAiAnalysis(): Promise<SeedResult> {
   // 获取所有已插入的food id
   const foods = await db.select({ id: FoodTable.id }).from(FoodTable);
-  const rows = foods.map((f, idx) => ({
-    food_id: f.id,
-    analysis_type: "nutrition" as const,
-    analysis_version: "v1" as const,
-    ai_model: "seed-model",
-    summaries: ["富含碳水与适量脂肪，适合作为能量补充。"],
-    risk_level: "low" as const,
-    pregnancy_level: "low" as const,
-    confidence_score: 90 + (idx % 5),
-    raw_output: {
-      reasoning: "基于种子数据的示例分析，实际逻辑由AI生成。",
-    },
-    createdByUser: SYSTEM_USER_ID,
-    lastUpdatedByUser: SYSTEM_USER_ID,
-  }));
-
-  if (rows.length === 0) {
-    return { table: "food_ai_analysis", inserted: 0 };
+  
+  if (foods.length === 0) {
+    return { table: "analysis_details", inserted: 0 };
   }
 
-  await db.insert(FoodAiAnalysisTable).values(rows).onConflictDoNothing();
-  return { table: "food_ai_analysis", inserted: rows.length };
+  // 新的分析类型枚举值
+  const analysisTypes = [
+    "ingredient_usage_advice",
+    "ingredient_health_summary",
+    "ingredient_risk_summary",
+    "ingredient_pregnancy_safety",
+    "food_risk_summary",
+  ] as const;
+  const levels = ["t0", "t1", "t2", "t3", "t4", "unknown"] as const;
+  const aiModels = ["gpt-4", "claude-3", "seed-model"];
+
+  type AnalysisType = typeof analysisTypes[number];
+  type Level = typeof levels[number];
+
+  const rows: {
+    target_id: number;
+    target_type: "food";
+    analysis_type: AnalysisType;
+    analysis_version: "v1";
+    ai_model: string;
+    results: string[]; // JSONB 字段，存储字符串数组
+    level: Level;
+    confidence_score: number;
+    raw_output: Record<string, unknown>;
+    createdByUser: string;
+    lastUpdatedByUser: string;
+  }[] = [];
+
+  // 为每个食品生成所有5种类型的分析
+  for (const food of foods) {
+    // 为每个食品生成所有5种分析类型
+    for (const analysisType of analysisTypes) {
+      const levelIndex = Math.floor(Math.random() * levels.length);
+      const level = levels[levelIndex] ?? ("unknown" as Level);
+      const aiModel = aiModels[Math.floor(Math.random() * aiModels.length)] ?? "seed-model";
+      const confidenceScore = Math.floor(Math.random() * 20) + 75; // 75-95
+
+      // 根据分析类型生成不同的结果
+      let results: string[] = [];
+      let rawOutput: Record<string, unknown> = {};
+
+      switch (analysisType) {
+        case "ingredient_usage_advice":
+          results = [
+            "建议每日食用量不超过100g",
+            "适合作为早餐或下午茶点心",
+            "建议搭配新鲜水果一起食用",
+          ];
+          rawOutput = {
+            summary: "基于营养成分和配料表的食用建议分析",
+            key_points: ["适量食用", "搭配均衡饮食"],
+            uncertainties: [],
+          };
+          break;
+        case "ingredient_health_summary":
+          results = [
+            "富含碳水化合物，适合补充能量",
+            "含有适量蛋白质，有助于肌肉修复",
+            "钠含量适中，注意控制摄入量",
+          ];
+          rawOutput = {
+            summary: "基于营养成分表的健康影响分析",
+            key_points: ["能量补充", "蛋白质摄入", "钠含量需注意"],
+            uncertainties: [],
+          };
+          break;
+        case "ingredient_risk_summary":
+          results = [
+            "主要配料为小麦粉、白砂糖、植物油",
+            "含有食品添加剂：维生素C、柠檬酸",
+            "无已知过敏原，但需注意麸质含量",
+          ];
+          rawOutput = {
+            summary: "基于配料表的成分分析",
+            key_points: ["主要配料：小麦粉、白砂糖、植物油", "添加剂：维生素C、柠檬酸"],
+            uncertainties: ["需注意麸质含量"],
+          };
+          break;
+        case "ingredient_pregnancy_safety":
+          results = [
+            "孕妇可适量食用",
+            "建议避免过量摄入糖分",
+            "注意检查是否有过敏原",
+          ];
+          rawOutput = {
+            summary: "基于配料和营养成分的母婴安全分析",
+            key_points: ["适量食用", "注意糖分摄入"],
+            uncertainties: ["需确认是否有过敏原"],
+          };
+          break;
+        case "food_risk_summary":
+          results = [
+            "近期无重大食品安全风险",
+            "建议关注生产日期和保质期",
+            "存储条件需符合产品要求",
+          ];
+          rawOutput = {
+            summary: "基于产品信息的近期风险分析",
+            key_points: ["注意保质期", "正确存储"],
+            uncertainties: [],
+          };
+          break;
+      }
+
+      rows.push({
+        target_id: food.id,
+        target_type: "food",
+        analysis_type: analysisType,
+        analysis_version: "v1",
+        ai_model: aiModel,
+        results,
+        level,
+        confidence_score: confidenceScore,
+        raw_output: rawOutput,
+        createdByUser: SYSTEM_USER_ID,
+        lastUpdatedByUser: SYSTEM_USER_ID,
+      });
+    }
+  }
+
+  try {
+    await db.insert(AnalysisDetailTable).values(rows).onConflictDoNothing();
+  } catch (error) {
+    // 如果数据已存在，忽略错误
+    if (error instanceof Error && error.message.includes("duplicate")) {
+      console.log("Food AI analysis already seeded, skipping...");
+    } else {
+      throw error;
+    }
+  }
+
+  return { table: "analysis_details", inserted: rows.length };
+}
+
+async function clearAllData(): Promise<void> {
+  console.log("Clearing all data from database...");
+  
+  try {
+    // 按照外键依赖关系的逆序删除数据
+    // 先删除有外键依赖的表
+    await db.delete(AnalysisDetailTable);
+    console.log("Cleared analysis_details table");
+    
+    await db.delete(FoodIngredientTable);
+    console.log("Cleared food_ingredients table");
+    
+    await db.delete(FoodNutritionItemTable);
+    console.log("Cleared food_nutrition_items table");
+    
+    // 然后删除主表
+    await db.delete(FoodTable);
+    console.log("Cleared foods table");
+    
+    await db.delete(IngredientTable);
+    console.log("Cleared ingredients table");
+    
+    await db.delete(NutritionItemTable);
+    console.log("Cleared nutrition_items table");
+    
+    console.log("All data cleared successfully!");
+  } catch (error) {
+    console.error("Error clearing data:", error);
+    throw error;
+  }
 }
 
 async function main() {
+  // 先清除所有数据
+  await clearAllData();
+  
   const results: SeedResult[] = [];
 
   results.push(await seedIngredients());
   results.push(await seedNutritionItems());
   results.push(await seedFoods());
   results.push(await seedFoodNutrition());
-  // results.push(await seedFoodAiAnalysis());
+  results.push(await seedFoodAiAnalysis());
 
   for (const r of results) {
     console.log(`Seeded ${r.inserted} rows into ${r.table}`);

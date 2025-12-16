@@ -4,9 +4,6 @@ import { db } from "@acme/db/client";
 import { FoodTable } from "@acme/db/schema";
 
 class FoodRepository extends BaseRepository<typeof FoodTable, "id"> {
-  fetchDetailByFoodId(id: number) {
-    throw new Error("Method not implemented.");
-  }
   constructor() {
     super(db, FoodTable, "id");
   }
@@ -15,9 +12,14 @@ class FoodRepository extends BaseRepository<typeof FoodTable, "id"> {
     return this.db.query.FoodTable.findFirst({
       where: eq(FoodTable.barcode, barcode),
       with: {
-        foodIngredients: {
+        ingredients: {
           with: {
             ingredient: true,
+          },
+        },
+        analysis: {
+          with: {
+            food: true,
           },
         },
       },
@@ -27,9 +29,14 @@ class FoodRepository extends BaseRepository<typeof FoodTable, "id"> {
     return this.db.query.FoodTable.findFirst({
       where: eq(FoodTable.id, id),
       with: {
-        foodIngredients: {
+        ingredients: {
           with: {
             ingredient: true,
+          },
+        },
+        analysis: {
+          with: {
+            food: true,
           },
         },
       },

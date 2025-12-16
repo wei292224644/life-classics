@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>配料详情 - AI 健康助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      /* Shadcn 颜色变量 */
+      :root {
+        --background: oklch(99.405% 0.00011 271.152);
+        --foreground: oklch(0.2277 0.0105 312.0161);
+        --card: oklch(1 0 0);
+        --card-foreground: oklch(0.2277 0.0105 312.0161);
+        --primary: oklch(58.994% 0.20151 350.346);
+        --primary-foreground: oklch(1 0 0);
+        --secondary: oklch(0.967 0.0106 316.4921);
+        --secondary-foreground: oklch(0.4536 0.0226 309.5036);
+        --muted: oklch(0.967 0.0106 316.4921);
+        --muted-foreground: oklch(0.5653 0.021 306.4429);
+        --accent: oklch(0.967 0.0106 316.4921);
+        --accent-foreground: oklch(0.5605 0.1911 350.0331);
+        --destructive: oklch(0.6368 0.2078 25.3313);
+        --destructive-foreground: oklch(1 0 0);
+        --border: oklch(0.9419 0.016 310.0997);
+        --input: oklch(1 0 0);
+        --ring: oklch(0.5605 0.1911 350.0331);
+        --chart-1: oklch(0.5605 0.1911 350.0331);
+        --chart-2: oklch(0.6747 0.1492 345.9482);
+        --radius: 0.75rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background: oklch(0.1836 0.0111 311.9111);
+          --foreground: oklch(0.9788 0.0057 308.3962);
+          --card: oklch(0.1836 0.0111 311.9111);
+          --card-foreground: oklch(0.9788 0.0057 308.3962);
+          --primary: oklch(0.6747 0.1492 345.9482);
+          --primary-foreground: oklch(0.1836 0.0111 311.9111);
+          --secondary: oklch(0.2551 0.0142 310.7968);
+          --secondary-foreground: oklch(0.721 0.0184 308.1777);
+          --muted: oklch(0.2551 0.0142 310.7968);
+          --muted-foreground: oklch(0.6288 0.0177 309.9946);
+          --accent: oklch(0.2551 0.0142 310.7968);
+          --accent-foreground: oklch(0.6747 0.1492 345.9482);
+          --destructive: oklch(0.3958 0.1331 25.723);
+          --destructive-foreground: oklch(1 0 0);
+          --border: oklch(0.2941 0.0175 310.1142);
+          --input: oklch(0.2551 0.0142 310.7968);
+          --ring: oklch(0.6747 0.1492 345.9482);
+          --chart-1: oklch(0.6747 0.1492 345.9482);
+          --chart-2: oklch(0.5605 0.1911 350.0331);
+        }
+      }
+
+      /* 渐变效果 */
+      .gradient-primary {
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--chart-2) 100%
+        );
+      }
+
+      /* 动画 */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .animate-fade-in {
+        animation: fadeIn 300ms ease-out;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              background: "var(--background)",
+              foreground: "var(--foreground)",
+              card: "var(--card)",
+              "card-foreground": "var(--card-foreground)",
+              primary: "var(--primary)",
+              "primary-foreground": "var(--primary-foreground)",
+              secondary: "var(--secondary)",
+              "secondary-foreground": "var(--secondary-foreground)",
+              muted: "var(--muted)",
+              "muted-foreground": "var(--muted-foreground)",
+              accent: "var(--accent)",
+              "accent-foreground": "var(--accent-foreground)",
+              destructive: "var(--destructive)",
+              "destructive-foreground": "var(--destructive-foreground)",
+              border: "var(--border)",
+              input: "var(--input)",
+              ring: "var(--ring)",
+            },
+            borderRadius: {
+              lg: "var(--radius)",
+              md: "calc(var(--radius) - 2px)",
+              sm: "calc(var(--radius) - 4px)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="bg-background text-foreground flex min-h-screen flex-col font-sans"
+  >
+    <!-- Header -->
+    <header class="fixed top-0 right-0 left-0 z-50 bg-white shadow-md">
+      <div class="flex h-16 items-center gap-3 px-4">
+        <button
+          class="text-foreground hover:bg-muted flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
+          aria-label="返回"
+        >
+          <svg
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <h1 class="text-foreground text-lg font-semibold">
+          亚硝酸钠 (E250)
+        </h1>
+        <div class="flex-1"></div>
+        <button
+          class="text-foreground hover:bg-muted flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
+          aria-label="分享"
+        >
+          <svg
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="animate-fade-in flex-1 pt-16">
+      <div class="px-4 py-6 space-y-6">
+        <!-- Ingredient Overview with Risk -->
+        <section>
+          <div class="bg-card border-border rounded-2xl border p-5 shadow-sm">
+            <!-- 风险提示 - 更醒目 -->
+            <div class="mb-4 flex items-center gap-2">
+              <div
+                class="inline-flex items-center gap-2 rounded-lg bg-red-500 px-3 py-1.5 text-sm font-semibold text-white shadow-sm"
+              >
+                <svg
+                  class="h-4 w-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>高风险</span>
+              </div>
+              <span class="text-muted-foreground text-xs">· 谨慎使用</span>
+            </div>
+
+            <!-- AI 分析提示 -->
+            <p class="mb-4 text-sm leading-relaxed text-foreground">
+              <span class="font-semibold text-red-600 dark:text-red-400">AI 分析：</span>
+              该配料被识别为高风险添加剂，长期大量摄入可能对健康造成不良影响，建议严格控制使用场景和摄入频率。
+            </p>
+
+            <!-- 信息标签式展示 -->
+            <div class="flex flex-wrap gap-2">
+              <div class="flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5">
+                <span class="text-muted-foreground text-xs">名称</span>
+                <span class="text-sm font-semibold">亚硝酸钠</span>
+              </div>
+              <div class="flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5">
+                <span class="text-muted-foreground text-xs">代码</span>
+                <span class="text-sm font-semibold">E250</span>
+              </div>
+              <div class="flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5">
+                <span class="text-muted-foreground text-xs">功能</span>
+                <span class="text-sm font-semibold">防腐剂、护色剂</span>
+              </div>
+              <div class="flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5">
+                <span class="text-muted-foreground text-xs">来源</span>
+                <span class="text-sm font-semibold">化学合成</span>
+              </div>
+            </div>
+
+            <!-- 别名信息 -->
+            <div class="mt-3 flex items-center gap-2">
+              <span class="text-muted-foreground text-xs">别名：</span>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="text-xs rounded-md bg-muted px-2 py-0.5">E250</span>
+                <span class="text-xs rounded-md bg-muted px-2 py-0.5">亚硝酸钠盐</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Description -->
+        <section>
+          <h3 class="mb-3 text-lg font-semibold">描述</h3>
+          <div class="bg-card border-border rounded-2xl border p-4">
+            <p class="text-muted-foreground text-sm leading-relaxed">
+              亚硝酸钠是一种常用的食品添加剂，主要用于肉类制品的防腐和护色。它能够抑制肉毒杆菌的生长，同时保持肉类的红色外观。然而，亚硝酸钠在特定条件下可能转化为亚硝胺类化合物，这类物质被世界卫生组织（WHO）列为可能致癌物。
+            </p>
+          </div>
+        </section>
+
+        <!-- Risk Analysis -->
+        <section>
+          <h3 class="mb-3 flex items-center gap-2 text-lg font-semibold">
+            <svg
+              class="h-5 w-5 text-red-600 dark:text-red-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            AI 风险分析
+          </h3>
+          <div class="bg-card border-border rounded-2xl border p-4">
+            <ul class="flex list-none flex-col gap-3">
+              <li class="flex items-start gap-3">
+                <svg
+                  class="text-red-600 dark:text-red-400 mt-0.5 h-5 w-5 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span class="text-sm"
+                  >可能形成致癌物质亚硝胺，长期摄入增加患癌风险</span
+                >
+              </li>
+              <li class="flex items-start gap-3">
+                <svg
+                  class="text-red-600 dark:text-red-400 mt-0.5 h-5 w-5 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span class="text-sm"
+                  >WHO 将其列为 2A 类致癌物（可能对人类致癌）</span
+                >
+              </li>
+              <li class="flex items-start gap-3">
+                <svg
+                  class="text-red-600 dark:text-red-400 mt-0.5 h-5 w-5 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span class="text-sm"
+                  >孕妇和儿童应避免或限制摄入含有此添加剂的食物</span
+                >
+              </li>
+              <li class="flex items-start gap-3">
+                <svg
+                  class="text-red-600 dark:text-red-400 mt-0.5 h-5 w-5 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span class="text-sm"
+                  >过量摄入可能导致急性中毒，出现头痛、恶心等症状</span
+                >
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- Risk Management Info -->
+        <section>
+          <h3 class="mb-3 text-lg font-semibold">风险管理信息</h3>
+          <div class="bg-card border-border rounded-2xl border p-4">
+            <div class="flex flex-col gap-3">
+              <div class="flex items-start justify-between">
+                <span class="text-muted-foreground text-sm">WHO 致癌等级</span>
+                <span
+                  class="text-right font-medium text-red-700 dark:text-red-400"
+                  >Group 2A（可能对人类致癌）</span
+                >
+              </div>
+              <div class="border-border border-t"></div>
+              <div class="flex items-start justify-between">
+                <span class="text-muted-foreground text-sm">母婴等级</span>
+                <span class="text-right font-medium">高风险，孕妇禁用</span>
+              </div>
+              <div class="border-border border-t"></div>
+              <div class="flex items-start justify-between">
+                <span class="text-muted-foreground text-sm">过敏信息</span>
+                <span class="text-right font-medium">一般无过敏反应</span>
+              </div>
+              <div class="border-border border-t"></div>
+              <div class="flex items-start justify-between">
+                <span class="text-muted-foreground text-sm">使用限量</span>
+                <span class="text-right font-medium"
+                  >中国：≤ 0.15g/kg（以亚硝酸钠计）</span
+                >
+              </div>
+              <div class="border-border border-t"></div>
+              <div class="flex items-start justify-between">
+                <span class="text-muted-foreground text-sm">法律适用区域</span>
+                <span class="text-right font-medium">中国、欧盟、美国（限量不同）</span>
+              </div>
+              <div class="border-border border-t"></div>
+              <div class="flex items-start justify-between">
+                <span class="text-muted-foreground text-sm">执行标准</span>
+                <span class="text-right font-medium">GB 2760-2014</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Usage Recommendations -->
+        <section class="mb-2">
+          <h3 class="mb-3 flex items-center gap-2 text-lg font-semibold">
+            <svg
+              class="h-5 w-5 text-primary"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+              />
+            </svg>
+            AI 使用建议
+          </h3>
+          <div class="bg-card border-border rounded-2xl border p-4">
+            <ul class="flex list-none flex-col gap-2.5">
+              <li class="flex items-start gap-2.5 text-sm">
+                <svg
+                  class="mt-0.5 h-5 w-5 flex-shrink-0 text-primary"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span
+                  >建议减少或避免食用含有亚硝酸钠的加工肉类制品</span
+                >
+              </li>
+              <li class="flex items-start gap-2.5 text-sm">
+                <svg
+                  class="mt-0.5 h-5 w-5 flex-shrink-0 text-primary"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span
+                  >孕妇、儿童和老年人应特别注意，尽量避免摄入</span
+                >
+              </li>
+              <li class="flex items-start gap-2.5 text-sm">
+                <svg
+                  class="mt-0.5 h-5 w-5 flex-shrink-0 text-primary"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span
+                  >如必须食用，选择添加量符合国家标准的产品</span
+                >
+              </li>
+              <li class="flex items-start gap-2.5 text-sm">
+                <svg
+                  class="mt-0.5 h-5 w-5 flex-shrink-0 text-primary"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span
+                  >建议搭配富含维生素C的食物，可减少亚硝胺的形成</span
+                >
+              </li>
+            </ul>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Bottom Actions -->
+    <div class="bg-card border-border sticky bottom-0 border-t p-4">
+      <div class="flex gap-3">
+        <button
+          class="border-border bg-card hover:bg-muted flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition-colors"
+        >
+          咨询AI助手
+        </button>
+        <button
+          class="gradient-primary text-primary-foreground flex-1 rounded-xl px-4 py-3 text-sm font-medium shadow-md transition-all duration-150 hover:shadow-lg"
+        >
+          查看相关食品
+        </button>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 import { HydrateClient, prefetch, trpc } from "~/trpc/server";
-import { FoodDetail } from "../_components/food-detail";
+import { FoodDetail } from "./_components/detail";
 
 export default async function FoodDetailPage(props: {
   params: Promise<{ code: string }>;
