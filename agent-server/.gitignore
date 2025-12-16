@@ -44,7 +44,7 @@ chroma_db/
 
 # Uploads
 uploads/
-*.pdf
+# *.pdf
 *.docx
 *.pptx
 
@@ -55,4 +55,3 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
-
