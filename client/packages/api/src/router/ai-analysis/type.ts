@@ -21,28 +21,32 @@ export type AnalysisTargetType = z.infer<typeof AnalysisTargetTypeSchema>;
 // Analysis Result Types
 // ============================================================================
 
+interface AnalysisResultSummary {
+  text: string;
+  advice: boolean;
+}
 export interface AnalysisResultWithResultsUsageAdvice {
-  summaries: string[];
+  summaries: AnalysisResultSummary[];
 }
 
 export interface AnalysisResultWithResultsHealthSummary {
-  summaries: string[];
+  summaries: AnalysisResultSummary[];
 }
 
 export interface AnalysisResultWithResultsIngredientAnalysis {
-  summaries: string[];
+  summaries: AnalysisResultSummary[];
 }
 
 export interface AnalysisResultWithResultsPregnancySafetyAnalysis {
-  summaries: string[];
+  summaries: AnalysisResultSummary[];
 }
 
 export interface AnalysisResultWithIngredientsRiskAnalysis {
-  summaries: string[];
+  summaries: AnalysisResultSummary[];
 }
 
 export interface AnalysisResultWithResultsFoodRiskSummary {
-  summaries: string[];
+  summaries: AnalysisResultSummary[];
 }
 
 export interface AnalysisResultWithResultsIngredientSummary {

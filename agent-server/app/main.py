@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from app.api import router as api_router
+from app.web import router as web_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -25,6 +26,8 @@ app.add_middleware(
 
 # 注册路由
 app.include_router(api_router, prefix="/api")
+# Web UI 路由（用于浏览 ChromaDB 数据）
+app.include_router(web_router)
 
 
 @app.get("/swagger")

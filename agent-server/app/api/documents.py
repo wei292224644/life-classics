@@ -75,11 +75,16 @@ async def upload_document(
             for doc in documents:
                 doc.metadata["description"] = description
         
-        # 分割文档
-        split_docs = document_loader.split_documents(documents)
-        
-        # 添加到向量存储
-        vector_store_manager.add_documents(split_docs)
+        if settings.ENABLE_PARENT_CHILD:
+            # 父子模式：由 VectorStoreManager 负责生成父/子结构（父->SQLite，子->Chroma）
+            vector_store_manager.add_documents(documents)
+            chunk_count_hint = "（父子模式：父 chunk 已写入 SQLite，子 chunk 已写入 Chroma）"
+        else:
+            # 分割文档
+            split_docs = document_loader.split_documents(documents)
+            # 添加到向量存储
+            vector_store_manager.add_documents(split_docs)
+            chunk_count_hint = f"，共 {len(split_docs)} 个文档块"
         
         # 清理临时文件
         os.remove(file_path)
@@ -88,7 +93,7 @@ async def upload_document(
             file_name=file.filename,
             file_type=file_ext,
             status="success",
-            message=f"成功上传并处理文档，共 {len(split_docs)} 个文档块"
+            message=f"成功上传并处理文档{chunk_count_hint}"
         )
     
     except HTTPException:
@@ -110,9 +115,15 @@ async def upload_directory(directory_path: str):
         if not documents:
             return {"message": "目录中没有找到支持的文档文件"}
         
+        if settings.ENABLE_PARENT_CHILD:
+            vector_store_manager.add_documents(documents)
+            return {
+                "message": "成功处理目录（父子模式：父 chunk 写入 SQLite，子 chunk 写入 Chroma）",
+                "document_count": len(documents),
+            }
+
         # 分割文档
         split_docs = document_loader.split_documents(documents)
-        
         # 添加到向量存储
         vector_store_manager.add_documents(split_docs)
         

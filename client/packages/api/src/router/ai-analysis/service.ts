@@ -38,8 +38,8 @@ export class FoodAiAnalysisService {
         食品保质期：${foodDetail.shelf_life ?? "未知"}
         食品净含量：${foodDetail.net_content ?? "未知"}
         食品配料：
-        | 名称 | 描述 | 是否添加剂 | 添加剂代码 | 国家执行标准 | WHO致癌等级 | 母婴等级 | 过敏信息 | 功能来源 | 来源类型 | 使用限量 |
-        ${foodDetail.ingredients.map((ingredient) => ingredient.name + " | " + ingredient.description + " | " + ingredient.is_additive + " | " + ingredient.additive_code + " | " + ingredient.standard_code + " | " + ingredient.who_level + " | " + ingredient.pregnancy_level + " | " + ingredient.allergen_info + " | " + ingredient.function_type + " | " + ingredient.origin_type + " | " + ingredient.limit_usage).join(" | " + "\n")}
+        | 名称 | 描述 | 是否添加剂 | 添加剂代码 | 国家执行标准 | WHO致癌等级 | 过敏信息 | 功能来源 | 来源类型 | 使用限量 |
+        ${foodDetail.ingredients.map((ingredient) => ingredient.name + " | " + ingredient.description + " | " + ingredient.is_additive + " | " + ingredient.additive_code + " | " + ingredient.standard_code + " | " + ingredient.who_level + " | " + ingredient.allergen_info + " | " + ingredient.function_type + " | " + ingredient.origin_type + " | " + ingredient.limit_usage).join(" | " + "\n")}
         | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
 
         ---

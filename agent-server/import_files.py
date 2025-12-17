@@ -68,16 +68,21 @@ def import_pdfs_from_directory(
             # 加载文档
             documents = document_loader.load_file(str(pdf_file))
             print(f"  ✓ 加载成功，共 {len(documents)} 页")
-            
-            # 分割文档
-            split_docs = document_loader.split_documents(documents)
-            print(f"  ✓ 分割成功，共 {len(split_docs)} 个块")
-            
-            # 添加到向量存储
-            vector_store_manager.add_documents(split_docs)
-            print(f"  ✓ 已添加到向量数据库")
-            
-            total_chunks += len(split_docs)
+
+            if settings.ENABLE_PARENT_CHILD:
+                # 父子模式：由 VectorStoreManager 生成父/子结构（父->SQLite，子->Chroma）
+                vector_store_manager.add_documents(documents)
+                print("  ✓ 父子模式已入库（父->SQLite，子->Chroma）")
+            else:
+                # 分割文档
+                split_docs = document_loader.split_documents(documents)
+                print(f"  ✓ 分割成功，共 {len(split_docs)} 个块")
+
+                # 添加到向量存储
+                vector_store_manager.add_documents(split_docs)
+                print(f"  ✓ 已添加到向量数据库")
+
+                total_chunks += len(split_docs)
             success_count += 1
             
         except Exception as e:

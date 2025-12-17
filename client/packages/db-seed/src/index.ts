@@ -44,7 +44,7 @@ async function seedIngredients(): Promise<SeedResult> {
       function_type: "抗氧化剂",
       origin_type: "化学",
       risk_level: "3类",
-      pregnancy_level: "安全",
+      who_level: "Unknown" as const,
       limit_usage: "按生产需要适量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -94,7 +94,7 @@ async function seedIngredients(): Promise<SeedResult> {
       function_type: "酸度调节剂",
       origin_type: "化学",
       risk_level: "3类",
-      pregnancy_level: "安全",
+      who_level: "Unknown" as const,
       limit_usage: "按生产需要适量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -109,7 +109,7 @@ async function seedIngredients(): Promise<SeedResult> {
       function_type: "防腐剂",
       origin_type: "化学",
       risk_level: "3类",
-      pregnancy_level: "安全",
+      who_level: "Unknown" as const,
       limit_usage: "0.5-2.0g/kg",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -124,7 +124,7 @@ async function seedIngredients(): Promise<SeedResult> {
       function_type: "增味剂",
       origin_type: "化学",
       risk_level: "3类",
-      pregnancy_level: "适量",
+      who_level: "Unknown" as const,
       limit_usage: "按生产需要适量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -173,7 +173,7 @@ async function seedIngredients(): Promise<SeedResult> {
       function_type: "增稠剂",
       origin_type: "动物",
       risk_level: "3类",
-      pregnancy_level: "安全",
+      who_level: "Unknown" as const,
       limit_usage: "按生产需要适量使用",
       legal_region: "中国/欧盟/美国",
       allergen_info: "可能含动物源性成分",
@@ -294,7 +294,7 @@ async function seedIngredients(): Promise<SeedResult> {
       standard_code: "GB 2760",
       function_type: "香料",
       origin_type: "化学",
-      pregnancy_level: "适量",
+      who_level: "Unknown" as const,
       limit_usage: "按生产需要适量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -505,7 +505,7 @@ async function seedIngredients(): Promise<SeedResult> {
       standard_code: "GB 2760",
       function_type: "膨松剂",
       origin_type: "化学",
-      pregnancy_level: "适量",
+      who_level: "Unknown" as const,
       limit_usage: "按生产需要适量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -519,7 +519,7 @@ async function seedIngredients(): Promise<SeedResult> {
       standard_code: "GB 2760",
       function_type: "营养强化剂",
       origin_type: "矿物",
-      pregnancy_level: "适量",
+      who_level: "Unknown" as const,
       limit_usage: "按生产需要适量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -533,7 +533,7 @@ async function seedIngredients(): Promise<SeedResult> {
       standard_code: "GB 2760",
       function_type: "酸度调节剂",
       origin_type: "化学",
-      pregnancy_level: "安全",
+      who_level: "Unknown" as const,
       limit_usage: "按生产需要适量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -547,7 +547,7 @@ async function seedIngredients(): Promise<SeedResult> {
       standard_code: "GB 2760",
       function_type: "甜味剂",
       origin_type: "化学",
-      pregnancy_level: "适量",
+      who_level: "Unknown" as const,
       limit_usage: "按标准限量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -561,7 +561,7 @@ async function seedIngredients(): Promise<SeedResult> {
       standard_code: "GB 2760",
       function_type: "甜味剂",
       origin_type: "化学",
-      pregnancy_level: "适量",
+      who_level: "Unknown" as const,
       limit_usage: "按标准限量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -575,7 +575,7 @@ async function seedIngredients(): Promise<SeedResult> {
       standard_code: "GB 2760",
       function_type: "着色剂",
       origin_type: "化学",
-      pregnancy_level: "适量",
+      who_level: "Unknown" as const,
       limit_usage: "按标准限量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -589,7 +589,7 @@ async function seedIngredients(): Promise<SeedResult> {
       standard_code: "GB 2760",
       function_type: "着色剂",
       origin_type: "植物",
-      pregnancy_level: "安全",
+      who_level: "Unknown" as const,
       limit_usage: "按标准限量使用",
       legal_region: "中国/欧盟/美国",
       createdByUser: SYSTEM_USER_ID,
@@ -1151,12 +1151,15 @@ async function seedFoodNutrition(): Promise<SeedResult> {
   const foodIds = foods.map((f) => f.id);
 
   // 获取所有已插入的nutrition items
-  const nutritionItems = await db
+  // drizzle 的列类型在此处会被 eslint 视为 `error` 类型；我们显式标注返回结构，避免 no-unsafe-* 报错
+  const nutritionItems = (await db
     .select({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       id: NutritionTable.id,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       name: NutritionTable.name,
     })
-    .from(NutritionTable);
+    .from(NutritionTable)) as { id: number; name: string }[];
 
   if (foodIds.length === 0 || nutritionItems.length === 0) {
     return { table: "food_nutrition_items", inserted: 0 };
@@ -1329,7 +1332,6 @@ async function seedIngredientAiAnalysis(): Promise<SeedResult> {
       origin_type: IngredientTable.origin_type,
       standard_code: IngredientTable.standard_code,
       who_level: IngredientTable.who_level,
-      pregnancy_level: IngredientTable.pregnancy_level,
       allergen_info: IngredientTable.allergen_info,
     })
     .from(IngredientTable);
@@ -1390,16 +1392,19 @@ async function seedIngredientAiAnalysis(): Promise<SeedResult> {
             ing.additive_code ? `（${ing.additive_code}）` : ""
           }`,
         );
-        if (ing.function_type) baseSummaries.push(`常见用途：${ing.function_type}`);
-        if (ing.standard_code) baseSummaries.push(`参考标准：${ing.standard_code}`);
+        if (ing.function_type)
+          baseSummaries.push(`常见用途：${ing.function_type}`);
+        if (ing.standard_code)
+          baseSummaries.push(`参考标准：${ing.standard_code}`);
       } else {
         baseSummaries.push("类型：常规食品原料");
       }
 
       if (ing.origin_type) baseSummaries.push(`来源：${ing.origin_type}`);
       if (ing.who_level) baseSummaries.push(`WHO 分级：${ing.who_level}`);
-      if (ing.pregnancy_level) baseSummaries.push(`母婴提示：${ing.pregnancy_level}`);
-      if (ing.allergen_info) baseSummaries.push(`过敏提示：${ing.allergen_info}`);
+
+      if (ing.allergen_info)
+        baseSummaries.push(`过敏提示：${ing.allergen_info}`);
 
       // NOTE: analysis.results 的结构会随 analysis_type 变化而变化
       // 参见：packages/api/src/router/ai-analysis/type.ts
@@ -1447,10 +1452,7 @@ async function seedIngredientAiAnalysis(): Promise<SeedResult> {
               "风险提示：请关注添加剂/过敏原/敏感人群（seed 示例）",
             ]
           : analysisType === "recent_risk_summary"
-            ? [
-                ...baseSummaries,
-                "近期风险：暂无权威召回信息（seed 示例）",
-              ]
+            ? [...baseSummaries, "近期风险：暂无权威召回信息（seed 示例）"]
             : analysisType === "pregnancy_safety"
               ? [
                   ...baseSummaries,

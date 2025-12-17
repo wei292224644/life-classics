@@ -10,7 +10,7 @@ import { Button } from "@acme/ui/button";
 import { AIBadgeReason } from "~/app/_components/ai-badge";
 import { AnalysisCard } from "~/app/_components/analysis-card";
 import { Header } from "~/app/_components/header";
-import { levelToColor, levelToText } from "~/tools/level";
+import { levelToText } from "~/tools/level";
 import { useTRPC } from "~/trpc/react";
 
 interface IngredientDetailProps {
@@ -144,8 +144,6 @@ export function IngredientDetail(props: IngredientDetailProps) {
             </div>
           </section>
 
-          {/* Risk Analysis */}
-
           <AnalysisCard<"risk_summary">
             title="风险分析"
             id={ingredient.id}
@@ -154,8 +152,8 @@ export function IngredientDetail(props: IngredientDetailProps) {
           >
             {({ analysis }) => (
               <ul className="flex list-none flex-col gap-3">
-                {analysis.results.summaries.map((summary) => (
-                  <RiskItem key={summary} text={summary} />
+                {analysis.results.summaries.map((summary, index) => (
+                  <RiskItem key={index} text={summary.text} />
                 ))}
               </ul>
             )}
@@ -176,15 +174,7 @@ export function IngredientDetail(props: IngredientDetailProps) {
                   valueClassName="text-red-700 dark:text-red-400"
                 />
                 <Divider />
-                <InfoRow
-                  label="母婴等级"
-                  value={
-                    ingredient.pregnancy_level ??
-                    // TODO(数据): 若 pregnancy_level 为空，按设计稿可显示“未知/未收录”
-                    "未知"
-                  }
-                />
-                <Divider />
+
                 <InfoRow
                   label="过敏信息"
                   value={
@@ -226,15 +216,45 @@ export function IngredientDetail(props: IngredientDetailProps) {
 
           {/* Usage Recommendations */}
           <AnalysisCard<"usage_advice_summary">
-            title="使用建议"
+            title="食用建议"
             id={ingredient.id}
             targetType="ingredient"
             type="usage_advice_summary"
           >
             {({ analysis }) => (
               <ul className="flex list-none flex-col gap-2.5">
-                {analysis.results.summaries.map((summary) => (
-                  <AdviceItem key={summary} text={summary} />
+                {analysis.results.summaries.map((summary, index) => (
+                  <AdviceItem key={index} text={summary.text} />
+                ))}
+              </ul>
+            )}
+          </AnalysisCard>
+
+          <AnalysisCard<"pregnancy_safety">
+            title="母婴安全分析"
+            id={ingredient.id}
+            targetType="ingredient"
+            type="pregnancy_safety"
+          >
+            {({ analysis }) => (
+              <ul className="flex list-none flex-col gap-2.5">
+                {analysis.results.summaries.map((summary, index) => (
+                  <RiskItem key={index} text={summary.text} />
+                ))}
+              </ul>
+            )}
+          </AnalysisCard>
+
+          <AnalysisCard<"recent_risk_summary">
+            title="近期风险分析"
+            id={ingredient.id}
+            targetType="ingredient"
+            type="recent_risk_summary"
+          >
+            {({ analysis }) => (
+              <ul className="flex list-none flex-col gap-2.5">
+                {analysis.results.summaries.map((summary, index) => (
+                  <RiskItem key={index} text={summary.text} />
                 ))}
               </ul>
             )}

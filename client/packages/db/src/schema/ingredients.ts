@@ -15,7 +15,15 @@ export const WhoLevelEnum = pgEnum("who_level", [
   "Group 2B", // 2B类致癌物
   "Group 3", // 3类致癌物
   "Group 4", // 4类致癌物
+  "Unknown", // 未知
 ]);
+
+// export const PregnancyLevelEnum = pgEnum("pregnancy_level", [
+//   "Safe", // 安全
+//   "Moderate", // 中等风险
+//   "High", // 高风险
+//   "Unknown", // 未知
+// ]);
 
 export const IngredientTable = pgTable("ingredients", {
   id: integer().generatedAlwaysAsIdentity().primaryKey(),
@@ -34,8 +42,8 @@ export const IngredientTable = pgTable("ingredients", {
   standard_code: varchar({ length: 255 }), // 如 GB 2760
 
   // 风险管理信息
-  who_level: WhoLevelEnum("who_level"), // WHO 致癌等级
-  pregnancy_level: varchar({ length: 50 }), // 母婴等级
+  who_level: WhoLevelEnum("who_level").default("Unknown"), // WHO 致癌等级
+
   allergen_info: varchar({ length: 255 }), // 过敏信息
 
   function_type: varchar({ length: 100 }), // 功能来源，如防腐剂/增稠剂

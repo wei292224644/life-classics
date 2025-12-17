@@ -75,8 +75,8 @@ class Settings(BaseSettings):
 
     # 父子Chunk配置（使用AutoMergingRetriever）
     PARENT_CHUNK_SIZE: int = 1500  # 父chunk大小（字符数，约1000-2000 tokens）
-    CHILD_CHUNK_SIZE: int = 300  # 子chunk大小（字符数，约200-400 tokens）
-    ENABLE_PARENT_CHILD: bool = False  # 是否启用父子chunk模式
+    CHILD_CHUNK_SIZE: int = 200  # 子chunk大小（字符数，约200-400 tokens）
+    ENABLE_PARENT_CHILD: bool = True  # 是否启用父子chunk模式
 
     # 网络搜索配置
     ENABLE_WEB_SEARCH: bool = True  # 是否启用网络搜索功能
