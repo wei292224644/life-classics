@@ -15,3 +15,19 @@ export function AIBadge({ className }: { className?: string }) {
     </span>
   );
 }
+
+export function AIBadgeReason({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "text-muted-foreground border-border flex items-start gap-2 rounded-xl border px-3 py-3 text-[11px] leading-relaxed",
+        className,
+      )}
+    >
+      <AIBadge />
+      <span className="mt-0.5 flex-1">
+        带有 AI 标识的内容由模型生成，仅供参考，不能替代专业医疗或营养建议。
+      </span>
+    </div>
+  );
+}

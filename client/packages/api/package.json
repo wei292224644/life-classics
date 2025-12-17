@@ -23,6 +23,7 @@
     "@acme/auth": "workspace:*",
     "@acme/db": "workspace:*",
     "@acme/validators": "workspace:*",
+    "@anatine/zod-mock": "^3.14.0",
     "@trpc/server": "catalog:",
     "superjson": "catalog:",
     "zod": "catalog:"

@@ -49,7 +49,7 @@ export function RiskBadge({
   className,
   showText = true,
 }: RiskBadgeProps) {
-  const config = levelConfig[level] || levelConfig.unknown;
+  const config = levelConfig[level];
 
   return (
     <span

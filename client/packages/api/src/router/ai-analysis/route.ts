@@ -4,7 +4,11 @@ import z from "zod";
 
 import { createIdempotencyWindow } from "../../middleware/idempotency";
 import { publicProcedure } from "../../trpc";
-import { analysisDetail, analysisTargetType, analysisType } from "./dto";
+import {
+  AnalysisDetailSchema,
+  AnalysisTargetTypeSchema,
+  AnalysisTypeSchema,
+} from "./dto";
 import { analysisDetailRepository } from "./repository";
 
 const adviceIdempotency = createIdempotencyWindow<{ id: number }>({
@@ -18,11 +22,11 @@ export const aiAnalysisRouter = {
     .input(
       z.object({
         targetId: z.number(),
-        type: analysisType,
-        targetType: analysisTargetType,
+        type: AnalysisTypeSchema,
+        targetType: AnalysisTargetTypeSchema,
       }),
     )
-    .output(analysisDetail.nullable())
+    .output(AnalysisDetailSchema.nullable())
     .query(async ({ input }) => {
       try {
         const res =

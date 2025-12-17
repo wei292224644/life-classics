@@ -7,20 +7,23 @@ export const AnalysisVersionEnum = pgEnum("analysis_version", [
 ]);
 
 export const LevelEnum = pgEnum("level", [
-  "t0", // 低风险
+  "t4", // 严重风险
+  "t3", // 高风险
+  "t2", // 中高风险
   "t1", // 中风险
-  "t2", // 高风险
-  "t3", // 中高风险
-  "t4", // 高风险
+  "t0", // 低风险
   "unknown", // 信息不足
 ]);
 
 export const AnalysisTypeEnum = pgEnum("analysis_type", [
-  "ingredient_usage_advice", // 食用建议
-  "ingredient_health_summary", // 健康分析
-  "ingredient_risk_summary", // 风险分析
-  "ingredient_pregnancy_safety", // 母婴安全分析
-  "food_risk_summary", // 食品安全风险分析
+  "usage_advice_summary", // 食用建议
+  "health_summary", // 健康分析
+  "pregnancy_safety", // 母婴安全分析
+
+  "risk_summary", // 风险分析
+  "recent_risk_summary", // 近期风险分析
+
+  "ingredient_summary", // 配料分析
 ]);
 
 export const AnalysisTargetEnum = pgEnum("analysis_target", [

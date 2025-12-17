@@ -2,10 +2,10 @@ import { db } from "@acme/db/client";
 import {
   AnalysisDetailTable,
   FoodIngredientTable,
-  FoodNutritionItemTable,
+  FoodNutritionTable,
   FoodTable,
   IngredientTable,
-  NutritionItemTable,
+  NutritionTable,
 } from "@acme/db/schema";
 
 interface SeedResult {
@@ -179,10 +179,431 @@ async function seedIngredients(): Promise<SeedResult> {
       allergen_info: "可能含动物源性成分",
       createdByUser: SYSTEM_USER_ID,
     },
+    // —— 额外补充：让配料库更丰富，便于每个食品分配更多配料 ——
+    {
+      name: "水",
+      alias: ["纯净水"],
+      description: "常见原料",
+      is_additive: false,
+      origin_type: "其他",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "白醋",
+      alias: ["醋"],
+      description: "酸味调味料",
+      is_additive: false,
+      origin_type: "发酵",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "酱油",
+      alias: ["生抽"],
+      description: "调味品",
+      is_additive: false,
+      origin_type: "发酵",
+      allergen_info: "可能含大豆/小麦",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "番茄",
+      alias: ["番茄泥"],
+      description: "蔬菜原料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "洋葱",
+      alias: [],
+      description: "蔬菜原料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "大蒜",
+      alias: ["蒜"],
+      description: "调味原料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "姜",
+      alias: ["生姜"],
+      description: "调味原料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "葱",
+      alias: ["青葱"],
+      description: "调味原料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "辣椒",
+      alias: [],
+      description: "辛香料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "黑胡椒",
+      alias: ["胡椒"],
+      description: "香辛料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "花椒",
+      alias: [],
+      description: "香辛料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "孜然",
+      alias: [],
+      description: "香辛料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "肉桂",
+      alias: [],
+      description: "香辛料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "香草精",
+      alias: [],
+      description: "香料",
+      is_additive: true,
+      additive_code: "E1519",
+      standard_code: "GB 2760",
+      function_type: "香料",
+      origin_type: "化学",
+      pregnancy_level: "适量",
+      limit_usage: "按生产需要适量使用",
+      legal_region: "中国/欧盟/美国",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "柠檬汁",
+      alias: [],
+      description: "酸味来源",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "橙汁",
+      alias: [],
+      description: "果汁原料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "苹果汁",
+      alias: [],
+      description: "果汁原料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "草莓",
+      alias: ["草莓果粒"],
+      description: "水果原料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "香蕉",
+      alias: [],
+      description: "水果原料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "葡萄干",
+      alias: [],
+      description: "干果原料",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "花生",
+      alias: [],
+      description: "坚果原料",
+      is_additive: false,
+      origin_type: "植物",
+      allergen_info: "坚果/花生过敏原",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "杏仁",
+      alias: [],
+      description: "坚果原料",
+      is_additive: false,
+      origin_type: "植物",
+      allergen_info: "坚果过敏原",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "腰果",
+      alias: [],
+      description: "坚果原料",
+      is_additive: false,
+      origin_type: "植物",
+      allergen_info: "坚果过敏原",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "核桃",
+      alias: [],
+      description: "坚果原料",
+      is_additive: false,
+      origin_type: "植物",
+      allergen_info: "坚果过敏原",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "芝麻",
+      alias: ["白芝麻"],
+      description: "常见辅料",
+      is_additive: false,
+      origin_type: "植物",
+      allergen_info: "芝麻过敏原",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "燕麦",
+      alias: ["燕麦片"],
+      description: "谷物原料",
+      is_additive: false,
+      origin_type: "植物",
+      allergen_info: "可能含麸质",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "玉米淀粉",
+      alias: ["淀粉"],
+      description: "增稠/结构",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "木薯淀粉",
+      alias: [],
+      description: "增稠/结构",
+      is_additive: false,
+      origin_type: "植物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "黄油",
+      alias: [],
+      description: "乳脂原料",
+      is_additive: false,
+      origin_type: "动物",
+      allergen_info: "含乳制品",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "奶油",
+      alias: ["淡奶油"],
+      description: "乳脂原料",
+      is_additive: false,
+      origin_type: "动物",
+      allergen_info: "含乳制品",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "奶酪",
+      alias: [],
+      description: "乳制品原料",
+      is_additive: false,
+      origin_type: "动物",
+      allergen_info: "含乳制品",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "乳清粉",
+      alias: [],
+      description: "乳制品成分",
+      is_additive: false,
+      origin_type: "动物",
+      allergen_info: "含乳制品",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "大豆",
+      alias: ["黄豆"],
+      description: "豆类原料",
+      is_additive: false,
+      origin_type: "植物",
+      allergen_info: "大豆过敏原",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "大豆油",
+      alias: [],
+      description: "植物油脂",
+      is_additive: false,
+      origin_type: "植物",
+      allergen_info: "可能含大豆",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "豆粉",
+      alias: [],
+      description: "豆类加工原料",
+      is_additive: false,
+      origin_type: "植物",
+      allergen_info: "大豆过敏原",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "乳酸菌",
+      alias: ["益生菌"],
+      description: "发酵菌种",
+      is_additive: false,
+      origin_type: "微生物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "酵母",
+      alias: [],
+      description: "发酵用",
+      is_additive: false,
+      origin_type: "微生物",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "小苏打",
+      alias: ["碳酸氢钠"],
+      description: "膨松剂",
+      is_additive: true,
+      additive_code: "E500",
+      standard_code: "GB 2760",
+      function_type: "膨松剂",
+      origin_type: "化学",
+      pregnancy_level: "适量",
+      limit_usage: "按生产需要适量使用",
+      legal_region: "中国/欧盟/美国",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "碳酸钙",
+      alias: [],
+      description: "营养强化/酸度调节",
+      is_additive: true,
+      additive_code: "E170",
+      standard_code: "GB 2760",
+      function_type: "营养强化剂",
+      origin_type: "矿物",
+      pregnancy_level: "适量",
+      limit_usage: "按生产需要适量使用",
+      legal_region: "中国/欧盟/美国",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "柠檬酸钠",
+      alias: [],
+      description: "酸度调节剂",
+      is_additive: true,
+      additive_code: "E331",
+      standard_code: "GB 2760",
+      function_type: "酸度调节剂",
+      origin_type: "化学",
+      pregnancy_level: "安全",
+      limit_usage: "按生产需要适量使用",
+      legal_region: "中国/欧盟/美国",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "三氯蔗糖",
+      alias: [],
+      description: "甜味剂",
+      is_additive: true,
+      additive_code: "E955",
+      standard_code: "GB 2760",
+      function_type: "甜味剂",
+      origin_type: "化学",
+      pregnancy_level: "适量",
+      limit_usage: "按标准限量使用",
+      legal_region: "中国/欧盟/美国",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "阿斯巴甜",
+      alias: [],
+      description: "甜味剂",
+      is_additive: true,
+      additive_code: "E951",
+      standard_code: "GB 2760",
+      function_type: "甜味剂",
+      origin_type: "化学",
+      pregnancy_level: "适量",
+      limit_usage: "按标准限量使用",
+      legal_region: "中国/欧盟/美国",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "柠檬黄",
+      alias: [],
+      description: "着色剂",
+      is_additive: true,
+      additive_code: "E102",
+      standard_code: "GB 2760",
+      function_type: "着色剂",
+      origin_type: "化学",
+      pregnancy_level: "适量",
+      limit_usage: "按标准限量使用",
+      legal_region: "中国/欧盟/美国",
+      createdByUser: SYSTEM_USER_ID,
+    },
+    {
+      name: "β-胡萝卜素",
+      alias: [],
+      description: "着色/营养强化",
+      is_additive: true,
+      additive_code: "E160a",
+      standard_code: "GB 2760",
+      function_type: "着色剂",
+      origin_type: "植物",
+      pregnancy_level: "安全",
+      limit_usage: "按标准限量使用",
+      legal_region: "中国/欧盟/美国",
+      createdByUser: SYSTEM_USER_ID,
+    },
   ];
 
+  // NOTE: IngredientTable.alias 已调整为 string[]（非 jsonb）
+  // 这里统一做一次归一化，避免出现非数组/非字符串的 seed 值导致插入失败。
+  const normalizedRows = rows.map((row) => ({
+    ...row,
+  }));
+
   try {
-    await db.insert(IngredientTable).values(rows);
+    await db.insert(IngredientTable).values(normalizedRows);
   } catch (error) {
     // 如果数据已存在，忽略错误
     if (error instanceof Error && error.message.includes("duplicate")) {
@@ -192,7 +613,7 @@ async function seedIngredients(): Promise<SeedResult> {
     }
   }
 
-  return { table: "ingredients", inserted: rows.length };
+  return { table: "ingredients", inserted: normalizedRows.length };
 }
 
 async function seedNutritionItems(): Promise<SeedResult> {
@@ -200,80 +621,68 @@ async function seedNutritionItems(): Promise<SeedResult> {
     {
       name: "能量",
       category: "宏量营养素",
-      unit: "kJ",
       alias: ["热量"],
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "蛋白质",
       category: "宏量营养素",
-      unit: "g",
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "脂肪",
       category: "宏量营养素",
-      unit: "g",
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "碳水化合物",
       category: "宏量营养素",
-      unit: "g",
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "钠",
       category: "微量元素",
-      unit: "mg",
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "钙",
       category: "微量元素",
-      unit: "mg",
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "铁",
       category: "微量元素",
-      unit: "mg",
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "维生素A",
       category: "维生素",
-      unit: "μg",
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "维生素B1",
       category: "维生素",
-      unit: "mg",
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "维生素B2",
       category: "维生素",
-      unit: "mg",
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "维生素C",
       category: "维生素",
-      unit: "mg",
       createdByUser: SYSTEM_USER_ID,
     },
     {
       name: "膳食纤维",
       category: "宏量营养素",
-      unit: "g",
       createdByUser: SYSTEM_USER_ID,
     },
   ];
 
   try {
-    await db.insert(NutritionItemTable).values(rows);
+    await db.insert(NutritionTable).values(rows);
   } catch (error) {
     // 如果数据已存在，忽略错误
     if (error instanceof Error && error.message.includes("duplicate")) {
@@ -282,7 +691,6 @@ async function seedNutritionItems(): Promise<SeedResult> {
       throw error;
     }
   }
-
   return { table: "nutrition_items", inserted: rows.length };
 }
 
@@ -300,6 +708,26 @@ function generateFoodData(availableIngredientIds: number[]): {
   createdByUser: string;
   ingredientIds: number[];
 }[] {
+  function pickUniqueIngredientIds(minCount: number): number[] {
+    if (availableIngredientIds.length === 0) return [];
+
+    const count = Math.min(minCount, availableIngredientIds.length);
+    const pool = [...availableIngredientIds];
+
+    // Fisher–Yates shuffle（只需要打乱前 count 个也行，但这里简单写全量）
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = pool[i];
+      const other = pool[j];
+      if (tmp !== undefined && other !== undefined) {
+        pool[i] = other;
+        pool[j] = tmp;
+      }
+    }
+
+    return pool.slice(0, count);
+  }
+
   const manufacturers = [
     "美味食品有限公司",
     "清爽饮品股份",
@@ -491,26 +919,9 @@ function generateFoodData(availableIngredientIds: number[]): {
     const netContent =
       netContents[Math.floor(Math.random() * netContents.length)] ?? "100g";
 
-    // 随机生成配料（1-4个）
-    const ingredientCount = Math.floor(Math.random() * 4) + 1;
-    const ingredients: number[] = [];
-
-    if (availableIngredientIds.length > 0) {
-      for (
-        let j = 0;
-        j < ingredientCount &&
-        ingredients.length < availableIngredientIds.length;
-        j++
-      ) {
-        const randomIndex = Math.floor(
-          Math.random() * availableIngredientIds.length,
-        );
-        const ingId = availableIngredientIds[randomIndex];
-        if (ingId && !ingredients.includes(ingId)) {
-          ingredients.push(ingId);
-        }
-      }
-    }
+    // 随机生成配料：每个食品至少 8 种（在配料库不足时自动降级为全部配料）
+    const ingredientCount = Math.floor(Math.random() * 5) + 8; // 8-12
+    const ingredients = pickUniqueIngredientIds(ingredientCount);
 
     rows.push({
       barcode,
@@ -529,9 +940,7 @@ function generateFoodData(availableIngredientIds: number[]): {
       net_content: netContent,
       createdByUser: SYSTEM_USER_ID,
       ingredientIds:
-        ingredients.length > 0
-          ? ingredients
-          : availableIngredientIds.slice(0, 2),
+        ingredients.length > 0 ? ingredients : availableIngredientIds,
     });
   }
 
@@ -613,21 +1022,31 @@ async function seedFoods(): Promise<SeedResult> {
 
 function generateNutritionData(
   foodIds: number[],
-  nutritionItems: { id: number; name: string; unit: string | null }[],
+  nutritionItems: { id: number; name: string }[],
 ): {
   food_id: number;
   nutrition_id: number;
-  amount: string;
-  unit: string;
-  per: string;
+  value: string;
+  value_unit: "g" | "mg" | "kcal" | "mL" | "kJ";
+  reference_type:
+    | "PER_100_WEIGHT"
+    | "PER_100_ENERGY"
+    | "PER_SERVING"
+    | "PER_DAY";
+  reference_unit: "g" | "mg" | "kcal" | "mL" | "kJ" | "serving" | "day";
   createdByUser: string;
 }[] {
   const rows: {
     food_id: number;
     nutrition_id: number;
-    amount: string;
-    unit: string;
-    per: string;
+    value: string;
+    value_unit: "g" | "mg" | "kcal" | "mL" | "kJ";
+    reference_type:
+      | "PER_100_WEIGHT"
+      | "PER_100_ENERGY"
+      | "PER_SERVING"
+      | "PER_DAY";
+    reference_unit: "g" | "mg" | "kcal" | "mL" | "kJ" | "serving" | "day";
     createdByUser: string;
   }[] = [];
 
@@ -635,20 +1054,23 @@ function generateNutritionData(
     return rows;
   }
 
-  // 营养成分范围（每100g/100mL），根据名称匹配
-  const nutritionRanges: Record<string, { min: number; max: number }> = {
-    能量: { min: 100, max: 2500 },
-    蛋白质: { min: 0.1, max: 30 },
-    脂肪: { min: 0, max: 50 },
-    碳水化合物: { min: 0, max: 100 },
-    钠: { min: 1, max: 2000 },
-    钙: { min: 10, max: 500 },
-    铁: { min: 0.1, max: 20 },
-    维生素A: { min: 0, max: 1000 },
-    维生素B1: { min: 0, max: 2 },
-    维生素B2: { min: 0, max: 2 },
-    维生素C: { min: 0, max: 200 },
-    膳食纤维: { min: 0, max: 30 },
+  // 营养成分范围（按每100g/100mL），并给出 value_unit
+  const nutritionRanges: Record<
+    string,
+    { min: number; max: number; unit: "g" | "mg" | "kJ" | "kcal" | "mL" }
+  > = {
+    能量: { min: 200, max: 2500, unit: "kJ" },
+    蛋白质: { min: 0.1, max: 30, unit: "g" },
+    脂肪: { min: 0, max: 50, unit: "g" },
+    碳水化合物: { min: 0, max: 100, unit: "g" },
+    钠: { min: 1, max: 2000, unit: "mg" },
+    钙: { min: 10, max: 500, unit: "mg" },
+    铁: { min: 0.1, max: 20, unit: "mg" },
+    维生素A: { min: 0, max: 1000, unit: "mg" },
+    维生素B1: { min: 0, max: 2, unit: "mg" },
+    维生素B2: { min: 0, max: 2, unit: "mg" },
+    维生素C: { min: 0, max: 200, unit: "mg" },
+    膳食纤维: { min: 0, max: 30, unit: "g" },
   };
 
   // 基础营养成分名称（必须包含）
@@ -661,9 +1083,9 @@ function generateNutritionData(
   ];
 
   // 创建名称到 nutrition item 的映射
-  const nutritionMap = new Map<string, { id: number; unit: string }>();
+  const nutritionMap = new Map<string, { id: number }>();
   for (const item of nutritionItems) {
-    nutritionMap.set(item.name, { id: item.id, unit: item.unit ?? "g" });
+    nutritionMap.set(item.name, { id: item.id });
   }
 
   // 获取基础营养成分的 IDs
@@ -691,9 +1113,10 @@ function generateNutritionData(
       }
     }
 
-    // 判断是液体还是固体（根据foodId的某些特征，这里简单随机）
+    // 判断是液体还是固体（这里简单随机）
     const isLiquid = Math.random() > 0.7;
-    const per = isLiquid ? "100mL" : "100g";
+    const reference_unit = isLiquid ? ("mL" as const) : ("g" as const);
+    const reference_type = "PER_100_WEIGHT" as const;
 
     for (const nutritionId of selectedNutritions) {
       const nutrition = nutritionItems.find((item) => item.id === nutritionId);
@@ -702,17 +1125,18 @@ function generateNutritionData(
       const range = nutritionRanges[nutrition.name];
       if (!range) continue;
 
-      const amount = (
+      const value = (
         Math.random() * (range.max - range.min) +
         range.min
-      ).toFixed(1);
+      ).toFixed(4);
 
       rows.push({
         food_id: foodId,
         nutrition_id: nutritionId,
-        amount,
-        unit: nutrition.unit ?? "g",
-        per,
+        value,
+        value_unit: range.unit,
+        reference_type,
+        reference_unit,
         createdByUser: SYSTEM_USER_ID,
       });
     }
@@ -729,11 +1153,10 @@ async function seedFoodNutrition(): Promise<SeedResult> {
   // 获取所有已插入的nutrition items
   const nutritionItems = await db
     .select({
-      id: NutritionItemTable.id,
-      name: NutritionItemTable.name,
-      unit: NutritionItemTable.unit,
+      id: NutritionTable.id,
+      name: NutritionTable.name,
     })
-    .from(NutritionItemTable);
+    .from(NutritionTable);
 
   if (foodIds.length === 0 || nutritionItems.length === 0) {
     return { table: "food_nutrition_items", inserted: 0 };
@@ -741,7 +1164,7 @@ async function seedFoodNutrition(): Promise<SeedResult> {
 
   const rows = generateNutritionData(foodIds, nutritionItems);
 
-  await db.insert(FoodNutritionItemTable).values(rows).onConflictDoNothing();
+  await db.insert(FoodNutritionTable).values(rows).onConflictDoNothing();
 
   return { table: "food_nutrition_items", inserted: rows.length };
 }
@@ -756,11 +1179,11 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
 
   // 新的分析类型枚举值
   const analysisTypes = [
-    "ingredient_usage_advice",
-    "ingredient_health_summary",
-    "ingredient_risk_summary",
-    "ingredient_pregnancy_safety",
-    "food_risk_summary",
+    "usage_advice_summary",
+    "health_summary",
+    "pregnancy_safety",
+    "risk_summary",
+    "recent_risk_summary",
   ] as const;
   const levels = ["t0", "t1", "t2", "t3", "t4", "unknown"] as const;
   const aiModels = ["gpt-4", "claude-3", "seed-model"];
@@ -799,7 +1222,7 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
       let rawOutput: Record<string, unknown> = {};
 
       switch (analysisType) {
-        case "ingredient_usage_advice":
+        case "usage_advice_summary":
           results = [
             "建议每日食用量不超过100g",
             "适合作为早餐或下午茶点心",
@@ -811,7 +1234,7 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
             uncertainties: [],
           };
           break;
-        case "ingredient_health_summary":
+        case "health_summary":
           results = [
             "富含碳水化合物，适合补充能量",
             "含有适量蛋白质，有助于肌肉修复",
@@ -823,7 +1246,7 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
             uncertainties: [],
           };
           break;
-        case "ingredient_risk_summary":
+        case "risk_summary":
           results = [
             "主要配料为小麦粉、白砂糖、植物油",
             "含有食品添加剂：维生素C、柠檬酸",
@@ -838,7 +1261,7 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
             uncertainties: ["需注意麸质含量"],
           };
           break;
-        case "ingredient_pregnancy_safety":
+        case "pregnancy_safety":
           results = [
             "孕妇可适量食用",
             "建议避免过量摄入糖分",
@@ -850,7 +1273,7 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
             uncertainties: ["需确认是否有过敏原"],
           };
           break;
-        case "food_risk_summary":
+        case "recent_risk_summary":
           results = [
             "近期无重大食品安全风险",
             "建议关注生产日期和保质期",
@@ -894,6 +1317,176 @@ async function seedFoodAiAnalysis(): Promise<SeedResult> {
   return { table: "analysis_details", inserted: rows.length };
 }
 
+async function seedIngredientAiAnalysis(): Promise<SeedResult> {
+  // 获取所有已插入的 ingredient
+  const ingredients = await db
+    .select({
+      id: IngredientTable.id,
+      name: IngredientTable.name,
+      is_additive: IngredientTable.is_additive,
+      additive_code: IngredientTable.additive_code,
+      function_type: IngredientTable.function_type,
+      origin_type: IngredientTable.origin_type,
+      standard_code: IngredientTable.standard_code,
+      who_level: IngredientTable.who_level,
+      pregnancy_level: IngredientTable.pregnancy_level,
+      allergen_info: IngredientTable.allergen_info,
+    })
+    .from(IngredientTable);
+
+  if (ingredients.length === 0) {
+    return { table: "analysis_details", inserted: 0 };
+  }
+
+  const aiModels = ["gpt-4", "claude-3", "seed-model"];
+  type Level = "t0" | "t1" | "t2" | "t3" | "t4" | "unknown";
+  const levelPool: Level[] = ["t0", "t1", "t2", "t3", "t4", "unknown"];
+
+  // 与 AnalysisTypeEnum 保持一致（packages/db/src/schema/ai_analysis.ts）
+  const analysisTypes = [
+    "usage_advice_summary",
+    "health_summary",
+    "pregnancy_safety",
+    "risk_summary",
+    "recent_risk_summary",
+    "ingredient_summary",
+  ] as const;
+
+  type IngredientAnalysisType = (typeof analysisTypes)[number];
+
+  const rows: {
+    target_id: number;
+    target_type: "ingredient";
+    analysis_type: IngredientAnalysisType;
+    analysis_version: "v1";
+    ai_model: string;
+    results:
+      | { result: string; reason: string }
+      | {
+          summaries: string[];
+        };
+    level: Level;
+    confidence_score: number;
+    raw_output: Record<string, unknown>;
+    createdByUser: string;
+    lastUpdatedByUser: string;
+  }[] = [];
+
+  for (const ing of ingredients) {
+    for (const analysisType of analysisTypes) {
+      const aiModel =
+        aiModels[Math.floor(Math.random() * aiModels.length)] ?? "seed-model";
+      const confidenceScore = Math.floor(Math.random() * 15) + 80; // 80-94
+
+      // 风险等级：用 ingredient.id 做可复现的均匀分布（整体更“平均”）
+      const level = levelPool[ing.id % levelPool.length] ?? "unknown";
+
+      const baseSummaries: string[] = [];
+      baseSummaries.push(`配料：${ing.name}`);
+
+      if (ing.is_additive) {
+        baseSummaries.push(
+          `类型：食品添加剂${
+            ing.additive_code ? `（${ing.additive_code}）` : ""
+          }`,
+        );
+        if (ing.function_type) baseSummaries.push(`常见用途：${ing.function_type}`);
+        if (ing.standard_code) baseSummaries.push(`参考标准：${ing.standard_code}`);
+      } else {
+        baseSummaries.push("类型：常规食品原料");
+      }
+
+      if (ing.origin_type) baseSummaries.push(`来源：${ing.origin_type}`);
+      if (ing.who_level) baseSummaries.push(`WHO 分级：${ing.who_level}`);
+      if (ing.pregnancy_level) baseSummaries.push(`母婴提示：${ing.pregnancy_level}`);
+      if (ing.allergen_info) baseSummaries.push(`过敏提示：${ing.allergen_info}`);
+
+      // NOTE: analysis.results 的结构会随 analysis_type 变化而变化
+      // 参见：packages/api/src/router/ai-analysis/type.ts
+      const rawOutput = {
+        summary: `对配料「${ing.name}」的分析（seed 数据）`,
+        analysis_type: analysisType,
+        key_points: [
+          ing.is_additive ? "注意摄入量与敏感人群" : "一般人群可正常食用",
+          ing.allergen_info ? "存在过敏风险提示" : "无显著过敏风险提示",
+        ],
+        uncertainties: ["该分析为 seed 示例数据，非真实权威结论"],
+      };
+
+      if (analysisType === "ingredient_summary") {
+        const result =
+          level === "t4" || level === "t3"
+            ? "不建议"
+            : level === "t2"
+              ? "谨慎"
+              : level === "t1" || level === "t0"
+                ? "可接受"
+                : "未知";
+
+        rows.push({
+          target_id: ing.id,
+          target_type: "ingredient",
+          analysis_type: analysisType,
+          analysis_version: "v1",
+          ai_model: aiModel,
+          results: { result, reason: baseSummaries.join("；") },
+          level,
+          confidence_score: confidenceScore,
+          raw_output: rawOutput,
+          createdByUser: SYSTEM_USER_ID,
+          lastUpdatedByUser: SYSTEM_USER_ID,
+        });
+        continue;
+      }
+
+      // 其它类型统一用 summaries
+      const summaries =
+        analysisType === "risk_summary"
+          ? [
+              ...baseSummaries,
+              "风险提示：请关注添加剂/过敏原/敏感人群（seed 示例）",
+            ]
+          : analysisType === "recent_risk_summary"
+            ? [
+                ...baseSummaries,
+                "近期风险：暂无权威召回信息（seed 示例）",
+              ]
+            : analysisType === "pregnancy_safety"
+              ? [
+                  ...baseSummaries,
+                  "母婴建议：孕妇/哺乳期人群请结合自身情况适量（seed 示例）",
+                ]
+              : analysisType === "health_summary"
+                ? [
+                    ...baseSummaries,
+                    "健康影响：请结合整体饮食结构评估（seed 示例）",
+                  ]
+                : [
+                    ...baseSummaries,
+                    "使用建议：适量摄入，注意均衡搭配（seed 示例）",
+                  ];
+
+      rows.push({
+        target_id: ing.id,
+        target_type: "ingredient",
+        analysis_type: analysisType,
+        analysis_version: "v1",
+        ai_model: aiModel,
+        results: { summaries },
+        level,
+        confidence_score: confidenceScore,
+        raw_output: rawOutput,
+        createdByUser: SYSTEM_USER_ID,
+        lastUpdatedByUser: SYSTEM_USER_ID,
+      });
+    }
+  }
+
+  await db.insert(AnalysisDetailTable).values(rows).onConflictDoNothing();
+
+  return { table: "analysis_details", inserted: rows.length };
+}
+
 async function clearAllData(): Promise<void> {
   console.log("Clearing all data from database...");
 
@@ -906,8 +1499,8 @@ async function clearAllData(): Promise<void> {
     await db.delete(FoodIngredientTable);
     console.log("Cleared food_ingredients table");
 
-    await db.delete(FoodNutritionItemTable);
-    console.log("Cleared food_nutrition_items table");
+    await db.delete(FoodNutritionTable);
+    console.log("Cleared food_nutrition_table table");
 
     // 然后删除主表
     await db.delete(FoodTable);
@@ -916,8 +1509,8 @@ async function clearAllData(): Promise<void> {
     await db.delete(IngredientTable);
     console.log("Cleared ingredients table");
 
-    await db.delete(NutritionItemTable);
-    console.log("Cleared nutrition_items table");
+    await db.delete(NutritionTable);
+    console.log("Cleared nutrition_table table");
 
     console.log("All data cleared successfully!");
   } catch (error) {
@@ -933,6 +1526,7 @@ async function main() {
   const results: SeedResult[] = [];
 
   results.push(await seedIngredients());
+  results.push(await seedIngredientAiAnalysis());
   results.push(await seedNutritionItems());
   results.push(await seedFoods());
   results.push(await seedFoodNutrition());

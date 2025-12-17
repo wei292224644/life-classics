@@ -159,6 +159,11 @@
 
 @layer utilities {
   .gradient-primary {
-    background: linear-gradient(135deg, var(--chart-1) 0%, var(--chart-2) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--chart-2) 100%);
+  }
+  .bg-gradient-1 {
+    background:
+      linear-gradient(135deg, var(--chart-5) 0%, var(--chart-4) 100%),
+      var(--muted);
   }
 }

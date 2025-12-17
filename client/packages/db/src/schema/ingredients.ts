@@ -22,7 +22,7 @@ export const IngredientTable = pgTable("ingredients", {
 
   // 基本信息
   name: varchar({ length: 255 }).notNull(),
-  alias: jsonb("alias").default(sql`'[]'::jsonb`), // 别名数组
+  alias: varchar({ length: 255 }).array().notNull().default([]), // 别名数组
 
   description: text("description"),
 

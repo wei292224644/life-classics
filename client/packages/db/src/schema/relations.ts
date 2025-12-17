@@ -1,12 +1,14 @@
 import { relations } from "drizzle-orm";
 
-import { FoodIngredientTable, FoodTable } from "./food";
 import { AnalysisDetailTable } from "./ai_analysis";
+import { FoodIngredientTable, FoodNutritionTable, FoodTable } from "./food";
 import { IngredientTable } from "./ingredients";
+import { NutritionTable } from "./nutritions";
 
 export const FoodRelations = relations(FoodTable, ({ many }) => ({
   ingredients: many(FoodIngredientTable),
   analysis: many(AnalysisDetailTable),
+  nutritions: many(FoodNutritionTable),
 }));
 
 export const IngredientRelations = relations(IngredientTable, ({ many }) => ({
@@ -24,6 +26,24 @@ export const FoodIngredientRelations = relations(
     ingredient: one(IngredientTable, {
       fields: [FoodIngredientTable.ingredient_id],
       references: [IngredientTable.id],
+    }),
+  }),
+);
+
+export const NutritionRelations = relations(NutritionTable, ({ many }) => ({
+  nutritions: many(FoodNutritionTable),
+}));
+
+export const FoodNutritionRelations = relations(
+  FoodNutritionTable,
+  ({ one }) => ({
+    food: one(FoodTable, {
+      fields: [FoodNutritionTable.food_id],
+      references: [FoodTable.id],
+    }),
+    nutrition: one(NutritionTable, {
+      fields: [FoodNutritionTable.nutrition_id],
+      references: [NutritionTable.id],
     }),
   }),
 );

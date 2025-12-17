@@ -6,7 +6,7 @@ import { desc } from "@acme/db";
 import { FoodTable } from "@acme/db/schema";
 
 import { publicProcedure } from "../../trpc";
-import { foodDetail } from "./dto";
+import { FoodDetailSchema } from "./dto";
 import { foodRepository } from "./repository";
 
 export const foodRouter = {
@@ -19,7 +19,7 @@ export const foodRouter = {
 
   fetchByBarcode: publicProcedure
     .input(z.object({ barcode: z.string().min(1).max(32) }))
-    .output(foodDetail)
+    .output(FoodDetailSchema)
     .query(async ({ input }) => {
       const res = await foodRepository.fetchDetailByBarcode(input.barcode);
 
@@ -30,31 +30,41 @@ export const foodRouter = {
         });
       }
 
+      const nutritions = res.nutritions.map((val) => ({
+        ...val,
+        name: val.nutrition.name,
+        alias: val.nutrition.alias,
+      }));
+
       const ingredients = res.ingredients.map((val) => val.ingredient);
       const analysis = res.analysis;
 
+      const foodUsageAdviceSummaryAnalysis = analysis.find(
+        (item) => item.analysis_type === "usage_advice_summary",
+      );
+      const foodHealthSummaryAnalysis = analysis.find(
+        (item) => item.analysis_type === "health_summary",
+      );
+      const foodIngredientRiskSummaryAnalysis = analysis.find(
+        (item) => item.analysis_type === "risk_summary",
+      );
+      const foodPregnancySafetyAnalysis = analysis.find(
+        (item) => item.analysis_type === "pregnancy_safety",
+      );
+      const foodSafetyRiskSummaryAnalysis = analysis.find(
+        (item) => item.analysis_type === "recent_risk_summary",
+      );
+
       return {
         ...res,
+        nutritions,
         ingredients: ingredients,
         analysis: analysis,
+        foodUsageAdviceSummaryAnalysis,
+        foodHealthSummaryAnalysis,
+        foodIngredientRiskSummaryAnalysis,
+        foodPregnancySafetyAnalysis,
+        foodSafetyRiskSummaryAnalysis,
       };
-    }),
-
-  fetchDetailById: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .output(foodDetail)
-    .query(async ({ input }) => {
-      const res = await foodRepository.fetchDetailById(input.id);
-
-      if (!res) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Food not found",
-        });
-      }
-
-      const ingredients = res.ingredients.map((val) => val.ingredient);
-
-      return { ...res, ingredients: ingredients };
     }),
 } satisfies TRPCRouterRecord;

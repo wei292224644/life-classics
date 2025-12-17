@@ -1,7 +1,13 @@
-import { integer, pgTable, varchar } from "drizzle-orm/pg-core";
+import {
+  integer,
+  numeric,
+  pgEnum,
+  pgTable,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 import { IngredientTable } from "./ingredients";
-import { NutritionItemTable } from "./nutrition-items";
+import { NutritionTable } from "./nutritions";
 import { FullyAuditedColumns } from "./share-schema";
 
 export const FoodTable = pgTable("foods", {
@@ -48,17 +54,38 @@ export const FoodIngredientTable = pgTable("food_ingredients", {
   ...FullyAuditedColumns,
 });
 
-export const FoodNutritionItemTable = pgTable("food_nutrition_items", {
+export const UnitEnum = pgEnum("unit", ["g", "mg", "kcal", "mL", "kJ"]);
+export const ReferenceUnitEnum = pgEnum("reference_unit", [
+  "g",
+  "mg",
+  "kcal",
+  "mL",
+  "kJ",
+  "serving",
+  "day",
+]);
+
+export const ReferenceTypeEnum = pgEnum("reference_type", [
+  "PER_100_WEIGHT", // 每100g
+  "PER_100_ENERGY", // 每100kcal
+  "PER_SERVING", // 每份
+  "PER_DAY", // 每日
+]);
+
+export const FoodNutritionTable = pgTable("food_nutrition_table", {
   id: integer().generatedAlwaysAsIdentity().primaryKey(),
   food_id: integer()
     .references(() => FoodTable.id)
     .notNull(),
   nutrition_id: integer()
-    .references(() => NutritionItemTable.id)
+    .references(() => NutritionTable.id)
     .notNull(),
-  amount: varchar("amount", { length: 100 }).notNull(), // 如 "3.1"
-  unit: varchar("unit", { length: 50 }), // g / kJ
-  per: varchar("per", { length: 50 }).default("100g"), // 每份/每100g等
+
+  // 单位与说明
+  value: numeric("value", { precision: 10, scale: 4 }).notNull(),
+  value_unit: UnitEnum("value_unit").notNull(), // g / mg / kJ / kcal
+  reference_type: ReferenceTypeEnum("reference_type").notNull(),
+  reference_unit: ReferenceUnitEnum("reference_unit").notNull(),
 
   // --- 审计字段 ---
   ...FullyAuditedColumns,

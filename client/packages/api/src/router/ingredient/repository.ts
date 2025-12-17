@@ -1,9 +1,12 @@
-import { eq } from "@acme/db";
+import { and, eq } from "@acme/db";
 import { BaseRepository } from "@acme/db/baseRepository";
 import { db } from "@acme/db/client";
-import { IngredientTable } from "@acme/db/schema";
+import { AnalysisDetailTable, IngredientTable } from "@acme/db/schema";
 
-class IngredientRepository extends BaseRepository<typeof IngredientTable, "id"> {
+class IngredientRepository extends BaseRepository<
+  typeof IngredientTable,
+  "id"
+> {
   constructor() {
     super(db, IngredientTable, "id");
   }
@@ -11,6 +14,14 @@ class IngredientRepository extends BaseRepository<typeof IngredientTable, "id"> 
   public async fetchDetailById(id: number) {
     return this.db.query.IngredientTable.findFirst({
       where: eq(IngredientTable.id, id),
+      with: {
+        analysis: {
+          where: and(
+            eq(AnalysisDetailTable.target_type, "ingredient"),
+            eq(AnalysisDetailTable.target_id, id),
+          ),
+        },
+      },
     });
   }
 }

@@ -1,15 +1,15 @@
 import { createSelectSchema } from "@acme/db";
 import {
   AnalysisDetailTable,
+  AnalysisTargetEnum,
   AnalysisTypeEnum,
   LevelEnum,
-  AnalysisTargetEnum,
 } from "@acme/db/schema";
 
-export const analysisDetail = createSelectSchema(AnalysisDetailTable);
+export const AnalysisDetailSchema = createSelectSchema(AnalysisDetailTable);
 
-export const analysisLevel = createSelectSchema(LevelEnum);
+export const AnalysisLevelSchema = createSelectSchema(LevelEnum);
 
-export const analysisType = createSelectSchema(AnalysisTypeEnum);
+export const AnalysisTypeSchema = createSelectSchema(AnalysisTypeEnum);
 
-export const analysisTargetType = createSelectSchema(AnalysisTargetEnum);
+export const AnalysisTargetTypeSchema = createSelectSchema(AnalysisTargetEnum);

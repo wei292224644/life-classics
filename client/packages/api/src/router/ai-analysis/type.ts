@@ -1,60 +1,67 @@
 import type z from "zod";
 
 import type {
-  analysisDetail,
-  analysisLevel,
-  analysisTargetType,
-  analysisType,
+  AnalysisDetailSchema,
+  AnalysisLevelSchema,
+  AnalysisTargetTypeSchema,
+  AnalysisTypeSchema,
 } from "./dto";
 
 // ============================================================================
 // Base Types
 // ============================================================================
 
-export type AnalysisBaseDetail = z.infer<typeof analysisDetail>;
-export type AnalysisLevel = z.infer<typeof analysisLevel>;
-export type AnalysisType = z.infer<typeof analysisType>;
-export type AnalysisTargetType = z.infer<typeof analysisTargetType>;
+export type AnalysisBaseDetail = z.infer<typeof AnalysisDetailSchema>;
+
+export type AnalysisLevel = z.infer<typeof AnalysisLevelSchema>;
+export type AnalysisType = z.infer<typeof AnalysisTypeSchema>;
+export type AnalysisTargetType = z.infer<typeof AnalysisTargetTypeSchema>;
 
 // ============================================================================
 // Analysis Result Types
 // ============================================================================
 
-export type AnalysisResultWithResultsUsageAdvice = {
+export interface AnalysisResultWithResultsUsageAdvice {
   summaries: string[];
-};
+}
 
-export type AnalysisResultWithResultsHealthSummary = {
+export interface AnalysisResultWithResultsHealthSummary {
   summaries: string[];
-};
+}
 
-export type AnalysisResultWithResultsIngredientAnalysis = {
+export interface AnalysisResultWithResultsIngredientAnalysis {
   summaries: string[];
-};
+}
 
-export type AnalysisResultWithResultsPregnancySafetyAnalysis = {
+export interface AnalysisResultWithResultsPregnancySafetyAnalysis {
   summaries: string[];
-};
+}
 
-export type AnalysisResultWithIngredientsRiskAnalysis = {
+export interface AnalysisResultWithIngredientsRiskAnalysis {
   summaries: string[];
-};
+}
 
-export type AnalysisResultWithResultsFoodRiskSummary = {
+export interface AnalysisResultWithResultsFoodRiskSummary {
   summaries: string[];
-};
+}
 
+export interface AnalysisResultWithResultsIngredientSummary {
+  // summaries: string[];
+  result: string; //审核结果
+  reason: string; //审核原因
+}
 // ============================================================================
 // Type Mappings
 // ============================================================================
 
-type AnalysisResultMap = {
-  ingredient_usage_advice: AnalysisResultWithResultsUsageAdvice;
-  ingredient_health_summary: AnalysisResultWithResultsHealthSummary;
-  ingredient_risk_summary: AnalysisResultWithResultsIngredientAnalysis;
-  ingredient_pregnancy_safety: AnalysisResultWithResultsPregnancySafetyAnalysis;
-  food_risk_summary: AnalysisResultWithResultsFoodRiskSummary;
-};
+interface AnalysisResultMap {
+  usage_advice_summary: AnalysisResultWithResultsUsageAdvice;
+  health_summary: AnalysisResultWithResultsHealthSummary;
+  pregnancy_safety: AnalysisResultWithResultsPregnancySafetyAnalysis;
+  risk_summary: AnalysisResultWithResultsFoodRiskSummary;
+  recent_risk_summary: AnalysisResultWithResultsFoodRiskSummary;
+  ingredient_summary: AnalysisResultWithResultsIngredientSummary;
+}
 
 // ============================================================================
 // Utility Types

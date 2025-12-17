@@ -10,19 +10,17 @@ import {
 
 import { FullyAuditedColumns } from "./share-schema";
 
-export const NutritionItemTable = pgTable("nutrition_items", {
+export const NutritionTable = pgTable("nutrition_table", {
   id: integer().generatedAlwaysAsIdentity().primaryKey(),
 
   // 基本信息
   name: varchar("name", { length: 255 }).notNull(),
-  alias: jsonb("alias").default(sql`'[]'::jsonb`), // 别名数组
+  alias: varchar({ length: 255 }).array().default([]), // 别名数组
 
   // 分类
   category: varchar("category", { length: 255 }), // 如：维生素
   sub_category: varchar("sub_category", { length: 255 }), // 如：维生素B族
 
-  // 单位与说明
-  unit: varchar("unit", { length: 50 }), // g / mg / kcal 等
   description: text("description"),
 
   // 营养指南

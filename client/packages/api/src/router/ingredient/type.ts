@@ -1,5 +1,5 @@
 import type z from "zod";
 
-import type { ingredientDetail } from "./dto";
+import type { IngredientDetailSchema } from "./dto";
 
-export type IngredientDetail = z.infer<typeof ingredientDetail>;
+export type IngredientDetail = z.infer<typeof IngredientDetailSchema>;

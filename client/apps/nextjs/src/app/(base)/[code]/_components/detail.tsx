@@ -1,22 +1,26 @@
 "use client";
 
-import { Suspense, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 
+import type {
+  AnalysisDetailWithResults,
+  FoodNutritionDetail,
+} from "@acme/api/type";
 import { cn } from "@acme/ui";
 import { Button } from "@acme/ui/button";
 import { Carousel, CarouselContent, CarouselItem } from "@acme/ui/carousel";
 import { ArrowLeftIcon, ChevronDownIcon, Share2Icon } from "@acme/ui/icons";
 
-import { AIBadge } from "~/app/_components/ai-badge";
+import { AIBadgeReason } from "~/app/_components/ai-badge";
+import { AnalysisCard } from "~/app/_components/analysis-card";
+import { CheckCircledIcon } from "~/app/_icons/CheckCircledIcon";
 import { useTRPC } from "~/trpc/react";
 import { FoodRiskLevelAnalysis } from "./food-risk-level";
-import { HealthAnalysis } from "./health_analysis";
 import { Ingredients } from "./ingredients";
-import { UsageAnalysis } from "./usage_analysis";
 
 interface FoodDetailProps {
   code: string;
@@ -41,29 +45,6 @@ export function FoodDetail(props: FoodDetailProps) {
     setScrollHideImage(value >= 0.5);
   });
 
-  const [showNutritionDetail, setShowNutritionDetail] = useState(false);
-
-  const nutritionSummary = useMemo(
-    () => [
-      { label: "卡路里", value: "52", unit: "kcal" },
-      { label: "蛋白质", value: "0.3", unit: "g" },
-      { label: "脂肪", value: "0.2", unit: "g" },
-      { label: "碳水化合物", value: "14", unit: "g" },
-    ],
-    [],
-  );
-
-  const nutritionDetails = useMemo(
-    () => [
-      { label: "膳食纤维", value: "2.4g" },
-      { label: "糖分", value: "10.4g" },
-      { label: "维生素 C", value: "4.6mg" },
-      { label: "钾", value: "107mg" },
-      { label: "钙", value: "6mg" },
-    ],
-    [],
-  );
-
   const infoRows = [
     { label: "生产商", value: food.manufacturer },
     { label: "产地", value: food.origin_place },
@@ -73,22 +54,10 @@ export function FoodDetail(props: FoodDetailProps) {
     { label: "保质期", value: food.shelf_life },
     { label: "生产地址", value: food.production_address },
     { label: "净含量", value: food.net_content },
-  ].filter((item) => item.value);
+  ];
 
   const title = food.name;
   const code = food.id;
-
-  const usageAnalysis = useMemo(() => {
-    return food.analysis.find(
-      (item) => item.analysis_type === "ingredient_usage_advice",
-    );
-  }, [food.analysis]);
-
-  const healthAnalysis = useMemo(() => {
-    return food.analysis.find(
-      (item) => item.analysis_type === "ingredient_health_summary",
-    );
-  }, [food.analysis]);
 
   async function handleShare() {
     const shareText = `${title}（${code}）`;
@@ -154,17 +123,67 @@ export function FoodDetail(props: FoodDetailProps) {
             </CarouselContent>
           </Carousel>
           <div className="absolute right-4 bottom-4">
-            <Suspense fallback={null}>
-              <FoodRiskLevelAnalysis id={food.id} />
-            </Suspense>
+            <FoodRiskLevelAnalysis id={food.id} />
           </div>
         </div>
 
         <div className="space-y-6 px-4 py-6">
+          <NutritionAnalysis nutritions={food.nutritions} />
+
+          <Ingredients ingredients={food.ingredients} />
+
+          <AnalysisCard<"health_summary">
+            title="健康益处"
+            id={food.id}
+            targetType="food"
+            type="health_summary"
+            analysis={
+              food.foodHealthSummaryAnalysis as AnalysisDetailWithResults<"health_summary">
+            }
+          >
+            {({ analysis }) => (
+              <ul className="flex list-none flex-col gap-2.5">
+                {analysis.results.summaries.map((item, index: number) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-sm leading-relaxed"
+                  >
+                    <CheckCircledIcon className="text-primary h-5 w-5 shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </AnalysisCard>
+
+          <AnalysisCard<"usage_advice_summary">
+            title="食用建议"
+            id={food.id}
+            targetType="food"
+            type="usage_advice_summary"
+            analysis={
+              food.foodUsageAdviceSummaryAnalysis as AnalysisDetailWithResults<"usage_advice_summary">
+            }
+          >
+            {({ analysis }) => (
+              <ul className="flex list-none flex-col gap-2.5">
+                {analysis.results.summaries.map((item, index: number) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-sm leading-relaxed"
+                  >
+                    <CheckCircledIcon className="h-5 w-5 shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </AnalysisCard>
+
           <section className="space-y-2">
             <div className="text-muted-foreground flex items-baseline gap-2">
               <span className="text-foreground text-lg font-medium">
-                {title}
+                详情信息
               </span>
             </div>
             {infoRows.length > 0 ? (
@@ -188,71 +207,7 @@ export function FoodDetail(props: FoodDetailProps) {
             ) : null}
           </section>
 
-          <section className="gap-3">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">营养成分</h3>
-            </div>
-            <div className="from-primary/10 via-primary/5 to-secondary/20 ring-primary/15 rounded-2xl bg-linear-to-tr p-4 pb-0 shadow-sm ring-1">
-              <div className="mb-4 grid grid-cols-2 gap-4">
-                {nutritionSummary.map((item) => (
-                  <div key={item.label} className="flex flex-col gap-1">
-                    <div className="text-muted-foreground text-xs">
-                      {item.label}
-                    </div>
-                    <div className="text-2xl font-bold">{item.value}</div>
-                    <div className="text-muted-foreground text-xs">
-                      {item.unit}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div
-                className={cn(
-                  "border-border grid max-h-[500px] grid-cols-1 gap-3 border-t pt-4 transition-all duration-200",
-                  showNutritionDetail
-                    ? "opacity-100"
-                    : "max-h-0 overflow-hidden pt-0 opacity-0",
-                )}
-              >
-                {nutritionDetails.map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <span className="text-muted-foreground">{item.label}</span>
-                    <span className="font-medium">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-center">
-                <Button
-                  variant="link"
-                  className="text-muted-foreground hover:text-foreground m-0 flex size-8 items-center justify-center font-medium"
-                  onClick={() => setShowNutritionDetail((prev) => !prev)}
-                >
-                  <ChevronDownIcon
-                    className={cn(
-                      "h-4 w-4 transition-transform duration-200",
-                      showNutritionDetail ? "rotate-180" : "",
-                    )}
-                  />
-                </Button>
-              </div>
-            </div>
-          </section>
-
-          <Ingredients food={food} />
-
-          <HealthAnalysis analysis={healthAnalysis} id={food.id} />
-          <UsageAnalysis analysis={usageAnalysis} id={food.id} />
-          <div className="text-muted-foreground border-border mt-20 flex items-start gap-2 rounded-xl border px-3 py-3 text-[11px] leading-relaxed">
-            <AIBadge />
-            <span className="mt-0.5 flex-1">
-              带有 AI
-              标识的内容由模型生成，仅供参考，不能替代专业医疗或营养建议。
-            </span>
-          </div>
+          <AIBadgeReason className="mt-20" />
         </div>
       </main>
 
@@ -274,5 +229,84 @@ export function FoodDetail(props: FoodDetailProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * 营养成分
+ */
+function NutritionAnalysis({
+  nutritions,
+}: {
+  nutritions: FoodNutritionDetail[];
+}) {
+  const [showNutritionDetail, setShowNutritionDetail] = useState(false);
+
+  // get top 4 nutritions
+  const topNutritions = useMemo(() => {
+    return nutritions.slice(0, 4);
+  }, [nutritions]);
+
+  const otherNutritions = useMemo(() => {
+    return nutritions.slice(4);
+  }, [nutritions]);
+
+  return (
+    <section className="gap-3">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-lg font-semibold">营养成分</h3>
+      </div>
+      <div className="bg-gradient-1 border-primary/40 rounded-2xl border p-4 pb-0 shadow-sm">
+        <div className="mb-4 grid grid-cols-2 gap-4">
+          {topNutritions.map((item) => (
+            <div key={item.id} className="flex flex-col gap-1">
+              <div className="text-muted-foreground text-xs">{item.name}</div>
+              <div className="text-2xl font-bold">{item.value}</div>
+              <div className="text-muted-foreground -mt-2 text-xs">
+                {item.value_unit}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div
+          className={cn(
+            "border-primary/20 grid max-h-[500px] grid-cols-1 gap-3 border-t pt-4 transition-all duration-200",
+            showNutritionDetail
+              ? "opacity-100"
+              : "max-h-0 overflow-hidden pt-0 opacity-0",
+          )}
+        >
+          {otherNutritions.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between text-sm"
+            >
+              <span className="text-muted-foreground">{item.name}</span>
+              <span className="font-medium">
+                {item.value}
+                <span className="text-muted-foreground ml-2 text-xs">
+                  /{item.value_unit}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-center">
+          <Button
+            variant="link"
+            className="text-muted-foreground hover:text-foreground m-0 flex size-8 items-center justify-center font-medium"
+            onClick={() => setShowNutritionDetail((prev) => !prev)}
+          >
+            <ChevronDownIcon
+              className={cn(
+                "h-4 w-4 transition-transform duration-200",
+                showNutritionDetail ? "rotate-180" : "",
+              )}
+            />
+          </Button>
+        </div>
+      </div>
+    </section>
   );
 }

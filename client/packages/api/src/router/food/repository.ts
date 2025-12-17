@@ -1,7 +1,7 @@
-import { eq } from "@acme/db";
+import { and, eq } from "@acme/db";
 import { BaseRepository } from "@acme/db/baseRepository";
 import { db } from "@acme/db/client";
-import { FoodTable } from "@acme/db/schema";
+import { AnalysisDetailTable, FoodTable } from "@acme/db/schema";
 
 class FoodRepository extends BaseRepository<typeof FoodTable, "id"> {
   constructor() {
@@ -14,12 +14,38 @@ class FoodRepository extends BaseRepository<typeof FoodTable, "id"> {
       with: {
         ingredients: {
           with: {
-            ingredient: true,
+            ingredient: {
+              with: {
+                analysis: {
+                  where: and(
+                    eq(AnalysisDetailTable.target_type, "ingredient"),
+                    eq(AnalysisDetailTable.analysis_type, "ingredient_summary"),
+                  ),
+                  columns: {
+                    id: true,
+                    analysis_type: true,
+                    results: true,
+                    level: true,
+                  },
+                },
+              },
+            },
           },
         },
         analysis: {
+          where: eq(AnalysisDetailTable.target_type, "food"),
+          columns: {
+            id: true,
+            target_id: true,
+            target_type: true,
+            analysis_type: true,
+            results: true,
+            level: true,
+          },
+        },
+        nutritions: {
           with: {
-            food: true,
+            nutrition: true,
           },
         },
       },

@@ -3,14 +3,13 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 
 import { publicProcedure } from "../../trpc";
-import { ingredientDetail } from "./dto";
+import { IngredientDetailSchema } from "./dto";
 import { ingredientRepository } from "./repository";
-import { analysisDetailRepository } from "../ai-analysis/repository";
 
 export const ingredientRouter = {
   fetchDetailById: publicProcedure
     .input(z.object({ id: z.number() }))
-    .output(ingredientDetail)
+    .output(IngredientDetailSchema)
     .query(async ({ input }) => {
       const ingredient = await ingredientRepository.fetchDetailById(input.id);
 
@@ -21,14 +20,12 @@ export const ingredientRouter = {
         });
       }
 
-      // 获取该配料的所有AI分析
-      const analysis = await analysisDetailRepository.fetchDetailByTargetId(
-        input.id,
+      const analysis = ingredient.analysis;
+
+      const ingredientSummaryAnalysis = analysis.find(
+        (item) => item.analysis_type === "ingredient_summary",
       );
 
-      return {
-        ...ingredient,
-        analysis: analysis,
-      };
+      return { ...ingredient, analysis: ingredientSummaryAnalysis };
     }),
 } satisfies TRPCRouterRecord;
