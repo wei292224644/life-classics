@@ -9,7 +9,7 @@ class FoodRepository extends BaseRepository<typeof FoodTable, "id"> {
   }
 
   public async fetchDetailByBarcode(barcode: string) {
-    return this.db.query.FoodTable.findFirst({
+    const res = await this.db.query.FoodTable.findFirst({
       where: eq(FoodTable.barcode, barcode),
       with: {
         ingredients: {
@@ -50,6 +50,38 @@ class FoodRepository extends BaseRepository<typeof FoodTable, "id"> {
         },
       },
     });
+
+    if (!res) return res;
+
+    // ------------------------------------------------------------
+    // 把 relations 的 many 结果“压扁”为业务更好用的 shape：
+    // - ingredient.analysis: Analysis[] -> Analysis | undefined（只取 ingredient_summary）
+    // - food.analysis: Analysis[] -> 保留数组，同时派生出 5 个单条字段（供前端直接使用）
+    // ------------------------------------------------------------
+    const analysis = res.analysis;
+    const byType = Object.fromEntries(
+      analysis.map((a) => [a.analysis_type, a] as const),
+    );
+
+    const ingredients = res.ingredients.map((row) => {
+      const ingredient = row.ingredient;
+      const first = ingredient.analysis[0];
+      return {
+        ...ingredient,
+        analysis: first,
+      };
+    });
+
+    return {
+      ...res,
+      ingredients,
+      analysis,
+      foodUsageAdviceSummaryAnalysis: byType.usage_advice_summary,
+      foodHealthSummaryAnalysis: byType.health_summary,
+      foodIngredientRiskSummaryAnalysis: byType.risk_summary,
+      foodPregnancySafetyAnalysis: byType.pregnancy_safety,
+      foodSafetyRiskSummaryAnalysis: byType.recent_risk_summary,
+    };
   }
   public async fetchDetailById(id: number) {
     return this.db.query.FoodTable.findFirst({

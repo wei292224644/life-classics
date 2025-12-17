@@ -36,35 +36,9 @@ export const foodRouter = {
         alias: val.nutrition.alias,
       }));
 
-      const ingredients = res.ingredients.map((val) => val.ingredient);
-      const analysis = res.analysis;
-
-      const foodUsageAdviceSummaryAnalysis = analysis.find(
-        (item) => item.analysis_type === "usage_advice_summary",
-      );
-      const foodHealthSummaryAnalysis = analysis.find(
-        (item) => item.analysis_type === "health_summary",
-      );
-      const foodIngredientRiskSummaryAnalysis = analysis.find(
-        (item) => item.analysis_type === "risk_summary",
-      );
-      const foodPregnancySafetyAnalysis = analysis.find(
-        (item) => item.analysis_type === "pregnancy_safety",
-      );
-      const foodSafetyRiskSummaryAnalysis = analysis.find(
-        (item) => item.analysis_type === "recent_risk_summary",
-      );
-
       return {
         ...res,
         nutritions,
-        ingredients: ingredients,
-        analysis: analysis,
-        foodUsageAdviceSummaryAnalysis,
-        foodHealthSummaryAnalysis,
-        foodIngredientRiskSummaryAnalysis,
-        foodPregnancySafetyAnalysis,
-        foodSafetyRiskSummaryAnalysis,
       };
     }),
 } satisfies TRPCRouterRecord;

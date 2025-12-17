@@ -4,12 +4,13 @@ import { useRouter } from "next/navigation";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 import type { AnalysisDetailWithResults } from "@acme/api/type";
+import { cn } from "@acme/ui";
 import { Button } from "@acme/ui/button";
 
 import { AIBadgeReason } from "~/app/_components/ai-badge";
 import { AnalysisCard } from "~/app/_components/analysis-card";
 import { Header } from "~/app/_components/header";
-import { levelToText } from "~/tools/level";
+import { levelToColor, levelToText } from "~/tools/level";
 import { useTRPC } from "~/trpc/react";
 
 interface IngredientDetailProps {
@@ -51,7 +52,22 @@ export function IngredientDetail(props: IngredientDetailProps) {
             <div className="bg-card border-border rounded-2xl border p-5 shadow-sm">
               {/* 风险提示 */}
               <div className="mb-4 flex items-center gap-2">
-                <div className="inline-flex items-center gap-2 rounded-lg bg-red-500 px-3 py-1.5 text-sm text-white shadow-sm">
+                <div
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-white shadow-sm",
+                    analysis.level === "t4"
+                      ? "bg-red-500"
+                      : analysis.level === "t3"
+                        ? "bg-orange-500"
+                        : analysis.level === "t2"
+                          ? "bg-yellow-500"
+                          : analysis.level === "t1"
+                            ? "bg-lime-500"
+                            : analysis.level === "t0"
+                              ? "bg-green-500"
+                              : "bg-gray-500",
+                  )}
+                >
                   {/* icon */}
                   <svg
                     className="h-4 w-4"

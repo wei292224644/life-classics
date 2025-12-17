@@ -7,10 +7,10 @@ export const AnalysisVersionEnum = pgEnum("analysis_version", [
 ]);
 
 export const LevelEnum = pgEnum("level", [
-  "t4", // 严重风险
-  "t3", // 高风险
-  "t2", // 中高风险
-  "t1", // 中风险
+  "t4", // 高风险
+  "t3", // 中高风险
+  "t2", // 中风险
+  "t1", // 中低风险
   "t0", // 低风险
   "unknown", // 信息不足
 ]);
