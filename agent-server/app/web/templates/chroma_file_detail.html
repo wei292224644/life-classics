@@ -215,58 +215,50 @@
                 </div>
                 <div class="mt-2 space-y-2">
                   {% for c in children %}
-                  <div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-900">
-                    <div class="flex">
+                  <div 
+                    class="group relative rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-900 hover:bg-slate-100 transition-colors"
+                    data-chunk-id="{{ c.id | urlencode }}"
+                    data-chunk-text="{{ c.text | e }}"
+                    data-chunk-index="{{ c.child_index }}"
+                  >
+                    <div class="flex items-center">
                       <span class="font-medium text-blue-500 bg-slate-200 p-1"
                         >c-[{{ c.child_index }}]</span
                       >
-                      <span class="text-slate-700 ml-2 flex-1 p-1 bg-slate-100"
-                        >{{ c.text }}</span
+                      <span 
+                        class="text-slate-700 ml-2 flex-1 p-1 bg-slate-100 cursor-pointer"
+                        onclick="openChildDrawerFromElement(this.closest('[data-chunk-id]'))"
+                      >{{ c.text }}</span
                       >
+                      <div class="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
+                        <button
+                          type="button"
+                          onclick="openChildDrawerFromElement(this.closest('[data-chunk-id]'))"
+                          class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:bg-slate-50"
+                          title="编辑"
+                        >
+                          编辑
+                        </button>
+                        <form
+                          action="/chroma/chunk/{{ c.id | urlencode }}/delete"
+                          method="post"
+                          class="inline"
+                        >
+                          <input type="hidden" name="file_name" value="{{ file_name }}" />
+                          <input type="hidden" name="parent_id" value="{{ selected_parent.parent_id }}" />
+                          <input type="hidden" name="q" value="{{ q }}" />
+                          <input type="hidden" name="page" value="{{ page }}" />
+                          <input type="hidden" name="page_size" value="{{ page_size }}" />
+                          <button
+                            type="submit"
+                            class="rounded-lg border border-rose-500 bg-white px-2 py-1 text-[10px] font-medium text-rose-600 hover:bg-rose-50"
+                            title="删除"
+                          >
+                            删除
+                          </button>
+                        </form>
+                      </div>
                     </div>
-                    <details class="mt-1 space-y-2 rounded border border-slate-200 bg-white px-2 py-2 text-[10px] text-slate-600">
-                      <summary class="cursor-pointer text-slate-500">展开 编辑 / 删除</summary>
-                      <form
-                        action="/chroma/child/{{ c.id | urlencode }}/update"
-                        method="post"
-                        class="space-y-2"
-                      >
-                        <textarea
-                          name="text"
-                          required
-                          rows="2"
-                          class="w-full rounded-lg border border-slate-200 px-2 py-1 text-[11px] text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
-                        >{{ c.text }}</textarea>
-                        <input type="hidden" name="file_name" value="{{ file_name }}" />
-                        <input type="hidden" name="parent_id" value="{{ selected_parent.parent_id }}" />
-                        <input type="hidden" name="q" value="{{ q }}" />
-                        <input type="hidden" name="page" value="{{ page }}" />
-                        <input type="hidden" name="page_size" value="{{ page_size }}" />
-                        <button
-                          type="submit"
-                          class="rounded-lg bg-slate-900 px-3 py-1 text-[11px] font-medium text-white hover:bg-slate-800"
-                        >
-                          保存修改
-                        </button>
-                      </form>
-                      <form
-                        action="/chroma/chunk/{{ c.id | urlencode }}/delete"
-                        method="post"
-                        onsubmit="return confirm('确认删除该子 chunk？此操作不可恢复。')"
-                      >
-                        <input type="hidden" name="file_name" value="{{ file_name }}" />
-                        <input type="hidden" name="parent_id" value="{{ selected_parent.parent_id }}" />
-                        <input type="hidden" name="q" value="{{ q }}" />
-                        <input type="hidden" name="page" value="{{ page }}" />
-                        <input type="hidden" name="page_size" value="{{ page_size }}" />
-                        <button
-                          type="submit"
-                          class="rounded-lg border border-rose-500 bg-white px-3 py-1 text-[11px] font-medium text-rose-600 hover:bg-rose-50"
-                        >
-                          删除子 chunk
-                        </button>
-                      </form>
-                    </details>
                   </div>
                   {% else %}
                   <div
@@ -354,6 +346,74 @@
       </div>
     </div>
 
+    <div
+      id="childDrawer"
+      class="fixed inset-0 z-50 hidden"
+      aria-hidden="true"
+    >
+      <div
+        class="absolute inset-0 bg-slate-900/60"
+        onclick="closeChildDrawer()"
+      ></div>
+      <div
+        class="absolute inset-y-0 right-0 flex h-full w-full max-w-2xl flex-col overflow-hidden rounded-l-2xl bg-white shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-slate-200 px-4 py-3"
+        >
+          <div class="text-sm font-semibold text-slate-700">
+            编辑子 chunk <span id="childDrawerIndex" class="text-xs text-slate-500"></span>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs hover:bg-slate-50"
+            onclick="closeChildDrawer()"
+          >
+            关闭
+          </button>
+        </div>
+        <div class="overflow-hidden overflow-y-auto px-4 py-3">
+          <form
+            id="childEditForm"
+            action=""
+            method="post"
+            class="space-y-3"
+          >
+            <div>
+              <label class="text-xs font-medium text-slate-500">子 chunk 文本</label>
+              <textarea
+                id="childEditTextarea"
+                name="text"
+                required
+                rows="10"
+                class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+              ></textarea>
+            </div>
+            <input type="hidden" name="file_name" value="{{ file_name }}" />
+            <input type="hidden" name="parent_id" value="{{ selected_parent.parent_id }}" />
+            <input type="hidden" name="q" value="{{ q }}" />
+            <input type="hidden" name="page" value="{{ page }}" />
+            <input type="hidden" name="page_size" value="{{ page_size }}" />
+            <div class="flex justify-end gap-2">
+              <button
+                type="button"
+                class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                onclick="closeChildDrawer()"
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+              >
+                保存修改
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <script>
       async function copyText(id) {
         const el = document.getElementById(id);
@@ -380,6 +440,46 @@
 
       function closeMetadataDrawer() {
         const drawer = document.getElementById("metadataDrawer");
+        if (drawer) {
+          drawer.classList.add("hidden");
+        }
+      }
+
+      function openChildDrawerFromElement(element) {
+        if (!element) return;
+        const chunkId = element.getAttribute('data-chunk-id');
+        const text = element.getAttribute('data-chunk-text');
+        const childIndex = element.getAttribute('data-chunk-index');
+        
+        if (chunkId && text !== null) {
+          openChildDrawer(chunkId, text, childIndex);
+        }
+      }
+
+      function openChildDrawer(chunkId, text, childIndex) {
+        const drawer = document.getElementById("childDrawer");
+        const form = document.getElementById("childEditForm");
+        const textarea = document.getElementById("childEditTextarea");
+        const indexSpan = document.getElementById("childDrawerIndex");
+        
+        if (drawer && form && textarea) {
+          // 设置表单 action
+          form.action = `/chroma/child/${chunkId}/update`;
+          // 设置文本内容（data 属性已经 HTML 转义，直接使用）
+          textarea.value = text;
+          // 设置索引显示
+          if (indexSpan) {
+            indexSpan.textContent = `(c-[${childIndex}])`;
+          }
+          // 显示 drawer
+          drawer.classList.remove("hidden");
+          // 聚焦到文本区域
+          setTimeout(() => textarea.focus(), 100);
+        }
+      }
+
+      function closeChildDrawer() {
+        const drawer = document.getElementById("childDrawer");
         if (drawer) {
           drawer.classList.add("hidden");
         }

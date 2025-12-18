@@ -35,6 +35,11 @@ docx2python>=1.9.0
 python-pptx>=0.6.23
 markdown>=3.5.0
 
+# OCR支持（用于处理图片型PDF）
+pytesseract>=0.3.10
+Pillow>=10.0.0
+pdf2image>=1.16.3
+
 # 工具库
 tiktoken>=0.5.0
 requests>=2.31.0

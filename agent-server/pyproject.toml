@@ -28,6 +28,9 @@ dependencies = [
     "tiktoken>=0.5.0",
     "requests>=2.31.0",
     "ddgs>=9.0.0",  # 网络搜索工具（DuckDuckGo，原 duckduckgo-search）
+    "pytesseract>=0.3.13",
+    "pillow>=12.0.0",
+    "pdf2image>=1.17.0",
 ]
 
 [build-system]

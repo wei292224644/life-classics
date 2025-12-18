@@ -424,6 +424,43 @@ class VectorStoreManager:
             return []
         return self.parent_store.list_file_groups()
 
+    def list_parent_files_page(
+        self,
+        limit: int = 20,
+        offset: int = 0,
+        search: str = "",
+        sort_by: str = "name",
+        sort_order: str = "asc",
+    ) -> Dict[str, Any]:
+        """返回按文件聚合的父 chunk 汇总信息（分页版本，支持搜索和排序）"""
+        if not settings.ENABLE_PARENT_CHILD:
+            return {"files": [], "total": 0}
+        files, total = self.parent_store.list_file_groups_page(
+            limit=limit,
+            offset=offset,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
+        return {"files": files, "total": total}
+
+    def file_exists(self, file_name: str) -> bool:
+        """检查文件是否已经在知识库中"""
+        if not settings.ENABLE_PARENT_CHILD:
+            # 非父子模式：检查 ChromaDB 中是否有该文件的文档
+            try:
+                results = self.vector_store._collection.get(
+                    where={"file_name": file_name},
+                    limit=1,
+                )
+                return len(results.get("ids", [])) > 0
+            except Exception:
+                return False
+        else:
+            # 父子模式：检查 SQLite 中是否有该文件的父 chunk
+            parent_ids = self.parent_store.list_parent_ids_by_file(file_name)
+            return len(parent_ids) > 0
+
     def get_parent_by_id(self, parent_id: str) -> Dict[str, Any]:
         """获取父 chunk（SQLite）"""
         parent = self.parent_store.get_parent(parent_id)

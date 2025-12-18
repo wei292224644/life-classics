@@ -82,16 +82,47 @@ async def chroma_home(request: Request):
 
 
 @router.get("/chroma/files", response_class=HTMLResponse)
-async def chroma_files(request: Request):
+async def chroma_files(
+    request: Request,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=5, le=200),
+    search: str = Query("", description="文件名搜索"),
+    sort_by: str = Query("name", description="排序字段: name 或 updated"),
+    sort_order: str = Query("asc", description="排序方向: asc 或 desc"),
+):
     """按文件查看父 chunk 汇总"""
     info = vector_store_manager.get_collection_info()
-    files = vector_store_manager.list_parent_files()
+    offset = (page - 1) * page_size
+    
+    # 验证排序参数
+    if sort_by not in ["name", "updated"]:
+        sort_by = "name"
+    if sort_order not in ["asc", "desc"]:
+        sort_order = "asc"
+    
+    page_data = vector_store_manager.list_parent_files_page(
+        limit=page_size,
+        offset=offset,
+        search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
+    files = page_data.get("files", [])
+    total = page_data.get("total", 0)
+    total_pages = (total + page_size - 1) // page_size if page_size else 0
     return templates.TemplateResponse(
         "chroma_files.html",
         {
             "request": request,
             "info": info,
             "files": files,
+            "page": page,
+            "page_size": page_size,
+            "total": total,
+            "total_pages": total_pages,
+            "search": search,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
         },
     )
 

@@ -226,4 +226,95 @@ class ParentChunkStore:
         result.sort(key=lambda x: (-x["total_parents"], x["file_name"]))
         return result
 
+    def list_file_groups_page(
+        self,
+        limit: int = 20,
+        offset: int = 0,
+        search: str = "",
+        sort_by: str = "name",  # "name" 或 "updated"
+        sort_order: str = "asc",  # "asc" 或 "desc"
+    ) -> Tuple[List[Dict[str, Any]], int]:
+        """按 file_name 聚合父 chunk 信息（分页版本，支持搜索和排序）"""
+        # 构建搜索条件
+        search_where = ""
+        search_params: List[Any] = []
+        if search.strip():
+            search_where = "WHERE file_name LIKE ?"
+            search_params.append(f"%{search.strip()}%")
+
+        # 先获取总数（考虑搜索条件）
+        with self._connect() as conn:
+            total_sql = "SELECT COUNT(DISTINCT file_name) AS c FROM parent_chunks " + search_where
+            total_row = conn.execute(total_sql, search_params).fetchone()
+        total = int(total_row["c"]) if total_row else 0
+
+        # 获取所有分组数据（需要先聚合再分页）
+        with self._connect() as conn:
+            rows_sql = """
+                SELECT file_name, content_type, COUNT(1) AS chunk_count
+                FROM parent_chunks
+                """ + search_where + """
+                GROUP BY file_name, content_type
+            """
+            rows = conn.execute(rows_sql, search_params).fetchall()
+            
+            latest_sql = """
+                SELECT file_name, MAX(created_at) AS latest_created_at
+                FROM parent_chunks
+                """ + search_where + """
+                GROUP BY file_name
+            """
+            latest_rows = conn.execute(latest_sql, search_params).fetchall()
+
+        groups: Dict[str, Dict[str, Any]] = {}
+        for row in rows:
+            file_name = row["file_name"] or "unknown"
+            group = groups.setdefault(
+                file_name,
+                {
+                    "file_name": file_name,
+                    "total_parents": 0,
+                    "content_types": {},
+                    "latest_created_at": None,
+                },
+            )
+            content_type = row["content_type"] or "unknown"
+            chunk_count = int(row["chunk_count"] or 0)
+            group["content_types"][content_type] = group["content_types"].get(content_type, 0) + chunk_count
+            group["total_parents"] += chunk_count
+
+        for row in latest_rows:
+            file_name = row["file_name"] or "unknown"
+            group = groups.setdefault(
+                file_name,
+                {
+                    "file_name": file_name,
+                    "total_parents": 0,
+                    "content_types": {},
+                    "latest_created_at": None,
+                },
+            )
+            group["latest_created_at"] = row["latest_created_at"]
+
+        result = list(groups.values())
+        
+        # 应用排序
+        if sort_by == "name":
+            if sort_order == "asc":
+                result.sort(key=lambda x: x["file_name"])
+            else:
+                result.sort(key=lambda x: x["file_name"], reverse=True)
+        elif sort_by == "updated":
+            if sort_order == "asc":
+                result.sort(key=lambda x: (x["latest_created_at"] is None, x["latest_created_at"] or ""))
+            else:
+                result.sort(key=lambda x: (x["latest_created_at"] is not None, x["latest_created_at"] or ""), reverse=True)
+        else:
+            # 默认按总数降序，然后按文件名升序
+            result.sort(key=lambda x: (-x["total_parents"], x["file_name"]))
+        
+        # 应用分页
+        paginated_result = result[offset : offset + limit]
+        return paginated_result, total
+
 

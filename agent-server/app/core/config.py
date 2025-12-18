@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     # 文档处理配置
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
     SUPPORTED_EXTENSIONS: List[str] = [".pdf", ".txt", ".md", ".docx", ".pptx"]
+    
+    # OCR配置（用于处理图片型PDF）
+    ENABLE_OCR: bool = True  # 是否启用OCR功能
+    OCR_LANG: str = "chi_sim+eng"  # OCR语言，chi_sim=简体中文，eng=英文，可组合使用
+    OCR_MIN_TEXT_LENGTH: int = 10  # 如果提取的文本长度小于此值，尝试使用OCR
 
     # 文档分割策略: "simple" 或 "structured"
     # simple: 简单分割（适合常规纯文本）

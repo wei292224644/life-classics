@@ -17,6 +17,20 @@ import pdfplumber
 from app.core.config import settings
 from app.core.embeddings import get_embedding_model
 
+# OCR 相关导入（可选）
+try:
+    import pytesseract
+    from PIL import Image
+    from pdf2image import convert_from_path
+    from pdf2image.exceptions import PDFInfoNotInstalledError
+    OCR_AVAILABLE = True
+except ImportError:
+    OCR_AVAILABLE = False
+    pytesseract = None
+    Image = None
+    convert_from_path = None
+    PDFInfoNotInstalledError = None
+
 
 class DocumentLoader:
     """文档加载器 - 支持多种分割策略"""
@@ -79,36 +93,140 @@ class DocumentLoader:
 
         return documents
 
+    def _extract_text_with_ocr(self, pdf_path: str, page_num: int) -> str:
+        """
+        使用OCR提取PDF页面中的文本（适用于图片型PDF）
+        
+        Args:
+            pdf_path: PDF文件路径
+            page_num: 页码（从1开始）
+            
+        Returns:
+            提取的文本内容
+        """
+        if not OCR_AVAILABLE or not settings.ENABLE_OCR:
+            return ""
+        
+        try:
+            # 将PDF页面转换为图片
+            images = convert_from_path(
+                pdf_path,
+                first_page=page_num,
+                last_page=page_num,
+                dpi=300,  # 提高DPI以获得更好的OCR效果
+            )
+            
+            if not images:
+                print(f"  警告: 无法将页面 {page_num} 转换为图片")
+                return ""
+            
+            # 使用OCR提取文本
+            image = images[0]
+            text = pytesseract.image_to_string(
+                image,
+                lang=settings.OCR_LANG,
+            )
+            
+            result = text.strip() if text else ""
+            if not result:
+                print(f"  警告: OCR 未能识别出文本（可能是空白页或图片质量问题）")
+            return result
+        except PDFInfoNotInstalledError:
+            print(f"  错误: Poppler 未安装，无法将 PDF 转换为图片")
+            print(f"        请安装 Poppler:")
+            print(f"        macOS: brew install poppler")
+            print(f"        Ubuntu/Debian: sudo apt-get install poppler-utils")
+            print(f"        Windows: 下载并安装 https://github.com/oschwartz10612/poppler-windows/releases")
+            return ""
+        except FileNotFoundError as e:
+            if 'tesseract' in str(e).lower() or 'pdfinfo' in str(e).lower():
+                print(f"  错误: 系统依赖未找到")
+                print(f"        请安装:")
+                print(f"        - Poppler: brew install poppler (macOS)")
+                print(f"        - Tesseract: brew install tesseract tesseract-lang (macOS)")
+            else:
+                print(f"  错误: {e}")
+            return ""
+        except Exception as e:
+            print(f"  错误: OCR提取失败 (页面 {page_num}): {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            return ""
+
     def _load_pdf_structured(
         self, file_path: str, file_path_obj: Path
     ) -> List[Document]:
         """
         使用pdfplumber结构化加载PDF，提取表格、识别章节和公式
+        如果页面没有文本，自动尝试使用OCR（如果启用）
         """
         documents = []
+        
+        # 打印 OCR 状态信息
+        if settings.ENABLE_OCR:
+            if OCR_AVAILABLE:
+                print(f"OCR 功能已启用，语言: {settings.OCR_LANG}")
+            else:
+                print("警告: OCR 功能已启用但依赖未安装，请运行: pip install pytesseract Pillow pdf2image")
+                print("      并安装 Tesseract OCR: brew install tesseract tesseract-lang (macOS)")
 
         with pdfplumber.open(file_path) as pdf:
+            total_pages = len(pdf.pages)
+            print(f"PDF 总页数: {total_pages}")
+            
             for page_num, page in enumerate(pdf.pages, 1):
                 # 提取文本
                 text = page.extract_text() or ""
-
-                # 提取表格
-                tables = (
-                    page.extract_tables(
-                        table_settings={
-                            "vertical_strategy": "lines",
-                            "horizontal_strategy": "lines",
-                            "edge_min_length": 50,
-                            "snap_tolerance": 3,
-                            "join_tolerance": 2,
-                        }
-                    )
-                    or []
-                )
+                original_text_length = len(text.strip())
+                
+                # 如果文本为空或太短，且启用了OCR，尝试使用OCR
+                if (
+                    settings.ENABLE_OCR
+                    and OCR_AVAILABLE
+                    and original_text_length < settings.OCR_MIN_TEXT_LENGTH
+                ):
+                    print(f"页面 {page_num}/{total_pages}: 文本长度 {original_text_length} < {settings.OCR_MIN_TEXT_LENGTH}，尝试使用 OCR...")
+                    ocr_text = self._extract_text_with_ocr(file_path, page_num)
+                    if ocr_text:
+                        text = ocr_text
+                        print(f"  ✓ OCR 成功: 提取了 {len(text)} 个字符")
+                    else:
+                        print(f"  ✗ OCR 失败: 未能提取文本")
+                
+                # 提取表格（仅当有文本时尝试提取表格）
+                tables = []
+                if text:
+                    try:
+                        tables = (
+                            page.extract_tables(
+                                table_settings={
+                                    "vertical_strategy": "lines",
+                                    "horizontal_strategy": "lines",
+                                    "edge_min_length": 50,
+                                    "snap_tolerance": 3,
+                                    "join_tolerance": 2,
+                                }
+                            )
+                            or []
+                        )
+                    except Exception:
+                        # 如果提取表格失败，继续处理文本
+                        tables = []
 
                 if not text and not tables:
+                    # 如果既没有文本也没有表格，跳过此页
+                    print(f"警告: 页面 {page_num}/{total_pages} 无法提取文本或表格，跳过")
                     continue
 
+                # 检测是否使用了OCR
+                original_text = page.extract_text() or ""
+                used_ocr = (
+                    settings.ENABLE_OCR
+                    and OCR_AVAILABLE
+                    and len(original_text.strip()) < settings.OCR_MIN_TEXT_LENGTH
+                    and len(text.strip()) >= settings.OCR_MIN_TEXT_LENGTH
+                )
+                
                 # 创建页面文档，包含表格信息
                 page_doc = Document(
                     page_content=text,
@@ -118,6 +236,7 @@ class DocumentLoader:
                         "file_type": ".pdf",
                         "page_number": page_num,
                         "table_count": len(tables),
+                        "extracted_with_ocr": used_ocr,
                         "_tables": tables,  # 内部使用，用于后续分割
                         "_raw_text": text,  # 保留原始文本
                     },
