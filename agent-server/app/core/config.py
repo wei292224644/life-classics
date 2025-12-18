@@ -43,29 +43,14 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
     SUPPORTED_EXTENSIONS: List[str] = [".pdf", ".txt", ".md", ".docx", ".pptx"]
 
-    # 文档分割策略: "simple", "semantic", "sentence", "markdown", "hybrid", "structured"
-    # simple: 简单分割（推荐用于纯文本）
-    # semantic: 语义分割（推荐用于包含表格和公式的PDF）
-    # sentence: 按句子分割（保持句子完整性）
-    # markdown: Markdown格式分割（按标题分割）
-    # hybrid: 混合策略（结合多种方法）
-    # structured: 结构化分割（推荐用于包含表格和公式的PDF）
+    # 文档分割策略: "simple" 或 "structured"
+    # simple: 简单分割（适合常规纯文本）
+    # structured: 结构化分割（针对表格、公式等复杂布局的PDF）
     SPLIT_STRATEGY: str = "structured"
 
     # Simple分割器配置
     CHUNK_SIZE: int = 1000
     CHUNK_OVERLAP: int = 200
-
-    # Semantic分割器配置（用于包含表格和公式的PDF）
-    SEMANTIC_CHUNK_SIZE: int = 1000
-    SEMANTIC_SIMILARITY_THRESHOLD: float = 0.7
-
-    # Sentence分割器配置
-    SENTENCE_CHUNK_SIZE: int = 1500
-    SENTENCE_CHUNK_OVERLAP: int = 200
-
-    # Markdown分割器配置
-    MARKDOWN_SPLIT_HEADERS: List[str] = ["h1", "h2", "h3"]
 
     # Structured分割器配置（用于包含表格和公式的PDF，推荐）
     STRUCTURED_TEXT_CHUNK_SIZE: int = 900  # 普通文本块大小

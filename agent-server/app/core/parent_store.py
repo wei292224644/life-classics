@@ -156,4 +156,74 @@ class ParentChunkStore:
             return "", []
         return "WHERE " + " AND ".join(clauses), params
 
+    def list_parent_ids_by_file(self, file_name: str) -> List[str]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT parent_id FROM parent_chunks WHERE file_name = ?",
+                (file_name,),
+            ).fetchall()
+        return [row["parent_id"] for row in rows]
+
+    def delete_parents_by_file_name(self, file_name: str) -> List[str]:
+        parent_ids = self.list_parent_ids_by_file(file_name)
+        if not parent_ids:
+            return []
+        placeholders = ",".join("?" for _ in parent_ids)
+        sql = f"DELETE FROM parent_chunks WHERE parent_id IN ({placeholders})"
+        with self._connect() as conn:
+            conn.execute(sql, parent_ids)
+        return parent_ids
+
+    def list_file_groups(self) -> List[Dict[str, Any]]:
+        """按 file_name 聚合父 chunk 信息"""
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT file_name, content_type, COUNT(1) AS chunk_count
+                FROM parent_chunks
+                GROUP BY file_name, content_type
+                """
+            ).fetchall()
+            latest_rows = conn.execute(
+                """
+                SELECT file_name, MAX(created_at) AS latest_created_at
+                FROM parent_chunks
+                GROUP BY file_name
+                """
+            ).fetchall()
+
+        groups: Dict[str, Dict[str, Any]] = {}
+        for row in rows:
+            file_name = row["file_name"] or "unknown"
+            group = groups.setdefault(
+                file_name,
+                {
+                    "file_name": file_name,
+                    "total_parents": 0,
+                    "content_types": {},
+                    "latest_created_at": None,
+                },
+            )
+            content_type = row["content_type"] or "unknown"
+            chunk_count = int(row["chunk_count"] or 0)
+            group["content_types"][content_type] = group["content_types"].get(content_type, 0) + chunk_count
+            group["total_parents"] += chunk_count
+
+        for row in latest_rows:
+            file_name = row["file_name"] or "unknown"
+            group = groups.setdefault(
+                file_name,
+                {
+                    "file_name": file_name,
+                    "total_parents": 0,
+                    "content_types": {},
+                    "latest_created_at": None,
+                },
+            )
+            group["latest_created_at"] = row["latest_created_at"]
+
+        result = list(groups.values())
+        result.sort(key=lambda x: (-x["total_parents"], x["file_name"]))
+        return result
+
 
