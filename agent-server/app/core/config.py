@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     # markdown: Markdown格式分割（按标题分割）
     # hybrid: 混合策略（结合多种方法）
     # structured: 结构化分割（推荐用于包含表格和公式的PDF）
-    SPLIT_STRATEGY: str = "simple"
+    SPLIT_STRATEGY: str = "structured"
 
     # Simple分割器配置
     CHUNK_SIZE: int = 1000
@@ -74,8 +74,11 @@ class Settings(BaseSettings):
     STRUCTURED_SECTION_PATTERN: str = r"^\d+\s+[^\n]+"  # 章节标题模式
 
     # 父子Chunk配置（使用AutoMergingRetriever）
-    PARENT_CHUNK_SIZE: int = 1500  # 父chunk大小（字符数，约1000-2000 tokens）
-    CHILD_CHUNK_SIZE: int = 200  # 子chunk大小（字符数，约200-400 tokens）
+    # Dify风格的父子切分配置
+    PARENT_SEPARATOR: str = "\n\n"  # 父层级分段标识符
+    PARENT_CHUNK_SIZE: int = 1024  # 父层级分段最大长度（字符数）
+    CHILD_SEPARATOR: str = "\n"  # 子块分段标识符
+    CHILD_CHUNK_SIZE: int = 512  # 子块分段最大长度（字符数）
     ENABLE_PARENT_CHILD: bool = True  # 是否启用父子chunk模式
 
     # 网络搜索配置

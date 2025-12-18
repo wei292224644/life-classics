@@ -1,6 +1,7 @@
 """
 文档管理API
 """
+
 import os
 import shutil
 from typing import List, Optional
@@ -19,6 +20,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class DocumentInfo(BaseModel):
     """文档信息响应模型"""
+
     file_name: str
     file_type: str
     status: str
@@ -27,6 +29,7 @@ class DocumentInfo(BaseModel):
 
 class ChunkInfo(BaseModel):
     """文档块信息模型"""
+
     id: str
     text: str
     metadata: dict
@@ -34,6 +37,7 @@ class ChunkInfo(BaseModel):
 
 class DocumentChunksResponse(BaseModel):
     """文档和块响应模型"""
+
     total_chunks: int
     chunks: List[ChunkInfo]
     documents_summary: dict  # 按文档分组的统计信息
@@ -41,8 +45,7 @@ class DocumentChunksResponse(BaseModel):
 
 @router.post("/upload", response_model=DocumentInfo)
 async def upload_document(
-    file: UploadFile = File(...),
-    description: Optional[str] = Form(None)
+    file: UploadFile = File(...), description: Optional[str] = Form(None)
 ):
     """上传并处理文档"""
     try:
@@ -51,51 +54,53 @@ async def upload_document(
         if len(file_content) > settings.MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=400,
-                detail=f"文件大小超过限制 ({settings.MAX_FILE_SIZE / 1024 / 1024}MB)"
+                detail=f"文件大小超过限制 ({settings.MAX_FILE_SIZE / 1024 / 1024}MB)",
             )
-        
+
         # 检查文件类型
         file_ext = os.path.splitext(file.filename)[1].lower()
         if file_ext not in settings.SUPPORTED_EXTENSIONS:
             raise HTTPException(
                 status_code=400,
-                detail=f"不支持的文件类型: {file_ext}。支持的类型: {', '.join(settings.SUPPORTED_EXTENSIONS)}"
+                detail=f"不支持的文件类型: {file_ext}。支持的类型: {', '.join(settings.SUPPORTED_EXTENSIONS)}",
             )
-        
+
         # 保存文件
         file_path = os.path.join(UPLOAD_DIR, file.filename)
         with open(file_path, "wb") as f:
             f.write(file_content)
-        
+
         # 加载文档
         documents = document_loader.load_file(file_path)
-        
+
         # 添加描述到元数据
         if description:
             for doc in documents:
                 doc.metadata["description"] = description
-        
+
         if settings.ENABLE_PARENT_CHILD:
             # 父子模式：由 VectorStoreManager 负责生成父/子结构（父->SQLite，子->Chroma）
             vector_store_manager.add_documents(documents)
-            chunk_count_hint = "（父子模式：父 chunk 已写入 SQLite，子 chunk 已写入 Chroma）"
+            chunk_count_hint = (
+                "（父子模式：父 chunk 已写入 SQLite，子 chunk 已写入 Chroma）"
+            )
         else:
             # 分割文档
             split_docs = document_loader.split_documents(documents)
             # 添加到向量存储
             vector_store_manager.add_documents(split_docs)
             chunk_count_hint = f"，共 {len(split_docs)} 个文档块"
-        
+
         # 清理临时文件
         os.remove(file_path)
-        
+
         return DocumentInfo(
             file_name=file.filename,
             file_type=file_ext,
             status="success",
-            message=f"成功上传并处理文档{chunk_count_hint}"
+            message=f"成功上传并处理文档{chunk_count_hint}",
         )
-    
+
     except HTTPException:
         raise
     except Exception as e:
@@ -108,13 +113,13 @@ async def upload_directory(directory_path: str):
     try:
         if not os.path.isdir(directory_path):
             raise HTTPException(status_code=400, detail="目录不存在")
-        
+
         # 加载目录中的所有文档
         documents = document_loader.load_directory(directory_path)
-        
+
         if not documents:
             return {"message": "目录中没有找到支持的文档文件"}
-        
+
         if settings.ENABLE_PARENT_CHILD:
             vector_store_manager.add_documents(documents)
             return {
@@ -126,12 +131,12 @@ async def upload_directory(directory_path: str):
         split_docs = document_loader.split_documents(documents)
         # 添加到向量存储
         vector_store_manager.add_documents(split_docs)
-        
+
         return {
             "message": f"成功处理目录，共 {len(split_docs)} 个文档块",
-            "document_count": len(split_docs)
+            "document_count": len(split_docs),
         }
-    
+
     except HTTPException:
         raise
     except Exception as e:
@@ -165,7 +170,7 @@ async def clear_all_documents():
 async def get_all_chunks():
     """
     获取所有文档和分割块内容
-    
+
     返回所有已上传文档的分割块，包括：
     - 块ID
     - 块文本内容
@@ -175,24 +180,18 @@ async def get_all_chunks():
     try:
         # 获取所有文档块
         all_docs = vector_store_manager.get_all_documents()
-        
+
         if not all_docs:
             return DocumentChunksResponse(
-                total_chunks=0,
-                chunks=[],
-                documents_summary={}
+                total_chunks=0, chunks=[], documents_summary={}
             )
-        
+
         # 转换为响应模型
         chunks = [
-            ChunkInfo(
-                id=doc["id"],
-                text=doc["text"],
-                metadata=doc["metadata"]
-            )
+            ChunkInfo(id=doc["id"], text=doc["text"], metadata=doc["metadata"])
             for doc in all_docs
         ]
-        
+
         # 按文档分组统计
         documents_summary = {}
         for chunk in chunks:
@@ -203,34 +202,34 @@ async def get_all_chunks():
                     "file_type": chunk.metadata.get("file_type", "unknown"),
                     "total_chunks": 0,
                     "content_types": {},
-                    "sections": set()
+                    "sections": set(),
                 }
-            
+
             summary = documents_summary[file_name]
             summary["total_chunks"] += 1
-            
+
             # 统计内容类型
             content_type = chunk.metadata.get("content_type", "unknown")
-            summary["content_types"][content_type] = summary["content_types"].get(content_type, 0) + 1
-            
+            summary["content_types"][content_type] = (
+                summary["content_types"].get(content_type, 0) + 1
+            )
+
             # 收集章节信息
             section = chunk.metadata.get("section")
             if section:
                 summary["sections"].add(section)
-        
+
         # 将set转换为list以便JSON序列化
         for summary in documents_summary.values():
             summary["sections"] = sorted(list(summary["sections"]))
             # 确保content_types是字典格式
             if not isinstance(summary["content_types"], dict):
                 summary["content_types"] = dict(summary["content_types"])
-        
+
         return DocumentChunksResponse(
-            total_chunks=len(chunks),
-            chunks=chunks,
-            documents_summary=documents_summary
+            total_chunks=len(chunks), chunks=chunks, documents_summary=documents_summary
         )
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取文档块失败: {str(e)}")
 
@@ -239,31 +238,26 @@ async def get_all_chunks():
 async def get_chunks_by_file(file_name: str):
     """
     根据文件名获取特定文档的所有分割块
-    
+
     Args:
         file_name: 文件名
     """
     try:
         # 获取所有文档块
         all_docs = vector_store_manager.get_all_documents()
-        
+
         # 过滤出指定文件的块
         file_chunks = [
-            ChunkInfo(
-                id=doc["id"],
-                text=doc["text"],
-                metadata=doc["metadata"]
-            )
+            ChunkInfo(id=doc["id"], text=doc["text"], metadata=doc["metadata"])
             for doc in all_docs
             if doc["metadata"].get("file_name") == file_name
         ]
-        
+
         if not file_chunks:
             raise HTTPException(
-                status_code=404,
-                detail=f"未找到文件 '{file_name}' 的文档块"
+                status_code=404, detail=f"未找到文件 '{file_name}' 的文档块"
             )
-        
+
         # 统计信息
         content_types = {}
         sections = set()
@@ -273,17 +267,16 @@ async def get_chunks_by_file(file_name: str):
             section = chunk.metadata.get("section")
             if section:
                 sections.add(section)
-        
+
         return {
             "file_name": file_name,
             "total_chunks": len(file_chunks),
             "content_types": content_types,
             "sections": sorted(list(sections)),
-            "chunks": [chunk.dict() for chunk in file_chunks]
+            "chunks": [chunk.dict() for chunk in file_chunks],
         }
-    
+
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取文档块失败: {str(e)}")
-
