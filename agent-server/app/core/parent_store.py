@@ -74,7 +74,14 @@ class ParentChunkStore:
                     file_name=excluded.file_name,
                     content_type=excluded.content_type
                 """,
-                (parent_id, text, metadata_json, file_name, content_type, self._now_iso()),
+                (
+                    parent_id,
+                    text,
+                    metadata_json,
+                    file_name,
+                    content_type,
+                    self._now_iso(),
+                ),
             )
 
     def get_parent(self, parent_id: str) -> Optional[Dict[str, Any]]:
@@ -206,7 +213,9 @@ class ParentChunkStore:
             )
             content_type = row["content_type"] or "unknown"
             chunk_count = int(row["chunk_count"] or 0)
-            group["content_types"][content_type] = group["content_types"].get(content_type, 0) + chunk_count
+            group["content_types"][content_type] = (
+                group["content_types"].get(content_type, 0) + chunk_count
+            )
             group["total_parents"] += chunk_count
 
         for row in latest_rows:
@@ -244,26 +253,37 @@ class ParentChunkStore:
 
         # 先获取总数（考虑搜索条件）
         with self._connect() as conn:
-            total_sql = "SELECT COUNT(DISTINCT file_name) AS c FROM parent_chunks " + search_where
+            total_sql = (
+                "SELECT COUNT(DISTINCT file_name) AS c FROM parent_chunks "
+                + search_where
+            )
             total_row = conn.execute(total_sql, search_params).fetchone()
         total = int(total_row["c"]) if total_row else 0
 
         # 获取所有分组数据（需要先聚合再分页）
         with self._connect() as conn:
-            rows_sql = """
+            rows_sql = (
+                """
                 SELECT file_name, content_type, COUNT(1) AS chunk_count
                 FROM parent_chunks
-                """ + search_where + """
+                """
+                + search_where
+                + """
                 GROUP BY file_name, content_type
             """
+            )
             rows = conn.execute(rows_sql, search_params).fetchall()
-            
-            latest_sql = """
+
+            latest_sql = (
+                """
                 SELECT file_name, MAX(created_at) AS latest_created_at
                 FROM parent_chunks
-                """ + search_where + """
+                """
+                + search_where
+                + """
                 GROUP BY file_name
             """
+            )
             latest_rows = conn.execute(latest_sql, search_params).fetchall()
 
         groups: Dict[str, Dict[str, Any]] = {}
@@ -280,7 +300,9 @@ class ParentChunkStore:
             )
             content_type = row["content_type"] or "unknown"
             chunk_count = int(row["chunk_count"] or 0)
-            group["content_types"][content_type] = group["content_types"].get(content_type, 0) + chunk_count
+            group["content_types"][content_type] = (
+                group["content_types"].get(content_type, 0) + chunk_count
+            )
             group["total_parents"] += chunk_count
 
         for row in latest_rows:
@@ -297,7 +319,7 @@ class ParentChunkStore:
             group["latest_created_at"] = row["latest_created_at"]
 
         result = list(groups.values())
-        
+
         # 应用排序
         if sort_by == "name":
             if sort_order == "asc":
@@ -306,15 +328,24 @@ class ParentChunkStore:
                 result.sort(key=lambda x: x["file_name"], reverse=True)
         elif sort_by == "updated":
             if sort_order == "asc":
-                result.sort(key=lambda x: (x["latest_created_at"] is None, x["latest_created_at"] or ""))
+                result.sort(
+                    key=lambda x: (
+                        x["latest_created_at"] is None,
+                        x["latest_created_at"] or "",
+                    )
+                )
             else:
-                result.sort(key=lambda x: (x["latest_created_at"] is not None, x["latest_created_at"] or ""), reverse=True)
+                result.sort(
+                    key=lambda x: (
+                        x["latest_created_at"] is not None,
+                        x["latest_created_at"] or "",
+                    ),
+                    reverse=True,
+                )
         else:
             # 默认按总数降序，然后按文件名升序
             result.sort(key=lambda x: (-x["total_parents"], x["file_name"]))
-        
+
         # 应用分页
         paginated_result = result[offset : offset + limit]
         return paginated_result, total
-
-

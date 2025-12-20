@@ -17,6 +17,8 @@ from app.core.document_loader import document_loader
 class VectorStoreManager:
     """向量存储管理器"""
 
+    # ==================== 初始化方法 ====================
+
     def __init__(self):
         """初始化向量存储"""
         # 确保持久化目录存在
@@ -39,19 +41,7 @@ class VectorStoreManager:
             db_path=os.path.join(settings.CHROMA_PERSIST_DIR, "parent_chunks.sqlite3")
         )
 
-    def add_documents(self, documents: List[Document]):
-        """
-        添加文档到向量存储
-        
-        如果启用父子chunk模式：
-        - 父 chunk 写入 SQLite（parent_store）
-        - 子 chunk 写入 Chroma（向量检索）
-        """
-        if settings.ENABLE_PARENT_CHILD:
-            self._add_documents_parent_child(documents)
-        else:
-            # 普通模式：直接添加文档
-            self.vector_store.add_documents(documents)
+    # ==================== 内部函数（私有方法） ====================
 
     def _clean_text(self, text: str) -> str:
         """
@@ -176,6 +166,22 @@ class VectorStoreManager:
             # 显式传入 ids，保证稳定可追溯
             self.vector_store.add_documents(child_docs_to_add, ids=child_ids)
 
+    # ==================== 公开函数（核心业务逻辑） ====================
+
+    def add_documents(self, documents: List[Document]):
+        """
+        添加文档到向量存储
+        
+        如果启用父子chunk模式：
+        - 父 chunk 写入 SQLite（parent_store）
+        - 子 chunk 写入 Chroma（向量检索）
+        """
+        if settings.ENABLE_PARENT_CHILD:
+            self._add_documents_parent_child(documents)
+        else:
+            # 普通模式：直接添加文档
+            self.vector_store.add_documents(documents)
+
     def query(self, query_str: str, top_k: int = 5) -> List[Document]:
         """
         查询相似文档
@@ -243,6 +249,148 @@ class VectorStoreManager:
         except Exception:
             pass
         return True
+
+    def delete_chunk_by_id(self, chunk_id: str) -> bool:
+        """删除单个 chunk（按 id）"""
+        # Chroma collection.delete 支持 ids 参数
+        self.vector_store._collection.delete(ids=[chunk_id])
+        return True
+
+    def delete_parent_by_id(self, parent_id: str) -> bool:
+        """删除父 chunk：同时删除该父下所有子 chunk + SQLite 记录"""
+        # 删除子 chunk（where）
+        try:
+            self.vector_store._collection.delete(where={"parent_id": parent_id})
+        except Exception:
+            # 兼容性兜底：如果 where delete 不支持，退化为 get 后按 ids delete
+            results = self.vector_store._collection.get(
+                where={"parent_id": parent_id},
+                include=[],
+            )
+            ids = results.get("ids", []) or []
+            if ids:
+                self.vector_store._collection.delete(ids=ids)
+        # 删除父 chunk 记录
+        self.parent_store.delete_parent(parent_id)
+        return True
+
+    def delete_parents_by_file(self, file_name: str) -> bool:
+        """删除某个文件对应的父和子 chunk"""
+        if not file_name:
+            return False
+        parent_ids = self.parent_store.delete_parents_by_file_name(file_name)
+        if parent_ids:
+            try:
+                self.vector_store._collection.delete(where={"parent_id": {"$in": parent_ids}})
+            except Exception:
+                # 兼容老版本：逐个删除
+                for pid in parent_ids:
+                    self.vector_store._collection.delete(where={"parent_id": pid})
+        return True
+
+    def file_exists(self, file_name: str) -> bool:
+        """检查文件是否已经在知识库中"""
+        if not settings.ENABLE_PARENT_CHILD:
+            # 非父子模式：检查 ChromaDB 中是否有该文件的文档
+            try:
+                results = self.vector_store._collection.get(
+                    where={"file_name": file_name},
+                    limit=1,
+                )
+                return len(results.get("ids", [])) > 0
+            except Exception:
+                return False
+        else:
+            # 父子模式：检查 SQLite 中是否有该文件的父 chunk
+            parent_ids = self.parent_store.list_parent_ids_by_file(file_name)
+            return len(parent_ids) > 0
+
+    def assemble_parent_text_from_children(self, parent_id: str) -> str:
+        """根据子 chunk 拼接父 chunk 的文本内容"""
+        children = self.list_children_by_parent_id(parent_id)
+        texts = []
+        for child in children:
+            text = (child.get("text") or "").strip()
+            if text:
+                texts.append(text)
+        if texts:
+            return "\n".join(texts)
+        parent = self.parent_store.get_parent(parent_id)
+        if parent:
+            return parent.get("text") or ""
+        return ""
+
+    def update_child_chunk_text(self, chunk_id: str, new_text: str) -> bool:
+        """更新指定子 chunk 的文本内容"""
+        if not settings.ENABLE_PARENT_CHILD:
+            return False
+        # 获取当前 chunk metadata
+        try:
+            existing = self.vector_store._collection.get(
+                ids=[chunk_id], include=["documents", "metadatas"]
+            )
+        except Exception:
+            return False
+        ids = existing.get("ids") or []
+        if not ids:
+            return False
+        metadatas = existing.get("metadatas") or [{}]
+        metadata = metadatas[0] if metadatas else {}
+        metadata = metadata or {}
+        doc = Document(page_content=new_text or "", metadata=metadata)
+        self.vector_store.add_documents([doc], ids=[chunk_id])
+        return True
+
+    def add_child_chunk(self, parent_id: str, text: str) -> Optional[str]:
+        """为指定父 chunk 添加一个新的子 chunk"""
+        if not settings.ENABLE_PARENT_CHILD:
+            return None
+
+        parent = self.parent_store.get_parent(parent_id)
+        if not parent:
+            return None
+
+        children = self.list_children_by_parent_id(parent_id)
+        max_index = -1
+        for child in children:
+            idx = child.get("child_index")
+            if isinstance(idx, int):
+                max_index = max(max_index, idx)
+            else:
+                try:
+                    max_index = max(max_index, int(idx))
+                except (TypeError, ValueError):
+                    continue
+
+        new_index = max_index + 1
+
+        metadata: Dict[str, Any] = dict(parent.get("metadata") or {})
+        metadata.update(
+            {
+                "chunk_type": "child",
+                "split_strategy": document_loader.split_strategy,
+                "parent_id": parent_id,
+                "parent_index": metadata.get("parent_index"),
+                "child_index": new_index,
+            }
+        )
+
+        child_id = f"{parent_id}:{new_index}"
+        child_doc = Document(page_content=text or "", metadata=metadata)
+        self.vector_store.add_documents([child_doc], ids=[child_id])
+        return child_id
+
+    def clear_collection(self) -> bool:
+        """清空整个 collection（等价于 delete_all）"""
+        return bool(self.delete_all())
+
+    def get_retriever(self, top_k: int = 5):
+        """获取检索器"""
+        return self.vector_store.as_retriever(
+            search_kwargs={"k": top_k}
+        )
+
+    # ==================== WebAPI 性质的函数（返回字典，用于API响应） ====================
 
     def get_collection_info(self) -> dict:
         """获取集合信息"""
@@ -363,44 +511,6 @@ class VectorStoreManager:
         md = (results.get("metadatas") or [{}])[0]
         return {"id": ids[0], "text": doc or "", "metadata": md or {}, "found": True}
 
-    def delete_chunk_by_id(self, chunk_id: str) -> bool:
-        """删除单个 chunk（按 id）"""
-        # Chroma collection.delete 支持 ids 参数
-        self.vector_store._collection.delete(ids=[chunk_id])
-        return True
-
-    def delete_parent_by_id(self, parent_id: str) -> bool:
-        """删除父 chunk：同时删除该父下所有子 chunk + SQLite 记录"""
-        # 删除子 chunk（where）
-        try:
-            self.vector_store._collection.delete(where={"parent_id": parent_id})
-        except Exception:
-            # 兼容性兜底：如果 where delete 不支持，退化为 get 后按 ids delete
-            results = self.vector_store._collection.get(
-                where={"parent_id": parent_id},
-                include=[],
-            )
-            ids = results.get("ids", []) or []
-            if ids:
-                self.vector_store._collection.delete(ids=ids)
-        # 删除父 chunk 记录
-        self.parent_store.delete_parent(parent_id)
-        return True
-
-    def delete_parents_by_file(self, file_name: str) -> bool:
-        """删除某个文件对应的父和子 chunk"""
-        if not file_name:
-            return False
-        parent_ids = self.parent_store.delete_parents_by_file_name(file_name)
-        if parent_ids:
-            try:
-                self.vector_store._collection.delete(where={"parent_id": {"$in": parent_ids}})
-            except Exception:
-                # 兼容老版本：逐个删除
-                for pid in parent_ids:
-                    self.vector_store._collection.delete(where={"parent_id": pid})
-        return True
-
     def list_parents_page(
         self,
         limit: int = 20,
@@ -444,23 +554,6 @@ class VectorStoreManager:
         )
         return {"files": files, "total": total}
 
-    def file_exists(self, file_name: str) -> bool:
-        """检查文件是否已经在知识库中"""
-        if not settings.ENABLE_PARENT_CHILD:
-            # 非父子模式：检查 ChromaDB 中是否有该文件的文档
-            try:
-                results = self.vector_store._collection.get(
-                    where={"file_name": file_name},
-                    limit=1,
-                )
-                return len(results.get("ids", [])) > 0
-            except Exception:
-                return False
-        else:
-            # 父子模式：检查 SQLite 中是否有该文件的父 chunk
-            parent_ids = self.parent_store.list_parent_ids_by_file(file_name)
-            return len(parent_ids) > 0
-
     def get_parent_by_id(self, parent_id: str) -> Dict[str, Any]:
         """获取父 chunk（SQLite）"""
         parent = self.parent_store.get_parent(parent_id)
@@ -491,90 +584,6 @@ class VectorStoreManager:
             )
         children.sort(key=lambda x: (x.get("child_index") is None, x.get("child_index", 0)))
         return children
-
-    def assemble_parent_text_from_children(self, parent_id: str) -> str:
-        """根据子 chunk 拼接父 chunk 的文本内容"""
-        children = self.list_children_by_parent_id(parent_id)
-        texts = []
-        for child in children:
-            text = (child.get("text") or "").strip()
-            if text:
-                texts.append(text)
-        if texts:
-            return "\n".join(texts)
-        parent = self.parent_store.get_parent(parent_id)
-        if parent:
-            return parent.get("text") or ""
-        return ""
-    def update_child_chunk_text(self, chunk_id: str, new_text: str) -> bool:
-        """更新指定子 chunk 的文本内容"""
-        if not settings.ENABLE_PARENT_CHILD:
-            return False
-        # 获取当前 chunk metadata
-        try:
-            existing = self.vector_store._collection.get(
-                ids=[chunk_id], include=["documents", "metadatas"]
-            )
-        except Exception:
-            return False
-        ids = existing.get("ids") or []
-        if not ids:
-            return False
-        metadatas = existing.get("metadatas") or [{}]
-        metadata = metadatas[0] if metadatas else {}
-        metadata = metadata or {}
-        doc = Document(page_content=new_text or "", metadata=metadata)
-        self.vector_store.add_documents([doc], ids=[chunk_id])
-        return True
-
-    def add_child_chunk(self, parent_id: str, text: str) -> Optional[str]:
-        """为指定父 chunk 添加一个新的子 chunk"""
-        if not settings.ENABLE_PARENT_CHILD:
-            return None
-
-        parent = self.parent_store.get_parent(parent_id)
-        if not parent:
-            return None
-
-        children = self.list_children_by_parent_id(parent_id)
-        max_index = -1
-        for child in children:
-            idx = child.get("child_index")
-            if isinstance(idx, int):
-                max_index = max(max_index, idx)
-            else:
-                try:
-                    max_index = max(max_index, int(idx))
-                except (TypeError, ValueError):
-                    continue
-
-        new_index = max_index + 1
-
-        metadata: Dict[str, Any] = dict(parent.get("metadata") or {})
-        metadata.update(
-            {
-                "chunk_type": "child",
-                "split_strategy": document_loader.split_strategy,
-                "parent_id": parent_id,
-                "parent_index": metadata.get("parent_index"),
-                "child_index": new_index,
-            }
-        )
-
-        child_id = f"{parent_id}:{new_index}"
-        child_doc = Document(page_content=text or "", metadata=metadata)
-        self.vector_store.add_documents([child_doc], ids=[child_id])
-        return child_id
-
-    def clear_collection(self) -> bool:
-        """清空整个 collection（等价于 delete_all）"""
-        return bool(self.delete_all())
-
-    def get_retriever(self, top_k: int = 5):
-        """获取检索器"""
-        return self.vector_store.as_retriever(
-            search_kwargs={"k": top_k}
-        )
 
 
 # 全局向量存储管理器实例

@@ -199,13 +199,13 @@ class DocumentLoader:
                     try:
                         tables = (
                             page.extract_tables(
-                                table_settings={
-                                    "vertical_strategy": "lines",
-                                    "horizontal_strategy": "lines",
-                                    "edge_min_length": 50,
-                                    "snap_tolerance": 3,
-                                    "join_tolerance": 2,
-                                }
+                                # table_settings={
+                                    # "vertical_strategy": "lines",
+                                    # "horizontal_strategy": "lines",
+                                    # "edge_min_length": 50,
+                                    # "snap_tolerance": 3,
+                                    # "join_tolerance": 2,
+                                # }
                             )
                             or []
                         )
