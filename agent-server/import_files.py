@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 """
 批量导入 files 目录下的所有 PDF 文件到向量数据库
+使用法规语义解析方式：提取规则和QA，然后存储到知识库
 """
 import sys
 import argparse
 from pathlib import Path
-from app.core.document_loader import document_loader
+from typing import List
+from langchain_core.documents import Document
+from app.core.pdf_structure_extractor import pdf_structure_extractor
+from app.core.regulatory_semantic_analyzer import RegulatorySemanticAnalyzer, NormativeRule, QA
 from app.core.vector_store import vector_store_manager
 from app.core.config import settings
+from process_regulatory_document import extract_standard_ref
 
 
 def import_pdfs_from_directory(
@@ -51,9 +56,7 @@ def import_pdfs_from_directory(
         pdf_files = [pdf_file]
         print(f"处理单个文件: {pdf_file.name}")
         print(f"文件路径: {pdf_file}")
-        print(f"父子chunk模式: {settings.ENABLE_PARENT_CHILD}")
-        if settings.ENABLE_PARENT_CHILD:
-            print(f"父chunk大小: {settings.PARENT_CHUNK_SIZE}, 子chunk大小: {settings.CHILD_CHUNK_SIZE}")
+        print(f"使用法规语义解析方式")
         print(f"跳过已存在文件: {skip_existing}")
         
         # 检查单个文件是否已存在
@@ -92,9 +95,7 @@ def import_pdfs_from_directory(
         pdf_files = pdf_files[start_index:end_index]
         
         print(f"处理范围: 第 {start_index + 1} 到第 {min(end_index, total_files)} 个文件（共 {len(pdf_files)} 个）")
-        print(f"父子chunk模式: {settings.ENABLE_PARENT_CHILD}")
-        if settings.ENABLE_PARENT_CHILD:
-            print(f"父chunk大小: {settings.PARENT_CHUNK_SIZE}, 子chunk大小: {settings.CHILD_CHUNK_SIZE}")
+        print(f"使用法规语义解析方式")
         print(f"跳过已存在文件: {skip_existing}")
         print("-" * 60)
     
@@ -117,24 +118,94 @@ def import_pdfs_from_directory(
         print(f"\n[{i}/{len(pdf_files)}] (总第 {actual_index}) 处理: {file_name}")
         
         try:
-            # 加载文档
-            documents = document_loader.load_file(str(pdf_file))
-            print(f"  ✓ 加载成功，共 {len(documents)} 页")
-
-            if settings.ENABLE_PARENT_CHILD:
-                # 父子模式：由 VectorStoreManager 生成父/子结构（父->SQLite，子->Chroma）
-                vector_store_manager.add_documents(documents)
-                print("  ✓ 父子模式已入库（父->SQLite，子->Chroma）")
+            # 提取标准编号
+            standard_ref = extract_standard_ref(str(pdf_file))
+            if not standard_ref:
+                standard_ref = "未知标准"
             else:
-                # 分割文档
-                split_docs = document_loader.split_documents(documents)
-                print(f"  ✓ 分割成功，共 {len(split_docs)} 个块")
-
-                # 添加到向量存储
-                vector_store_manager.add_documents(split_docs)
-                print(f"  ✓ 已添加到向量数据库")
-
-                total_chunks += len(split_docs)
+                print(f"  ✓ 提取到标准编号: {standard_ref}")
+            
+            # Step 1: 提取结构单元
+            print(f"  [Step 1] 提取结构单元...")
+            units = pdf_structure_extractor.extract_structure(str(pdf_file))
+            print(f"  ✓ 提取了 {len(units)} 个结构单元")
+            
+            if not units:
+                print(f"  ⚠ 未能提取到结构单元，跳过此文件")
+                error_count += 1
+                continue
+            
+            # 显示结构单元统计
+            unit_types = {}
+            for unit in units:
+                unit_types[unit.unit_type] = unit_types.get(unit.unit_type, 0) + 1
+            print(f"    结构单元类型分布: {unit_types}")
+            
+            # Step 2: 法规语义解析
+            print(f"  [Step 2] 法规语义解析...")
+            analyzer = RegulatorySemanticAnalyzer(standard_ref=standard_ref)
+            results = analyzer.analyze_units(units)
+            
+            rules = results["rules"]
+            qas = results["qas"]
+            ignored_count = results["ignored_count"]
+            
+            print(f"  ✓ 提取了 {len(rules)} 条规范性规则")
+            print(f"  ✓ 生成了 {len(qas)} 个问答对")
+            print(f"  ✓ 忽略了 {ignored_count} 个结构单元")
+            
+            # Step 3: 转换为Document并存储到知识库
+            documents_to_store = []
+            
+            # 将规则转换为Document
+            for rule in rules:
+                # 构建规则的完整文本描述
+                rule_text = rule.document
+                if rule.condition:
+                    rule_text = f"{rule_text}（适用条件：{rule.condition}）"
+                
+                # 构建metadata
+                metadata = {
+                    "content_type": "rule",
+                    "file_name": file_name,
+                    "file_path": str(pdf_file),
+                    "standard_ref": rule.standard_ref,
+                    "item": rule.item,
+                    "limit_type": rule.limit_type,
+                    "limit_value": str(rule.limit_value),
+                    "unit": rule.unit,
+                    "condition": rule.condition,
+                }
+                
+                doc = Document(page_content=rule_text, metadata=metadata)
+                documents_to_store.append(doc)
+            
+            # 将QA转换为Document
+            for qa in qas:
+                # 构建QA的完整文本（问题和答案）
+                qa_text = f"问题：{qa.question}\n答案：{qa.answer}"
+                
+                # 构建metadata
+                metadata = {
+                    "content_type": "qa",
+                    "file_name": file_name,
+                    "file_path": str(pdf_file),
+                    "standard_ref": qa.standard_ref,
+                    "question": qa.question,
+                }
+                
+                doc = Document(page_content=qa_text, metadata=metadata)
+                documents_to_store.append(doc)
+            
+            # 存储到向量数据库
+            if documents_to_store:
+                print(f"  [Step 3] 存储到知识库...")
+                vector_store_manager.add_documents(documents_to_store)
+                print(f"  ✓ 成功存储 {len(documents_to_store)} 个文档到知识库")
+                total_chunks += len(documents_to_store)
+            else:
+                print(f"  ⚠ 没有可存储的文档（规则和QA都为空）")
+            
             success_count += 1
             
         except Exception as e:

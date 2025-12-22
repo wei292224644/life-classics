@@ -5,6 +5,7 @@
 import os
 import uuid
 import re
+import time
 from typing import List, Optional, Dict, Any
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
@@ -163,8 +164,65 @@ class VectorStoreManager:
                     child_docs_to_add.append(child_doc)
 
         if child_docs_to_add:
-            # 显式传入 ids，保证稳定可追溯
-            self.vector_store.add_documents(child_docs_to_add, ids=child_ids)
+            # 批量添加子chunk，添加重试机制和分批处理
+            self._add_documents_with_retry(child_docs_to_add, child_ids)
+    
+    def _add_documents_with_retry(
+        self, 
+        documents: List[Document], 
+        ids: List[str],
+        batch_size: int = 50,
+        max_retries: int = 3,
+        retry_delay: float = 2.0
+    ):
+        """
+        带重试机制和分批处理的文档添加方法
+        
+        Args:
+            documents: 要添加的文档列表
+            ids: 文档ID列表
+            batch_size: 每批处理的文档数量
+            max_retries: 最大重试次数
+            retry_delay: 重试延迟（秒）
+        """
+        total = len(documents)
+        if total == 0:
+            return
+        
+        print(f"  开始批量添加 {total} 个文档（每批 {batch_size} 个）...")
+        
+        # 分批处理
+        for batch_start in range(0, total, batch_size):
+            batch_end = min(batch_start + batch_size, total)
+            batch_docs = documents[batch_start:batch_end]
+            batch_ids = ids[batch_start:batch_end]
+            
+            # 重试机制
+            for attempt in range(max_retries):
+                try:
+                    self.vector_store.add_documents(batch_docs, ids=batch_ids)
+                    print(f"  ✓ 成功添加批次 {batch_start//batch_size + 1} ({batch_start+1}-{batch_end}/{total})")
+                    break
+                except Exception as e:
+                    error_msg = str(e)
+                    is_connection_error = any(keyword in error_msg.lower() for keyword in [
+                        'disconnected', 'connection', 'timeout', 'remote', 'protocol'
+                    ])
+                    
+                    if attempt < max_retries - 1:
+                        wait_time = retry_delay * (attempt + 1)
+                        print(f"  ⚠ 批次 {batch_start//batch_size + 1} 添加失败 (尝试 {attempt + 1}/{max_retries}): {error_msg[:100]}")
+                        print(f"  ⏳ {wait_time}秒后重试...")
+                        time.sleep(wait_time)
+                    else:
+                        print(f"  ✗ 批次 {batch_start//batch_size + 1} 添加失败，已重试 {max_retries} 次: {error_msg}")
+                        # 如果是连接错误，建议检查Ollama服务
+                        if is_connection_error:
+                            print(f"  💡 提示: 可能是Ollama服务连接问题，请检查:")
+                            print(f"     - Ollama服务是否运行: curl {settings.OLLAMA_BASE_URL}/api/tags")
+                            print(f"     - 网络连接是否正常")
+                            print(f"     - 是否处理了太多文档，可以减小batch_size")
+                        raise
 
     # ==================== 公开函数（核心业务逻辑） ====================
 
@@ -179,8 +237,13 @@ class VectorStoreManager:
         if settings.ENABLE_PARENT_CHILD:
             self._add_documents_parent_child(documents)
         else:
-            # 普通模式：直接添加文档
-            self.vector_store.add_documents(documents)
+            # 普通模式：使用带重试的批量添加
+            try:
+                self._add_documents_with_retry(documents, [str(uuid.uuid4()) for _ in documents])
+            except Exception:
+                # 如果批量添加失败，回退到直接添加（兼容性）
+                print("  ⚠ 批量添加失败，尝试直接添加...")
+                self.vector_store.add_documents(documents)
 
     def query(self, query_str: str, top_k: int = 5) -> List[Document]:
         """
