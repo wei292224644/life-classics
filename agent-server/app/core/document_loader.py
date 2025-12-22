@@ -1,5 +1,16 @@
 """
-文档加载和处理模块 - 支持简单或结构化分割，优化表格和公式处理
+文档加载和处理模块 - 支持简单或结构化分割
+
+重构后的架构：
+1. 阶段1：文件格式转换（在 file_converter.py 中处理）
+   - 将 PDF/TXT/MD/DOCX 等转换为 Markdown
+   - 处理中英文问题
+   - 处理表格转换（PDF表格 -> Markdown表格）
+
+2. 阶段2：Markdown 解析和切片（本模块）
+   - 对 Markdown 内容进行切片
+   - 支持父子切片或 Simple 切片
+   - 表格统一按 Markdown 表格处理
 """
 
 import os
@@ -8,32 +19,18 @@ from typing import List, Optional, Dict, Tuple, Any
 from pathlib import Path
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import (
-    TextLoader,
-    UnstructuredMarkdownLoader,
-    UnstructuredWordDocumentLoader,
-)
-import pdfplumber
 from app.core.config import settings
-from app.core.embeddings import get_embedding_model
-
-# OCR 相关导入（可选）
-try:
-    import pytesseract
-    from PIL import Image
-    from pdf2image import convert_from_path
-    from pdf2image.exceptions import PDFInfoNotInstalledError
-    OCR_AVAILABLE = True
-except ImportError:
-    OCR_AVAILABLE = False
-    pytesseract = None
-    Image = None
-    convert_from_path = None
-    PDFInfoNotInstalledError = None
+from app.core.file_converter import file_converter
 
 
 class DocumentLoader:
-    """文档加载器 - 支持多种分割策略"""
+    """
+    文档加载器 - 支持多种分割策略
+
+    工作流程：
+    1. load_file: 调用 file_converter 将文件转换为 Markdown
+    2. split_documents: 对 Markdown 内容进行切片
+    """
 
     def __init__(self, split_strategy: Optional[str] = None):
         """
@@ -42,7 +39,7 @@ class DocumentLoader:
         Args:
             split_strategy: 分割策略，可选值:
                 - "simple": 固定大小分割（适合常规纯文本）
-                - "structured": 结构化分割（优先处理PDF表格和公式）
+                - "structured": 结构化分割（识别章节、公式等，TODO: 表格统一按 Markdown 处理）
         """
         self.split_strategy = split_strategy or settings.SPLIT_STRATEGY
         self.text_splitter = self._create_text_splitter()
@@ -55,7 +52,6 @@ class DocumentLoader:
             )
 
         if self.split_strategy == "structured":
-            # 结构化策略通过自定义流程处理，text_splitter不参与
             return None
 
         raise ValueError(
@@ -63,187 +59,21 @@ class DocumentLoader:
         )
 
     def load_file(self, file_path: str) -> List[Document]:
-        """加载单个文件"""
+        """
+        加载单个文件
+
+        流程：
+        1. 调用 file_converter 将文件转换为 Markdown 格式
+        2. 返回 Markdown Document（后续由 split_documents 进行切片）
+        """
         file_path_obj = Path(file_path)
         file_ext = file_path_obj.suffix.lower()
 
         if file_ext not in settings.SUPPORTED_EXTENSIONS:
             raise ValueError(f"不支持的文件类型: {file_ext}")
 
-        # 根据文件类型选择对应的加载器
-        if file_ext == ".txt":
-            loader = TextLoader(file_path, encoding="utf-8")
-            documents = loader.load()
-        elif file_ext == ".pdf":
-            documents = self._load_pdf_structured(file_path, file_path_obj)
-        elif file_ext == ".md":
-            loader = UnstructuredMarkdownLoader(file_path)
-            documents = loader.load()
-        elif file_ext == ".docx":
-            loader = UnstructuredWordDocumentLoader(file_path)
-            documents = loader.load()
-        else:
-            raise ValueError(f"未实现的文件类型加载器: {file_ext}")
-
-        # 添加文件元数据
-        for doc in documents:
-            doc.metadata["file_name"] = file_path_obj.name
-            doc.metadata["file_path"] = str(file_path_obj)
-            doc.metadata["file_type"] = file_ext
-
-        return documents
-
-    def _extract_text_with_ocr(self, pdf_path: str, page_num: int) -> str:
-        """
-        使用OCR提取PDF页面中的文本（适用于图片型PDF）
-        
-        Args:
-            pdf_path: PDF文件路径
-            page_num: 页码（从1开始）
-            
-        Returns:
-            提取的文本内容
-        """
-        if not OCR_AVAILABLE or not settings.ENABLE_OCR:
-            return ""
-        
-        try:
-            # 将PDF页面转换为图片
-            images = convert_from_path(
-                pdf_path,
-                first_page=page_num,
-                last_page=page_num,
-                dpi=300,  # 提高DPI以获得更好的OCR效果
-            )
-            
-            if not images:
-                print(f"  警告: 无法将页面 {page_num} 转换为图片")
-                return ""
-            
-            # 使用OCR提取文本
-            image = images[0]
-            text = pytesseract.image_to_string(
-                image,
-                lang=settings.OCR_LANG,
-            )
-            
-            result = text.strip() if text else ""
-            if not result:
-                print(f"  警告: OCR 未能识别出文本（可能是空白页或图片质量问题）")
-            return result
-        except PDFInfoNotInstalledError:
-            print(f"  错误: Poppler 未安装，无法将 PDF 转换为图片")
-            print(f"        请安装 Poppler:")
-            print(f"        macOS: brew install poppler")
-            print(f"        Ubuntu/Debian: sudo apt-get install poppler-utils")
-            print(f"        Windows: 下载并安装 https://github.com/oschwartz10612/poppler-windows/releases")
-            return ""
-        except FileNotFoundError as e:
-            if 'tesseract' in str(e).lower() or 'pdfinfo' in str(e).lower():
-                print(f"  错误: 系统依赖未找到")
-                print(f"        请安装:")
-                print(f"        - Poppler: brew install poppler (macOS)")
-                print(f"        - Tesseract: brew install tesseract tesseract-lang (macOS)")
-            else:
-                print(f"  错误: {e}")
-            return ""
-        except Exception as e:
-            print(f"  错误: OCR提取失败 (页面 {page_num}): {type(e).__name__}: {e}")
-            import traceback
-            traceback.print_exc()
-            return ""
-
-    def _load_pdf_structured(
-        self, file_path: str, file_path_obj: Path
-    ) -> List[Document]:
-        """
-        使用pdfplumber结构化加载PDF，提取表格、识别章节和公式
-        如果页面没有文本，自动尝试使用OCR（如果启用）
-        """
-        documents = []
-        
-        # 打印 OCR 状态信息
-        if settings.ENABLE_OCR:
-            if OCR_AVAILABLE:
-                print(f"OCR 功能已启用，语言: {settings.OCR_LANG}")
-            else:
-                print("警告: OCR 功能已启用但依赖未安装，请运行: pip install pytesseract Pillow pdf2image")
-                print("      并安装 Tesseract OCR: brew install tesseract tesseract-lang (macOS)")
-
-        with pdfplumber.open(file_path) as pdf:
-            total_pages = len(pdf.pages)
-            print(f"PDF 总页数: {total_pages}")
-            
-            for page_num, page in enumerate(pdf.pages, 1):
-                # 提取文本
-                text = page.extract_text() or ""
-                original_text_length = len(text.strip())
-                
-                # 如果文本为空或太短，且启用了OCR，尝试使用OCR
-                if (
-                    settings.ENABLE_OCR
-                    and OCR_AVAILABLE
-                    and original_text_length < settings.OCR_MIN_TEXT_LENGTH
-                ):
-                    print(f"页面 {page_num}/{total_pages}: 文本长度 {original_text_length} < {settings.OCR_MIN_TEXT_LENGTH}，尝试使用 OCR...")
-                    ocr_text = self._extract_text_with_ocr(file_path, page_num)
-                    if ocr_text:
-                        text = ocr_text
-                        print(f"  ✓ OCR 成功: 提取了 {len(text)} 个字符")
-                    else:
-                        print(f"  ✗ OCR 失败: 未能提取文本")
-                
-                # 提取表格（仅当有文本时尝试提取表格）
-                tables = []
-                if text:
-                    try:
-                        tables = (
-                            page.extract_tables(
-                                # table_settings={
-                                    # "vertical_strategy": "lines",
-                                    # "horizontal_strategy": "lines",
-                                    # "edge_min_length": 50,
-                                    # "snap_tolerance": 3,
-                                    # "join_tolerance": 2,
-                                # }
-                            )
-                            or []
-                        )
-                    except Exception:
-                        # 如果提取表格失败，继续处理文本
-                        tables = []
-
-                if not text and not tables:
-                    # 如果既没有文本也没有表格，跳过此页
-                    print(f"警告: 页面 {page_num}/{total_pages} 无法提取文本或表格，跳过")
-                    continue
-
-                # 检测是否使用了OCR
-                original_text = page.extract_text() or ""
-                used_ocr = (
-                    settings.ENABLE_OCR
-                    and OCR_AVAILABLE
-                    and len(original_text.strip()) < settings.OCR_MIN_TEXT_LENGTH
-                    and len(text.strip()) >= settings.OCR_MIN_TEXT_LENGTH
-                )
-                
-                # 创建页面文档，包含表格信息
-                page_doc = Document(
-                    page_content=text,
-                    metadata={
-                        "file_name": file_path_obj.name,
-                        "file_path": str(file_path_obj),
-                        "file_type": ".pdf",
-                        "page_number": page_num,
-                        "table_count": len(tables),
-                        "extracted_with_ocr": used_ocr,
-                        "_tables": tables,  # 内部使用，用于后续分割
-                        "_raw_text": text,  # 保留原始文本
-                    },
-                )
-                documents.append(page_doc)
-
-        return documents
+        markdown_doc = file_converter.convert_to_markdown(file_path)
+        return [markdown_doc]
 
     def load_directory(self, directory_path: str) -> List[Document]:
         """加载目录中的所有支持文件"""
@@ -273,19 +103,13 @@ class DocumentLoader:
         if self.split_strategy == "structured":
             split_docs = self._split_documents_structured(documents)
         else:
-            if self.text_splitter is None:
-                raise RuntimeError("simple 策略需要 text_splitter，但未创建")
-
-            split_docs = self.text_splitter.split_documents(documents)
+            split_docs = self._split_documents_simple(documents)
 
             for i, doc in enumerate(split_docs):
                 doc.metadata["split_strategy"] = self.split_strategy
                 doc.metadata["chunk_id"] = i
 
-        # 清理所有内部使用的元数据字段
         for doc in split_docs:
-            doc.metadata.pop("_tables", None)
-            doc.metadata.pop("_raw_text", None)
             cleaned_metadata = {}
             for key, value in doc.metadata.items():
                 if isinstance(value, (str, int, float, type(None))):
@@ -303,13 +127,9 @@ class DocumentLoader:
         - 连续的换行符 -> 单个换行符
         - 连续的制表符 -> 单个空格
         """
-        # 替换连续的制表符为单个空格
         text = re.sub(r"\t+", " ", text)
-        # 替换连续的空格为单个空格
         text = re.sub(r" +", " ", text)
-        # 替换连续的换行符为单个换行符（保留换行符，因为用于切分）
         text = re.sub(r"\n+", "\n", text)
-        # 去除首尾空白字符
         return text.strip()
 
     def _split_parent_chunks(self, text: str) -> List[str]:
@@ -318,19 +138,16 @@ class DocumentLoader:
         - 按照段落（PARENT_SEPARATOR，默认\n\n）分割
         - 每个chunk最大长度为PARENT_CHUNK_SIZE（默认1024）
         """
-        # 先按照父层级分隔符分割段落（在清理之前，保留分隔符）
         paragraphs = text.split(settings.PARENT_SEPARATOR)
 
         parent_chunks = []
         current_chunk = ""
 
         for paragraph in paragraphs:
-            # 清理段落文本
             paragraph = self._clean_text(paragraph)
             if not paragraph:
                 continue
 
-            # 如果当前chunk加上新段落不超过最大长度，则合并
             if not current_chunk:
                 current_chunk = paragraph
             elif (
@@ -339,55 +156,184 @@ class DocumentLoader:
             ):
                 current_chunk += settings.PARENT_SEPARATOR + paragraph
             else:
-                # 保存当前chunk，开始新chunk
                 if current_chunk:
                     parent_chunks.append(current_chunk)
                 current_chunk = paragraph
 
-                # 如果单个段落就超过最大长度，需要强制分割
                 if len(paragraph) > settings.PARENT_CHUNK_SIZE:
-                    # 按字符强制分割
                     while len(paragraph) > settings.PARENT_CHUNK_SIZE:
                         parent_chunks.append(paragraph[: settings.PARENT_CHUNK_SIZE])
                         paragraph = paragraph[settings.PARENT_CHUNK_SIZE :]
                     current_chunk = paragraph
 
-        # 保存最后一个chunk
         if current_chunk:
             parent_chunks.append(current_chunk)
 
         return parent_chunks
+
+    def _is_markdown_table_line(self, line: str) -> bool:
+        """判断是否是 Markdown 表格行"""
+        line = line.strip()
+        return line.startswith("|") and line.endswith("|") and "|" in line[1:-1]
+
+    def _is_markdown_table_separator(self, line: str) -> bool:
+        """判断是否是 Markdown 表格分隔行（如 | --- | --- |）"""
+        line = line.strip()
+        if not (line.startswith("|") and line.endswith("|")):
+            return False
+        parts = [p.strip() for p in line[1:-1].split("|")]
+        return all(part and all(c in "-:" for c in part) for part in parts)
+
+    def _extract_markdown_table(
+        self, lines: List[str], start_idx: int
+    ) -> Tuple[Optional[str], int]:
+        """
+        从指定位置开始提取完整的 Markdown 表格
+
+        Returns:
+            (table_content, end_idx): 表格内容（整个表格）和结束位置，如果不是表格则返回 (None, start_idx)
+        """
+        if start_idx >= len(lines):
+            return None, start_idx
+
+        first_line = lines[start_idx].strip()
+        if not self._is_markdown_table_line(first_line):
+            return None, start_idx
+
+        table_lines = [first_line]
+        idx = start_idx + 1
+
+        if idx < len(lines) and self._is_markdown_table_separator(lines[idx]):
+            table_lines.append(lines[idx].strip())
+            idx += 1
+
+        while idx < len(lines):
+            line = lines[idx].strip()
+            if self._is_markdown_table_line(line):
+                table_lines.append(line)
+                idx += 1
+            else:
+                break
+
+        if len(table_lines) >= 2:
+            return "\n".join(table_lines), idx
+
+        return None, start_idx
+
+    def _parse_markdown_table(self, table_content: str) -> Dict[str, Any]:
+        """
+        解析 Markdown 表格内容
+
+        Returns:
+            包含表头、数据行的字典
+        """
+        lines = [line.strip() for line in table_content.split("\n") if line.strip()]
+        if len(lines) < 2:
+            return {"header": [], "rows": []}
+
+        header_line = lines[0]
+        has_separator = len(lines) > 1 and self._is_markdown_table_separator(lines[1])
+
+        header = [
+            cell.strip()
+            for cell in header_line[1:-1].split("|")
+            if cell.strip() or True
+        ]
+
+        data_rows = []
+        start_idx = 2 if has_separator else 1
+        for line in lines[start_idx:]:
+            if self._is_markdown_table_line(line):
+                row = [cell.strip() for cell in line[1:-1].split("|")]
+                data_rows.append(row)
+
+        return {"header": header, "rows": data_rows}
+
+    def _convert_table_to_natural_language(
+        self, table_content: str, table_title: str = None
+    ) -> str:
+        """
+        将 Markdown 表格转换为自然语言格式
+
+        Args:
+            table_content: Markdown 表格内容
+            table_title: 表格标题（从表格上一行获取）
+
+        Returns:
+            自然语言格式的表格描述
+        """
+        table_data = self._parse_markdown_table(table_content)
+        header = table_data["header"]
+        rows = table_data["rows"]
+
+        if not header:
+            return table_content
+
+        table_name = table_title.strip() if table_title else "未知"
+        columns = "、".join(col for col in header if col)
+
+        result = ["【表格-分块】"]
+        result.append(f"表名：{table_name}")
+        result.append(f"列：{columns}")
+        result.append("")
+        result.append("本分块包含以下记录：")
+
+        for i, row in enumerate(rows, 1):
+            row_values = [str(cell) if cell else "无" for cell in row]
+            row_text = "，".join(row_values)
+            result.append(f"{i}.{row_text}")
+
+        return "\n".join(result)
 
     def _split_child_chunks(self, parent_text: str) -> List[str]:
         """
         按照dify设计切分子chunk
         - 优先按照子块分隔符（CHILD_SEPARATOR，默认\n）分割，遇到换行就切分成新的子chunk
         - 每个chunk最大长度为CHILD_CHUNK_SIZE（默认512），如果单行超过最大长度才强制分割
+        - 表格整个作为一个子chunk，并转换为自然语言格式
         """
-        # 按照子块分隔符分割（在清理之前，保留分隔符）
         lines = parent_text.split(settings.CHILD_SEPARATOR)
-
         child_chunks = []
+        i = 0
 
-        for line in lines:
-            # 清理行文本
-            line = self._clean_text(line)
-            if not line:
+        while i < len(lines):
+            line = lines[i]
+            cleaned_line = self._clean_text(line)
+
+            if not cleaned_line:
+                i += 1
                 continue
 
-            # 优先按照换行切分：每一行作为一个独立的子chunk
-            # 如果单行超过最大长度，才需要强制分割
-            if len(line) > settings.CHILD_CHUNK_SIZE:
-                # 按字符强制分割
-                while len(line) > settings.CHILD_CHUNK_SIZE:
-                    child_chunks.append(line[: settings.CHILD_CHUNK_SIZE])
-                    line = line[settings.CHILD_CHUNK_SIZE :]
-                # 保存剩余部分
-                if line:
-                    child_chunks.append(line)
+            table_content, end_idx = self._extract_markdown_table(lines, i)
+
+            if table_content:
+                table_title = None
+                for offset in [1, 2]:
+                    if i >= offset:
+                        prev_line = lines[i - offset].strip()
+                        if (
+                            prev_line
+                            and not self._is_markdown_table_line(prev_line)
+                            and not self._is_markdown_table_separator(prev_line)
+                        ):
+                            table_title = prev_line
+                            break
+
+                natural_table = self._convert_table_to_natural_language(
+                    table_content, table_title
+                )
+                child_chunks.append(natural_table)
+                i = end_idx
             else:
-                # 单行不超过最大长度，直接作为一个子chunk
-                child_chunks.append(line)
+                if len(cleaned_line) > settings.CHILD_CHUNK_SIZE:
+                    while len(cleaned_line) > settings.CHILD_CHUNK_SIZE:
+                        child_chunks.append(cleaned_line[: settings.CHILD_CHUNK_SIZE])
+                        cleaned_line = cleaned_line[settings.CHILD_CHUNK_SIZE :]
+                    if cleaned_line:
+                        child_chunks.append(cleaned_line)
+                else:
+                    child_chunks.append(cleaned_line)
+                i += 1
 
         return child_chunks
 
@@ -402,7 +348,6 @@ class DocumentLoader:
             elif value is None:
                 sanitized[key] = None
             else:
-                # skip complex structures (list/dict) to avoid Chroma 报错
                 continue
         return sanitized
 
@@ -414,35 +359,24 @@ class DocumentLoader:
     ) -> List[Document]:
         """
         根据当前 split_strategy 生成 child chunk 文档（包含 metadata）
+
+        注意：输入已经是 Markdown 格式，表格已经是 Markdown 表格格式
+        表格会转换为自然语言格式
         """
         metadata = dict(doc_metadata or {})
         metadata.setdefault("content_type", "text")
 
-        tables = metadata.get("_tables")
-
         child_texts = self._split_child_chunks(parent_text)
-        child_docs: List[Document] = [
-            Document(
-                page_content=text,
-                metadata={**self._sanitize_metadata(metadata), "content_type": "text"},
-            )
-            for text in child_texts
-        ]
+        child_docs: List[Document] = []
 
-        if self.split_strategy == "structured" and tables:
-            for table_idx, table in enumerate(tables):
-                table_md = self._table_to_markdown(table)
-                child_docs.append(
-                    Document(
-                        page_content=table_md,
-                        metadata={
-                            **self._sanitize_metadata(metadata),
-                            "content_type": "table",
-                            "table_id": table_idx + 1,
-                            "parent_index": parent_index,
-                        },
-                    )
-                )
+        for text in child_texts:
+            is_table = text.startswith("【表格-分块】")
+            content_type = "table" if is_table else "text"
+            chunk_metadata = {
+                **self._sanitize_metadata(metadata),
+                "content_type": content_type,
+            }
+            child_docs.append(Document(page_content=text, metadata=chunk_metadata))
 
         return child_docs
 
@@ -457,12 +391,9 @@ class DocumentLoader:
 
         for doc in documents:
             text = doc.page_content or ""
-
-            # 切分父chunk
             parent_texts = self._split_parent_chunks(text)
 
             for parent_idx, parent_text in enumerate(parent_texts):
-                # 创建父chunk文档
                 parent_metadata = {
                     **doc.metadata,
                     "chunk_type": "parent",
@@ -475,44 +406,127 @@ class DocumentLoader:
                 )
                 split_docs.append(parent_doc)
 
-                # 为父chunk创建子chunk
                 child_docs = self.split_child_chunks_for_parent(
                     parent_text, doc.metadata, parent_idx
                 )
                 for child_idx, child_doc in enumerate(child_docs):
-                    child_metadata = {**child_doc.metadata, **{
-                        "chunk_type": "child",
-                        "split_strategy": (
-                            self.split_strategy if self.split_strategy else "simple"
-                        ),
-                        "parent_index": parent_idx,
-                        "child_index": child_idx,
-                        "chunk_id": len(split_docs),
-                    }}
+                    child_metadata = {
+                        **child_doc.metadata,
+                        **{
+                            "chunk_type": "child",
+                            "split_strategy": (
+                                self.split_strategy if self.split_strategy else "simple"
+                            ),
+                            "parent_index": parent_idx,
+                            "child_index": child_idx,
+                            "chunk_id": len(split_docs),
+                        },
+                    }
                     child_doc.metadata = self._sanitize_metadata(child_metadata)
                     split_docs.append(child_doc)
 
         return split_docs
 
-    def _split_documents_structured(self, documents: List[Document]) -> List[Document]:
+    def _split_documents_simple(self, documents: List[Document]) -> List[Document]:
         """
-        结构化分割文档：按表格、公式、章节进行智能分割
+        简单分割文档：按固定大小分割，同时处理表格
+
+        表格会转换为自然语言格式，整个表格作为一个独立的 chunk
         """
         split_docs = []
 
         for doc in documents:
-            # 检查是否有表格信息（来自结构化加载）
-            tables = doc.metadata.get("_tables", [])
-            raw_text = doc.metadata.get("_raw_text", doc.page_content)
+            markdown_text = doc.page_content
+            lines = markdown_text.split("\n")
+            i = 0
+            current_chunk_lines = []
+            current_chunk_length = 0
 
-            if tables:
-                # 有表格，使用结构化分割
-                chunks = self._split_with_tables(raw_text, tables, doc.metadata)
-            else:
-                # 无表格，使用基于章节和公式的分割
-                chunks = self._split_text_structured(raw_text, doc.metadata)
+            while i < len(lines):
+                line = lines[i]
+                table_content, end_idx = self._extract_markdown_table(lines, i)
 
-            # 添加到结果列表
+                if table_content:
+                    if current_chunk_lines:
+                        chunk_text = "\n".join(current_chunk_lines).strip()
+                        if chunk_text:
+                            split_docs.append(
+                                Document(
+                                    page_content=chunk_text,
+                                    metadata={**doc.metadata, "content_type": "text"},
+                                )
+                            )
+                        current_chunk_lines = []
+                        current_chunk_length = 0
+
+                    table_title = None
+                    for offset in [1, 2]:
+                        if i >= offset:
+                            prev_line = lines[i - offset].strip()
+                            if (
+                                prev_line
+                                and not self._is_markdown_table_line(prev_line)
+                                and not self._is_markdown_table_separator(prev_line)
+                            ):
+                                table_title = prev_line
+                                break
+
+                    natural_table = self._convert_table_to_natural_language(
+                        table_content, table_title
+                    )
+                    split_docs.append(
+                        Document(
+                            page_content=natural_table,
+                            metadata={**doc.metadata, "content_type": "table"},
+                        )
+                    )
+                    i = end_idx
+                else:
+                    line_length = len(line) + 1
+                    if (
+                        current_chunk_length + line_length > settings.CHUNK_SIZE
+                        and current_chunk_lines
+                    ):
+                        chunk_text = "\n".join(current_chunk_lines).strip()
+                        if chunk_text:
+                            split_docs.append(
+                                Document(
+                                    page_content=chunk_text,
+                                    metadata={**doc.metadata, "content_type": "text"},
+                                )
+                            )
+                        current_chunk_lines = [line]
+                        current_chunk_length = line_length
+                    else:
+                        current_chunk_lines.append(line)
+                        current_chunk_length += line_length
+                    i += 1
+
+            if current_chunk_lines:
+                chunk_text = "\n".join(current_chunk_lines).strip()
+                if chunk_text:
+                    split_docs.append(
+                        Document(
+                            page_content=chunk_text,
+                            metadata={**doc.metadata, "content_type": "text"},
+                        )
+                    )
+
+        return split_docs
+
+    def _split_documents_structured(self, documents: List[Document]) -> List[Document]:
+        """
+        结构化分割文档：按章节、公式进行智能分割
+
+        注意：输入已经是 Markdown 格式，表格已经是 Markdown 表格格式
+        TODO: 统一按 Markdown 表格方式处理表格，不再单独处理
+        """
+        split_docs = []
+
+        for doc in documents:
+            markdown_text = doc.page_content
+            chunks = self._split_text_structured(markdown_text, doc.metadata)
+
             for chunk in chunks:
                 chunk.metadata.update(
                     {"split_strategy": "structured", "chunk_id": len(split_docs)}
@@ -522,176 +536,122 @@ class DocumentLoader:
 
         return split_docs
 
-    def _split_with_tables(
-        self, text: str, tables: List, base_metadata: Dict
-    ) -> List[Document]:
+    def _split_text_structured(self, text: str, base_metadata: Dict) -> List[Document]:
         """
-        处理包含表格的文档分割
+        对 Markdown 文本进行结构化分割（识别章节、公式和表格）
+
+        注意：输入已经是 Markdown 格式，表格已经是 Markdown 表格格式
+        表格会转换为自然语言格式
         """
         chunks = []
-        text_parts = []
-
-        # 识别章节
         sections = self._identify_sections(text)
 
-        # 将表格转换为Markdown格式
-        table_texts = []
-        for i, table in enumerate(tables):
-            if table:
-                table_md = self._table_to_markdown(table)
-                table_texts.append(
-                    {
-                        "index": i,
-                        "text": table_md,
-                        "marker": f"表{i+1}",  # 用于在文本中定位
-                    }
+        if sections:
+            for i, (section_title, section_text) in enumerate(sections):
+                section_chunks = self._split_section_with_tables(
+                    section_text, base_metadata, section_title
                 )
+                chunks.extend(section_chunks)
+        else:
+            section_chunks = self._split_section_with_tables(text, base_metadata, None)
+            chunks.extend(section_chunks)
 
-        # 按章节和表格位置分割文本
-        current_section = None
-        current_text = []
-        table_index = 0
+        return chunks
 
-        lines = text.split("\n")
-        for line in lines:
-            # 检查是否是章节标题
-            section_match = re.match(settings.STRUCTURED_SECTION_PATTERN, line.strip())
-            if section_match:
-                # 保存当前部分
-                if current_text:
-                    text_content = "\n".join(current_text)
-                    if text_content.strip():
-                        chunks.append(
-                            Document(
-                                page_content=text_content,
-                                metadata={
-                                    **base_metadata,
-                                    "content_type": "text",
-                                    "section": current_section,
-                                },
+    def _split_section_with_tables(
+        self, section_text: str, base_metadata: Dict, section_title: Optional[str]
+    ) -> List[Document]:
+        """
+        分割章节，识别并处理表格
+
+        表格会转换为自然语言格式，整个表格作为一个独立的 chunk
+        """
+        chunks = []
+        lines = section_text.split("\n")
+        i = 0
+        current_text_lines = []
+
+        while i < len(lines):
+            line = lines[i]
+            table_content, end_idx = self._extract_markdown_table(lines, i)
+
+            if table_content:
+                if current_text_lines:
+                    text_content = "\n".join(current_text_lines).strip()
+                    if text_content:
+                        if self._contains_formula(text_content):
+                            formula_chunks = self._split_formula_section(
+                                text_content,
+                                {**base_metadata, "section": section_title},
+                                section_title,
                             )
-                        )
-                current_section = line.strip()
-                current_text = [line]
-                continue
-
-            # 检查是否包含表格标记
-            table_found = False
-            for table_info in table_texts:
-                if table_info["marker"] in line or f"表{table_info['index']+1}" in line:
-                    # 保存当前文本
-                    if current_text:
-                        text_content = "\n".join(current_text)
-                        if text_content.strip():
-                            chunks.append(
-                                Document(
-                                    page_content=text_content,
-                                    metadata={
-                                        **base_metadata,
-                                        "content_type": "text",
-                                        "section": current_section,
-                                    },
+                            chunks.extend(formula_chunks)
+                        else:
+                            if len(text_content) > settings.STRUCTURED_TEXT_CHUNK_SIZE:
+                                text_chunks = self._split_large_text(
+                                    text_content,
+                                    {**base_metadata, "section": section_title},
+                                    settings.STRUCTURED_TEXT_CHUNK_SIZE,
+                                    settings.STRUCTURED_TEXT_CHUNK_OVERLAP,
                                 )
-                            )
+                                chunks.extend(text_chunks)
+                            else:
+                                chunks.append(
+                                    Document(
+                                        page_content=text_content,
+                                        metadata={
+                                            **base_metadata,
+                                            "content_type": "text",
+                                            "section": section_title,
+                                        },
+                                    )
+                                )
+                    current_text_lines = []
 
-                    # 添加表格标题行
-                    table_title = line.strip()
+                table_title = None
+                for offset in [1, 2]:
+                    if i >= offset:
+                        prev_line = lines[i - offset].strip()
+                        if (
+                            prev_line
+                            and not self._is_markdown_table_line(prev_line)
+                            and not self._is_markdown_table_separator(prev_line)
+                        ):
+                            table_title = prev_line
+                            break
 
-                    # 添加表格块
-                    table_content = f"{table_title}\n{table_info['text']}"
-                    chunks.append(
-                        Document(
-                            page_content=table_content,
-                            metadata={
-                                **base_metadata,
-                                "content_type": "table",
-                                "table_id": table_info["index"] + 1,
-                                "section": current_section,
-                            },
-                        )
-                    )
-
-                    current_text = []
-                    table_found = True
-                    break
-
-            if not table_found:
-                current_text.append(line)
-
-        # 保存最后一部分
-        if current_text:
-            text_content = "\n".join(current_text)
-            if text_content.strip():
-                chunks.append(
-                    Document(
-                        page_content=text_content,
-                        metadata={
-                            **base_metadata,
-                            "content_type": "text",
-                            "section": current_section,
-                        },
-                    )
+                natural_table = self._convert_table_to_natural_language(
+                    table_content, table_title
                 )
-
-        # 如果表格没有被插入，单独添加所有表格
-        if not any(chunk.metadata.get("content_type") == "table" for chunk in chunks):
-            for table_info in table_texts:
                 chunks.append(
                     Document(
-                        page_content=table_info["text"],
+                        page_content=natural_table,
                         metadata={
                             **base_metadata,
                             "content_type": "table",
-                            "table_id": table_info["index"] + 1,
+                            "section": section_title,
                         },
                     )
                 )
-
-        # 对文本块进行进一步分割（如果太大）
-        final_chunks = []
-        for chunk in chunks:
-            if chunk.metadata.get("content_type") == "table":
-                # 表格保持完整
-                final_chunks.append(chunk)
+                i = end_idx
             else:
-                # 文本块如果太大，进行分割
-                text = chunk.page_content
-                if len(text) > settings.STRUCTURED_TEXT_CHUNK_SIZE:
-                    # 使用句子分割
-                    text_chunks = self._split_large_text(
-                        text,
-                        chunk.metadata,
-                        settings.STRUCTURED_TEXT_CHUNK_SIZE,
-                        settings.STRUCTURED_TEXT_CHUNK_OVERLAP,
-                    )
-                    final_chunks.extend(text_chunks)
-                else:
-                    final_chunks.append(chunk)
+                current_text_lines.append(line)
+                i += 1
 
-        return final_chunks
-
-    def _split_text_structured(self, text: str, base_metadata: Dict) -> List[Document]:
-        """
-        对不包含表格的文本进行结构化分割（识别章节和公式）
-        """
-        chunks = []
-        sections = self._identify_sections(text)
-
-        # 按章节分割
-        if sections:
-            for i, (section_title, section_text) in enumerate(sections):
-                # 检查是否包含公式
-                if self._contains_formula(section_text):
-                    # 公式区域：保持公式+上下文
+        if current_text_lines:
+            text_content = "\n".join(current_text_lines).strip()
+            if text_content:
+                if self._contains_formula(text_content):
                     formula_chunks = self._split_formula_section(
-                        section_text, base_metadata, section_title
+                        text_content,
+                        {**base_metadata, "section": section_title},
+                        section_title,
                     )
                     chunks.extend(formula_chunks)
                 else:
-                    # 普通文本：按大小分割
-                    if len(section_text) > settings.STRUCTURED_TEXT_CHUNK_SIZE:
+                    if len(text_content) > settings.STRUCTURED_TEXT_CHUNK_SIZE:
                         text_chunks = self._split_large_text(
-                            section_text,
+                            text_content,
                             {**base_metadata, "section": section_title},
                             settings.STRUCTURED_TEXT_CHUNK_SIZE,
                             settings.STRUCTURED_TEXT_CHUNK_OVERLAP,
@@ -700,7 +660,7 @@ class DocumentLoader:
                     else:
                         chunks.append(
                             Document(
-                                page_content=section_text,
+                                page_content=text_content,
                                 metadata={
                                     **base_metadata,
                                     "content_type": "text",
@@ -708,23 +668,6 @@ class DocumentLoader:
                                 },
                             )
                         )
-        else:
-            # 没有章节，整体处理
-            if len(text) > settings.STRUCTURED_TEXT_CHUNK_SIZE:
-                text_chunks = self._split_large_text(
-                    text,
-                    base_metadata,
-                    settings.STRUCTURED_TEXT_CHUNK_SIZE,
-                    settings.STRUCTURED_TEXT_CHUNK_OVERLAP,
-                )
-                chunks.extend(text_chunks)
-            else:
-                chunks.append(
-                    Document(
-                        page_content=text,
-                        metadata={**base_metadata, "content_type": "text"},
-                    )
-                )
 
         return chunks
 
@@ -736,23 +679,18 @@ class DocumentLoader:
         current_content = []
 
         for line in lines:
-            # 匹配章节标题（如 "1 范围"、"2 化学名称"）
             match = re.match(settings.STRUCTURED_SECTION_PATTERN, line.strip())
             if match:
-                # 保存上一章节
                 if current_section and current_content:
                     sections.append((current_section, "\n".join(current_content)))
-                # 开始新章节
                 current_section = line.strip()
                 current_content = [line]
             else:
                 current_content.append(line)
 
-        # 保存最后一章
         if current_section and current_content:
             sections.append((current_section, "\n".join(current_content)))
 
-        # 如果没有找到章节，返回整个文本作为一个章节
         if not sections:
             sections.append((None, text))
 
@@ -760,7 +698,6 @@ class DocumentLoader:
 
     def _contains_formula(self, text: str) -> bool:
         """检测文本是否包含公式/结构式"""
-        # 检测化学结构式特征
         formula_patterns = [
             r"[A-Z][a-z]?\d*[A-Z]?[a-z]?\d*",  # 化学式如 C6H12O6
             r"[=+\-*/^∑∫√]",  # 数学符号
@@ -789,7 +726,6 @@ class DocumentLoader:
                 continue
 
             if self._contains_formula(sentence):
-                # 遇到公式，保存之前的上下文
                 if current_chunk:
                     chunks.append(
                         Document(
@@ -803,7 +739,6 @@ class DocumentLoader:
                     )
                     current_chunk = []
 
-                # 公式+上下文
                 context_count = min(
                     settings.STRUCTURED_FORMULA_CONTEXT, len(formula_context)
                 )
@@ -828,7 +763,6 @@ class DocumentLoader:
                 current_chunk.append(sentence)
                 formula_context.append(sentence)
 
-                # 如果当前块太大，保存它
                 if len("\n".join(current_chunk)) > settings.STRUCTURED_TEXT_CHUNK_SIZE:
                     chunks.append(
                         Document(
@@ -842,7 +776,6 @@ class DocumentLoader:
                     )
                     current_chunk = []
 
-        # 保存最后一部分
         if current_chunk:
             chunks.append(
                 Document(
@@ -888,7 +821,6 @@ class DocumentLoader:
             sentence_length = len(sentence)
 
             if current_length + sentence_length > chunk_size and current_chunk:
-                # 保存当前块
                 chunks.append(
                     Document(
                         page_content="\n".join(current_chunk),
@@ -896,7 +828,6 @@ class DocumentLoader:
                     )
                 )
 
-                # 开始新块，保留重叠部分
                 overlap_text = (
                     "\n".join(current_chunk[-overlap // 50 :]) if current_chunk else ""
                 )
@@ -904,9 +835,8 @@ class DocumentLoader:
                 current_length = len("\n".join(current_chunk))
             else:
                 current_chunk.append(sentence)
-                current_length += sentence_length + 1  # +1 for newline
+                current_length += sentence_length + 1
 
-        # 保存最后一块
         if current_chunk:
             chunks.append(
                 Document(
@@ -917,28 +847,6 @@ class DocumentLoader:
         return (
             chunks if chunks else [Document(page_content=text, metadata=base_metadata)]
         )
-
-    def _table_to_markdown(self, table: List[List]) -> str:
-        """将表格转换为Markdown格式"""
-        if not table or not table[0]:
-            return ""
-
-        md_lines = []
-
-        # 表头
-        header = table[0]
-        md_lines.append(
-            "| " + " | ".join(str(cell) if cell else "" for cell in header) + " |"
-        )
-        md_lines.append("| " + " | ".join("---" for _ in header) + " |")
-
-        # 数据行
-        for row in table[1:]:
-            md_lines.append(
-                "| " + " | ".join(str(cell) if cell else "" for cell in row) + " |"
-            )
-
-        return "\n".join(md_lines)
 
     def split_documents_with_strategy(
         self, documents: List[Document], strategy: str

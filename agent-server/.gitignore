@@ -48,6 +48,9 @@ uploads/
 *.docx
 *.pptx
 
+# Markdown Cache
+markdown_cache/
+
 # Logs
 *.log
 logs/

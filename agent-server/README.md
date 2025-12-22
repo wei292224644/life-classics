@@ -1,20 +1,27 @@
 # 个人知识库系统
 
-基于 Python + FastAPI + LlamaIndex + ChromaDB 开发的个人知识库系统。
+基于 Python + FastAPI + LangChain + ChromaDB 开发的个人知识库系统。
 
 ## 功能特性
 
 - 📄 **多格式文档支持**: 支持 PDF、Markdown、Word、PowerPoint、TXT 等格式
-- 🔍 **智能检索**: 基于向量相似度的语义搜索
-- 💾 **持久化存储**: 使用 ChromaDB 进行向量数据持久化
+- 🔍 **智能检索**: 基于向量相似度的语义搜索，支持父子 chunk 结构
+- 💾 **持久化存储**: 使用 ChromaDB 进行向量数据持久化，SQLite 存储父文档
 - 🚀 **RESTful API**: 提供完整的 REST API 接口
 - 📊 **文档管理**: 支持文档上传、查询、删除等操作
+- 💬 **多轮对话**: 基于知识库的智能对话，支持上下文记忆
+- 🌐 **网络搜索**: 集成网络搜索工具（DuckDuckGo、Tavily、Serper），补充知识库信息
+- 🔤 **AI 翻译**: 支持中英文双向翻译
+- 🖥️ **Web UI**: 提供浏览器界面，方便浏览和查看知识库数据
+- 📸 **OCR 支持**: 支持图片型 PDF 的 OCR 识别
+- 📦 **批量导入**: 支持批量导入文档到知识库
 
 ## 技术栈
 
 - **FastAPI**: 现代化的 Python Web 框架
-- **LlamaIndex**: 数据索引和检索框架
+- **LangChain**: 数据索引和检索框架
 - **ChromaDB**: 开源向量数据库
+- **SQLite**: 父文档存储
 - **多模型提供者支持**: 统一的模型提供者中间层，支持灵活配置
   - **DashScope/Qwen**: 阿里云通义千问大语言模型和嵌入模型
   - **Ollama**: 本地大语言模型服务
@@ -23,28 +30,41 @@
 ## 项目结构
 
 ```
-agent/
+agent-server/
 ├── app/
 │   ├── api/              # API 路由
 │   │   ├── documents.py  # 文档管理接口
 │   │   ├── query.py      # 查询接口
+│   │   ├── chat.py       # 对话接口
+│   │   ├── translate.py  # 翻译接口
 │   │   └── health.py     # 健康检查
 │   ├── core/             # 核心模块
 │   │   ├── config.py     # 配置管理
 │   │   ├── vector_store.py  # 向量存储
+│   │   ├── parent_store.py  # 父文档存储（SQLite）
 │   │   ├── document_loader.py  # 文档加载
 │   │   ├── embeddings.py  # 嵌入模型
 │   │   ├── llm.py        # LLM 配置
-│   │   └── providers/    # 模型提供者中间层
-│   │       ├── base.py   # 提供者基类
-│   │       ├── factory.py  # 提供者工厂
-│   │       ├── dashscope.py  # DashScope 提供者
-│   │       ├── ollama.py  # Ollama 提供者
-│   │       ├── openrouter.py  # OpenRouter 提供者
-│   │       └── utils.py  # 工具函数
+│   │   ├── providers/    # 模型提供者中间层
+│   │   │   ├── base.py   # 提供者基类
+│   │   │   ├── factory.py  # 提供者工厂
+│   │   │   ├── dashscope.py  # DashScope 提供者
+│   │   │   ├── ollama.py  # Ollama 提供者
+│   │   │   ├── openrouter.py  # OpenRouter 提供者
+│   │   │   └── utils.py  # 工具函数
+│   │   └── tools/        # 工具模块
+│   │       └── web_search.py  # 网络搜索工具
+│   ├── web/              # Web UI
+│   │   ├── chroma_viewer.py  # ChromaDB 数据查看器
+│   │   └── templates/    # HTML 模板
 │   └── main.py           # FastAPI 应用入口
-├── main.py               # 旧入口（可删除）
+├── files/                # 文档存储目录（可选）
+├── import_files.py       # 批量导入脚本
+├── view_chunks.py        # 查看 chunks 工具
+├── view_all_chunks.py    # 查看所有 chunks 工具
+├── run.py                # 启动脚本
 ├── pyproject.toml        # 项目配置
+├── requirements.txt      # 依赖列表
 ├── .env.example          # 环境变量示例
 └── README.md             # 项目文档
 ```
@@ -54,7 +74,7 @@ agent/
 ### 1. 创建虚拟环境
 
 ```bash
-cd agent
+cd agent-server
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 ```
@@ -173,29 +193,42 @@ python run.py
 方式二：使用 uvicorn 直接启动
 
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 9999
 ```
 
 服务启动后，访问：
 
-- API 文档: http://localhost:8000/docs
-- 健康检查: http://localhost:8000/health
-- 根路径: http://localhost:8000/
+- API 文档: http://localhost:9999/docs
+- Swagger UI: http://localhost:9999/swagger
+- 健康检查: http://localhost:9999/api/health
+- Web UI (ChromaDB 查看器): http://localhost:9999/web/
+- 根路径: http://localhost:9999/
 
 ## API 使用示例
 
 ### 1. 上传文档
 
 ```bash
-curl -X POST "http://localhost:8000/api/documents/upload" \
+curl -X POST "http://localhost:9999/api/documents/upload" \
   -F "file=@example.pdf" \
   -F "description=示例文档"
 ```
 
-### 2. 查询知识库
+### 2. 批量上传目录
 
 ```bash
-curl -X POST "http://localhost:8000/api/query/" \
+curl -X POST "http://localhost:9999/api/documents/upload-directory" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "directory_path": "./files",
+    "skip_existing": true
+  }'
+```
+
+### 3. 查询知识库
+
+```bash
+curl -X POST "http://localhost:9999/api/query/" \
   -H "Content-Type: application/json" \
   -d '{
     "query": "什么是机器学习？",
@@ -203,16 +236,124 @@ curl -X POST "http://localhost:8000/api/query/" \
   }'
 ```
 
-### 3. 获取知识库信息
+### 4. 多轮对话
 
 ```bash
-curl "http://localhost:8000/api/documents/info"
+curl -X POST "http://localhost:9999/api/chat/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "请介绍一下机器学习的基本概念",
+    "top_k": 5
+  }'
 ```
 
-### 4. 清空所有文档
+### 5. AI 翻译
 
 ```bash
-curl -X DELETE "http://localhost:8000/api/documents/clear"
+# 英文转中文
+curl -X POST "http://localhost:9999/api/translate/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello, world!",
+    "direction": "en_to_zh"
+  }'
+
+# 中文转英文
+curl -X POST "http://localhost:9999/api/translate/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "你好，世界！",
+    "direction": "zh_to_en"
+  }'
+
+# 自动检测语言并翻译
+curl -X POST "http://localhost:9999/api/translate/auto" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello, world!"
+  }'
+```
+
+### 6. 获取知识库信息
+
+```bash
+curl "http://localhost:9999/api/documents/info"
+```
+
+### 7. 获取文档 chunks
+
+```bash
+# 获取所有文档的 chunks
+curl "http://localhost:9999/api/documents/chunks"
+
+# 获取指定文件的 chunks
+curl "http://localhost:9999/api/documents/chunks/example.pdf"
+```
+
+### 8. 清空所有文档
+
+```bash
+curl -X DELETE "http://localhost:9999/api/documents/clear"
+```
+
+### 9. 健康检查
+
+```bash
+curl "http://localhost:9999/api/health"
+```
+
+## Web UI
+
+系统提供了基于浏览器的 Web UI，方便查看和管理知识库数据：
+
+### 访问 Web UI
+
+启动服务后，访问以下地址：
+
+- **主页**: http://localhost:9999/web/
+- **文件列表**: http://localhost:9999/web/files
+- **Chunks 列表**: http://localhost:9999/web/chunks
+
+### 功能特性
+
+- 📁 **文件浏览**: 查看所有已导入的文档
+- 📄 **Chunk 查看**: 查看文档的分块内容
+- 🔍 **搜索功能**: 在 Web UI 中搜索文档和 chunks
+- 📊 **详细信息**: 查看文档和 chunk 的元数据信息
+
+## 工具脚本
+
+项目提供了多个工具脚本，方便批量操作和查看数据：
+
+### 批量导入脚本 (`import_files.py`)
+
+用于批量导入目录下的文档到知识库：
+
+```bash
+# 导入 files 目录下的所有 PDF
+python import_files.py
+
+# 从指定索引开始导入
+python import_files.py --start-index 10 --batch-size 5
+
+# 导入单个文件
+python import_files.py --single-file example.pdf
+
+# 跳过已存在的文件
+python import_files.py --skip-existing
+```
+
+### 查看 Chunks 脚本
+
+- `view_chunks.py`: 查看指定文件的 chunks
+- `view_all_chunks.py`: 查看所有文档的 chunks
+
+```bash
+# 查看指定文件的 chunks
+python view_chunks.py example.pdf
+
+# 查看所有文档的 chunks
+python view_all_chunks.py
 ```
 
 ## 开发
@@ -230,12 +371,37 @@ pytest
 
 ## 配置说明
 
-主要配置项在 `app/core/config.py` 中：
+主要配置项在 `app/core/config.py` 中，可通过环境变量或 `.env` 文件配置：
+
+### 文档处理配置
 
 - `CHUNK_SIZE`: 文档分块大小（默认 1000）
 - `CHUNK_OVERLAP`: 分块重叠大小（默认 200）
 - `MAX_FILE_SIZE`: 最大文件大小（默认 10MB）
 - `SUPPORTED_EXTENSIONS`: 支持的文件类型
+- `SPLIT_STRATEGY`: 文档分割策略，`simple` 或 `structured`（默认 `structured`）
+- `ENABLE_PARENT_CHILD`: 是否启用父子 chunk 模式（默认 `True`）
+  - `PARENT_CHUNK_SIZE`: 父层级分段大小（默认 1024）
+  - `CHILD_CHUNK_SIZE`: 子块分段大小（默认 512）
+
+### OCR 配置
+
+- `ENABLE_OCR`: 是否启用 OCR 功能（默认 `True`）
+- `OCR_LANG`: OCR 语言，如 `chi_sim+eng`（简体中文+英文）
+- `OCR_MIN_TEXT_LENGTH`: 如果提取的文本长度小于此值，尝试使用 OCR（默认 10）
+
+### 网络搜索配置
+
+- `ENABLE_WEB_SEARCH`: 是否启用网络搜索功能（默认 `True`）
+- `SEARCH_PROVIDER`: 搜索提供者，可选 `duckduckgo`、`tavily`、`serper`（默认 `duckduckgo`）
+- `TAVILY_API_KEY`: Tavily Search API 密钥（可选）
+- `SERPER_API_KEY`: Serper API 密钥（可选）
+
+### 服务器配置
+
+- `HOST`: 服务器地址（默认 `0.0.0.0`）
+- `PORT`: 服务器端口（默认 `9999`）
+- `CORS_ORIGINS`: CORS 允许的源列表
 
 ## 使用示例
 
@@ -251,23 +417,6 @@ pip install requests
 python example_usage.py
 ```
 
-### 使用 curl 命令
-
-```bash
-# 上传文档
-curl -X POST "http://localhost:8000/api/documents/upload" \
-  -F "file=@example.pdf" \
-  -F "description=示例文档"
-
-# 查询知识库
-curl -X POST "http://localhost:8000/api/query/" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "什么是机器学习？", "top_k": 5}'
-
-# 获取知识库信息
-curl "http://localhost:8000/api/documents/info"
-```
-
 ## 模型提供者架构
 
 系统采用统一的模型提供者中间层设计，支持灵活的配置和扩展：
@@ -276,7 +425,7 @@ curl "http://localhost:8000/api/documents/info"
 
 1. **独立配置**: LLM 和 Embedding 提供者可以独立选择
 2. **易于扩展**: 通过实现基类接口即可添加新的提供者
-3. **统一接口**: 所有提供者都兼容 LlamaIndex 接口
+3. **统一接口**: 所有提供者都兼容 LangChain 接口
 4. **单例缓存**: 自动缓存实例，避免重复创建
 
 ### 支持的提供者
@@ -319,19 +468,44 @@ print(results)
    - 配置项：`LLM_PROVIDER` 和 `EMBEDDING_PROVIDER`
 
 2. **依赖安装**: 不同提供者需要不同的依赖包
-   - DashScope: `llama-index-llms-dashscope`, `llama-index-embeddings-dashscope`
-   - Ollama: `llama-index-llms-ollama`, `llama-index-embeddings-ollama`
-   - OpenRouter: `llama-index-llms-openai`, `llama-index-embeddings-openai`
+   - DashScope: 使用 `dashscope` SDK
+   - Ollama: 使用 `langchain-ollama`
+   - OpenRouter: 使用 `langchain-openai`（兼容 OpenAI API）
 
 3. **扩展新提供者**: 要实现新的提供者，只需：
    - 继承 `BaseLLMProvider` 或 `BaseEmbeddingProvider`
    - 实现 `create_instance()` 和 `validate_config()` 方法
    - 在 `ModelFactory` 中注册新提供者
-2. **数据存储**: ChromaDB 数据存储在 `./chroma_db` 目录，删除此目录会清空所有数据
-3. **临时文件**: 上传的文件会临时存储在 `./uploads` 目录，处理完成后自动删除
-4. **CORS 配置**: 建议在生产环境中配置适当的 CORS 策略
-5. **文件大小限制**: 默认最大文件大小为 10MB，可在配置中修改
-6. **支持的格式**: PDF、Markdown、Word (.docx)、PowerPoint (.pptx)、TXT
+
+4. **数据存储**: 
+   - ChromaDB 数据存储在 `./chroma_db` 目录，删除此目录会清空所有向量数据
+   - 父文档数据存储在 `./parent_chunks.db`（SQLite），删除此文件会清空所有父文档数据
+
+5. **临时文件**: 上传的文件会临时存储在 `./uploads` 目录，处理完成后自动删除
+
+6. **CORS 配置**: 建议在生产环境中配置适当的 CORS 策略
+
+7. **文件大小限制**: 默认最大文件大小为 10MB，可在配置中修改
+
+8. **支持的格式**: PDF、Markdown、Word (.docx)、PowerPoint (.pptx)、TXT
+
+9. **OCR 功能**: 
+   - 需要安装 Tesseract OCR 引擎
+   - macOS: `brew install tesseract tesseract-lang`
+   - Linux: `sudo apt-get install tesseract-ocr tesseract-ocr-chi-sim`
+   - Windows: 从 [GitHub](https://github.com/UB-Mannheim/tesseract/wiki) 下载安装
+   - 详细配置请参考 `OCR_SETUP.md`
+
+10. **网络搜索**: 
+    - 默认使用 DuckDuckGo（免费，无需 API 密钥）
+    - 可选配置 Tavily 或 Serper API（需要 API 密钥）
+    - 在对话 API 中，如果知识库中没有相关信息，会自动调用网络搜索
+
+11. **父子 Chunk 模式**: 
+    - 启用后，系统会将文档分为父 chunk 和子 chunk
+    - 向量库只存储子 chunk，避免重复
+    - 父 chunk 存储在 SQLite 中，用于 Web UI 展示和检索回溯
+    - 推荐启用此模式以获得更好的检索效果
 
 ## 许可证
 

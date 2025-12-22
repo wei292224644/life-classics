@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     # 文档处理配置
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
     SUPPORTED_EXTENSIONS: List[str] = [".pdf", ".txt", ".md", ".docx", ".pptx"]
+    MARKDOWN_CACHE_DIR: str = "./markdown_cache"  # Markdown 缓存目录
     
     # OCR配置（用于处理图片型PDF）
     ENABLE_OCR: bool = True  # 是否启用OCR功能
