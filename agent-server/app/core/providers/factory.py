@@ -88,8 +88,8 @@ class ModelFactory:
             config = {
                 "api_key": settings.DASHSCOPE_API_KEY,
                 "model": settings.QWEN_MODEL,
-                "temperature": 0.7,
-                "max_tokens": 2048,
+                "temperature": 0.7,  # 温度(0.0-1.0)，表示生成内容的随机性
+                "max_tokens": 4096,  # 最大长度(1-8192)，表示生成内容的最大长度
             }
         elif provider_name == "ollama":
             config = {

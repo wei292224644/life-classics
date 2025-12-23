@@ -129,7 +129,7 @@ def import_pdfs_from_directory(
             print(f"  [Step 1] 提取结构单元...")
             units = pdf_structure_extractor.extract_structure(str(pdf_file))
             print(f"  ✓ 提取了 {len(units)} 个结构单元")
-            
+
             if not units:
                 print(f"  ⚠ 未能提取到结构单元，跳过此文件")
                 error_count += 1

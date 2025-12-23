@@ -16,31 +16,36 @@ from app.core.llm import get_llm
 from process_regulatory_document import extract_standard_ref
 
 
-def extract_pdf_text(pdf_path: str) -> str:
+def extract_pdf_text(pdf_path: str, page_num: int = 1) -> str:
     """
-    从PDF中提取所有文本
+    从PDF中提取指定页面的文本
 
     Args:
         pdf_path: PDF文件路径
+        page_num: 页码（从1开始，默认第1页）
 
     Returns:
         提取的文本内容
     """
-    text_parts = []
-
     try:
         with pdfplumber.open(pdf_path) as pdf:
-            print(f"PDF总页数: {len(pdf.pages)}")
-
-            for page_num, page in enumerate(pdf.pages, start=1):
-                text = page.extract_text()
-                if text:
-                    text_parts.append(f"=== 第 {page_num} 页 ===\n{text}\n")
-                    print(f"  第 {page_num} 页: 提取了 {len(text)} 个字符")
-
-            full_text = "\n".join(text_parts)
-            print(f"\n总共提取了 {len(full_text)} 个字符")
-            return full_text
+            total_pages = len(pdf.pages)
+            print(f"PDF总页数: {total_pages}")
+            
+            if page_num < 1 or page_num > total_pages:
+                print(f"错误: 页码 {page_num} 超出范围（1-{total_pages}）")
+                return ""
+            
+            # 只提取第一页
+            page = pdf.pages[page_num - 1]
+            text = page.extract_text()
+            
+            if text:
+                print(f"  第 {page_num} 页: 提取了 {len(text)} 个字符")
+                return text
+            else:
+                print(f"  第 {page_num} 页: 未能提取到文本")
+                return ""
 
     except Exception as e:
         print(f"PDF解析失败: {e}")
@@ -70,59 +75,52 @@ def analyze_with_llm(text: str, standard_ref: str = None) -> str:
     # 构建prompt
     standard_info = f"\n标准编号: {standard_ref}\n" if standard_ref else ""
 
-    prompt = f"""你是一个“文档结构抽取助手”，你的任务是将 {standard_info} PDF 文档转换为
-一种“面向法规规则抽取的中间文本格式”，用于后续自动化规则解析与知识库构建。
+    prompt = f"""你将收到一个国家食品安全标准 PDF 的文本内容（可能存在分页、中断、页眉页脚）。
 
-这是一个中间数据阶段，不是给人阅读的最终文档。
+你的任务是将其转换为“结构化文本”，要求如下：
 
-【重要约束（必须严格遵守）】
+【基本规则】
+1. 不进行总结、解释或推理，不引入任何原文中不存在的信息。
+2. 严格保持原文语义与数值，不允许改写数值、单位、化学名称。
+3. 删除页眉、页脚、页码、重复的页标题。
+4. 合并被分页或换行打断的连续语句。
+5. 表格内的内容，去掉\n换行符。保证表格内的内容是连续的。
 
-1. 不要输出 Markdown。
-2. 不要使用 Markdown 表格、列表、标题层级或任何排版格式。
-3. 不要总结、解释、改写或推断文档含义。
-4. 不要合并内容，也不要拆分原有的结构单元。
-5. 不要生成“美观”的文档，只保留结构信息。
-6. 不要判断是否为规则，这一步只做结构抽取。
+【结构规则】
+5. 识别并保留章节结构，使用以下标签表示：
+   - <section level="1"> 一级章节标题 </section>
+   - <section level="2"> 二级章节标题 </section>
+   - <section level="3"> 三级章节标题 </section>
 
-【你的输出将被下游程序和模型使用，而不是给人直接阅读。】
+6. 正文内容使用 <p> 标签包裹。
 
-【允许使用的结构标签（只能使用以下几种）】
+7. 表格使用如下结构表示，不使用 Markdown 表格：
+   <table>
+     <row>
+       <col>列名1</col>
+       <col>列名2</col>
+     </row>
+     <row>
+       <col>值1</col>
+       <col>值2</col>
+     </row>
+   </table>
 
-[SECTION] 章节标题  
-[TABLE] 表格标题  
-[ROW] 表格中的一行（一行 = 一个逻辑行）  
-[NOTE] 注释或备注（如以“注：”开头的内容）  
-[TEXT] 其他普通文本（不属于以上类型）
+【输出要求】
+8. 输出为纯文本结构化内容，不使用 Markdown 语法。
+9. 保留原文中的公式、单位、化学式。
+10. 要求输出完整内容，不要只输出结构化框架。
 
-【输出规则】
 
-- 每一个结构单元单独输出一行
-- 不得合并多行内容
-- 不得自行补充缺失信息
-- [ROW] 中只包含原表格的一行原始文本
-- 不要使用编号、项目符号、缩进
-
-【输出示例】
-
-[SECTION] 4 理化指标
-[TABLE] 表2 理化指标
-[ROW] 总β-胡萝卜素含量（以CH计），w/% ≥ 96.0
-[ROW] 吸光度比值 A/A455 483 1.14～1.19
-[ROW] 灼烧残渣，w/% ≤ 0.2
-[NOTE] 注：商品化的β-胡萝卜素产品可添加符合食品添加剂质量规格要求的明胶、抗氧化剂和（或）食用植物油、糊精、淀粉。
-
-【开始任务】
-
-请从 PDF 内容中按上述要求抽取结构化中间文本。
-
-{standard_info}PDF内容：
+以下为PDF原文内容：
 {text}
+ 
 """
 
     try:
         print("\n正在调用LLM分析...")
         llm = get_llm()
-        response = llm.invoke([SystemMessage(content=prompt)])
+        response = llm.invoke([HumanMessage(content=prompt)])
 
         if hasattr(response, "content"):
             return response.content
@@ -163,12 +161,12 @@ def main():
     print(f"处理文件: {pdf_file.name}")
     print("=" * 60)
 
-    # Step 1: 提取PDF文本
-    print("\n[Step 1] 提取PDF文本...")
-    pdf_text = extract_pdf_text(str(pdf_file))
+    # Step 1: 提取PDF第一页文本
+    print("\n[Step 1] 提取PDF第一页文本...")
+    pdf_text = extract_pdf_text(str(pdf_file), page_num=2)
 
     if not pdf_text or not pdf_text.strip():
-        print("错误: 未能从PDF中提取到文本")
+        print("错误: 未能从PDF第一页提取到文本")
         sys.exit(1)
 
     # Step 2: 提取标准编号（可选）
@@ -190,15 +188,13 @@ def main():
     print(result)
     print("=" * 60)
 
-    # 可选：保存结果到文件
-    output_file = pdf_file.stem + "_analysis.txt"
+    # 保存结果到Markdown文件
+    output_file = pdf_file.stem + "_page1.md"
     try:
         with open(output_file, "w", encoding="utf-8") as f:
-            f.write(f"文件: {pdf_file.name}\n")
-            f.write(f"标准编号: {standard_ref or '未知'}\n")
-            f.write("=" * 60 + "\n\n")
-            f.write("LLM分析结果:\n")
-            f.write("=" * 60 + "\n")
+            f.write(f"# {pdf_file.name} - 第一页结构化内容\n\n")
+            f.write(f"**标准编号**: {standard_ref or '未知'}\n\n")
+            f.write("---\n\n")
             f.write(result)
         print(f"\n✓ 结果已保存到: {output_file}")
     except Exception as e:

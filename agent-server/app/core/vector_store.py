@@ -243,7 +243,7 @@ class VectorStoreManager:
             except Exception:
                 # 如果批量添加失败，回退到直接添加（兼容性）
                 print("  ⚠ 批量添加失败，尝试直接添加...")
-                self.vector_store.add_documents(documents)
+            self.vector_store.add_documents(documents)
 
     def query(self, query_str: str, top_k: int = 5) -> List[Document]:
         """
