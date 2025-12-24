@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     DASHSCOPE_API_KEY: str = ""
     QWEN_MODEL: str = "qwen-max"  # 可选: qwen-turbo, qwen-plus, qwen-max
     QWEN_EMBEDDING_MODEL: str = "text-embedding-v2"  # Qwen嵌入模型
+    DASHSCOPE_MODEL: str = "qwen3-max-preview"  # DashScope模型名称
 
     # Ollama配置
     OLLAMA_BASE_URL: str = "http://localhost:11434"  # Ollama服务地址
@@ -43,34 +44,11 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
     SUPPORTED_EXTENSIONS: List[str] = [".pdf", ".txt", ".md", ".docx", ".pptx"]
     MARKDOWN_CACHE_DIR: str = "./markdown_cache"  # Markdown 缓存目录
-    
+
     # OCR配置（用于处理图片型PDF）
     ENABLE_OCR: bool = True  # 是否启用OCR功能
     OCR_LANG: str = "chi_sim+eng"  # OCR语言，chi_sim=简体中文，eng=英文，可组合使用
     OCR_MIN_TEXT_LENGTH: int = 10  # 如果提取的文本长度小于此值，尝试使用OCR
-
-    # 文档分割策略: "simple" 或 "structured"
-    # simple: 简单分割（适合常规纯文本）
-    # structured: 结构化分割（针对表格、公式等复杂布局的PDF）
-    SPLIT_STRATEGY: str = "structured"
-
-    # Simple分割器配置
-    CHUNK_SIZE: int = 1000
-    CHUNK_OVERLAP: int = 200
-
-    # Structured分割器配置（用于包含表格和公式的PDF，推荐）
-    STRUCTURED_TEXT_CHUNK_SIZE: int = 900  # 普通文本块大小
-    STRUCTURED_TEXT_CHUNK_OVERLAP: int = 150  # 普通文本块重叠
-    STRUCTURED_FORMULA_CONTEXT: int = 2  # 公式前后保留的句子数
-    STRUCTURED_SECTION_PATTERN: str = r"^\d+\s+[^\n]+"  # 章节标题模式
-
-    # 父子Chunk配置（使用AutoMergingRetriever）
-    # Dify风格的父子切分配置
-    PARENT_SEPARATOR: str = "\n\n"  # 父层级分段标识符
-    PARENT_CHUNK_SIZE: int = 1024  # 父层级分段最大长度（字符数）
-    CHILD_SEPARATOR: str = "\n"  # 子块分段标识符
-    CHILD_CHUNK_SIZE: int = 512  # 子块分段最大长度（字符数）
-    ENABLE_PARENT_CHILD: bool = True  # 是否启用父子chunk模式
 
     # 网络搜索配置
     ENABLE_WEB_SEARCH: bool = True  # 是否启用网络搜索功能

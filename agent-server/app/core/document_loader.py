@@ -373,7 +373,7 @@ class DocumentLoader:
             is_table = text.startswith("【表格-分块】")
             content_type = "table" if is_table else "text"
             chunk_metadata = {
-                **self._sanitize_metadata(metadata),
+                            **self._sanitize_metadata(metadata),
                 "content_type": content_type,
             }
             child_docs.append(Document(page_content=text, metadata=chunk_metadata))
@@ -413,13 +413,13 @@ class DocumentLoader:
                     child_metadata = {
                         **child_doc.metadata,
                         **{
-                            "chunk_type": "child",
-                            "split_strategy": (
-                                self.split_strategy if self.split_strategy else "simple"
-                            ),
-                            "parent_index": parent_idx,
-                            "child_index": child_idx,
-                            "chunk_id": len(split_docs),
+                        "chunk_type": "child",
+                        "split_strategy": (
+                            self.split_strategy if self.split_strategy else "simple"
+                        ),
+                        "parent_index": parent_idx,
+                        "child_index": child_idx,
+                        "chunk_id": len(split_docs),
                         },
                     }
                     child_doc.metadata = self._sanitize_metadata(child_metadata)
@@ -481,7 +481,7 @@ class DocumentLoader:
                         )
                     )
                     i = end_idx
-                else:
+            else:
                     line_length = len(line) + 1
                     if (
                         current_chunk_length + line_length > settings.CHUNK_SIZE
@@ -596,16 +596,16 @@ class DocumentLoader:
                                 )
                                 chunks.extend(text_chunks)
                             else:
-                                chunks.append(
-                                    Document(
-                                        page_content=text_content,
-                                        metadata={
-                                            **base_metadata,
-                                            "content_type": "text",
+                chunks.append(
+                    Document(
+                        page_content=text_content,
+                        metadata={
+                            **base_metadata,
+                            "content_type": "text",
                                             "section": section_title,
-                                        },
-                                    )
-                                )
+                        },
+                    )
+                )
                     current_text_lines = []
 
                 table_title = None
@@ -666,8 +666,8 @@ class DocumentLoader:
                                     "content_type": "text",
                                     "section": section_title,
                                 },
-                            )
-                        )
+                    )
+                )
 
         return chunks
 

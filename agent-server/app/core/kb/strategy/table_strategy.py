@@ -1,0 +1,22 @@
+"""
+表格切分策略
+按照表格、行、列等表格单位进行切分
+"""
+
+from typing import List, Dict, Any
+
+
+def split_table(content: str, **kwargs) -> List[Dict[str, Any]]:
+    """
+    表格切分策略
+    
+    Args:
+        content: 待切分的表格内容
+        **kwargs: 其他参数
+        
+    Returns:
+        切分后的知识库通用数据结构列表
+    """
+    # TODO: 实现表格切分逻辑
+    pass
+

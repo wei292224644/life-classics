@@ -11,8 +11,6 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from app.core.config import settings
 from app.core.embeddings import get_embedding_model
-from app.core.parent_store import ParentChunkStore
-from app.core.document_loader import document_loader
 
 
 class VectorStoreManager:
@@ -37,11 +35,6 @@ class VectorStoreManager:
             embedding_function=self.embedding_model,
         )
 
-        # 父 chunk 存储（SQLite）
-        self.parent_store = ParentChunkStore(
-            db_path=os.path.join(settings.CHROMA_PERSIST_DIR, "parent_chunks.sqlite3")
-        )
-
     # ==================== 内部函数（私有方法） ====================
 
     def _clean_text(self, text: str) -> str:
@@ -52,11 +45,11 @@ class VectorStoreManager:
         - 连续的制表符 -> 单个空格
         """
         # 替换连续的制表符为单个空格
-        text = re.sub(r'\t+', ' ', text)
+        text = re.sub(r"\t+", " ", text)
         # 替换连续的空格为单个空格
-        text = re.sub(r' +', ' ', text)
+        text = re.sub(r" +", " ", text)
         # 替换连续的换行符为单个换行符（保留换行符，因为用于切分）
-        text = re.sub(r'\n+', '\n', text)
+        text = re.sub(r"\n+", "\n", text)
         # 去除首尾空白字符
         return text.strip()
 
@@ -68,116 +61,55 @@ class VectorStoreManager:
         """
         # 先按照父层级分隔符分割段落（在清理之前，保留分隔符）
         paragraphs = text.split(settings.PARENT_SEPARATOR)
-        
+
         parent_chunks = []
         current_chunk = ""
-        
+
         for paragraph in paragraphs:
             # 清理段落文本
             paragraph = self._clean_text(paragraph)
             if not paragraph:
                 continue
-            
+
             # 如果当前chunk加上新段落不超过最大长度，则合并
             if not current_chunk:
                 current_chunk = paragraph
-            elif len(current_chunk) + len(settings.PARENT_SEPARATOR) + len(paragraph) <= settings.PARENT_CHUNK_SIZE:
+            elif (
+                len(current_chunk) + len(settings.PARENT_SEPARATOR) + len(paragraph)
+                <= settings.PARENT_CHUNK_SIZE
+            ):
                 current_chunk += settings.PARENT_SEPARATOR + paragraph
             else:
                 # 保存当前chunk，开始新chunk
                 if current_chunk:
                     parent_chunks.append(current_chunk)
                 current_chunk = paragraph
-                
+
                 # 如果单个段落就超过最大长度，需要强制分割
                 if len(paragraph) > settings.PARENT_CHUNK_SIZE:
                     # 按字符强制分割
                     while len(paragraph) > settings.PARENT_CHUNK_SIZE:
-                        parent_chunks.append(paragraph[:settings.PARENT_CHUNK_SIZE])
-                        paragraph = paragraph[settings.PARENT_CHUNK_SIZE:]
+                        parent_chunks.append(paragraph[: settings.PARENT_CHUNK_SIZE])
+                        paragraph = paragraph[settings.PARENT_CHUNK_SIZE :]
                     current_chunk = paragraph
-        
+
         # 保存最后一个chunk
         if current_chunk:
             parent_chunks.append(current_chunk)
-        
+
         return parent_chunks
 
-    def _add_documents_parent_child(self, raw_documents: List[Document]) -> None:
-        """
-        父子 chunk 入库策略（Dify风格）：
-        - parent: 仅保存到 SQLite（避免向量库重复存大段文本）
-        - child: 保存到 Chroma（用于向量检索）
-        - 按照段落（\n\n）切分父层级，最大长度1024
-        - 按照行（\n）切分子块，最大长度512
-        - 清理连续的空格、换行符和制表符
-        """
-        child_docs_to_add: List[Document] = []
-        child_ids: List[str] = []
-
-        # 处理每个原始文档
-        for doc in raw_documents:
-            text = doc.page_content or ""
-            
-            # 切分父chunk
-            parent_texts = self._split_parent_chunks(text)
-            
-            for parent_idx, parent_text in enumerate(parent_texts):
-                parent_id = str(uuid.uuid4())
-
-                parent_metadata: Dict[str, Any] = dict(doc.metadata or {})
-                parent_metadata.update(
-                    {
-                        "chunk_type": "parent",
-                        "split_strategy": "parent_child",
-                        "parent_id": parent_id,
-                        "parent_index": parent_idx,
-                    }
-                )
-
-                # 写父 chunk 到 SQLite
-                self.parent_store.upsert_parent(
-                    parent_id=parent_id,
-                    text=parent_text,
-                    metadata=parent_metadata,
-                )
-
-                # 为父 chunk 创建子 chunk（只将子 chunk 写入向量库）
-                child_docs = document_loader.split_child_chunks_for_parent(
-                    parent_text, doc.metadata, parent_idx
-                )
-                for child_idx, child_doc in enumerate(child_docs):
-                    child_metadata: Dict[str, Any] = dict(child_doc.metadata or {})
-                    child_metadata.update(
-                        {
-                            "chunk_type": "child",
-                            "split_strategy": document_loader.split_strategy,
-                            "parent_id": parent_id,
-                            "parent_index": parent_idx,
-                            "child_index": child_idx,
-                        }
-                    )
-                    child_doc.metadata = child_metadata
-
-                    child_id = f"{parent_id}:{child_idx}"
-                    child_ids.append(child_id)
-                    child_docs_to_add.append(child_doc)
-
-        if child_docs_to_add:
-            # 批量添加子chunk，添加重试机制和分批处理
-            self._add_documents_with_retry(child_docs_to_add, child_ids)
-    
     def _add_documents_with_retry(
-        self, 
-        documents: List[Document], 
+        self,
+        documents: List[Document],
         ids: List[str],
         batch_size: int = 50,
         max_retries: int = 3,
-        retry_delay: float = 2.0
+        retry_delay: float = 2.0,
     ):
         """
         带重试机制和分批处理的文档添加方法
-        
+
         Args:
             documents: 要添加的文档列表
             ids: 文档ID列表
@@ -188,38 +120,53 @@ class VectorStoreManager:
         total = len(documents)
         if total == 0:
             return
-        
+
         print(f"  开始批量添加 {total} 个文档（每批 {batch_size} 个）...")
-        
+
         # 分批处理
         for batch_start in range(0, total, batch_size):
             batch_end = min(batch_start + batch_size, total)
             batch_docs = documents[batch_start:batch_end]
             batch_ids = ids[batch_start:batch_end]
-            
+
             # 重试机制
             for attempt in range(max_retries):
                 try:
                     self.vector_store.add_documents(batch_docs, ids=batch_ids)
-                    print(f"  ✓ 成功添加批次 {batch_start//batch_size + 1} ({batch_start+1}-{batch_end}/{total})")
+                    print(
+                        f"  ✓ 成功添加批次 {batch_start//batch_size + 1} ({batch_start+1}-{batch_end}/{total})"
+                    )
                     break
                 except Exception as e:
                     error_msg = str(e)
-                    is_connection_error = any(keyword in error_msg.lower() for keyword in [
-                        'disconnected', 'connection', 'timeout', 'remote', 'protocol'
-                    ])
-                    
+                    is_connection_error = any(
+                        keyword in error_msg.lower()
+                        for keyword in [
+                            "disconnected",
+                            "connection",
+                            "timeout",
+                            "remote",
+                            "protocol",
+                        ]
+                    )
+
                     if attempt < max_retries - 1:
                         wait_time = retry_delay * (attempt + 1)
-                        print(f"  ⚠ 批次 {batch_start//batch_size + 1} 添加失败 (尝试 {attempt + 1}/{max_retries}): {error_msg[:100]}")
+                        print(
+                            f"  ⚠ 批次 {batch_start//batch_size + 1} 添加失败 (尝试 {attempt + 1}/{max_retries}): {error_msg[:100]}"
+                        )
                         print(f"  ⏳ {wait_time}秒后重试...")
                         time.sleep(wait_time)
                     else:
-                        print(f"  ✗ 批次 {batch_start//batch_size + 1} 添加失败，已重试 {max_retries} 次: {error_msg}")
+                        print(
+                            f"  ✗ 批次 {batch_start//batch_size + 1} 添加失败，已重试 {max_retries} 次: {error_msg}"
+                        )
                         # 如果是连接错误，建议检查Ollama服务
                         if is_connection_error:
                             print(f"  💡 提示: 可能是Ollama服务连接问题，请检查:")
-                            print(f"     - Ollama服务是否运行: curl {settings.OLLAMA_BASE_URL}/api/tags")
+                            print(
+                                f"     - Ollama服务是否运行: curl {settings.OLLAMA_BASE_URL}/api/tags"
+                            )
                             print(f"     - 网络连接是否正常")
                             print(f"     - 是否处理了太多文档，可以减小batch_size")
                         raise
@@ -229,7 +176,7 @@ class VectorStoreManager:
     def add_documents(self, documents: List[Document]):
         """
         添加文档到向量存储
-        
+
         如果启用父子chunk模式：
         - 父 chunk 写入 SQLite（parent_store）
         - 子 chunk 写入 Chroma（向量检索）
@@ -239,7 +186,9 @@ class VectorStoreManager:
         else:
             # 普通模式：使用带重试的批量添加
             try:
-                self._add_documents_with_retry(documents, [str(uuid.uuid4()) for _ in documents])
+                self._add_documents_with_retry(
+                    documents, [str(uuid.uuid4()) for _ in documents]
+                )
             except Exception:
                 # 如果批量添加失败，回退到直接添加（兼容性）
                 print("  ⚠ 批量添加失败，尝试直接添加...")
@@ -248,7 +197,7 @@ class VectorStoreManager:
     def query(self, query_str: str, top_k: int = 5) -> List[Document]:
         """
         查询相似文档
-        
+
         如果启用父子chunk模式，优先返回父chunk
         """
         if settings.ENABLE_PARENT_CHILD:
@@ -285,15 +234,11 @@ class VectorStoreManager:
                     (c.page_content or "")[:200] for c in matched
                 ]
                 parent_text = self.assemble_parent_text_from_children(pid)
-                parent_docs.append(
-                    Document(page_content=parent_text, metadata=md)
-                )
+                parent_docs.append(Document(page_content=parent_text, metadata=md))
             return parent_docs
         else:
             # 使用相似度搜索
-            results = self.vector_store.similarity_search_with_score(
-                query_str, k=top_k
-            )
+            results = self.vector_store.similarity_search_with_score(query_str, k=top_k)
             # 普通模式：直接返回结果
             return [doc for doc, _ in results[:top_k]]
 
@@ -344,7 +289,9 @@ class VectorStoreManager:
         parent_ids = self.parent_store.delete_parents_by_file_name(file_name)
         if parent_ids:
             try:
-                self.vector_store._collection.delete(where={"parent_id": {"$in": parent_ids}})
+                self.vector_store._collection.delete(
+                    where={"parent_id": {"$in": parent_ids}}
+                )
             except Exception:
                 # 兼容老版本：逐个删除
                 for pid in parent_ids:
@@ -449,9 +396,7 @@ class VectorStoreManager:
 
     def get_retriever(self, top_k: int = 5):
         """获取检索器"""
-        return self.vector_store.as_retriever(
-            search_kwargs={"k": top_k}
-        )
+        return self.vector_store.as_retriever(search_kwargs={"k": top_k})
 
     # ==================== WebAPI 性质的函数（返回字典，用于API响应） ====================
 
@@ -473,27 +418,27 @@ class VectorStoreManager:
     def get_all_documents(self) -> List[dict]:
         """
         获取所有文档块
-        
+
         Returns:
             文档块列表，每个块包含文本和元数据
         """
         # 从ChromaDB获取所有数据（父子模式下只存子 chunk）
         results = self.vector_store._collection.get()
-        
+
         documents = []
         if results and "ids" in results:
             ids = results.get("ids", [])
             documents_data = results.get("documents", [])
             metadatas = results.get("metadatas", [])
-            
+
             for i, doc_id in enumerate(ids):
                 doc_text = documents_data[i] if i < len(documents_data) else ""
                 doc_metadata = metadatas[i] if i < len(metadatas) else {}
-                
+
                 documents.append(
                     {"id": doc_id, "text": doc_text, "metadata": doc_metadata}
                 )
-        
+
         return documents
 
     def list_chunks_page(
@@ -645,7 +590,9 @@ class VectorStoreManager:
                     "child_index": (md or {}).get("child_index", i),
                 }
             )
-        children.sort(key=lambda x: (x.get("child_index") is None, x.get("child_index", 0)))
+        children.sort(
+            key=lambda x: (x.get("child_index") is None, x.get("child_index", 0))
+        )
         return children
 
 

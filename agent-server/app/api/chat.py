@@ -34,6 +34,7 @@ class ChatMessageResponse(BaseModel):
     answer: str
     sources: List[Dict]  # 相关文档来源
     metadata: Dict
+    token_usage: Optional[Dict] = None  # Token 使用情况
 
 
 class ChatHistoryResponse(BaseModel):
@@ -56,7 +57,7 @@ def _get_or_create_chat_engine(top_k: int = 5):
         raise HTTPException(status_code=500, detail="向量索引未初始化，请先上传文档")
 
     # 获取LLM
-    llm = get_llm("ollama", {"model": settings.OLLAMA_MODEL})
+    llm = get_llm("dashscope", {"model": settings.DASHSCOPE_MODEL})
 
     # 创建知识库查询工具
     def query_knowledge_base(query: str) -> str:
@@ -163,7 +164,7 @@ async def chat(request: ChatMessageRequest):
     # 尝试使用 messages 格式
     try:
         response = chat_engine.invoke(
-            {"messages": [HumanMessage(content=request.message)]}
+            {"messages": [HumanMessage(content=request.message)]},
         )
         # 提取答案 - response 可能是消息列表或字典
         if hasattr(response, "messages") and response.messages:
@@ -181,7 +182,10 @@ async def chat(request: ChatMessageRequest):
         # 如果 messages 格式失败，尝试 input 格式
         logger.warning(f"[DEBUG] messages 格式失败，尝试 input 格式: {e}")
         try:
-            response = chat_engine.invoke({"input": request.message})
+            response = chat_engine.invoke(
+                {"input": request.message},
+                config={"callbacks": [token_callback]},
+            )
             answer = response.get("output", str(response))
         except Exception as e2:
             logger.error(f"[DEBUG] invoke 失败: {e2}")
@@ -192,8 +196,12 @@ async def chat(request: ChatMessageRequest):
     # 可以通过 agent_executor.agent.llm_chain.memory 或其他方式获取
     sources = []
 
+    # 获取 token 使用情况
+    token_usage = token_callback.get_usage()
+
     return ChatMessageResponse(
         answer=answer,
         sources=sources,
         metadata={"query": request.message, "top_k": request.top_k},
+        token_usage=token_usage,
     )

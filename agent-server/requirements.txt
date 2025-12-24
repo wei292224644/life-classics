@@ -44,3 +44,4 @@ pdf2image>=1.16.3
 tiktoken>=0.5.0
 requests>=2.31.0
 ddgs>=9.0.0  # 网络搜索工具（DuckDuckGo，原 duckduckgo-search）
+unidecode>=1.3.8  # Unicode 转 ASCII（用于中文转拼音）

@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 import pdfplumber
 from langchain_core.messages import HumanMessage, SystemMessage
+from app.core.config import settings
 from app.core.llm import get_llm
 from process_regulatory_document import extract_standard_ref
 
@@ -70,60 +71,97 @@ def analyze_with_llm(text: str, standard_ref: str = None) -> str:
     # 构建prompt
     standard_info = f"\n标准编号: {standard_ref}\n" if standard_ref else ""
 
-    prompt = f"""你是一个“文档结构抽取助手”，你的任务是将 {standard_info} PDF 文档转换为
-一种“面向法规规则抽取的中间文本格式”，用于后续自动化规则解析与知识库构建。
+    system_prompt = """你是一名资深的【文档解析与知识工程专家】，
+擅长将标准类 PDF 文档转化为可直接用于知识库（RAG / Agent / 推理系统）的结构化文本。
 
-这是一个中间数据阶段，不是给人阅读的最终文档。
+你将收到一份 PDF 文档内容，请严格按照以下规则解析并输出结果。
 
-【重要约束（必须严格遵守）】
+====================
+【一、核心目标】
+====================
+1. 完整提取 PDF 中出现的所有信息，不得遗漏正文、公式、表格、注释、脚注、说明、条件限制等内容。
+2. 不追求版式复刻，但必须保证语义完整、逻辑清晰、结构稳定。
+3. 输出结果必须“可直接切 chunk 入库”，无需人工二次清洗。
 
-1. 不要输出 Markdown。
-2. 不要使用 Markdown 表格、列表、标题层级或任何排版格式。
-3. 不要总结、解释、改写或推断文档含义。
-4. 不要合并内容，也不要拆分原有的结构单元。
-5. 不要生成“美观”的文档，只保留结构信息。
-6. 不要判断是否为规则，这一步只做结构抽取。
+====================
+【二、绝对禁止事项（高优先级）】
+====================
+1. 禁止对任何数值、单位、公式进行修改、推导、估算或重新计算。
+2. 禁止合并、简化或省略变量定义、符号说明或注释内容。
+3. 禁止引入 PDF 中未出现的背景知识、解释或结论。
+4. 禁止使用“约”“大致”“通常”等模糊表述。
 
-【你的输出将被下游程序和模型使用，而不是给人直接阅读。】
+====================
+【三、文档结构规范（强制）】
+====================
+1. 严格按以下层级组织内容：
+   - 文档标题
+   - 一级章节（##）
+   - 二级章节（###）
+   - 三级章节（####，如存在）
+2. 每一个最小语义单元必须可作为一个独立 chunk 使用。
+3. 不使用“如上所述”“见下表”等依赖版面的指代。
 
-【允许使用的结构标签（只能使用以下几种）】
+====================
+【四、content_type 语义标注（必须使用）】
+====================
+每一个可切分的最小内容块，必须在标题下一行显式标注 content_type：
 
-[SECTION] 章节标题  
-[TABLE] 表格标题  
-[ROW] 表格中的一行（一行 = 一个逻辑行）  
-[NOTE] 注释或备注（如以“注：”开头的内容）  
-[TEXT] 其他普通文本（不属于以上类型）
+【content_type: <type>】
 
-【输出规则】
+允许使用的 content_type 如下（只能从此列表中选择）：
 
-- 每一个结构单元单独输出一行
-- 不得合并多行内容
-- 不得自行补充缺失信息
-- [ROW] 中只包含原表格的一行原始文本
-- 不要使用编号、项目符号、缩进
+- metadata                文档元信息（标准号、适用对象等）
+- scope                   适用范围
+- definition              概念 / 常数 / 术语定义
+- chemical_formula        分子式
+- chemical_structure      结构式说明
+- molecular_weight        相对分子质量
+- specification_table     技术指标 / 限量表格
+- specification_text      技术要求（非表格）
+- test_method             检验 / 测定方法
+- instrument              仪器设备
+- reagent                 试剂与材料
+- calculation_formula     计算公式
+- chromatographic_method  色谱 / 光谱类方法
+- identification_test     鉴别试验
+- general_rule            一般规定
+- note                    注释 / 说明
 
-【输出示例】
+====================
+【五、数学公式处理规则】
+====================
+1. 所有公式必须使用 Markdown 数学公式格式（$$ ... $$）。
+2. 公式后必须紧跟“变量解释区”，逐一列出：
+   - 符号
+   - 含义
+   - 单位（如有）
+3. 若公式中出现常数，必须说明其物理或化学含义及来源。
 
-[SECTION] 4 理化指标
-[TABLE] 表2 理化指标
-[ROW] 总β-胡萝卜素含量（以CH计），w/% ≥ 96.0
-[ROW] 吸光度比值 A/A455 483 1.14～1.19
-[ROW] 灼烧残渣，w/% ≤ 0.2
-[NOTE] 注：商品化的β-胡萝卜素产品可添加符合食品添加剂质量规格要求的明胶、抗氧化剂和（或）食用植物油、糊精、淀粉。
+====================
+【六、表格处理规则】
+====================
+1. 表格必须作为一个完整的语义块，不得拆分为多段。
+2. 使用标准 Markdown 表格格式。
+3. 保留表头、单位、数值、注释、来源说明。
+4. 表格下方如存在“注”“说明”“备注”，必须单独保留。
 
-【开始任务】
-
-请从 PDF 内容中按上述要求抽取结构化中间文本。
-
-{standard_info}PDF内容：
-{text}
+====================
+【七、输出格式要求】
+====================
+1. 使用 Markdown 作为最终输出格式。
+2. 仅输出解析后的结构化内容，不输出解析过程、思考说明或免责声明。
+3. 不添加总结、评价或推论性内容。
 """
+
+    human_prompt = f"""这是 PDF 文档的内容，请按照要求进行解析：{text}"""
 
     try:
         print("\n正在调用LLM分析...")
-        llm = get_llm()
-        response = llm.invoke([SystemMessage(content=prompt)])
-
+        llm = get_llm("dashscope", {"model": settings.DASHSCOPE_MODEL})
+        response = llm.invoke(
+            [SystemMessage(content=system_prompt), HumanMessage(content=human_prompt)]
+        )
         if hasattr(response, "content"):
             return response.content
         elif isinstance(response, str):
@@ -183,15 +221,8 @@ def main():
     print("\n[Step 3] 使用LLM分析PDF内容...")
     result = analyze_with_llm(pdf_text, standard_ref)
 
-    # Step 4: 输出结果
-    print("\n" + "=" * 60)
-    print("LLM分析结果:")
-    print("=" * 60)
-    print(result)
-    print("=" * 60)
-
     # 可选：保存结果到文件
-    output_file = pdf_file.stem + "_analysis.txt"
+    output_file = pdf_file.stem + "_analysis.md"
     try:
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(f"文件: {pdf_file.name}\n")
