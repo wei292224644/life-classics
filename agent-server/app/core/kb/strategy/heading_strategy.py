@@ -8,7 +8,7 @@ from typing import List, Dict, Any
 from langchain_core.documents import Document
 
 
-def split_heading(document: Document, **kwargs) -> List[Dict[str, Any]]:
+def split_heading(documents: List[Document], **kwargs) -> List[Document]:
     """
     标题切分策略
 

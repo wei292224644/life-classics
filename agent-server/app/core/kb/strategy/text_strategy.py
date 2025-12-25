@@ -5,18 +5,21 @@
 
 from typing import List, Dict, Any
 
+from langchain_core.documents import Document
 
-def split_text(content: str, **kwargs) -> List[Dict[str, Any]]:
+
+def split_text(documents: List[Document], **options) -> List[Document]:
     """
-    文本切分策略
-    
+    标题切分策略
+
     Args:
-        content: 待切分的文本内容
-        **kwargs: 其他参数
-        
+        document: 待切分的文档
+        **options: 其他参数
+
+
+
     Returns:
         切分后的知识库通用数据结构列表
     """
-    # TODO: 实现文本切分逻辑
+    # TODO: 实现标题切分逻辑
     pass
-

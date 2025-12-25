@@ -8,7 +8,7 @@ import json
 import os
 
 
-def import_json(file_path: str, strategy: str) -> Document:
+def import_json(file_path: str, strategy: str) -> List[Document]:
     """
     导入 JSON 文件
 
@@ -22,13 +22,15 @@ def import_json(file_path: str, strategy: str) -> Document:
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    return Document(
-        page_content=json.dumps(data, ensure_ascii=False),
-        metadata={
-            "file_name": os.path.basename(file_path),
-            "file_path": file_path,
-            "file_type": os.path.splitext(file_path)[1],
-            "source_format": "json",
-            "strategy": strategy,
-        },
-    )
+    return [
+        Document(
+            page_content=json.dumps(data, ensure_ascii=False),
+            metadata={
+                "file_name": os.path.basename(file_path),
+                "file_path": file_path,
+                "file_type": os.path.splitext(file_path)[1],
+                "source_format": "json",
+                "strategy": strategy,
+            },
+        )
+    ]

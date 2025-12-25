@@ -5,9 +5,10 @@ Markdown 文件导入模块
 import os
 from langchain_core.documents import Document
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
+from typing import List
 
 
-def import_markdown(file_path: str, strategy: str) -> Document:
+def import_markdown(file_path: str, strategy: str) -> List[Document]:
     """
     导入 Markdown 文件
 
@@ -27,13 +28,15 @@ def import_markdown(file_path: str, strategy: str) -> Document:
         return []
     content = documents[0].page_content
 
-    return Document(
-        page_content=content,
-        metadata={
-            "file_name": os.path.basename(file_path),
-            "file_path": file_path,
-            "file_type": os.path.splitext(file_path)[1],
-            "source_format": "markdown",
-            "strategy": strategy,
-        },
-    )
+    return [
+        Document(
+            page_content=content,
+            metadata={
+                "file_name": os.path.basename(file_path),
+                "file_path": file_path,
+                "file_type": os.path.splitext(file_path)[1],
+                "source_format": "markdown",
+                "strategy": strategy,
+            },
+        )
+    ]

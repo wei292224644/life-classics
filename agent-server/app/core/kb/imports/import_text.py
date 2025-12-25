@@ -2,11 +2,13 @@
 Text 文件导入模块
 """
 
+from langchain_community.document_loaders import TextLoader
 from langchain_core.documents import Document
 import os
+from typing import List
 
 
-def import_text(file_path: str, strategy: str) -> Document:
+def import_text(file_path: str, strategy: str) -> List[Document]:
     """
     导入 Text 文件
 
@@ -22,13 +24,15 @@ def import_text(file_path: str, strategy: str) -> Document:
     if not documents:
         return []
     content = documents[0].page_content
-    return Document(
-        page_content=content,
-        metadata={
-            "file_name": os.path.basename(file_path),
-            "file_path": file_path,
-            "file_type": os.path.splitext(file_path)[1],
-            "source_format": "text",
-            "strategy": strategy,
-        },
-    )
+    return [
+        Document(
+            page_content=content,
+            metadata={
+                "file_name": os.path.basename(file_path),
+                "file_path": file_path,
+                "file_type": os.path.splitext(file_path)[1],
+                "source_format": "text",
+                "strategy": strategy,
+            },
+        )
+    ]
