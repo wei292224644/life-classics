@@ -62,6 +62,12 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 9999
 
+    # 文本切分配置
+    CHUNK_SIZE: int = 1024
+    CHUNK_OVERLAP: int = 200
+    CHUNK_SEPARATOR: str = "\n\n"
+    CLEAN_TEXT_ENABLED: bool = True
+
     class Config:
         env_file = ".env"
         case_sensitive = True
