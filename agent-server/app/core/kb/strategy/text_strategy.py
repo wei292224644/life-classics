@@ -6,9 +6,9 @@
 
 import re
 from typing import List, Iterator
-from langchain_core.documents import Document
 
 from app.core.config import settings
+from app.core.document_chunk import DocumentChunk
 
 
 def _clean_text(text: str) -> str:
@@ -157,7 +157,7 @@ def split_text_by_separator(
     return chunks if chunks else [text]
 
 
-def split_text(documents: List[Document], **kwargs) -> List[Document]:
+def split_text(documents: List[DocumentChunk], **kwargs) -> List[DocumentChunk]:
     """
     文本切分策略
 
@@ -170,7 +170,7 @@ def split_text(documents: List[Document], **kwargs) -> List[Document]:
             - clean_text_enabled: 是否清理文本（默认 True）
 
     Yields:
-        切分后的 Document 对象
+        切分后的 DocumentChunk 对象
     """
     chunk_size = kwargs.get("chunk_size", settings.CHUNK_SIZE)
     chunk_overlap = kwargs.get("chunk_overlap", settings.CHUNK_OVERLAP)
@@ -179,7 +179,7 @@ def split_text(documents: List[Document], **kwargs) -> List[Document]:
     split_documents = []
 
     for document in documents:
-        content = document.page_content
+        content = document.content
         if not content:
             continue
 
@@ -197,15 +197,17 @@ def split_text(documents: List[Document], **kwargs) -> List[Document]:
             if not cleaned_chunk:
                 continue
 
-            # 复制原文档的 metadata
-            chunk_metadata = document.metadata.copy() if document.metadata else {}
-
             # 创建新的 Document
             split_documents.append(
-                Document(
-                    page_content=cleaned_chunk,
-                    metadata=chunk_metadata,
+                DocumentChunk(
+                    doc_id=document.doc_id,
+                    doc_title=document.doc_title,
+                    section_path=document.section_path,
+                    content_type=document.content_type,
+                    content=cleaned_chunk,
+                    meta={
+                        **document.meta,
+                    },
                 )
             )
-
     return split_documents

@@ -2,13 +2,12 @@
 JSON 文件导入模块
 """
 
-from typing import List, Dict, Any
-from langchain_core.documents import Document
+from typing import List
 import json
-import os
+from app.core.document_chunk import DocumentChunk
 
 
-def import_json(file_path: str, strategy: str) -> List[Document]:
+def import_json(file_path: str, strategy: str) -> List[DocumentChunk]:
     """
     导入 JSON 文件
 
@@ -16,21 +15,26 @@ def import_json(file_path: str, strategy: str) -> List[Document]:
         file_path: JSON 文件路径
 
     Returns:
-        Document 对象，包含 JSON 内容
+        DocumentChunk 对象，包含 JSON 内容
     """
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    return []
 
-    return [
-        Document(
-            page_content=json.dumps(data, ensure_ascii=False),
-            metadata={
-                "file_name": os.path.basename(file_path),
-                "file_path": file_path,
-                "file_type": os.path.splitext(file_path)[1],
-                "source_format": "json",
-                "strategy": strategy,
-            },
-        )
-    ]
+    # with open(file_path, "r", encoding="utf-8") as f:
+    #     data_list = json.load(f)
+
+    # document_chunks = []
+    # for data in data_list:
+    #     document_chunks.append(
+    #         DocumentChunk(
+    #             # doc_id=data["doc_id"],
+    #             # doc_title=data["doc_title"],
+    #             # section_path=data["section_path"],
+    #             # content_type=data["content_type"],
+    #             # content=data["content"],
+    #             # meta=data["meta"],
+
+    #             content=data,
+    #         )
+    #     )
+    # return document_chunks

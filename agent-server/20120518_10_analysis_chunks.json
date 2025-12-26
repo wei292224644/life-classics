@@ -1,5 +1,17 @@
 [
   {
+    "chunk_id": "52331be4bf03cdb5",
+    "doc_id": "20120518_10_analysis",
+    "doc_title": "20120518_10_analysis",
+    "section_path": [],
+    "content_type": "metadata",
+    "content": {},
+    "meta": {
+      "standard_type": "国家标准",
+      "source": "20120518_10_analysis.md"
+    }
+  },
+  {
     "chunk_id": "472a03506a412324",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
@@ -29,7 +41,7 @@
     }
   },
   {
-    "chunk_id": "f1fb7b014605f150",
+    "chunk_id": "231c44cfcf563d72",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -37,7 +49,7 @@
       "2.2 结构式"
     ],
     "content_type": "chemical_structure",
-    "content": "（文档中未提供具体结构图示，仅标注“结构式”标题，无图形或文字描述）",
+    "content": "（原文未提供具体结构图，仅标注“结构式”标题，无图形或文字描述）",
     "meta": {
       "standard_type": "国家标准",
       "source": "20120518_10_analysis.md"
@@ -79,7 +91,7 @@
         {
           "项目": "状态",
           "要求": "结晶或结晶性粉末",
-          "检验方法": "取适量样品置于清洁、干燥的白瓷盘中，在自然光线下，观察其色泽和状态"
+          "检验方法": ""
         }
       ]
     },
@@ -159,7 +171,7 @@
     }
   },
   {
-    "chunk_id": "964b512dd7938319",
+    "chunk_id": "a96cd79b1946e730",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -168,7 +180,7 @@
       "表2 理化指标"
     ],
     "content_type": "note",
-    "content": "商品化的β-胡萝卜素产品应以符合本标准的β-胡萝卜素为原料，可添加符合食品添加剂质量规格要求的明胶、抗氧化剂和(或)食用的植物油、糊精、淀粉制成的产品，其总β-胡萝卜素含量和吸光度比值符合标识值。",
+    "content": "注：商品化的β-胡萝卜素产品应以符合本标准的β-胡萝卜素为原料，可添加符合食品添加剂质量规格要求的明胶、抗氧化剂和(或)食用的植物油、糊精、淀粉制成的产品，其总β-胡萝卜素含量和吸光度比值符合标识值。",
     "meta": {
       "standard_type": "国家标准",
       "source": "20120518_10_analysis.md"
@@ -190,7 +202,7 @@
     }
   },
   {
-    "chunk_id": "761bf318dd0be733",
+    "chunk_id": "73c76ce5f3201066",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -201,8 +213,8 @@
     ],
     "content_type": "reagent",
     "content": [
-      "乙醇",
-      "植物油"
+      "A.2.1.1.1 乙醇",
+      "A.2.1.1.2 植物油"
     ],
     "meta": {
       "standard_type": "国家标准",
@@ -227,7 +239,7 @@
     }
   },
   {
-    "chunk_id": "cc82a2f829e7bc9c",
+    "chunk_id": "9fd1c6ce4ba9746b",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -238,9 +250,9 @@
     ],
     "content_type": "reagent",
     "content": [
-      "丙酮",
-      "5%亚硝酸钠溶液：称取50 g亚硝酸钠，加水溶解，稀释并定容至1000 mL",
-      "0.5 mol/L硫酸溶液"
+      "A.2.2.1.1 丙酮",
+      "A.2.2.1.2 5%亚硝酸钠溶液：称取50 g亚硝酸钠，加水溶解，稀释并定容至1000 mL",
+      "A.2.2.1.3 0.5 mol/L硫酸溶液"
     ],
     "meta": {
       "standard_type": "国家标准",
@@ -265,7 +277,7 @@
     }
   },
   {
-    "chunk_id": "f27def40570791d8",
+    "chunk_id": "0be1a4f754a5ec50",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -275,8 +287,8 @@
     ],
     "content_type": "reagent",
     "content": [
-      "三氯甲烷",
-      "环己烷"
+      "A.3.1.1 三氯甲烷",
+      "A.3.1.2 环己烷"
     ],
     "meta": {
       "standard_type": "国家标准",
@@ -351,7 +363,7 @@
     }
   },
   {
-    "chunk_id": "435eaf8e2ef786bc",
+    "chunk_id": "e02332a9c90a117f",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -361,8 +373,12 @@
     ],
     "content_type": "calculation_formula",
     "content": {
-      "expression": "总β-胡萝卜素含量以β-胡萝卜素（C₄₀H₅₆）的质量分数 $ w_1 $ 计，数值以%表示，按公式（A.1）计算：\n\n$$\nw_1 = \\frac{A}{c \\times 2500} \\times 100\\%\n$$\n\n式中：\n- $ A $ ——实际测定试样液吸光度的数值；\n- $ c $ ——被测试样液浓度的数值，单位为克每毫升（g/mL）；\n- 2500 ——β-胡萝卜素在环己烷中的百分吸光系数($ E^{1\\%}_{1cm} $)，物理意义为当溶液浓度为1%（g/100mL）、光程为1 cm时，在最大吸收波长下的吸光度值，来源于实验测定常数。",
-      "variables": {}
+      "expression": "总β-胡萝卜素含量以β-胡萝卜素（C₄₀H₅₆）的质量分数 $ w_1 $ 计，数值以%表示，按公式（A.1）计算：\n\n$$\nw_1 = \\frac{A}{c} \\times \\frac{1}{2500}\n\\quad \\text{(A.1)}\n$$",
+      "variables": {
+        "- $ A $": "实际测定试样液吸光度的数值",
+        "- $ c $": "被测试样液浓度的数值，单位为克每毫升（g/mL）",
+        "- 2500": "β-胡萝卜素在环己烷中的百分吸光系数（$ E^{1\\%}_{1cm} $）"
+      }
     },
     "meta": {
       "standard_type": "国家标准",
@@ -386,7 +402,7 @@
     }
   },
   {
-    "chunk_id": "49f855ffcc36ab76",
+    "chunk_id": "5f1cd49f427fc132",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -396,8 +412,8 @@
     ],
     "content_type": "reagent",
     "content": [
-      "三氯甲烷",
-      "环己烷"
+      "A.4.1.1 三氯甲烷",
+      "A.4.1.2 环己烷"
     ],
     "meta": {
       "standard_type": "国家标准",
@@ -438,7 +454,7 @@
     }
   },
   {
-    "chunk_id": "940e7ee797f4368f",
+    "chunk_id": "02fc351ce82a9ab2",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -448,7 +464,7 @@
       "A.4.3.2 A₄₅₅/A₄₈₃ 的测定"
     ],
     "content_type": "chromatographic_method",
-    "content": "将溶液B置于1 cm比色皿中，以环己烷做空白对照，在波长455 nm和波长483 nm处分别测定吸光度(A)，A₄₅₅/A₄₈₃ 的比值应在1.14～1.19之间。",
+    "content": "将溶液B置于1 cm比色皿中，以环己烷做空白对照，在波长455 nm和波长483 nm处分别测定吸光度（A），A₄₅₅/A₄₈₃ 的比值应在1.14～1.19之间。",
     "meta": {
       "standard_type": "国家标准",
       "source": "20120518_10_analysis.md"
@@ -514,8 +530,12 @@
     ],
     "content_type": "calculation_formula",
     "content": {
-      "expression": "灼烧残渣以质量分数 $ w_2 $ 计，数值以%表示，按公式(A.2)计算：\n\n$$\nw_2 = \\frac{m_1 - m_2}{m} \\times 100\\%\n$$\n\n式中：\n- $ m_1 $ ——残渣和空坩埚质量的数值，单位为克（g）；\n- $ m_2 $ ——空坩埚质量的数值，单位为克（g）；\n- $ m $ ——称取的试样质量的数值，单位为克（g）。",
-      "variables": {}
+      "expression": "灼烧残渣以质量分数 $ w_2 $ 计，数值以%表示，按公式(A.2)计算：\n\n$$\nw_2 = \\frac{m_1 - m_2}{m} \\times 100\\%\n\\quad \\text{(A.2)}\n$$",
+      "variables": {
+        "- $ m_1 $": "残渣和空坩埚质量的数值，单位为克（g）",
+        "- $ m_2 $": "空坩埚质量的数值，单位为克（g）",
+        "- $ m $": "称取的试样质量的数值，单位为克（g）"
+      }
     },
     "meta": {
       "standard_type": "国家标准",
@@ -539,7 +559,7 @@
     }
   },
   {
-    "chunk_id": "7435ed82ba960a63",
+    "chunk_id": "b9375b5a9583ef11",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -549,11 +569,11 @@
     ],
     "content_type": "reagent",
     "content": [
-      "乙醇",
-      "异丙醇",
-      "乙酸乙酯",
-      "乙酸异丁酯",
-      "N,N-二甲基甲酰胺(DMF)：色谱纯"
+      "A.6.1.1 乙醇",
+      "A.6.1.2 异丙醇",
+      "A.6.1.3 乙酸乙酯",
+      "A.6.1.4 乙酸异丁酯",
+      "A.6.1.5 N,N-二甲基甲酰胺(DMF)：色谱纯"
     ],
     "meta": {
       "standard_type": "国家标准",
@@ -577,7 +597,7 @@
     }
   },
   {
-    "chunk_id": "a0946eb5393aa4d8",
+    "chunk_id": "beba781cc1f1a839",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -586,14 +606,14 @@
       "A.6.3 参考色谱条件"
     ],
     "content_type": "chromatographic_method",
-    "content": "- **色谱柱**：DB-624毛细管柱，30 m×0.53 mm，膜厚3.0 µm；或其他等效的色谱柱  \n- **载气**：氦气或氮气  \n- **载气流量**：4.8 mL/min  \n- **进样口温度**：250 ℃  \n- **柱温**：50 ℃，以1 ℃/min升至60 ℃，再以9.2 ℃/min升至115 ℃，再以35 ℃/min升至220 ℃保持6 min  \n- **检测器温度**：270 ℃  \n- **分流比**：5∶1  \n- **进样体积**：1 mL定量环",
+    "content": "| 条件 | 参数 |\n|------|------|\n| 色谱柱 | DB-624毛细管柱，30 m×0.53 mm，膜厚3.0 µm；或其他等效的色谱柱 |\n| 载气 | 氦气或氮气 |\n| 载气流量 | 4.8 mL/min |\n| 进样口温度 | 250 ℃ |\n| 柱温 | 50 ℃，以1 ℃/min升至60 ℃，再以9.2 ℃/min升至115 ℃，再以35 ℃/min升至220 ℃保持6 min |\n| 检测器温度 | 270 ℃ |\n| 分流比 | 5∶1 |\n| 进样体积 | 1 mL定量环 |",
     "meta": {
       "standard_type": "国家标准",
       "source": "20120518_10_analysis.md"
     }
   },
   {
-    "chunk_id": "56d0af26139b1eee",
+    "chunk_id": "a71d8a141776ce75",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -602,7 +622,7 @@
       "A.6.4 顶空条件"
     ],
     "content_type": "chromatographic_method",
-    "content": "- **顶空瓶温度**：100 ℃  \n- **定量环温度**：110 ℃  \n- **传输线温度**：120 ℃  \n- **顶空瓶平衡时间**：50 min  \n- **气相循环时间**：30.0 min  \n- **加压时间**：0.2 min  \n- **定量环填充时间**：0.2 min  \n- **定量环平衡时间**：0.05 min  \n- **进样时间**：1.0 min  \n- **顶空瓶压力**：95.15 kPa（13.8 psi）",
+    "content": "| 条件 | 参数 |\n|------|------|\n| 顶空瓶温度 | 100 ℃ |\n| 定量环温度 | 110 ℃ |\n| 传输线温度 | 120 ℃ |\n| 顶空瓶平衡时间 | 50 min |\n| 气相循环时间 | 30.0 min |\n| 加压时间 | 0.2 min |\n| 定量环填充时间 | 0.2 min |\n| 定量环平衡时间 | 0.05 min |\n| 进样时间 | 1.0 min |\n| 顶空瓶压力 | 95.15 kPa（13.8 psi） |",
     "meta": {
       "standard_type": "国家标准",
       "source": "20120518_10_analysis.md"
@@ -627,7 +647,7 @@
     }
   },
   {
-    "chunk_id": "04997813ec2112db",
+    "chunk_id": "7dc3be1e0a72f00b",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -638,14 +658,14 @@
       "A.6.5.1.1 对照液制备"
     ],
     "content_type": "note",
-    "content": "乙醇密度0.790 g/mL，异丙醇密度0.785 g/mL，乙酸乙酯密度0.901 g/mL，乙酸异丁酯密度0.875 g/mL。",
+    "content": "注：乙醇密度0.790 g/mL，异丙醇密度0.785 g/mL，乙酸乙酯密度0.901 g/mL，乙酸异丁酯密度0.875 g/mL。",
     "meta": {
       "standard_type": "国家标准",
       "source": "20120518_10_analysis.md"
     }
   },
   {
-    "chunk_id": "b00861051a594429",
+    "chunk_id": "c0424da532e385aa",
     "doc_id": "20120518_10_analysis",
     "doc_title": "20120518_10_analysis",
     "section_path": [
@@ -656,7 +676,7 @@
       "A.6.5.1.2 灵敏度溶液制备"
     ],
     "content_type": "test_method",
-    "content": "精密吸取5.0 mL对照液于50 mL 容量瓶中，用DMF稀释至刻度，摇匀，移取3.0 mL到10 mL顶空瓶中，封盖。该溶液中含有乙醇0.02686 mg/mL（相对应于试样中浓度约0.08%），异丙醇0.0035325 mg/mL（相对应于试样中浓度约0.01%），乙酸乙酯0.02703 mg/mL（相对应于试样中浓度约0.08%），乙酸异丁酯0.03325 mg/mL（相对应于试样中浓度约0.1%）。",
+    "content": "精密吸取5.0 mL对照液于50 mL容量瓶中，用DMF稀释至刻度，摇匀，移取3.0 mL到10 mL顶空瓶中，封盖。该溶液中含有乙醇0.02686 mg/mL（相对应于试样中浓度约0.08%），异丙醇0.0035325 mg/mL（相对应于试样中浓度约0.01%），乙酸乙酯0.02703 mg/mL（相对应于试样中浓度约0.08%），乙酸异丁酯0.03325 mg/mL（相对应于试样中浓度约0.1%）。",
     "meta": {
       "standard_type": "国家标准",
       "source": "20120518_10_analysis.md"
@@ -724,8 +744,13 @@
     ],
     "content_type": "calculation_formula",
     "content": {
-      "expression": "乙醇、异丙醇、乙酸乙酯和乙酸异丁酯的含量分别以质量分数 $ w_i $ 计，数值均以%表示，分别按公式（A.3）计算：\n\n$$\nw_i = \\frac{A_X \\times c_R}{A_R \\times c_X} \\times 100\\%\n$$\n\n式中：\n- $ A_X $ ——试样液色谱图中所测溶剂峰面积值的数值；\n- $ c_R $ ——对照液中对应溶剂浓度的数值，单位为毫克每毫升（mg/mL）；\n- $ A_R $ ——对照液色谱图中所测溶剂峰面积值的数值；\n- $ c_X $ ——试样液浓度的数值，单位为毫克每毫升（mg/mL）。",
-      "variables": {}
+      "expression": "乙醇、异丙醇、乙酸乙酯和乙酸异丁酯的含量分别以质量分数 $ w_i $ 计，数值均以%表示，分别按公式（A.3）计算：\n\n$$\nw_i = \\frac{A_X \\times c_R}{A_R \\times c_X} \\times 100\\%\n\\quad \\text{(A.3)}\n$$",
+      "variables": {
+        "- $ A_X $": "试样液色谱图中所测溶剂峰面积值的数值",
+        "- $ c_R $": "对照液中对应溶剂浓度的数值，单位为毫克每毫升（mg/mL）",
+        "- $ A_R $": "对照液色谱图中所测溶剂峰面积值的数值",
+        "- $ c_X $": "试样液浓度的数值，单位为毫克每毫升（mg/mL）"
+      }
     },
     "meta": {
       "standard_type": "国家标准",

@@ -57,7 +57,7 @@ def _get_or_create_chat_engine(top_k: int = 5):
         raise HTTPException(status_code=500, detail="向量索引未初始化，请先上传文档")
 
     # 获取LLM
-    llm = get_llm("dashscope", {"model": settings.DASHSCOPE_MODEL})
+    llm = get_llm("dashscope")
 
     # 创建知识库查询工具
     def query_knowledge_base(query: str) -> str:

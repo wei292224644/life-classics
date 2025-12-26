@@ -107,7 +107,7 @@ def analyze_with_llm(text: str, standard_ref: str = None) -> str:
 ====================
 每一个可切分的最小内容块，必须在标题下一行显式标注 content_type：
 
-【content_type: <type>】
+[content_type: <type>]
 
 允许使用的 content_type 如下（只能从此列表中选择）：
 
@@ -137,6 +137,8 @@ def analyze_with_llm(text: str, standard_ref: str = None) -> str:
    - 含义
    - 单位（如有）
 3. 若公式中出现常数，必须说明其物理或化学含义及来源。
+4. 若公式中出现公式（或计算式）的符号说明 / 参数定义（Symbol definitions / Where clause），必须用一个[__calculation_formula_note__]的标记替换类似“其中：”、“其中”、”注：”等字样。
+
 
 ====================
 【六、表格处理规则】
@@ -158,7 +160,7 @@ def analyze_with_llm(text: str, standard_ref: str = None) -> str:
 
     try:
         print("\n正在调用LLM分析...")
-        llm = get_llm("dashscope", {"model": settings.DASHSCOPE_MODEL})
+        llm = get_llm("dashscope")
         response = llm.invoke(
             [SystemMessage(content=system_prompt), HumanMessage(content=human_prompt)]
         )

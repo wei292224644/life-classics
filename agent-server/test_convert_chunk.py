@@ -21,10 +21,11 @@ except ImportError:
         """将 Unicode 文本转换为 ASCII（回退方案）"""
         # 这个方法会移除非 ASCII 字符，不是最佳方案
         # 建议安装 unidecode 库以获得更好的中文转换效果（pip install unidecode）
-        normalized = unicodedata.normalize('NFKD', text)
-        return ''.join(
-            c for c in normalized
-            if unicodedata.category(c) != 'Mn' and (c.isascii() or c in '._-')
+        normalized = unicodedata.normalize("NFKD", text)
+        return "".join(
+            c
+            for c in normalized
+            if unicodedata.category(c) != "Mn" and (c.isascii() or c in "._-")
         )
 
 
@@ -106,14 +107,14 @@ class MarkdownChunkParser:
                 continue
 
             # 解析 content_type 标记（支持两种格式）
-            # 格式1: 【content_type: xxx】
+            # 格式1: [content_type: xxx]（英文方括号）
             # 格式2: ```xxx ... ```
             content_type = None
             block_content = None
             next_i = i
 
-            # 尝试格式1: 【content_type: xxx】
-            bracket_match = re.match(r"^【content_type:\s*(\w+)】", line.strip())
+            # 尝试格式1: [content_type: xxx]
+            bracket_match = re.match(r"^\[content_type:\s*(\w+)\]", line.strip())
             if bracket_match:
                 content_type = bracket_match.group(1)
                 # 提取内容（从下一行开始，直到下一个 content_type 标记或标题）
@@ -123,7 +124,7 @@ class MarkdownChunkParser:
                     next_line = lines[next_i].strip()
                     # 遇到新的 content_type 标记或标题，停止
                     if (
-                        re.match(r"^【content_type:\s*\w+】", next_line)
+                        re.match(r"^\[content_type:\s*\w+\]", next_line)
                         or re.match(r"^#{1,6}\s+", next_line)
                         or re.match(r"^```\w+$", next_line)
                     ):
@@ -167,9 +168,7 @@ class MarkdownChunkParser:
 
                 # 解析内容（对于 specification_table，传入 section_path 的最后一项作为 title）
                 parsed_content = self._parse_content(
-                    content_type, 
-                    block_content,
-                    section_path=self.current_section_path
+                    content_type, block_content, section_path=self.current_section_path
                 )
 
                 # 生成 chunk
@@ -209,8 +208,8 @@ class MarkdownChunkParser:
                 i += 1
                 continue
 
-            # 格式1: 【content_type: xxx】
-            bracket_match = re.match(r"^【content_type:\s*(\w+)】", line)
+            # 格式1: [content_type: xxx]
+            bracket_match = re.match(r"^\[content_type:\s*(\w+)\]", line)
             if bracket_match:
                 content_type = bracket_match.group(1)
                 block_lines = []
@@ -218,7 +217,7 @@ class MarkdownChunkParser:
                 while i < len(lines):
                     next_line = lines[i].strip()
                     if (
-                        re.match(r"^【content_type:\s*\w+】", next_line)
+                        re.match(r"^\[content_type:\s*\w+\]", next_line)
                         or re.match(r"^#{1,6}\s+", next_line)
                         or re.match(r"^```\w+$", next_line)
                     ):
@@ -254,13 +253,13 @@ class MarkdownChunkParser:
                 i += 1
                 continue
 
-            # 格式1: 【content_type: xxx】
-            if re.match(r"^【content_type:\s*\w+】", line):
+            # 格式1: [content_type: xxx]
+            if re.match(r"^\[content_type:\s*\w+\]", line):
                 i += 1
                 while i < len(lines):
                     next_line = lines[i].strip()
                     if (
-                        re.match(r"^【content_type:\s*\w+】", next_line)
+                        re.match(r"^\[content_type:\s*\w+\]", next_line)
                         or re.match(r"^#{1,6}\s+", next_line)
                         or re.match(r"^```\w+$", next_line)
                     ):
@@ -282,20 +281,17 @@ class MarkdownChunkParser:
         return i
 
     def _is_variable_definition(self, content: str) -> bool:
-        """判断内容是否是变量定义（包含"其中："或变量说明）"""
+        """判断内容是否是变量定义（包含变量说明）"""
         content_lower = content.lower()
-        return (
-            "其中：" in content
-            or "其中" in content
-            or "：" in content
-            or ":" in content
-        )
+        return "：" in content or ":" in content
 
     def _merge_formula_with_variables(self, formula: str, variables: str) -> str:
         """合并公式和变量定义"""
         return f"{formula}\n\n{variables}"
 
-    def _parse_content(self, content_type: str, content: str, section_path: Optional[List[str]] = None) -> Any:
+    def _parse_content(
+        self, content_type: str, content: str, section_path: Optional[List[str]] = None
+    ) -> Any:
         """根据 content_type 解析内容"""
         if content_type == "metadata":
             return self._parse_metadata(content)
@@ -403,11 +399,11 @@ class MarkdownChunkParser:
                     formula_lines.append("")
                     continue
 
-            # 检测变量定义部分（"其中："或"其中"开头）
-            if line.startswith("其中：") or line.startswith("其中"):
+            # 检测变量定义部分（[__calculation_formula_note__]开头）
+            if line.startswith("[__calculation_formula_note__]"):
                 in_variables = True
                 # 提取变量定义
-                var_line = line.replace("其中：", "").replace("其中", "").strip()
+                var_line = line.replace("[__calculation_formula_note__]", "").strip()
                 if var_line:
                     self._parse_variable_line(var_line, variables)
                 continue
@@ -446,58 +442,60 @@ class MarkdownChunkParser:
             meaning = parts[1].strip()
             variables[symbol] = meaning
 
-    def _parse_simple_list(self, content: str, max_item_length: int = 200) -> Optional[List[str]]:
+    def _parse_simple_list(
+        self, content: str, max_item_length: int = 200
+    ) -> Optional[List[str]]:
         """
         解析简单的列表结构（连续使用 - 开头，无二级结构）
-        
+
         Args:
             content: 内容文本
             max_item_length: 每个列表项的最大长度，超过此长度不转换为数组
-            
+
         Returns:
             如果是简单列表，返回字符串数组；否则返回 None
         """
         lines = [line.strip() for line in content.split("\n") if line.strip()]
-        
+
         if not lines:
             return None
-        
+
         # 检查是否所有非空行都是列表项（以 - 开头）
         list_items = []
         has_nested = False
-        
+
         for line in lines:
             line_stripped = line.strip()
             if not line_stripped:
                 continue
-            
+
             # 检查是否是列表项（以 - 开头，可能前面有空格）
             if line_stripped.startswith("-"):
                 # 提取列表项内容（移除开头的 - 和空格）
                 item_content = line_stripped[1:].strip()
-                
+
                 # 检查是否有二级结构（以 -- 开头表示嵌套）
                 if line_stripped.startswith("--"):
                     has_nested = True
                     break
-                
+
                 # 检查项目长度
                 if len(item_content) > max_item_length:
                     return None
-                
+
                 list_items.append(item_content)
             else:
                 # 如果有非列表项的行，不转换为数组
                 return None
-        
+
         # 如果有嵌套结构，不转换为数组
         if has_nested:
             return None
-        
+
         # 如果列表项少于2个，不转换为数组（保持原样）
         if len(list_items) < 1:
             return None
-        
+
         return list_items
 
     def _create_chunk(
@@ -521,13 +519,17 @@ class MarkdownChunkParser:
         section_path_str = (
             ".".join(self.current_section_path) if self.current_section_path else ""
         )
-        
+
         # 构建用于 hash 的唯一标识字符串
-        content_preview = str(content)[:100] if content else ""  # 使用内容的前100个字符增加唯一性
-        unique_string = f"{doc_id}||{section_path_str}||{content_type}||{count}||{content_preview}"
-        
+        content_preview = (
+            str(content)[:100] if content else ""
+        )  # 使用内容的前100个字符增加唯一性
+        unique_string = (
+            f"{doc_id}||{section_path_str}||{content_type}||{count}||{content_preview}"
+        )
+
         # 使用 SHA256 生成 hash（取前16个字符，足够唯一且不会太长）
-        hash_obj = hashlib.sha256(unique_string.encode('utf-8'))
+        hash_obj = hashlib.sha256(unique_string.encode("utf-8"))
         chunk_id = hash_obj.hexdigest()[:16]  # 使用前16个字符（64位，足够唯一）
 
         return Chunk(

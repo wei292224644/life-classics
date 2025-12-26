@@ -21,10 +21,9 @@ class Settings(BaseSettings):
     EMBEDDING_PROVIDER: str = "ollama"
 
     # Qwen/DashScope配置
-    DASHSCOPE_API_KEY: str = ""
-    QWEN_MODEL: str = "qwen-max"  # 可选: qwen-turbo, qwen-plus, qwen-max
+    DASHSCOPE_API_KEY: str = "sk-03f3eb5bc4cf446bafa1c76e762f65ad"
+    QWEN_MODEL: str = "qwen3-max-preview"
     QWEN_EMBEDDING_MODEL: str = "text-embedding-v2"  # Qwen嵌入模型
-    DASHSCOPE_MODEL: str = "qwen3-max-preview"  # DashScope模型名称
 
     # Ollama配置
     OLLAMA_BASE_URL: str = "http://localhost:11434"  # Ollama服务地址
@@ -35,6 +34,10 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_MODEL: str = "openai/gpt-3.5-turbo"  # OpenRouter模型名称
     OPENROUTER_EMBEDDING_MODEL: str = "text-embedding-ada-002"  # OpenRouter嵌入模型
+
+    # Reranker配置
+    RERANKER_PROVIDER: str = "ollama"
+    RERANKER_MODEL: str = "dengcao/Qwen3-Reranker-8B:Q4_K_M"
 
     # ChromaDB配置
     CHROMA_PERSIST_DIR: str = "./chroma_db"

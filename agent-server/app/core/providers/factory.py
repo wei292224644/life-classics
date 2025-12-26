@@ -241,6 +241,7 @@ class ModelFactory:
 
         Args:
             provider_name: 提供者名称，如果为 None 则使用配置中的默认值
+            provider_config: 运行时配置覆盖，例如自定义模型名称、温度等
 
         Returns:
             LLM 实例（兼容 LlamaIndex）
@@ -254,18 +255,31 @@ class ModelFactory:
         else:
             provider_name = provider_name.lower()
 
-        # 使用 provider_name 作为缓存键
-        if provider_name not in cls._llm_instances:
-            logger.info(f"初始化 LLM 实例: {provider_name}")
+        # 构建缓存键：如果提供了 provider_config，需要包含配置信息
+        # 使用配置的哈希值作为缓存键的一部分，确保不同配置使用不同的实例
+        import hashlib
+        import json
+        
+        if provider_config:
+            # 将配置字典转换为可哈希的字符串
+            config_str = json.dumps(provider_config, sort_keys=True)
+            config_hash = hashlib.md5(config_str.encode()).hexdigest()[:8]
+            cache_key = f"{provider_name}_{config_hash}"
+        else:
+            cache_key = provider_name
+
+        # 检查缓存
+        if cache_key not in cls._llm_instances:
+            logger.info(f"初始化 LLM 实例: {provider_name} (配置: {provider_config})")
             provider = cls.create_llm_provider(
                 provider_name, provider_config=provider_config
             )
-            cls._llm_instances[provider_name] = provider.get_instance()
-            logger.info(f"LLM 实例已缓存: {provider_name}")
+            cls._llm_instances[cache_key] = provider.get_instance()
+            logger.info(f"LLM 实例已缓存: {cache_key}")
         else:
-            logger.debug(f"使用缓存的 LLM 实例: {provider_name}")
+            logger.debug(f"使用缓存的 LLM 实例: {cache_key}")
 
-        return cls._llm_instances[provider_name]
+        return cls._llm_instances[cache_key]
 
     @classmethod
     def get_embedding(
