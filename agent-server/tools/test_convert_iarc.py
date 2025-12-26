@@ -51,7 +51,7 @@ def extract_tables_from_pdf(pdf_path: str) -> List[Dict[str, Any]]:
     header_found = False
 
     with pdfplumber.open(pdf_path) as pdf:
-        for page_num, page in enumerate(pdf.pages):
+        for page_num, page in enumerate(pdf.pages[28:]):
             print(f"正在处理第 {page_num}/{len(pdf.pages)} 页...")
 
             # 提取表格（使用默认方法，它能够更好地处理分割的表格）
@@ -59,7 +59,7 @@ def extract_tables_from_pdf(pdf_path: str) -> List[Dict[str, Any]]:
                 table_settings={
                     "vertical_strategy": "explicit",
                     "explicit_vertical_lines": [
-                        50,  # CAS No.
+                        40,  # CAS No.
                         100,  # Agent
                         270,  # Group
                         320,  # Volume
@@ -372,7 +372,7 @@ def parse_iarc_pdf(
 
     # 确定输出路径
     if output_path is None:
-        output_path = pdf_path_obj.parent / f"{pdf_path_obj.stem}_parsed.json"
+        output_path = "tools/iarc_parsed.json"
     else:
         output_path = Path(output_path)
 
@@ -388,7 +388,7 @@ def parse_iarc_pdf(
 
 if __name__ == "__main__":
     # PDF 文件路径
-    pdf_file = "files/_AgentsClassifiedbytheIARCMonographs,Volumes1–140.en.pdf"
+    pdf_file = "tools/iarc.pdf"
 
     # 解析并保存
     try:
