@@ -1,0 +1,970 @@
+[
+  {
+    "cancer_site": "Lip, oral cavity, and pharynx",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Lip",
+    "sufficient_evidence_agents": ["Hydrochlorothiazide"],
+    "limited_evidence_agents": ["Solar radiation"]
+  },
+  {
+    "cancer_site": "Oral cavity",
+    "sufficient_evidence_agents": [
+      "Acetaldehyde associated with consumption of alcoholic beverages",
+      "Alcoholic beverages",
+      "Betel quid with tobacco",
+      "Betel quid without tobacco",
+      "Human papillomavirus type 16",
+      "Tobacco, smokeless",
+      "Tobacco smoking"
+    ],
+    "limited_evidence_agents": [
+      "Bitumens, occupational exposure to hard bitumens and their emissions during mastic asphalt work",
+      "Bitumens, occupational exposure to oxidized bitumens and their emissions during roofing",
+      "Human papillomavirus type 18"
+    ]
+  },
+  {
+    "cancer_site": "Salivary gland",
+    "sufficient_evidence_agents": [
+      "Acetaldehyde associated with consumption of alcoholic beverages",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": ["Radioiodines, including iodine 131"]
+  },
+  {
+    "cancer_site": "Pharynx: oropharynx b",
+    "sufficient_evidence_agents": ["Human papillomavirus type 16"],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Pharynx: tonsil b",
+    "sufficient_evidence_agents": ["Human papillomavirus type 16"],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Pharynx: nasopharynx b",
+    "sufficient_evidence_agents": [
+      "Epstein-Barr virus",
+      "Formaldehyde",
+      "Salted fish, Chinese-style",
+      "Wood dust"
+    ],
+    "limited_evidence_agents": ["Pickled vegetables (traditional", "Asian)"]
+  },
+  {
+    "cancer_site": "Pharynx: all combined",
+    "sufficient_evidence_agents": [
+      "Acetaldehyde associated with consumption of alcoholic beverages",
+      "Alcoholic beverages",
+      "Betel quid with tobacco",
+      "Tobacco smoking"
+    ],
+    "limited_evidence_agents": [
+      "Asbestos (all forms)",
+      "Bitumens, occupational exposure to hard bitumens and their emissions during mastic asphalt work",
+      "Bitumens, occupational exposure to oxidized bitumens and their emissions during roofing",
+      "Opium consumption",
+      "Tobacco smoke, secondhand"
+    ]
+  },
+  {
+    "cancer_site": "Digestive organs",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Oesophagus",
+    "sufficient_evidence_agents": [
+      "Acetaldehyde associated with consumption of alcoholic beverages",
+      "Alcoholic beverages",
+      "Betel quid with tobacco",
+      "Betel quid without tobacco",
+      "Tobacco, smokeless",
+      "Tobacco smoking",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": [
+      "Bitumens, occupational exposure to hard bitumens and their emissions during mastic asphalt work",
+      "Bitumens, occupational exposure to oxidized bitumens and their emissions during roofing",
+      "Dry cleaning",
+      "Opium consumption",
+      "Pickled vegetables (traditional",
+      "Asian)",
+      "Rubber manufacturing industry",
+      "Very hot beverages (squamous cell carcinoma)"
+    ]
+  },
+  {
+    "cancer_site": "Stomach",
+    "sufficient_evidence_agents": [
+      "Helicobacter pylori (infection with)",
+      "Rubber manufacturing industry",
+      "Tobacco smoking",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": [
+      "Art glass, glass containers and pressed ware (manufacture of)",
+      "Asbestos (all forms)",
+      "Automotive gasoline",
+      "Epstein-Barr virus",
+      "Lead compounds, inorganic",
+      "Nitrate or nitrite (ingested) under conditions that result in endogenous nitrosation",
+      "Opium consumption",
+      "Pickled vegetables (traditional",
+      "Asian)",
+      "Processed meat (consumption of)",
+      "Salted fish, Chinese-style"
+    ]
+  },
+  {
+    "cancer_site": "Colon",
+    "sufficient_evidence_agents": [
+      "Alcoholic beverages",
+      "Processed meat (consumption of)",
+      "Tobacco smoking",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": [
+      "Asbestos (all forms)",
+      "Firefighter (occupational exposure as a)",
+      "Night shift work",
+      "Red meat (consumption of)",
+      "Schistosoma japonicum (infection with)"
+    ]
+  },
+  {
+    "cancer_site": "Rectum",
+    "sufficient_evidence_agents": [
+      "Alcoholic beverages",
+      "Processed meat (consumption of)",
+      "Tobacco smoking"
+    ],
+    "limited_evidence_agents": [
+      "Asbestos (all forms)",
+      "Night shift work",
+      "Red meat (consumption of)",
+      "Schistosoma japonicum (infection with)",
+      "X- and Gamma-radiation"
+    ]
+  },
+  {
+    "cancer_site": "Anus",
+    "sufficient_evidence_agents": [
+      "Human immunodeficiency virus type 1 (infection with)",
+      "Human papillomavirus type 16"
+    ],
+    "limited_evidence_agents": ["Human papillomavirus types 18 and 33"]
+  },
+  {
+    "cancer_site": "Liver",
+    "sufficient_evidence_agents": [
+      "Aflatoxins",
+      "Alcoholic beverages",
+      "Estrogen-progestogen oral contraceptives (combined)",
+      "Hepatitis B virus (chronic infection with)",
+      "Hepatitis C virus (chronic infection with)",
+      "Hepatitis D virus (hepatocellular carcinoma)",
+      "Plutonium",
+      "Thorium-232 and its decay products",
+      "Tobacco smoking",
+      "Vinyl chloride"
+    ],
+    "limited_evidence_agents": [
+      "Androgenic (anabolic) steroids",
+      "Arsenic and inorganic arsenic compounds",
+      "Aspartame (hepatocellular carcinoma)",
+      "Betel quid without tobacco",
+      "DDT (4,4'-dichlorodiphenyl- trichloroethane)",
+      "Human immunodeficiency virus type 1 (infection with)",
+      "Schistosoma japonicum (infection with)",
+      "Trichloroethylene",
+      "X- and Gamma-radiation"
+    ]
+  },
+  {
+    "cancer_site": "Childhood liver cancer (hepatoblastoma)",
+    "sufficient_evidence_agents": ["Parental tobacco smoking"],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Bile duct",
+    "sufficient_evidence_agents": [
+      "Clonorchis sinensis (infection with) 1,2-Dichloropropane",
+      "Opisthorchis viverrini (infection with)",
+      "Plutonium",
+      "Thorium-232 and its decay products",
+      "Tobacco smoking (in smokers)"
+    ],
+    "limited_evidence_agents": [
+      "Androgenic (anabolic) steroids",
+      "Arsenic and inorganic arsenic compounds",
+      "Betel quid without tobacco",
+      "DDT (4,4'-dichlorodiphenyl- trichloroethane)",
+      "Dichloromethane (methylene chloride)",
+      "Hepatitis B virus (chronic infection with)",
+      "Hepatitis C virus (chronic infection with)",
+      "Schistosoma japonicum (infection with)",
+      "Trichloroethylene",
+      "X- and Gamma-radiation"
+    ]
+  },
+  {
+    "cancer_site": "Gall bladder",
+    "sufficient_evidence_agents": ["Thorium-232 and its decay products"],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Pancreas",
+    "sufficient_evidence_agents": ["Tobacco, smokeless", "Tobacco smoking"],
+    "limited_evidence_agents": [
+      "Alcoholic beverages",
+      "Opium consumption",
+      "Red meat (consumption of)",
+      "Thorium-232 and its decay products",
+      "X- and Gamma-radiation"
+    ]
+  },
+  {
+    "cancer_site": "Digestive tract, unspecified",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": ["Radioiodines, including iodine-131"]
+  },
+  {
+    "cancer_site": "Respiratory and intrathoracic organs",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Nasal cavity and paranasal sinus",
+    "sufficient_evidence_agents": [
+      "Isopropyl alcohol manufacture using strong acids",
+      "Leather dust",
+      "Nickel compounds",
+      "Radium-226 and its decay products",
+      "Radium-228 and its decay products",
+      "Tobacco smoking",
+      "Wood dust"
+    ],
+    "limited_evidence_agents": [
+      "Carpentry and joinery",
+      "Chromium(VI) compounds",
+      "Formaldehyde",
+      "Textile manufacturing industry (work in)"
+    ]
+  },
+  {
+    "cancer_site": "Larynx",
+    "sufficient_evidence_agents": [
+      "Acetaldehyde associated with consumption of alcoholic beverages",
+      "Acid mists, strong inorganic",
+      "Alcoholic beverages",
+      "Asbestos (all forms)",
+      "Opium consumption",
+      "Tobacco smoking"
+    ],
+    "limited_evidence_agents": [
+      "Alachlor",
+      "Bitumens, occupational exposure to hard bitumens and their emissions during mastic asphalt work",
+      "Bitumens, occupational exposure to oxidized bitumens and their emissions during roofing",
+      "Human papillomavirus types 16 and 18",
+      "Rubber manufacturing industry",
+      "Sulfur mustard",
+      "Tobacco smoke, secondhand"
+    ]
+  },
+  {
+    "cancer_site": "Lung",
+    "sufficient_evidence_agents": [
+      "Acheson process, occupational exposure associated with",
+      "Acrylonitrile",
+      "Aluminium production",
+      "Arsenic and inorganic arsenic compounds",
+      "Asbestos (all forms)",
+      "Beryllium and beryllium compounds",
+      "Bis(chloromethyl)ether; chloromethyl methyl ether (technical grade)",
+      "Cadmium and cadmium compounds",
+      "Chromium(VI) compounds",
+      "Coal, indoor emissions from household combustion",
+      "Coal gasification",
+      "Coal-tar pitch",
+      "Coke production",
+      "Engine exhaust, diesel",
+      "Haematite mining (underground)",
+      "Iron and steel founding (occupational exposure during)",
+      "MOPP and other combined chemotherapy including alkylating agents",
+      "Nickel compounds",
+      "Opium consumption",
+      "Outdoor air pollution",
+      "Outdoor air pollution, particulate matter in",
+      "Painter (occupational exposure as a)",
+      "Plutonium",
+      "Radon-222 and its decay products",
+      "Rubber manufacturing industry",
+      "Silica dust, crystalline, in the form of quartz or cristobalite",
+      "Soot (as found in occupational exposure of chimney sweeps)",
+      "Sulfur mustard",
+      "Tobacco smoke, secondhand",
+      "Tobacco smoking",
+      "Welding fumes",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": [
+      "Acid mists, strong inorganic",
+      "Art glass, glass containers and pressed ware (manufacture of)",
+      "Benzene",
+      "Biomass fuel (primarily wood), indoor emissions from household combustion of",
+      "Bitumens, occupational exposure to hard bitumens and their emissions during mastic asphalt work",
+      "Bitumens, occupational exposure to oxidized bitumens and their emissions during roofing",
+      "Carbon electrode manufacture",
+      "alpha-Chlorinated toluenes (benzal chloride, benzotrichloride, benzyl chloride) and benzoyl chloride (combined exposures)",
+      "Cobalt metal with tungsten carbide",
+      "Creosotes",
+      "Diazinon",
+      "Frying, emissions from high-temperature",
+      "Hydrazine",
+      "Non-arsenical insecticides (occupational exposures in spraying and application of)",
+      "Printing processes (occupational exposures in)",
+      "Silicon carbide, fibrous",
+      "2,3,7,8-Tetrachlorodibenzo-para-dioxin",
+      "Trivalent antimony",
+      "Uranium, mixture of isotopes"
+    ]
+  },
+  {
+    "cancer_site": "Upper aerodigestive tract",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Upper aerodigestive tract (oral cavity, pharynx, larynx, oesophagus)",
+    "sufficient_evidence_agents": [
+      "Acetaldehyde associated with consumption of alcoholic beverages",
+      "Alcoholic beverages",
+      "Tobacco smoking"
+    ],
+    "limited_evidence_agents": [
+      "Bitumens, occupational exposure to hard bitumens and their emissions during mastic asphalt work",
+      "Bitumens, occupational exposure to oxidized bitumens and their emissions during roofing"
+    ]
+  },
+  {
+    "cancer_site": "Bone",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Bone",
+    "sufficient_evidence_agents": [
+      "Plutonium",
+      "Radium-224 and its decay products",
+      "Radium-226 and its decay products",
+      "Radium-228 and its decay products",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": ["Radioiodines, including iodine-131"]
+  },
+  {
+    "cancer_site": "Skin",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Skin (melanoma)",
+    "sufficient_evidence_agents": [
+      "Polychlorinated biphenyls",
+      "Solar radiation",
+      "Ultraviolet-emitting tanning devices"
+    ],
+    "limited_evidence_agents": [
+      "Firefighter (occupational exposure as a)",
+      "Hydrochlorothiazide",
+      "Petroleum refining (occupational exposures in)"
+    ]
+  },
+  {
+    "cancer_site": "Skin (malignant non-melanoma)",
+    "sufficient_evidence_agents": [
+      "Arsenic and inorganic arsenic compounds",
+      "Azathioprine (SCC)",
+      "Coal-tar distillation",
+      "Ciclosporin (SCC)",
+      "Hydrochlorothiazide (SCC)",
+      "Merkel cell polyomavirus (Merkel cell carcinomai)",
+      "Methoxsalen (8-methoxypsoralen) plus ultraviolet A radiation (SCC)",
+      "Mineral oils, untreated or mildly treated",
+      "Shale oils",
+      "Solar radiation (SCC and BCC)",
+      "Soot (as found in occupational exposure of chimney sweeps)",
+      "Voriconazole (SCC)",
+      "X- and Gamma-radiation (BCC)"
+    ],
+    "limited_evidence_agents": [
+      "Creosotes",
+      "Human immunodeficiency virus type 1 (infection with)",
+      "Human papillomavirus types 5 and 8 (in patients with epidermodysplasia verruciformis) (SCC)",
+      "Hydrochlorothiazide (BCC, Merkel cell carcinoma, malignant adnexal skin tumours)",
+      "Nitrogen mustard (SCC)",
+      "Petroleum refining (occupational exposures in)",
+      "Tacrolimus (SCC)",
+      "Ultraviolet-emitting tanning devices (SCC)"
+    ]
+  },
+  {
+    "cancer_site": "Mesothelium, endothelium, and soft tissue",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Mesothelium (pleura, peritoneum, and other)",
+    "sufficient_evidence_agents": [
+      "Asbestos (all forms)",
+      "Erionite",
+      "Firefighter (occupational exposure as a)",
+      "Fluoro-edenite fibrous amphibole",
+      "Painter (occupational exposure as a)"
+    ],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Endothelium (Kaposi sarcoma)",
+    "sufficient_evidence_agents": [
+      "Human immunodeficiency virus type 1 (infection with)",
+      "Kaposi sarcoma herpesvirus"
+    ],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Soft tissue",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": [
+      "Polychlorophenols and their sodium salts (combined exposures)",
+      "Radioiodines, including iodine-131 2,3,7,8-Tetrachlorodibenzo-para- dioxin"
+    ]
+  },
+  {
+    "cancer_site": "Breast",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Breast",
+    "sufficient_evidence_agents": [
+      "Alcoholic beverages",
+      "Diethylstilbestrol",
+      "Estrogen-progestogen oral contraceptives (combined)",
+      "Estrogen-progestogen menopausal therapy (combined)",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": [
+      "Dieldrin, and aldrin metabolized to dieldrin",
+      "Digoxin",
+      "Estrogen therapy, postmenopausal",
+      "Ethylene oxide",
+      "Night shift work",
+      "Polychlorinated biphenyls",
+      "Tobacco smoking"
+    ]
+  },
+  {
+    "cancer_site": "Female genital organs",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Vulva",
+    "sufficient_evidence_agents": ["Human papillomavirus type 16"],
+    "limited_evidence_agents": [
+      "Human immunodeficiency virus type 1 (infection with)",
+      "Human papillomavirus types 18, and 33"
+    ]
+  },
+  {
+    "cancer_site": "Vagina",
+    "sufficient_evidence_agents": [
+      "Diethylstilbestrol (exposure in utero)",
+      "Human papillomavirus type 16"
+    ],
+    "limited_evidence_agents": [
+      "Human immunodeficiency virus type 1 (infection with)"
+    ]
+  },
+  {
+    "cancer_site": "Uterine cervix",
+    "sufficient_evidence_agents": [
+      "Diethylstilbestrol (exposure in utero)",
+      "Estrogen-progestogen oral contraceptives (combined)",
+      "Human immunodeficiency virus type 1 (infection with)",
+      "Human papillomavirus types 16, 18, 31, 33, 35, 39, 45, 51, 52, 56, 58, and 59",
+      "Tobacco smoking"
+    ],
+    "limited_evidence_agents": [
+      "Human papillomavirus types 26, 53, 66, 67, 68, 70, 73, and 82"
+    ]
+  },
+  {
+    "cancer_site": "Endometrium",
+    "sufficient_evidence_agents": [
+      "Estrogen therapy, postmenopausal",
+      "Estrogen-progestogen menopausal therapy (combined)",
+      "Tamoxifen"
+    ],
+    "limited_evidence_agents": ["Diethylstilbestrol"]
+  },
+  {
+    "cancer_site": "Ovary",
+    "sufficient_evidence_agents": [
+      "Asbestos (all forms)",
+      "Estrogen therapy, postmenopausal",
+      "Tobacco smoking"
+    ],
+    "limited_evidence_agents": ["Talc h", "X- and Gamma-radiation"]
+  },
+  {
+    "cancer_site": "Male genital organs",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Penis",
+    "sufficient_evidence_agents": ["Human papillomavirus type 16"],
+    "limited_evidence_agents": [
+      "Human immunodeficiency virus type 1 (infection with)",
+      "Human papillomavirus type 18"
+    ]
+  },
+  {
+    "cancer_site": "Prostate",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": [
+      "Androgenic (anabolic) steroids",
+      "Arsenic and inorganic arsenic compounds",
+      "Cadmium and cadmium compounds",
+      "Firefighter (occupational exposure as a)",
+      "Malathion",
+      "Night shift work",
+      "Red meat (consumption of)",
+      "Rubber manufacturing industry",
+      "Thorium-232 and its decay products",
+      "X- and Gamma-radiation"
+    ]
+  },
+  {
+    "cancer_site": "Testis",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": [
+      "DDT (4,4'-dichlorodiphenyl- trichloroethane)",
+      "Diethylstilbestrol (exposure in utero)",
+      "N,N-Dimethylformamide",
+      "Firefighter (occupational exposure as a)",
+      "Perfluorooctanoic acid (PFOA)"
+    ]
+  },
+  {
+    "cancer_site": "Urinary tract",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Kidney",
+    "sufficient_evidence_agents": [
+      "Tobacco smoking",
+      "Trichloroethylene",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": [
+      "Arsenic and inorganic arsenic compounds",
+      "Automotive gasoline",
+      "Cadmium and cadmium compounds",
+      "Perfluorooctanoic acid (PFOA) (renal cell carcinoma)",
+      "Welding fumes"
+    ]
+  },
+  {
+    "cancer_site": "Renal pelvis and ureter",
+    "sufficient_evidence_agents": [
+      "Aristolochic acid, plants containing",
+      "Phenacetin",
+      "Phenacetin, analgesic mixtures containing",
+      "Tobacco smoking"
+    ],
+    "limited_evidence_agents": ["Aristolochic acid"]
+  },
+  {
+    "cancer_site": "Urinary bladder",
+    "sufficient_evidence_agents": [
+      "Aluminium production 4-Aminobiphenyl",
+      "Arsenic and inorganic arsenic compounds",
+      "Auramine production",
+      "Automotive gasoline",
+      "Benzidine",
+      "Chlornaphazine",
+      "Cyclophosphamide",
+      "Firefighter (occupational exposure as a)",
+      "Magenta production 2-Naphthylamine",
+      "Opium consumption",
+      "Painter (occupational exposure as a)",
+      "Rubber manufacturing industry",
+      "Schistosoma haematobium (infection with)",
+      "Tobacco smoking ortho-Toluidine",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": [
+      "Acrylonitrile 4-Chloro-ortho-toluidine",
+      "Coal-tar pitch",
+      "Dry cleaning (occupational exposures in)",
+      "Engine exhaust, diesel",
+      "Hairdresser or barber (occupational exposure as a) 2-Mercaptobenzothiazole",
+      "Outdoor air pollution",
+      "Pioglitazone",
+      "Printing processes (occupational exposures in)",
+      "Soot (as found in occupational exposure of chimney sweeps)",
+      "Tetrachloroethylene (Perchloroethylene)",
+      "Textile manufacturing industry (work in)"
+    ]
+  },
+  {
+    "cancer_site": "Eye, brain, and central nervous system",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Eye",
+    "sufficient_evidence_agents": [
+      "Human immunodeficiency virus type 1 (infection with)",
+      "Ultraviolet emissions from welding",
+      "Ultraviolet-emitting tanning devices"
+    ],
+    "limited_evidence_agents": ["Solar radiation"]
+  },
+  {
+    "cancer_site": "Brain and central nervous system",
+    "sufficient_evidence_agents": ["X- and Gamma-radiation"],
+    "limited_evidence_agents": [
+      "Radiofrequency electromagnetic fields (glioma and acoustic neuroma)"
+    ]
+  },
+  {
+    "cancer_site": "Endocrine glands",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Thyroid",
+    "sufficient_evidence_agents": [
+      "Radioiodines, including iodine-131",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Lymphoid, haematopoietic, and related tissues c",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Childhood leukaemia",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Childhood acute lymphoblastic leukaemia d",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": [
+      "Automotive gasoline",
+      "Human cytomegalovirus",
+      "Tobacco smoking (parental)"
+    ]
+  },
+  {
+    "cancer_site": "Childhood acute myeloid leukaemia d",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": [
+      "Benzene",
+      "Teniposide",
+      "Tobacco smoking (parental)"
+    ]
+  },
+  {
+    "cancer_site": "Childhood leukaemia: all combined",
+    "sufficient_evidence_agents": [
+      "Fission products, including strontium- 90",
+      "Thorium-232 and its decay products",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": [
+      "Chloramphenicol",
+      "Magnetic fields, extremely low- frequency",
+      "Painter (maternal occupational exposure as a)",
+      "Radioiodines, including iodine-131",
+      "Tobacco smoking (parental exposure)"
+    ]
+  },
+  {
+    "cancer_site": "Lymphoid, haematopoietic, and related tissues (contd) c",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Leukaemia",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Acute myeloid leukaemia e",
+    "sufficient_evidence_agents": [
+      "Automotive gasoline",
+      "Benzene",
+      "Busulfan",
+      "Chlorambucil",
+      "Cyclophosphamide",
+      "Etoposide in combination with cisplatin and bleomycin",
+      "Formaldehyde",
+      "Melphalan",
+      "MOPP and other combined chemotherapy including alkylating agents",
+      "Phosphorus-32, as phosphorus",
+      "Semustine [1-(2-Chloroethyl)-3-(4- methylcyclohexyl)-1-nitrosourea,",
+      "Methyl-CCNU]",
+      "Thorium-232 and its decay products",
+      "Tobacco smoking",
+      "Treosulfan",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": [
+      "Bischloroethyl nitrosourea (BCNU)",
+      "Etoposide",
+      "Mitoxantrone",
+      "Teniposide"
+    ]
+  },
+  {
+    "cancer_site": "Myelodysplastic syndrome",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": ["Automotive gasoline"]
+  },
+  {
+    "cancer_site": "Other acute non-lymphocytic leukaemia e",
+    "sufficient_evidence_agents": [
+      "Benzene",
+      "Formaldehyde",
+      "Phosphorus-32, as phosphorus",
+      "Thorium-232 and its decay products",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": ["Bischloroethyl nitrosourea (BCNU)"]
+  },
+  {
+    "cancer_site": "Chronic myeloid leukaemia e",
+    "sufficient_evidence_agents": [
+      "Formaldehyde",
+      "Thorium-232 and its decay products",
+      "Tobacco smoking",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": ["Benzene"]
+  },
+  {
+    "cancer_site": "Acute lymphocytic leukaemia e",
+    "sufficient_evidence_agents": [
+      "Phosphorus-32, as phosphorus",
+      "Thorium-232 and its decay products",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Chronic lymphocytic leukaemia e",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": [
+      "Automotive gasoline",
+      "Benzene",
+      "Ethylene oxide"
+    ]
+  },
+  {
+    "cancer_site": "Adult T-cell leukaemia/lymphoma (ATLL) e",
+    "sufficient_evidence_agents": [
+      "Human T-cell lymphotropic virus type 1",
+      "Thorium-232 and its decay products",
+      "X- and Gamma-radiation"
+    ],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Leukaemia: all combined",
+    "sufficient_evidence_agents": [
+      "1,3-Butadiene",
+      "Fission products, including strontium-90",
+      "Rubber manufacturing industry",
+      "Thiotepa"
+    ],
+    "limited_evidence_agents": [
+      "Chloramphenicol",
+      "Diazinon",
+      "Nitrogen mustard",
+      "Petroleum refining (occupational exposures in)",
+      "Radioiodines, including iodine-131",
+      "Radon-222 and its decay products",
+      "Styrene",
+      "Tacrolimus"
+    ]
+  },
+  {
+    "cancer_site": "Lymphoma",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Hodgkin lymphoma f",
+    "sufficient_evidence_agents": [
+      "Epstein-Barr virus",
+      "Human immunodeficiency virus type 1 (infection with)"
+    ],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Primary effusion lymphoma f",
+    "sufficient_evidence_agents": ["Kaposi sarcoma herpesvirus"],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Non-Hodgkin lymphoma: immunosuppression-related lymphoma (including post- transplant lymphoproliferative disorder)",
+    "sufficient_evidence_agents": ["Epstein-Barr virus", "Tacrolimus"],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Non-Hodgkin lymphoma: Burkitt lymphoma f, g",
+    "sufficient_evidence_agents": ["Epstein-Barr virus"],
+    "limited_evidence_agents": [
+      "Malaria (caused by infection with",
+      "Plasmodium falciparum in holoendemic areas)"
+    ]
+  },
+  {
+    "cancer_site": "Non-Hodgkin lymphoma: extranodal NK/T-cell lymphoma (nasal type) f, g",
+    "sufficient_evidence_agents": ["Epstein-Barr virus"],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Non-Hodgkin lymphoma: low-grade B-cell mucosa associated lymphoid tissue (MALT) gastric lymphoma f, g",
+    "sufficient_evidence_agents": ["Helicobacter pylori (infection with)"],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Non-Hodgkin lymphoma: positive for the chromosomal translocation t(14;18) f, g",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": ["Atrazine"]
+  },
+  {
+    "cancer_site": "Non-Hodgkin lymphoma: all combined f",
+    "sufficient_evidence_agents": [
+      "Azathioprine",
+      "Ciclosporin",
+      "Hepatitis C virus (chronic infection with)",
+      "Human immunodeficiency virus type 1 (infection with)",
+      "Lindane",
+      "Pentachlorophenol",
+      "Tacrolimus"
+    ],
+    "limited_evidence_agents": [
+      "Automotive gasoline",
+      "Benzene",
+      "Chlorophenoxy herbicides",
+      "DDT (4,4'-dichlorodiphenyl- trichloroethane)",
+      "Diazinon",
+      "Dichloromethane (methylene chloride)",
+      "Ethylene oxide",
+      "Firefighter (occupational exposure as a)",
+      "Glyphosate",
+      "Hepatitis B virus (chronic infection with)",
+      "Malathion",
+      "Polychlorinated biphenyls",
+      "Polychlorophenols and their sodium salts (mixed exposures)",
+      "2,3,7,8-Tetrachlorodibenzo-para-dioxin",
+      "Trichloroethylene",
+      "X- and Gamma-radiation"
+    ]
+  },
+  {
+    "cancer_site": "combined f",
+    "sufficient_evidence_agents": [
+      "Ciclosporin",
+      "Hepatitis C virus (chronic infection with)",
+      "Human immunodeficiency virus type 1 (infection with)",
+      "Lindane",
+      "Pentachlorophenol",
+      "Tacrolimus"
+    ],
+    "limited_evidence_agents": [
+      "Benzene",
+      "Chlorophenoxy herbicides",
+      "DDT (4,4'-dichlorodiphenyl- trichloroethane)",
+      "Diazinon",
+      "Dichloromethane (methylene chloride)",
+      "Ethylene oxide",
+      "Firefighter (occupational exposure as a)",
+      "Glyphosate",
+      "Hepatitis B virus (chronic infection with)",
+      "Malathion",
+      "Polychlorinated biphenyls",
+      "Polychlorophenols and their sodium salts (mixed exposures) 2,3,7,8-Tetrachlorodibenzo-para- dioxin",
+      "Trichloroethylene",
+      "X- and Gamma-radiation"
+    ]
+  },
+  {
+    "cancer_site": "Multicentric Castleman disease f",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": ["Kaposi sarcoma herpesvirus"]
+  },
+  {
+    "cancer_site": "Lymphoma: all combined",
+    "sufficient_evidence_agents": [
+      "1,3-Butadiene",
+      "Rubber manufacturing industry"
+    ],
+    "limited_evidence_agents": ["Styrene"]
+  },
+  {
+    "cancer_site": "Multiple myeloma",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Multiple myeloma",
+    "sufficient_evidence_agents": ["1,3-Butadiene", "Pentachlorophenol"],
+    "limited_evidence_agents": [
+      "Automotive gasoline",
+      "Benzene",
+      "Ethylene oxide",
+      "Styrene 1,1,1-Trichloroethane",
+      "X- and Gamma-radiation"
+    ]
+  },
+  {
+    "cancer_site": "Multiple or unspecified sites",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": []
+  },
+  {
+    "cancer_site": "Lymphoepithelioma-like carcinoma (LELC)",
+    "sufficient_evidence_agents": [],
+    "limited_evidence_agents": ["Epstein-Barr virus"]
+  },
+  {
+    "cancer_site": "Multiple sites (unspecified)",
+    "sufficient_evidence_agents": [
+      "Ciclosporin",
+      "Fission products, including strontium-90",
+      "X- and Gamma-radiation (exposure in utero)"
+    ],
+    "limited_evidence_agents": ["Chlorophenoxy herbicides"]
+  },
+  {
+    "cancer_site": "All cancer sites (combined)",
+    "sufficient_evidence_agents": ["2,3,7,8-Tetrachlorodibenzo-para- dioxin"],
+    "limited_evidence_agents": []
+  }
+]

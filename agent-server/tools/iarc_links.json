@@ -883,7 +883,7 @@
   },
   {
     "CAS No.": "",
-    "Agent": "Gamma-Radiation",
+    "Agent": "Gamma-radiation",
     "Group": "",
     "Volume": "",
     "Volume publication year": "",
@@ -891,7 +891,7 @@
     "Additional information": "",
     "Links": [
       {
-        "link": "X-and Gamma-Radiation",
+        "link": "X- and Gamma-radiation",
         "type": "see"
       }
     ]
@@ -2402,7 +2402,7 @@
   },
   {
     "CAS No.": "",
-    "Agent": "X-and Gamma-Radiation",
+    "Agent": "X- and Gamma-radiation",
     "Group": "1",
     "Volume": "75, 100D",
     "Volume publication year": "2012",

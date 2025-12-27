@@ -5,8 +5,10 @@
 
 from typing import List, Dict, Any
 
+from app.core.document_chunk import DocumentChunk
 
-def split_table(content: str, **kwargs) -> List[Dict[str, Any]]:
+
+def split_table(documents: List[DocumentChunk], **kwargs) -> List[DocumentChunk]:
     """
     表格切分策略
 
@@ -19,4 +21,4 @@ def split_table(content: str, **kwargs) -> List[Dict[str, Any]]:
         切分后的知识库通用数据结构列表
     """
     # TODO: 实现表格切分逻辑
-    pass
+    return documents
