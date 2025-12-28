@@ -8,6 +8,7 @@ from typing import List, Dict, Any
 from app.core.document_chunk import DocumentChunk
 
 
+
 def split_table(documents: List[DocumentChunk], **kwargs) -> List[DocumentChunk]:
     """
     表格切分策略

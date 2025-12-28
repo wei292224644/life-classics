@@ -1,0 +1,206 @@
+{% extends "layout.html" %}
+
+{% block title %}文档列表 - 知识库查看器{% endblock %}
+
+{% block content %}
+    <!-- Action Bar -->
+    <div class="mb-6 flex justify-end">
+        <button id="clearAllBtn" class="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors">
+            清空所有数据
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p class="mt-4 text-muted-foreground">加载中...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="hidden text-center py-12">
+        <div class="inline-block p-4 bg-destructive/10 text-destructive rounded-md">
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <!-- Documents List -->
+    <div id="documentsContainer" class="hidden space-y-4">
+        <div id="documentsList" class="space-y-4"></div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    async function loadDocuments() {
+        showLoading();
+        
+        try {
+            const response = await fetch(`${API_BASE}/documents`);
+            const data = await response.json();
+            
+            if (response.ok) {
+                displayDocuments(data);
+            } else {
+                showError(data.detail || '加载失败');
+            }
+        } catch (error) {
+            showError(`加载失败: ${error.message}`);
+        }
+    }
+
+    function showLoading() {
+        document.getElementById('loadingState').classList.remove('hidden');
+        document.getElementById('errorState').classList.add('hidden');
+        document.getElementById('documentsContainer').classList.add('hidden');
+    }
+
+    function showError(message) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('errorState').classList.remove('hidden');
+        document.getElementById('documentsContainer').classList.add('hidden');
+        document.getElementById('errorMessage').textContent = message;
+    }
+
+    function displayDocuments(data) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('errorState').classList.add('hidden');
+        document.getElementById('documentsContainer').classList.remove('hidden');
+        
+        const documentsList = document.getElementById('documentsList');
+        documentsList.innerHTML = '';
+        
+        if (data.documents.length === 0) {
+            documentsList.innerHTML = '<div class="text-center py-12 text-muted-foreground">暂无文档</div>';
+            return;
+        }
+        
+        // 显示统计信息
+        const statsDiv = document.createElement('div');
+        statsDiv.className = 'mb-4 p-4 bg-muted rounded-lg';
+        statsDiv.innerHTML = `<div class="text-sm text-muted-foreground">共 ${data.total} 个文档</div>`;
+        documentsList.appendChild(statsDiv);
+        
+        // 渲染文档列表
+        data.documents.forEach(doc => {
+            const docCard = createDocumentCard(doc);
+            documentsList.appendChild(docCard);
+        });
+    }
+
+    function createDocumentCard(doc) {
+        const card = document.createElement('div');
+        card.className = 'border border-border rounded-lg bg-card p-6 hover:shadow-md transition-shadow';
+        
+        // 内容类型标签
+        const contentTypesHtml = Object.entries(doc.content_types)
+            .map(([type, count]) => `<span class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-md">${type}: ${count}</span>`)
+            .join(' ');
+        
+        card.innerHTML = `
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold mb-2">${escapeHtml(doc.doc_title)}</h3>
+                    <div class="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                        <span>文档 ID: <code class="px-1 py-0.5 bg-muted rounded">${escapeHtml(doc.doc_id)}</code></span>
+                        ${doc.source ? `<span>来源: ${escapeHtml(doc.source)}</span>` : ''}
+                    </div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-sm font-medium">Chunks: ${doc.chunks_count}</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        ${contentTypesHtml || '<span class="text-xs text-muted-foreground">无内容类型信息</span>'}
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <a href="/chunks?doc_id=${encodeURIComponent(doc.doc_id)}" class="px-3 py-1 text-sm border border-input rounded-md hover:bg-accent transition-colors">
+                        查看 Chunks
+                    </a>
+                    <button class="delete-doc-btn px-3 py-1 text-sm bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors" data-doc-id="${doc.doc_id}" data-doc-title="${escapeHtml(doc.doc_title)}">
+                        删除
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        return card;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function refreshPage() {
+        loadDocuments();
+    }
+
+    async function deleteDocument(docId, docTitle) {
+        if (!confirm(`确定要删除文档 "${docTitle}" 及其所有 chunks 吗？此操作不可恢复！`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/documents/${encodeURIComponent(docId)}`, {
+                method: 'DELETE',
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('删除成功');
+                loadDocuments();
+                loadInfo(); // 刷新统计信息
+            } else {
+                alert(`删除失败: ${data.detail || '未知错误'}`);
+            }
+        } catch (error) {
+            alert(`删除失败: ${error.message}`);
+        }
+    }
+
+    async function clearAll() {
+        if (!confirm('确定要清空所有文档和 chunks 吗？此操作不可恢复！')) {
+            return;
+        }
+
+        if (!confirm('再次确认：这将删除所有数据，请确保您真的想要清空所有内容！')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/clear`, {
+                method: 'DELETE',
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(data.message || '清空成功');
+                loadDocuments();
+                loadInfo(); // 刷新统计信息
+            } else {
+                alert(`清空失败: ${data.detail || '未知错误'}`);
+            }
+        } catch (error) {
+            alert(`清空失败: ${error.message}`);
+        }
+    }
+
+    // 页面加载时加载文档列表
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDocuments();
+
+        // 清空所有按钮
+        document.getElementById('clearAllBtn').addEventListener('click', clearAll);
+
+        // 使用事件委托处理删除按钮（因为文档是动态加载的）
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-doc-btn')) {
+                const docId = e.target.getAttribute('data-doc-id');
+                const docTitle = e.target.getAttribute('data-doc-title');
+                deleteDocument(docId, docTitle);
+            }
+        });
+    });
+</script>
+{% endblock %}
+

@@ -14,7 +14,8 @@ from app.core.document_chunk import DocumentChunk, ContentType
 
 
 # 允许的 content_type 枚举值（与 ContentType 枚举对应）
-ALLOWED_CONTENT_TYPES = list(ContentType.__members__.keys())
+# 使用枚举的值（如 "metadata", "scope"）而不是键名（如 "METADATA", "SCOPE"）
+ALLOWED_CONTENT_TYPES = {ct.value for ct in ContentType}
 
 
 class StructuredMarkdownParser:
@@ -277,20 +278,8 @@ class StructuredMarkdownParser:
             return content.strip()
 
     def _parse_metadata(self, content: str) -> Dict[str, str]:
-        """解析 metadata（key-value 格式）"""
-        metadata = {}
-        for line in content.split("\n"):
-            line = line.strip()
-            if not line:
-                continue
-            # 支持 "key: value" 或 "key=value" 格式
-            if ":" in line:
-                key, value = line.split(":", 1)
-                metadata[key.strip()] = value.strip()
-            elif "=" in line:
-                key, value = line.split("=", 1)
-                metadata[key.strip()] = value.strip()
-        return metadata
+        """解析 metadata（无序列表格式）"""
+        return self._parse_simple_list(content)
 
     def _parse_table(self, content: str, title: Optional[str] = None) -> Dict[str, Any]:
         """解析表格为结构化格式"""

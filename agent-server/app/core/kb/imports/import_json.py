@@ -7,7 +7,7 @@ import json
 from app.core.document_chunk import DocumentChunk
 
 
-def import_json(file_path: str, strategy: str) -> List[DocumentChunk]:
+def import_json(file_path: str) -> List[DocumentChunk]:
     """
     导入 JSON 文件
 

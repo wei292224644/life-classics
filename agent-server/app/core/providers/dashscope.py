@@ -2,6 +2,7 @@
 DashScope/Qwen 提供者实现
 """
 
+import os
 from typing import Any, Optional
 import warnings
 
@@ -23,9 +24,14 @@ class DashScopeLLMProvider(BaseLLMProvider):
 
         self.validate_config()
 
+        # 设置环境变量，确保 dashscope 库能够找到 API key
+        api_key = self.config["api_key"]
+        if api_key:
+            os.environ["DASHSCOPE_API_KEY"] = api_key
+
         return Tongyi(
             model_name=self.config.get("model", "qwen-max"),
-            dashscope_api_key=self.config["api_key"],
+            dashscope_api_key=api_key,
             temperature=self.config.get("temperature", 0.7),
             max_tokens=self.config.get("max_tokens", 2048),
         )
@@ -46,7 +52,12 @@ class DashScopeEmbeddingProvider(BaseEmbeddingProvider):
 
         self.validate_config()
 
+        # 设置环境变量，确保 dashscope 库能够找到 API key
+        api_key = self.config["api_key"]
+        if api_key:
+            os.environ["DASHSCOPE_API_KEY"] = api_key
+
         return DashScopeEmbeddings(
             model=self.config.get("model", "text-embedding-v2"),
-            dashscope_api_key=self.config["api_key"],
+            dashscope_api_key=api_key,
         )

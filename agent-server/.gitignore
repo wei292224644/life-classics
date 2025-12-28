@@ -48,8 +48,7 @@ uploads/
 *.docx
 *.pptx
 
-# Markdown Cache
-markdown_cache/
+
 
 # Logs
 *.log
@@ -58,3 +57,6 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+
+/markdown_cache/

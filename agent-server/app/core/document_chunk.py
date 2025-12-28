@@ -69,9 +69,9 @@ class DocumentChunk:
         metadata = {
             "doc_id": self.doc_id,
             "doc_title": self.doc_title,
-            "section_path": self.section_path,
-            "content_type": self.content_type,
-            "meta": self.meta,
+            "section_path": json.dumps(self.section_path, ensure_ascii=False),
+            "content_type": self.content_type.value,
+            "meta": json.dumps(self.meta, ensure_ascii=False),
         }
 
         # 特殊处理：表格类型
@@ -82,16 +82,16 @@ class DocumentChunk:
         elif self.content_type == ContentType.CALCULATION_FORMULA:
             return self.calculation_formula_to_documents(content, metadata)
 
+        elif self.content_type == ContentType.METADATA:
+            return self.metadata_to_documents(content, metadata)
+
         # 处理数组类型（reagent, instrument 等）
         elif isinstance(content, list):
             # 将数组转换为字符串
-            page_content = "\n".join(str(item) for item in content)
+            content = self.convert_list_content_to_string(content)
             document = Document(
-                page_content=page_content,
-                metadata={
-                    **metadata,
-                    "raw_content": content,  # 保留原始数组内容
-                },
+                page_content=content,
+                metadata=metadata,
             )
             documents.append(document)
 
@@ -103,7 +103,9 @@ class DocumentChunk:
                 page_content=page_content,
                 metadata={
                     **metadata,
-                    "raw_content": content,  # 保留原始字典内容
+                    "raw_content": json.dumps(
+                        content, ensure_ascii=False, indent=2
+                    ),  # 保留原始字典内容
                 },
             )
             documents.append(document)
@@ -219,13 +221,52 @@ class DocumentChunk:
             page_content=page_content,
             metadata={
                 **metadata,
-                "raw_content": content,  # 保留原始结构化内容
-                "expression": expression,
-                "variables": variables,
+                "raw_content": json.dumps(
+                    content, ensure_ascii=False
+                ),  # 保留原始结构化内容
+                "expression": json.dumps(expression, ensure_ascii=False),
+                "variables": json.dumps(variables, ensure_ascii=False),
             },
         )
 
         return [document]
+
+    def convert_list_content_to_string(self, content: list) -> str:
+
+        raw_str = json.dumps(
+            {
+                "section_path": self.section_path,
+                "content": content,
+                "meta": self.meta,
+            },
+            ensure_ascii=False,
+        )
+
+        human_prompt = f"""请将这份数据转换为自然语言描述，直接输出结果，不要过分解读和理解。内容为:{raw_str}"""
+        page_content = chat(
+            messages=[HumanMessage(content=human_prompt)],
+            provider_name="ollama",
+            provider_config={
+                "model": "qwen3:1.7b",
+                "temperature": 0.1,
+                "reasoning": False,
+            },
+        )
+        return page_content
+
+    def metadata_to_documents(self, content: list, metadata: dict) -> List[Document]:
+        """
+        将 metadata 内容转换为 Document 列表
+        """
+        documents = []
+        for item in content:
+            documents.append(
+                Document(
+                    page_content=item,
+                    metadata=metadata,
+                )
+            )
+        return documents
 
 
 # test
@@ -262,34 +303,26 @@ class DocumentChunk:
 #   }
 if __name__ == "__main__":
     document_chunk = DocumentChunk(
-        doc_id="20120518_10_analysis",
-        doc_title="20120518_10_analysis",
-        section_path=["3 技术要求", "3.1 感官要求：应符合表1 的规定。", "表1 感官要求"],
+        doc_id="20120518_2",
+        doc_title="20120518_2",
+        section_path=["附 录 A 检验方法", "A.2 碘值的测定", "A.2.1 试剂和材料"],
         content_type=ContentType.SPECIFICATION_TABLE,
-        content={
-            "title": "表1 感官要求",
-            "rows": [
-                {
-                    "项目": "色泽",
-                    "要求": "暗红色至棕红色",
-                    "检验方法": "取适量样品置于清洁、干燥的白瓷盘中，在自然光线下，观察其色泽和状态",
-                },
-                {
-                    "项目": "状态",
-                    "要求": "结晶或结晶性粉末",
-                    "检验方法": "取适量样品置于清洁、干燥的白瓷盘中，在自然光线下，观察其色泽和状态",
-                },
-            ],
-        },
-        meta={"standard_type": "国家标准", "source": "20120518_10_analysis.md"},
+        content=[
+            "乙酸",
+            "碘",
+            "氯气",
+            "环己烷-乙酸混合液：1+1",
+            "碘化钾溶液：150 g/L",
+            "淀粉指示液：10 g/L",
+            "硫代硫酸钠标准滴定溶液：c(Na₂S₂O₃) = 0.1 mol/L",
+            "氯化碘溶液（韦氏溶液）：溶解13 g碘于1000 mL乙酸中（溶解时略加热），然后置于1000 mL棕色瓶中，冷却，此为碘溶液。量取100 mL～200 mL于另一棕色瓶中，置阴暗处供调整用。通入氯气至剩余的800 mL～900 mL碘溶液中，至溶液由深色渐渐变淡直至呈桔红色透明为止。氯气通入量按校正方法校正后，用预先留存的碘溶液予以调整。",
+        ],
+        meta={"standard_type": "国家标准", "source": "20120518_2.md"},
     )
     start_time = time.time()
-    documents = document_chunk.to_documents()
+    document_chunk.convert_list_to_document()
     print("=" * 20)
-    for document in documents:
-        print(document.page_content)
-        print("=" * 10)
+    print(document_chunk.content)
     print("=" * 20)
     end_time = time.time()
     print("耗时：", end_time - start_time)
-    print("文档数量：", len(documents))
