@@ -186,7 +186,7 @@ class DocumentChunk:
         将计算公式内容转换为 Document 列表
 
         Args:
-            content: 公式内容，格式为 {"expression": "...", "variables": {...}}
+            content: 公式内容，格式为 {"expression": "...", "variables": [...]}
             metadata: 文档元数据
 
         Returns:
@@ -202,7 +202,7 @@ class DocumentChunk:
             ]
 
         expression = content.get("expression", "")
-        variables = content.get("variables", {})
+        variables = content.get("variables", [])
 
         # 构建完整的公式文本
         formula_parts = [expression]
@@ -210,10 +210,10 @@ class DocumentChunk:
         # 如果有变量定义，添加到公式文本中
         if variables:
             var_lines = []
-            for symbol, meaning in variables.items():
-                var_lines.append(f"- {symbol}: {meaning}")
+            for var_line in variables:
+                var_lines.append(var_line)
             if var_lines:
-                formula_parts.append("\n变量说明：\n" + "\n".join(var_lines))
+                formula_parts.append("\n注：\n" + "\n".join(var_lines))
 
         page_content = "\n".join(formula_parts)
 
@@ -252,6 +252,10 @@ class DocumentChunk:
                 "reasoning": False,
             },
         )
+        print("=" * 20)
+        print("list content to string:")
+        print(page_content)
+        print("=" * 20)
         return page_content
 
     def metadata_to_documents(self, content: list, metadata: dict) -> List[Document]:

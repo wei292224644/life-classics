@@ -37,3 +37,12 @@ async def chunks_page(request: Request):
 async def upload_page(request: Request):
     """文档上传页面"""
     return templates.TemplateResponse("upload.html", {"request": request})
+
+
+@router.get("/documents/{doc_id}/edit", response_class=HTMLResponse)
+async def edit_document_page(request: Request, doc_id: str):
+    """编辑文档的 markdown_cache 页面"""
+    return templates.TemplateResponse("edit_document.html", {
+        "request": request,
+        "doc_id": doc_id,
+    })

@@ -1,229 +1,254 @@
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block title %}Chunks 列表 - 知识库查看器{%
+endblock %} {% block content %}
+<!-- Action Bar -->
+<div class="mb-4 flex justify-end">
+  <button
+    id="clearAllBtn"
+    class="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
+  >
+    清空所有数据
+  </button>
+</div>
 
-{% block title %}Chunks 列表 - 知识库查看器{% endblock %}
-
-{% block content %}
-    <!-- Action Bar -->
-    <div class="mb-4 flex justify-end">
-        <button id="clearAllBtn" class="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors">
-            清空所有数据
+<!-- Filters -->
+<div class="border-b border-border bg-card mb-6">
+  <div class="container mx-auto px-4 py-4">
+    <div class="flex flex-wrap gap-4 items-end">
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-sm font-medium mb-2">文档 ID</label>
+        <select
+          id="docIdFilter"
+          class="w-full px-3 py-2 border border-input rounded-md bg-background"
+        >
+          <option value="">全部</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-sm font-medium mb-2">内容类型</label>
+        <select
+          id="contentTypeFilter"
+          class="w-full px-3 py-2 border border-input rounded-md bg-background"
+        >
+          <option value="">全部</option>
+        </select>
+      </div>
+      <div class="flex gap-2">
+        <button
+          id="filterBtn"
+          class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+        >
+          筛选
         </button>
+        <button
+          id="clearFilterBtn"
+          class="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+        >
+          清除
+        </button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Filters -->
-    <div class="border-b border-border bg-card mb-6">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-wrap gap-4 items-end">
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium mb-2">文档 ID</label>
-                    <select id="docIdFilter" class="w-full px-3 py-2 border border-input rounded-md bg-background">
-                        <option value="">全部</option>
-                    </select>
-                </div>
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium mb-2">内容类型</label>
-                    <select id="contentTypeFilter" class="w-full px-3 py-2 border border-input rounded-md bg-background">
-                        <option value="">全部</option>
-                    </select>
-                </div>
-                <div class="flex gap-2">
-                    <button id="filterBtn" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
-                        筛选
-                    </button>
-                    <button id="clearFilterBtn" class="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors">
-                        清除
-                    </button>
-                </div>
-            </div>
-        </div>
+<!-- Loading State -->
+<div id="loadingState" class="text-center py-12">
+  <div
+    class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"
+  ></div>
+  <p class="mt-4 text-muted-foreground">加载中...</p>
+</div>
+
+<!-- Error State -->
+<div id="errorState" class="hidden text-center py-12">
+  <div class="inline-block p-4 bg-destructive/10 text-destructive rounded-md">
+    <p id="errorMessage"></p>
+  </div>
+</div>
+
+<!-- Chunks List -->
+<div id="chunksContainer" class="hidden space-y-4">
+  <!-- Pagination Info -->
+  <div
+    class="flex items-center justify-between text-sm text-muted-foreground mb-4"
+  >
+    <div id="paginationInfo"></div>
+    <div class="flex gap-2">
+      <button
+        id="prevBtn"
+        class="px-3 py-1 border border-input rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        上一页
+      </button>
+      <button
+        id="nextBtn"
+        class="px-3 py-1 border border-input rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        下一页
+      </button>
     </div>
+  </div>
 
-    <!-- Loading State -->
-    <div id="loadingState" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <p class="mt-4 text-muted-foreground">加载中...</p>
-    </div>
-
-    <!-- Error State -->
-    <div id="errorState" class="hidden text-center py-12">
-        <div class="inline-block p-4 bg-destructive/10 text-destructive rounded-md">
-            <p id="errorMessage"></p>
-        </div>
-    </div>
-
-    <!-- Chunks List -->
-    <div id="chunksContainer" class="hidden space-y-4">
-        <!-- Pagination Info -->
-        <div class="flex items-center justify-between text-sm text-muted-foreground mb-4">
-            <div id="paginationInfo"></div>
-            <div class="flex gap-2">
-                <button id="prevBtn" class="px-3 py-1 border border-input rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">
-                    上一页
-                </button>
-                <button id="nextBtn" class="px-3 py-1 border border-input rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">
-                    下一页
-                </button>
-            </div>
-        </div>
-
-        <!-- Chunks Grid -->
-        <div id="chunksList" class="space-y-4"></div>
-    </div>
-{% endblock %}
-
-{% block extra_scripts %}
+  <!-- Chunks Grid -->
+  <div id="chunksList" class="space-y-4"></div>
+</div>
+{% endblock %} {% block extra_scripts %}
 <script>
-    let currentPage = 0;
-    const pageSize = 20;
-    let currentFilters = {};
+  let currentPage = 0;
+  const pageSize = 20;
+  let currentFilters = {};
 
-    // 从 URL 参数获取筛选条件
-    function getFiltersFromURL() {
-        const params = new URLSearchParams(window.location.search);
-        const docId = params.get('doc_id');
-        const contentType = params.get('content_type');
-        
-        if (docId) {
-            document.getElementById('docIdFilter').value = docId;
-            currentFilters.doc_id = docId;
-        }
-        if (contentType) {
-            document.getElementById('contentTypeFilter').value = contentType;
-            currentFilters.content_type = contentType;
-        }
+  // 从 URL 参数获取筛选条件
+  function getFiltersFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const docId = params.get("doc_id");
+    const contentType = params.get("content_type");
+
+    if (docId) {
+      document.getElementById("docIdFilter").value = docId;
+      currentFilters.doc_id = docId;
     }
-
-    async function loadFilters() {
-        try {
-            const response = await fetch(`${API_BASE}/chunks/info`);
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                // 填充文档 ID 筛选器
-                const docIdSelect = document.getElementById('docIdFilter');
-                docIdSelect.innerHTML = '<option value="">全部</option>';
-                data.doc_ids.forEach(docId => {
-                    const option = document.createElement('option');
-                    option.value = docId;
-                    option.textContent = docId;
-                    docIdSelect.appendChild(option);
-                });
-                
-                // 填充内容类型筛选器
-                const contentTypeSelect = document.getElementById('contentTypeFilter');
-                contentTypeSelect.innerHTML = '<option value="">全部</option>';
-                Object.keys(data.content_types).forEach(contentType => {
-                    const option = document.createElement('option');
-                    option.value = contentType;
-                    option.textContent = `${contentType} (${data.content_types[contentType]})`;
-                    contentTypeSelect.appendChild(option);
-                });
-
-                // 从 URL 恢复筛选条件
-                getFiltersFromURL();
-            }
-        } catch (error) {
-            console.error('加载筛选器失败:', error);
-        }
+    if (contentType) {
+      document.getElementById("contentTypeFilter").value = contentType;
+      currentFilters.content_type = contentType;
     }
+  }
 
-    function applyFilters() {
-        const docId = document.getElementById('docIdFilter').value;
-        const contentType = document.getElementById('contentTypeFilter').value;
-        
-        currentFilters = {};
-        if (docId) currentFilters.doc_id = docId;
-        if (contentType) currentFilters.content_type = contentType;
-        
-        // 更新 URL
-        const params = new URLSearchParams();
-        if (docId) params.set('doc_id', docId);
-        if (contentType) params.set('content_type', contentType);
-        const newURL = params.toString() ? `/chunks?${params.toString()}` : '/chunks';
-        window.history.pushState({}, '', newURL);
-        
-        currentPage = 0;
-        loadChunks();
-    }
+  async function loadFilters() {
+    try {
+      const response = await fetch(`${API_BASE}/chunks/info`);
+      const data = await response.json();
 
-    async function loadChunks() {
-        showLoading();
-        
-        try {
-            const params = new URLSearchParams({
-                limit: pageSize.toString(),
-                offset: (currentPage * pageSize).toString(),
-                ...currentFilters
-            });
-            
-            const response = await fetch(`${API_BASE}/chunks?${params}`);
-            const data = await response.json();
-            
-            if (response.ok) {
-                displayChunks(data);
-            } else {
-                showError(data.detail || '加载失败');
-            }
-        } catch (error) {
-            showError(`加载失败: ${error.message}`);
-        }
-    }
-
-    function showLoading() {
-        document.getElementById('loadingState').classList.remove('hidden');
-        document.getElementById('errorState').classList.add('hidden');
-        document.getElementById('chunksContainer').classList.add('hidden');
-    }
-
-    function showError(message) {
-        document.getElementById('loadingState').classList.add('hidden');
-        document.getElementById('errorState').classList.remove('hidden');
-        document.getElementById('chunksContainer').classList.add('hidden');
-        document.getElementById('errorMessage').textContent = message;
-    }
-
-    function displayChunks(data) {
-        document.getElementById('loadingState').classList.add('hidden');
-        document.getElementById('errorState').classList.add('hidden');
-        document.getElementById('chunksContainer').classList.remove('hidden');
-        
-        const chunksList = document.getElementById('chunksList');
-        chunksList.innerHTML = '';
-        
-        if (data.chunks.length === 0) {
-            chunksList.innerHTML = '<div class="text-center py-12 text-muted-foreground">暂无数据</div>';
-            return;
-        }
-        
-        // 显示分页信息
-        const total = data.total || data.chunks.length;
-        const start = currentPage * pageSize + 1;
-        const end = Math.min(start + data.chunks.length - 1, total);
-        document.getElementById('paginationInfo').textContent = 
-            `显示 ${start}-${end} / 共 ${total} 条`;
-        
-        // 更新分页按钮
-        document.getElementById('prevBtn').disabled = currentPage === 0;
-        document.getElementById('nextBtn').disabled = data.chunks.length < pageSize;
-        
-        // 渲染 chunks
-        data.chunks.forEach(chunk => {
-            const chunkCard = createChunkCard(chunk);
-            chunksList.appendChild(chunkCard);
+      if (data.status === "success") {
+        // 填充文档 ID 筛选器
+        const docIdSelect = document.getElementById("docIdFilter");
+        docIdSelect.innerHTML = '<option value="">全部</option>';
+        data.doc_ids.forEach((docId) => {
+          const option = document.createElement("option");
+          option.value = docId;
+          option.textContent = docId;
+          docIdSelect.appendChild(option);
         });
+
+        // 填充内容类型筛选器
+        const contentTypeSelect = document.getElementById("contentTypeFilter");
+        contentTypeSelect.innerHTML = '<option value="">全部</option>';
+        Object.keys(data.content_types).forEach((contentType) => {
+          const option = document.createElement("option");
+          option.value = contentType;
+          option.textContent = `${contentType} (${data.content_types[contentType]})`;
+          contentTypeSelect.appendChild(option);
+        });
+
+        // 从 URL 恢复筛选条件
+        getFiltersFromURL();
+      }
+    } catch (error) {
+      console.error("加载筛选器失败:", error);
+    }
+  }
+
+  function applyFilters() {
+    const docId = document.getElementById("docIdFilter").value;
+    const contentType = document.getElementById("contentTypeFilter").value;
+
+    currentFilters = {};
+    if (docId) currentFilters.doc_id = docId;
+    if (contentType) currentFilters.content_type = contentType;
+
+    // 更新 URL
+    const params = new URLSearchParams();
+    if (docId) params.set("doc_id", docId);
+    if (contentType) params.set("content_type", contentType);
+    const newURL = params.toString()
+      ? `/chunks?${params.toString()}`
+      : "/chunks";
+    window.history.pushState({}, "", newURL);
+
+    currentPage = 0;
+    loadChunks();
+  }
+
+  async function loadChunks() {
+    showLoading();
+
+    try {
+      const params = new URLSearchParams({
+        limit: pageSize.toString(),
+        offset: (currentPage * pageSize).toString(),
+        ...currentFilters,
+      });
+
+      const response = await fetch(`${API_BASE}/chunks?${params}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        displayChunks(data);
+      } else {
+        showError(data.detail || "加载失败");
+      }
+    } catch (error) {
+      showError(`加载失败: ${error.message}`);
+    }
+  }
+
+  function showLoading() {
+    document.getElementById("loadingState").classList.remove("hidden");
+    document.getElementById("errorState").classList.add("hidden");
+    document.getElementById("chunksContainer").classList.add("hidden");
+  }
+
+  function showError(message) {
+    document.getElementById("loadingState").classList.add("hidden");
+    document.getElementById("errorState").classList.remove("hidden");
+    document.getElementById("chunksContainer").classList.add("hidden");
+    document.getElementById("errorMessage").textContent = message;
+  }
+
+  function displayChunks(data) {
+    document.getElementById("loadingState").classList.add("hidden");
+    document.getElementById("errorState").classList.add("hidden");
+    document.getElementById("chunksContainer").classList.remove("hidden");
+
+    const chunksList = document.getElementById("chunksList");
+    chunksList.innerHTML = "";
+
+    if (data.chunks.length === 0) {
+      chunksList.innerHTML =
+        '<div class="text-center py-12 text-muted-foreground">暂无数据</div>';
+      return;
     }
 
-    function createChunkCard(chunk) {
-        const card = document.createElement('div');
-        card.className = 'border border-border rounded-lg bg-card p-4 hover:shadow-md transition-shadow';
-        
-        const metadata = chunk.metadata || {};
-        const docId = metadata.doc_id || '未知';
-        const contentType = metadata.content_type || '未知';
-        const sectionPath = metadata.section_path || [];
-        const docTitle = metadata.doc_title || docId;
-        
-        card.innerHTML = `
+    // 显示分页信息
+    const total = data.total || data.chunks.length;
+    const start = currentPage * pageSize + 1;
+    const end = Math.min(start + data.chunks.length - 1, total);
+    document.getElementById(
+      "paginationInfo"
+    ).textContent = `显示 ${start}-${end} / 共 ${total} 条`;
+
+    // 更新分页按钮
+    document.getElementById("prevBtn").disabled = currentPage === 0;
+    document.getElementById("nextBtn").disabled = data.chunks.length < pageSize;
+
+    // 渲染 chunks
+    data.chunks.forEach((chunk) => {
+      const chunkCard = createChunkCard(chunk);
+      chunksList.appendChild(chunkCard);
+    });
+  }
+
+  function createChunkCard(chunk) {
+    const card = document.createElement("div");
+    card.className =
+      "border border-border rounded-lg bg-card p-4 hover:shadow-md transition-shadow";
+
+    const metadata = chunk.metadata || {};
+    const docId = metadata.doc_id || "未知";
+    const contentType = metadata.content_type || "未知";
+    const sectionPath = metadata.section_path || [];
+    const docTitle = metadata.doc_title || docId;
+
+    card.innerHTML = `
             <div class="flex items-start justify-between mb-3">
                 <div class="flex-1">
                     <div class="flex items-center gap-2 mb-1">
@@ -231,106 +256,116 @@
                         <span class="text-sm text-muted-foreground">${docId}</span>
                     </div>
                     <h3 class="font-semibold text-sm">${docTitle}</h3>
-                    ${sectionPath.length > 0 ? `
+                    ${
+                      sectionPath.length > 0
+                        ? `
                         <div class="text-xs text-muted-foreground mt-1">
-                            路径: ${sectionPath.join(' > ')}
+                            路径: ${sectionPath.join(" > ")}
                         </div>
-                    ` : ''}
+                    `
+                        : ""
+                    }
                 </div>
-                <button class="copy-btn px-2 py-1 text-xs border border-input rounded hover:bg-accent" data-id="${chunk.id}">
+                <button class="copy-btn px-2 py-1 text-xs border border-input rounded hover:bg-accent" data-id="${
+                  chunk.id
+                }">
                     复制 ID
                 </button>
             </div>
             <div class="mt-3 p-3 bg-muted rounded-md">
-                <p class="text-sm whitespace-pre-wrap break-words">${escapeHtml(chunk.content.substring(0, 500))}${chunk.content.length > 500 ? '...' : ''}</p>
+                <p class="text-sm whitespace-pre-wrap break-words">${escapeHtml(
+                  chunk.content.substring(0, 500)
+                )}${chunk.content.length > 500 ? "..." : ""}</p>
             </div>
             <details class="mt-3">
                 <summary class="text-xs text-muted-foreground cursor-pointer hover:text-foreground">查看元数据</summary>
-                <pre class="mt-2 p-2 bg-muted rounded text-xs overflow-auto">${JSON.stringify(metadata, null, 2)}</pre>
+                <pre class="mt-2 p-2 bg-muted rounded text-xs overflow-auto">${JSON.stringify(
+                  metadata,
+                  null,
+                  2
+                )}</pre>
             </details>
         `;
-        
-        // 添加复制功能
-        const copyBtn = card.querySelector('.copy-btn');
-        copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(chunk.id);
-            const originalText = copyBtn.textContent;
-            copyBtn.textContent = '已复制!';
-            setTimeout(() => {
-                copyBtn.textContent = originalText;
-            }, 2000);
-        });
-        
-        return card;
-    }
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function refreshPage() {
-        loadChunks();
-    }
-
-    async function clearAll() {
-        if (!confirm('确定要清空所有文档和 chunks 吗？此操作不可恢复！')) {
-            return;
-        }
-
-        if (!confirm('再次确认：这将删除所有数据，请确保您真的想要清空所有内容！')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_BASE}/clear`, {
-                method: 'DELETE',
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                alert(data.message || '清空成功');
-                window.location.href = '/documents'; // 跳转到文档列表页面
-            } else {
-                alert(`清空失败: ${data.detail || '未知错误'}`);
-            }
-        } catch (error) {
-            alert(`清空失败: ${error.message}`);
-        }
-    }
-
-    // 页面加载时初始化
-    document.addEventListener('DOMContentLoaded', () => {
-        loadFilters();
-        loadChunks();
-        
-        document.getElementById('filterBtn').addEventListener('click', applyFilters);
-        
-        document.getElementById('clearFilterBtn').addEventListener('click', () => {
-            document.getElementById('docIdFilter').value = '';
-            document.getElementById('contentTypeFilter').value = '';
-            currentPage = 0;
-            currentFilters = {};
-            window.history.pushState({}, '', '/chunks');
-            loadChunks();
-        });
-        
-        document.getElementById('prevBtn').addEventListener('click', () => {
-            if (currentPage > 0) {
-                currentPage--;
-                loadChunks();
-            }
-        });
-        
-        document.getElementById('nextBtn').addEventListener('click', () => {
-            currentPage++;
-            loadChunks();
-        });
-
-        // 清空所有按钮
-        document.getElementById('clearAllBtn').addEventListener('click', clearAll);
+    // 添加复制功能
+    const copyBtn = card.querySelector(".copy-btn");
+    copyBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(chunk.id);
+      const originalText = copyBtn.textContent;
+      copyBtn.textContent = "已复制!";
+      setTimeout(() => {
+        copyBtn.textContent = originalText;
+      }, 2000);
     });
+
+    return card;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function refreshPage() {
+    loadChunks();
+  }
+
+  async function clearAll() {
+    try {
+      const response = await fetch(`${API_BASE}/clear`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message || "清空成功");
+        window.location.href = "/documents"; // 跳转到文档列表页面
+      } else {
+        alert(`清空失败: ${data.detail || "未知错误"}`);
+      }
+    } catch (error) {
+      alert(`清空失败: ${error.message}`);
+    }
+  }
+
+  // 页面加载时初始化
+  document.addEventListener("DOMContentLoaded", () => {
+    loadFilters()
+      .then(() => {
+        loadChunks();
+      })
+      .catch((error) => {
+        console.error("加载筛选器失败:", error);
+      });
+
+    document
+      .getElementById("filterBtn")
+      .addEventListener("click", applyFilters);
+
+    document.getElementById("clearFilterBtn").addEventListener("click", () => {
+      document.getElementById("docIdFilter").value = "";
+      document.getElementById("contentTypeFilter").value = "";
+      currentPage = 0;
+      currentFilters = {};
+      window.history.pushState({}, "", "/chunks");
+      loadChunks();
+    });
+
+    document.getElementById("prevBtn").addEventListener("click", () => {
+      if (currentPage > 0) {
+        currentPage--;
+        loadChunks();
+      }
+    });
+
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      currentPage++;
+      loadChunks();
+    });
+
+    // 清空所有按钮
+    document.getElementById("clearAllBtn").addEventListener("click", clearAll);
+  });
 </script>
 {% endblock %}
-

@@ -115,6 +115,11 @@
                     <a href="/chunks?doc_id=${encodeURIComponent(doc.doc_id)}" class="px-3 py-1 text-sm border border-input rounded-md hover:bg-accent transition-colors">
                         查看 Chunks
                     </a>
+                    ${doc.has_markdown_cache ? `
+                    <a href="/documents/${encodeURIComponent(doc.doc_id)}/edit" class="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                        编辑 Markdown
+                    </a>
+                    ` : ''}
                     <button class="delete-doc-btn px-3 py-1 text-sm bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors" data-doc-id="${doc.doc_id}" data-doc-title="${escapeHtml(doc.doc_title)}">
                         删除
                     </button>

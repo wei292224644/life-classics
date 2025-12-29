@@ -1,3 +1,4 @@
+import time
 from typing import List
 from pathlib import Path
 from app.core.document_chunk import ContentType, DocumentChunk
@@ -35,6 +36,15 @@ def import_file_step(
     """
     file_ext = Path(file_path).suffix.lower()
 
+    print("=" * 20)
+    start_time = time.time()
+    print("start import file step:")
+    print(f"file_path: {file_path}")
+    print(f"original_filename: {original_filename}")
+    print(f"strategy: {strategy}")
+    print(f"kwargs: {kwargs}")
+    print("=" * 20)
+
     # 如果没有提供原始文件名，使用文件路径中的文件名
     if original_filename is None:
         original_filename = Path(file_path).name
@@ -68,6 +78,13 @@ def import_file_step(
 
     # vector store
     vector_store_manager.add_chunks(documents)
+
+    end_time = time.time()
+    print("=" * 20)
+    print("end import file step:")
+    print(f"documents: {len(documents)}")
+    print(f"time: {end_time - start_time} seconds")
+    print("=" * 20)
     return documents
 
 
@@ -77,6 +94,6 @@ def import_pdf_step(file_path: str, strategy: str, **kwargs) -> List[DocumentChu
 
 
 if __name__ == "__main__":
-    documents = import_markdown("markdown_cache/20120518_2.md")
+    documents = import_markdown("markdown_cache/GB5009.263-2016.md")
     documents = split_step(documents, "structured")
     vector_store_manager.add_chunks(documents)

@@ -152,7 +152,12 @@ class StructuredMarkdownParser:
     def _update_section_path(self, level: int, title: str):
         """更新 section_path"""
         target_length = level - 1
-        while len(self.current_section_path) >= target_length:
+        # 只有当 target_length >= 0 且列表长度大于 target_length 时才 pop
+        # 避免在空列表上 pop 或 level=1 时的无限循环
+        while (
+            len(self.current_section_path) > target_length
+            and len(self.current_section_path) > 0
+        ):
             self.current_section_path.pop()
         self.current_section_path.append(title)
 
@@ -266,15 +271,13 @@ class StructuredMarkdownParser:
             return self._parse_table(content, title=table_title)
         elif content_type == "calculation_formula":
             return self._parse_formula(content)
-        elif content_type in ["reagent", "instrument"]:
+        # elif content_type in ["reagent", "instrument"]:
+        else:
             # 对于 reagent 和 instrument，尝试解析为数组
             parsed_list = self._parse_simple_list(content)
             if parsed_list is not None:
                 return parsed_list
             # 如果不是简单列表，返回原始字符串
-            return content.strip()
-        else:
-            # 其他类型直接返回字符串
             return content.strip()
 
     def _parse_metadata(self, content: str) -> Dict[str, str]:
@@ -337,7 +340,7 @@ class StructuredMarkdownParser:
         """解析计算公式"""
         lines = content.split("\n")
         formula_lines = []
-        variables = {}
+        variables: List[str] = []
 
         in_variables = False
         for line in lines:
@@ -356,17 +359,12 @@ class StructuredMarkdownParser:
                 # 提取变量定义
                 var_line = line.replace("[__calculation_formula_note__]", "").strip()
                 if var_line:
-                    self._parse_variable_line(var_line, variables)
+                    variables.append(var_line)
                 continue
 
-            # 如果已经进入变量定义部分，且行中包含冒号，认为是变量定义
+            # 如果已经进入变量定义部分，直接将行添加到 variables 列表
             if in_variables:
-                if "：" in line or ":" in line:
-                    self._parse_variable_line(line, variables)
-                else:
-                    # 如果变量定义部分结束（没有冒号），停止解析变量
-                    # 但这里我们继续，因为可能有多行变量定义
-                    pass
+                variables.append(line)
             else:
                 # 公式本体
                 formula_lines.append(original_line.rstrip())
@@ -377,21 +375,6 @@ class StructuredMarkdownParser:
             "expression": expression,
             "variables": variables,
         }
-
-    def _parse_variable_line(self, line: str, variables: Dict[str, str]):
-        """解析变量定义行"""
-        # 支持 "符号: 含义（单位）" 或 "符号：含义（单位）" 格式
-        if "：" in line:
-            parts = line.split("：", 1)
-        elif ":" in line:
-            parts = line.split(":", 1)
-        else:
-            return
-
-        if len(parts) == 2:
-            symbol = parts[0].strip()
-            meaning = parts[1].strip()
-            variables[symbol] = meaning
 
     def _parse_simple_list(
         self, content: str, max_item_length: int = 200

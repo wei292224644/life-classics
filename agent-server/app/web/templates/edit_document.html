@@ -1,0 +1,248 @@
+{% extends "layout.html" %}
+
+{% block title %}编辑文档 - 知识库查看器{% endblock %}
+
+{% block content %}
+    <div class="max-w-6xl mx-auto">
+        <div class="mb-6 flex items-center justify-between">
+            <h2 class="text-2xl font-bold">编辑文档 Markdown</h2>
+            <div class="flex gap-2">
+                <button id="saveBtn" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                    保存并重新处理
+                </button>
+                <a href="/documents" class="px-4 py-2 border border-input rounded-md hover:bg-accent transition-colors">
+                    返回
+                </a>
+            </div>
+        </div>
+
+        <div class="mb-4 p-4 bg-muted rounded-lg">
+            <div class="text-sm">
+                <p class="font-medium mb-1">文档 ID: <code class="px-1 py-0.5 bg-background rounded">{{ doc_id }}</code></p>
+                <p class="text-muted-foreground">
+                    修改 Markdown 内容后，点击"保存并重新处理"将删除当前文档的所有 chunks 并重新生成。
+                </p>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p class="mt-4 text-muted-foreground">加载中...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden text-center py-12">
+            <div class="inline-block p-4 bg-destructive/10 text-destructive rounded-md">
+                <p id="errorMessage"></p>
+            </div>
+        </div>
+
+        <!-- Editor -->
+        <div id="editorContainer" class="hidden">
+            <div class="border border-border rounded-lg bg-card overflow-hidden">
+                <textarea id="markdownEditor"></textarea>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div id="progressContainer" class="hidden mt-4">
+            <div class="bg-muted rounded-lg p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span id="progressText" class="text-sm font-medium">处理中...</span>
+                    <span id="progressPercent" class="text-sm text-muted-foreground">0%</span>
+                </div>
+                <div class="w-full bg-background rounded-full h-2">
+                    <div id="progressBar" class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_head %}
+<!-- EasyMDE Markdown Editor -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<style>
+    /* 自定义 EasyMDE 样式以匹配主题 */
+    .EasyMDEContainer .CodeMirror {
+        background-color: hsl(var(--card));
+        color: hsl(var(--foreground));
+        border: none;
+        min-height: 600px;
+    }
+    .EasyMDEContainer .CodeMirror-cursor {
+        border-color: hsl(var(--foreground));
+    }
+    .EasyMDEContainer .editor-toolbar {
+        background-color: hsl(var(--muted));
+        border-bottom: 1px solid hsl(var(--border));
+    }
+    .EasyMDEContainer .editor-toolbar button {
+        color: hsl(var(--foreground));
+    }
+    .EasyMDEContainer .editor-toolbar button:hover,
+    .EasyMDEContainer .editor-toolbar button.active {
+        background-color: hsl(var(--accent));
+        color: hsl(var(--accent-foreground));
+    }
+    .EasyMDEContainer .editor-preview {
+        background-color: hsl(var(--card));
+        color: hsl(var(--foreground));
+    }
+    .EasyMDEContainer .editor-preview-side {
+        border-left: 1px solid hsl(var(--border));
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const docId = "{{ doc_id }}";
+    // API_BASE 已在 layout.html 中声明
+    let easyMDE = null;
+
+    async function loadMarkdown() {
+        showLoading();
+        
+        try {
+            const response = await fetch(`${API_BASE}/documents/${encodeURIComponent(docId)}/markdown`);
+            const data = await response.json();
+            
+            if (response.ok) {
+                // 初始化 EasyMDE 编辑器
+                if (!easyMDE) {
+                    easyMDE = new EasyMDE({
+                        element: document.getElementById('markdownEditor'),
+                        initialValue: data.content,
+                        spellChecker: false,
+                        autosave: {
+                            enabled: false,
+                        },
+                        toolbar: [
+                            'bold', 'italic', 'strikethrough', '|',
+                            'heading-1', 'heading-2', 'heading-3', '|',
+                            'quote', 'unordered-list', 'ordered-list', '|',
+                            'link', 'image', 'table', '|',
+                            'code', 'horizontal-rule', '|',
+                            'preview', 'side-by-side', 'fullscreen', '|',
+                            'guide'
+                        ],
+                        placeholder: '输入 Markdown 内容...',
+                        status: ['lines', 'words', 'cursor'],
+                        minHeight: '600px',
+                    });
+                } else {
+                    easyMDE.value(data.content);
+                }
+                
+                document.getElementById('editorContainer').classList.remove('hidden');
+                document.getElementById('loadingState').classList.add('hidden');
+            } else {
+                showError(data.detail || '加载失败');
+            }
+        } catch (error) {
+            showError(`加载失败: ${error.message}`);
+        }
+    }
+
+    function showLoading() {
+        document.getElementById('loadingState').classList.remove('hidden');
+        document.getElementById('errorState').classList.add('hidden');
+        document.getElementById('editorContainer').classList.add('hidden');
+    }
+
+    function showError(message) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('errorState').classList.remove('hidden');
+        document.getElementById('editorContainer').classList.add('hidden');
+        document.getElementById('errorMessage').textContent = message;
+    }
+
+    async function saveAndReprocess() {
+        const content = easyMDE ? easyMDE.value() : '';
+        
+        if (!content.trim()) {
+            alert('内容不能为空');
+            return;
+        }
+
+
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = '处理中...';
+        
+        document.getElementById('progressContainer').classList.remove('hidden');
+        updateProgress(10, '正在保存 Markdown...');
+
+        try {
+            // 1. 保存 Markdown
+            const saveResponse = await fetch(`${API_BASE}/documents/${encodeURIComponent(docId)}/markdown`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    content: content,
+                }),
+            });
+
+            if (!saveResponse.ok) {
+                const errorData = await saveResponse.json();
+                throw new Error(errorData.detail || '保存失败');
+            }
+
+            updateProgress(30, '正在删除现有 chunks...');
+
+            // 2. 重新处理
+            const reprocessResponse = await fetch(`${API_BASE}/documents/${encodeURIComponent(docId)}/reprocess`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    strategy: 'structured',
+                }),
+            });
+
+            updateProgress(70, '正在重新生成 chunks...');
+
+            const reprocessData = await reprocessResponse.json();
+
+            if (reprocessResponse.ok) {
+                updateProgress(100, '处理完成！');
+                
+                setTimeout(() => {
+                    window.location.href = '/documents';
+                }, 1000);
+            } else {
+                throw new Error(reprocessData.detail || '重新处理失败');
+            }
+        } catch (error) {
+            alert(`操作失败: ${error.message}`);
+            document.getElementById('progressContainer').classList.add('hidden');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '保存并重新处理';
+        }
+    }
+
+    function updateProgress(percent, text) {
+        document.getElementById('progressBar').style.width = `${percent}%`;
+        document.getElementById('progressPercent').textContent = `${percent}%`;
+        document.getElementById('progressText').textContent = text;
+    }
+
+    // 页面加载时加载 Markdown
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMarkdown();
+
+        // 保存按钮
+        document.getElementById('saveBtn').addEventListener('click', saveAndReprocess);
+
+        // EasyMDE 已经内置了格式化功能，不需要额外的格式化按钮
+    });
+</script>
+{% endblock %}
+

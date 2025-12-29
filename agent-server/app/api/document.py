@@ -12,8 +12,9 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Form, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from app.core.kb import import_file_step
+from app.core.kb import import_file_step, split_step
 from app.core.kb.vector_store import vector_store_manager
+from app.core.kb.imports.import_markdown import import_markdown
 
 
 router = APIRouter()
@@ -183,11 +184,13 @@ async def get_chunks(
 
         # 获取文档（ids 是默认返回的，不需要在 include 中指定）
         include = ["documents", "metadatas"]
+        # 如果 where 为空，传递 None；否则传递 where 字典
+        where_clause = where if where else None
         results = vector_store_manager.vector_store._collection.get(
             include=include,
             limit=limit,
             offset=offset,
-            where=where if where else None,
+            where=where_clause,
         )
 
         ids = results.get("ids", []) or []
@@ -213,6 +216,11 @@ async def get_chunks(
                 else:
                     restored_metadata[key] = value
 
+            # 额外的客户端过滤：如果指定了 doc_id，确保 metadata 中的 doc_id 匹配
+            # 这是为了防止 ChromaDB 的 where 过滤在某些情况下不生效
+            if doc_id and restored_metadata.get("doc_id") != doc_id:
+                continue
+
             chunks.append(
                 ChunkResponse(
                     id=chunk_id,
@@ -227,9 +235,19 @@ async def get_chunks(
             try:
                 count_results = vector_store_manager.vector_store._collection.get(
                     include=[],
-                    where=where if where else None,
+                    where=where_clause,
                 )
-                total = len(count_results.get("ids", []))
+                # 如果指定了 doc_id，还需要在客户端再次过滤以确保准确性
+                if doc_id:
+                    filtered_ids = []
+                    filtered_metadatas = count_results.get("metadatas", []) or []
+                    filtered_ids_list = count_results.get("ids", []) or []
+                    for j, meta in enumerate(filtered_metadatas):
+                        if j < len(filtered_ids_list) and meta.get("doc_id") == doc_id:
+                            filtered_ids.append(filtered_ids_list[j])
+                    total = len(filtered_ids)
+                else:
+                    total = len(count_results.get("ids", []))
             except:
                 pass
 
@@ -286,6 +304,7 @@ class DocumentInfo(BaseModel):
     chunks_count: int
     content_types: Dict[str, int]
     source: Optional[str] = None
+    has_markdown_cache: Optional[bool] = False
 
 
 class DocumentsListResponse(BaseModel):
@@ -299,6 +318,8 @@ async def get_documents():
     """
     获取所有文档列表及其统计信息
     """
+    from pathlib import Path
+    
     try:
         # 获取所有文档的 metadata
         all_results = vector_store_manager.vector_store._collection.get(
@@ -322,12 +343,17 @@ async def get_documents():
             source_str = source.get("source") if isinstance(source, dict) else None
 
             if doc_id not in doc_stats:
+                # 检查是否有 markdown_cache
+                markdown_path = Path(f"./markdown_cache/{doc_id}.md")
+                has_markdown_cache = markdown_path.exists()
+                
                 doc_stats[doc_id] = {
                     "doc_id": doc_id,
                     "doc_title": doc_title,
                     "chunks_count": 0,
                     "content_types": {},
                     "source": source_str,
+                    "has_markdown_cache": has_markdown_cache,
                 }
 
             doc_stats[doc_id]["chunks_count"] += 1
@@ -343,6 +369,7 @@ async def get_documents():
                 chunks_count=info["chunks_count"],
                 content_types=info["content_types"],
                 source=info.get("source"),
+                has_markdown_cache=info.get("has_markdown_cache", False),
             )
             for info in doc_stats.values()
         ]
@@ -406,3 +433,139 @@ async def clear_all():
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"清空数据失败: {str(e)}")
+
+
+@router.get("/documents/{doc_id}/markdown/check")
+async def check_markdown_cache(doc_id: str):
+    """
+    检查文档是否有 markdown_cache
+    """
+    from pathlib import Path
+    
+    markdown_path = Path(f"./markdown_cache/{doc_id}.md")
+    exists = markdown_path.exists()
+    
+    return {
+        "status": "success",
+        "doc_id": doc_id,
+        "exists": exists,
+    }
+
+
+@router.get("/documents/{doc_id}/markdown")
+async def get_markdown_cache(doc_id: str):
+    """
+    获取文档的 markdown_cache 内容（如果存在）
+    """
+    from pathlib import Path
+    
+    markdown_path = Path(f"./markdown_cache/{doc_id}.md")
+    
+    if not markdown_path.exists():
+        raise HTTPException(
+            status_code=404, 
+            detail=f"文档 {doc_id} 的 markdown_cache 不存在"
+        )
+    
+    try:
+        with open(markdown_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        
+        return {
+            "status": "success",
+            "doc_id": doc_id,
+            "content": content,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"读取 markdown_cache 失败: {str(e)}"
+        )
+
+
+@router.put("/documents/{doc_id}/markdown")
+async def update_markdown_cache(doc_id: str, content: str = Form(...)):
+    """
+    更新文档的 markdown_cache 内容
+    """
+    from pathlib import Path
+    
+    markdown_path = Path(f"./markdown_cache/{doc_id}.md")
+    
+    # 确保目录存在
+    markdown_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        with open(markdown_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        
+        return {
+            "status": "success",
+            "message": f"markdown_cache 已更新",
+            "doc_id": doc_id,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"更新 markdown_cache 失败: {str(e)}"
+        )
+
+
+@router.post("/documents/{doc_id}/reprocess")
+async def reprocess_document(doc_id: str, strategy: str = Form("structured")):
+    """
+    重新处理文档：删除现有 chunks，从 markdown_cache 重新导入
+    
+    流程：
+    1. 删除该文档的所有 chunks
+    2. 从 markdown_cache 读取 md 文件
+    3. 重新执行后续流程（split + vector store）
+    """
+    from pathlib import Path
+    
+    # 检查 markdown_cache 是否存在
+    markdown_path = Path(f"./markdown_cache/{doc_id}.md")
+    if not markdown_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"文档 {doc_id} 的 markdown_cache 不存在，无法重新处理"
+        )
+    
+    try:
+        # 1. 删除该文档的所有 chunks
+        success = vector_store_manager.delete_by_doc_id(doc_id)
+        if not success:
+            raise HTTPException(
+                status_code=500,
+                detail="删除现有 chunks 失败"
+            )
+        
+        # 2. 从 markdown_cache 重新导入
+        documents = import_markdown(str(markdown_path), original_filename=f"{doc_id}.md")
+        
+        if not documents:
+            raise HTTPException(
+                status_code=500,
+                detail="从 markdown_cache 导入失败"
+            )
+        
+        # 3. 执行后续流程（split + vector store）
+        documents = split_step(documents, strategy)
+        vector_store_manager.add_chunks(documents)
+        
+        return {
+            "status": "success",
+            "message": f"文档 {doc_id} 已重新处理",
+            "doc_id": doc_id,
+            "chunks_count": len(documents),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
+        print(f"重新处理文档时出错: {error_detail}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"重新处理文档失败: {str(e)}"
+        )
