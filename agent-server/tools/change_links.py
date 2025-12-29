@@ -453,6 +453,167 @@ def process_agent_chinese(
     print(f"结果已保存到: {output_path}")
 
 
+def normalize_agent_name(agent_name: str) -> str:
+    """
+    标准化 Agent 名称，用于匹配（去除大小写、多余空格等）
+    
+    Args:
+        agent_name: 原始 Agent 名称
+        
+    Returns:
+        标准化后的名称
+    """
+    if not agent_name:
+        return ""
+    # 转换为小写
+    normalized = agent_name.lower()
+    # 去除首尾空格
+    normalized = normalized.strip()
+    # 将多个连续空格替换为单个空格
+    normalized = re.sub(r"\s+", " ", normalized)
+    return normalized
+
+
+def find_matching_agent(agent_name: str, agent_list: List[str]) -> str:
+    """
+    在 agent_list 中查找与 agent_name 匹配的项（考虑大小写和空格差异）
+    
+    Args:
+        agent_name: 要查找的 Agent 名称
+        agent_list: Agent 名称列表
+        
+    Returns:
+        匹配的 Agent 名称，如果未找到则返回 None
+    """
+    normalized_target = normalize_agent_name(agent_name)
+    if not normalized_target:
+        return None
+    
+    # 首先尝试精确匹配（标准化后）
+    for agent in agent_list:
+        if normalize_agent_name(agent) == normalized_target:
+            return agent
+    
+    # 如果精确匹配失败，尝试模糊匹配
+    # 计算相似度，选择最相似的匹配
+    best_match = None
+    best_similarity = 0.0
+    similarity_threshold = 0.85  # 相似度阈值
+    
+    for agent in agent_list:
+        normalized_agent = normalize_agent_name(agent)
+        if not normalized_agent:
+            continue
+        
+        # 计算相似度：使用简单的字符重叠比例
+        # 方法1: 如果一个是另一个的子串，且长度差异小，认为相似
+        if normalized_target == normalized_agent:
+            return agent  # 应该不会到这里，但保险起见
+        
+        # 方法2: 计算共同字符的比例
+        target_chars = set(normalized_target)
+        agent_chars = set(normalized_agent)
+        
+        if not target_chars or not agent_chars:
+            continue
+        
+        # 计算 Jaccard 相似度（交集/并集）
+        intersection = len(target_chars & agent_chars)
+        union = len(target_chars | agent_chars)
+        similarity = intersection / union if union > 0 else 0.0
+        
+        # 如果相似度足够高，且长度差异不大，认为是匹配
+        if similarity >= similarity_threshold:
+            length_diff_ratio = abs(len(normalized_target) - len(normalized_agent)) / max(len(normalized_target), len(normalized_agent))
+            if length_diff_ratio < 0.3:  # 长度差异不超过30%
+                if similarity > best_similarity:
+                    best_similarity = similarity
+                    best_match = agent
+    
+    return best_match
+
+
+def merge_links_and_cancer_sites(links_file: str, cancer_sites_file: str, output_file: str = None):
+    """
+    将 cancer_site.json 的数据合并到 link_chinese.json 中
+    
+    Args:
+        links_file: links_chinese.json 文件路径
+        cancer_sites_file: cancer_site.json 文件路径
+        output_file: 输出文件路径，如果为 None 则覆盖 links_file
+    """
+    with open(links_file, "r", encoding="utf-8") as f:
+        links_data = json.load(f)
+    with open(cancer_sites_file, "r", encoding="utf-8") as f:
+        cancer_sites_data = json.load(f)
+    
+    # 构建 Agent 到癌症部位的映射
+    # 格式: {agent_name: [{"cancer_site": "...", "evidence_type": "sufficient"/"limited"}, ...]}
+    agent_to_cancer_sites = {}
+    
+    for cancer_site_item in cancer_sites_data:
+        cancer_site = cancer_site_item.get("cancer_site", "")
+        
+        # 处理充分证据的 Agent
+        for agent in cancer_site_item.get("sufficient_evidence_agents", []):
+            if agent not in agent_to_cancer_sites:
+                agent_to_cancer_sites[agent] = []
+            agent_to_cancer_sites[agent].append({
+                "cancer_site": cancer_site,
+                "evidence_type": "sufficient"
+            })
+        
+        # 处理有限证据的 Agent
+        for agent in cancer_site_item.get("limited_evidence_agents", []):
+            if agent not in agent_to_cancer_sites:
+                agent_to_cancer_sites[agent] = []
+            agent_to_cancer_sites[agent].append({
+                "cancer_site": cancer_site,
+                "evidence_type": "limited"
+            })
+    
+    # 为 links_data 中的每个条目添加癌症部位信息
+    matched_count = 0
+    unmatched_agents = []
+    
+    for link_item in links_data:
+        agent_name = link_item.get("Agent", "")
+        if not agent_name:
+            link_item["Cancer_Sites"] = []
+            continue
+        
+        # 尝试在 agent_to_cancer_sites 中查找匹配的 Agent
+        matched_agent = find_matching_agent(agent_name, list(agent_to_cancer_sites.keys()))
+        
+        if matched_agent:
+            # 找到匹配，添加癌症部位信息
+            link_item["Cancer_Sites"] = agent_to_cancer_sites[matched_agent]
+            matched_count += 1
+        else:
+            # 未找到匹配
+            link_item["Cancer_Sites"] = []
+            unmatched_agents.append(agent_name)
+    
+    # 保存结果
+    output_path = output_file or links_file
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(links_data, f, ensure_ascii=False, indent=2)
+    
+    print(f"合并完成！")
+    print(f"总条目数: {len(links_data)}")
+    print(f"成功匹配: {matched_count} 条")
+    print(f"未匹配: {len(unmatched_agents)} 条")
+    if unmatched_agents:
+        print(f"\n未匹配的 Agent 示例（前10个）:")
+        for agent in unmatched_agents[:10]:
+            print(f"  - {agent}")
+    print(f"结果已保存到: {output_path}")
+  
+
+
 if __name__ == "__main__":
     # 处理 iarc.json 文件
-    process_agent_chinese("tools/iarc_links.json", "tools/iarc_links_chinese.json")
+    # process_agent_chinese("tools/iarc_links.json", "tools/iarc_links_chinese.json")
+    merge_links_and_cancer_sites(
+        "tools/iarc_links_chinese.json", "tools/iarc_cancer_site.json"
+    )
