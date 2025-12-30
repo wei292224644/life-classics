@@ -7,11 +7,9 @@ import {
   IngredientTable,
   IarcAgentLinkTable,
   IarcAgentsTable,
-  IarcCancerSiteTable,
   NutritionTable,
 } from "@acme/db/schema";
 import { seedIarcAgents } from "./iarc";
-import iarcCancerSiteData from "./iarc_cancer_site.json";
 
 interface SeedResult {
   table: string;
@@ -1494,207 +1492,37 @@ async function seedIngredientAiAnalysis(): Promise<SeedResult> {
   return { table: "analysis_details", inserted: rows.length };
 }
 
-interface IarcCancerSiteDataItem {
-  cancer_site: string;
-  sufficient_evidence_agents: string[];
-  limited_evidence_agents: string[];
-}
-
-// 标准化字符串用于匹配（去除多余空格、统一大小写）
-function normalizeString(str: string): string {
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, " "); // 将多个空格替换为单个空格
-}
-
-// 模糊匹配 agent 名称
-function findAgentId(
-  agentName: string,
-  agentMap: Map<string, number>,
-): number | null {
-  const normalized = normalizeString(agentName);
-
-  // 首先尝试精确匹配（标准化后）
-  for (const [dbAgentName, id] of agentMap.entries()) {
-    if (normalizeString(dbAgentName) === normalized) {
-      return id;
-    }
-  }
-
-  // 如果精确匹配失败，尝试包含匹配
-  for (const [dbAgentName, id] of agentMap.entries()) {
-    const normalizedDbName = normalizeString(dbAgentName);
-    if (
-      normalizedDbName.includes(normalized) ||
-      normalized.includes(normalizedDbName)
-    ) {
-      return id;
-    }
-  }
-
-  return null;
-}
-
-async function seedIarcCancerSites(): Promise<SeedResult> {
-  const data = iarcCancerSiteData as IarcCancerSiteDataItem[];
-
-  try {
-    // 从数据库查询所有 agents，建立名称到 ID 的映射
-    const allAgents = await db.select().from(IarcAgentsTable);
-    const agentNameToId = new Map<string, number>();
-    for (const agent of allAgents) {
-      if (agent.agent_name && agent.id) {
-        agentNameToId.set(agent.agent_name, agent.id);
-      }
-    }
-
-    console.log(`Found ${agentNameToId.size} agents in database`);
-
-    // 准备插入的数据
-    const cancerSiteRows: {
-      name: string;
-      zh_name: string | null;
-      description: string | null;
-      sufficient_evidence_agents: number[] | null;
-      limited_evidence_agents: number[] | null;
-      createdByUser: string;
-      updatedByUser: string;
-    }[] = [];
-
-    let matchedCount = 0;
-    const unmatchedAgents = new Set<string>();
-
-    for (const item of data) {
-      // 匹配 sufficient_evidence_agents
-      const sufficientAgentIds: number[] = [];
-      for (const agentName of item.sufficient_evidence_agents) {
-        const agentId = findAgentId(agentName, agentNameToId);
-        if (agentId) {
-          sufficientAgentIds.push(agentId);
-          matchedCount++;
-        } else {
-          unmatchedAgents.add(agentName);
-        }
-      }
-
-      // 匹配 limited_evidence_agents
-      const limitedAgentIds: number[] = [];
-      for (const agentName of item.limited_evidence_agents) {
-        const agentId = findAgentId(agentName, agentNameToId);
-        if (agentId) {
-          limitedAgentIds.push(agentId);
-          matchedCount++;
-        } else {
-          unmatchedAgents.add(agentName);
-        }
-      }
-
-      cancerSiteRows.push({
-        name: item.cancer_site,
-        zh_name: null, // 可以后续添加中文翻译
-        description: null,
-        sufficient_evidence_agents:
-          sufficientAgentIds.length > 0 ? sufficientAgentIds : null,
-        limited_evidence_agents:
-          limitedAgentIds.length > 0 ? limitedAgentIds : null,
-        createdByUser: SYSTEM_USER_ID,
-        updatedByUser: SYSTEM_USER_ID,
-      });
-    }
-
-    // 插入数据
-    await db.insert(IarcCancerSiteTable).values(cancerSiteRows);
-
-    if (unmatchedAgents.size > 0) {
-      console.warn(
-        `Warning: ${unmatchedAgents.size} agents could not be matched:`,
-      );
-      const unmatchedArray = Array.from(unmatchedAgents).slice(0, 10);
-      for (const agent of unmatchedArray) {
-        console.warn(`  - ${agent}`);
-      }
-      if (unmatchedAgents.size > 10) {
-        console.warn(`  ... and ${unmatchedAgents.size - 10} more`);
-      }
-    }
-
-    console.log(
-      `Matched ${matchedCount} agent relationships for ${cancerSiteRows.length} cancer sites`,
-    );
-
-    return {
-      table: "iarc_cancer_sites",
-      inserted: cancerSiteRows.length,
-    };
-  } catch (error: unknown) {
-    console.error("Error seeding IARC cancer sites:", error);
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error("Unknown error occurred while seeding IARC cancer sites");
-  }
-}
-
-// 安全删除表数据，如果表不存在则忽略错误
-async function safeDeleteTable(
-  tableName: string,
-  deleteFn: () => Promise<unknown>,
-): Promise<void> {
-  try {
-    await deleteFn();
-    console.log(`Cleared ${tableName} table`);
-  } catch (error: unknown) {
-    // 如果是表不存在的错误，忽略它
-    if (
-      error instanceof Error &&
-      (error.message.includes("does not exist") ||
-        error.message.includes("relation") ||
-        (error as { cause?: { code?: string } }).cause?.code === "42P01")
-    ) {
-      console.log(`Table ${tableName} does not exist, skipping...`);
-    } else {
-      // 其他错误则抛出
-      throw error;
-    }
-  }
-}
-
 async function clearAllData(): Promise<void> {
   console.log("Clearing all data from database...");
 
   try {
     // 按照外键依赖关系的逆序删除数据
     // 先删除有外键依赖的表
-    await safeDeleteTable("analysis_details", () =>
-      db.delete(AnalysisDetailTable),
-    );
+    await db.delete(AnalysisDetailTable);
+    console.log("Cleared analysis_details table");
 
-    await safeDeleteTable("food_ingredients", () =>
-      db.delete(FoodIngredientTable),
-    );
+    await db.delete(FoodIngredientTable);
+    console.log("Cleared food_ingredients table");
 
-    await safeDeleteTable("food_nutrition_table", () =>
-      db.delete(FoodNutritionTable),
-    );
+    await db.delete(FoodNutritionTable);
+    console.log("Cleared food_nutrition_table table");
 
     // 然后删除主表
-    await safeDeleteTable("foods", () => db.delete(FoodTable));
+    await db.delete(FoodTable);
+    console.log("Cleared foods table");
 
-    await safeDeleteTable("ingredients", () => db.delete(IngredientTable));
+    await db.delete(IngredientTable);
+    console.log("Cleared ingredients table");
 
-    await safeDeleteTable("nutrition_table", () => db.delete(NutritionTable));
+    await db.delete(NutritionTable);
+    console.log("Cleared nutrition_table table");
 
-    // 清除 IARC 相关表（按外键依赖顺序）
-    await safeDeleteTable("iarc_cancer_sites", () =>
-      db.delete(IarcCancerSiteTable),
-    );
+    // 清除 IARC 相关表
+    await db.delete(IarcAgentLinkTable);
+    console.log("Cleared iarc_agent_links table");
 
-    await safeDeleteTable("iarc_agent_links", () =>
-      db.delete(IarcAgentLinkTable),
-    );
-
-    await safeDeleteTable("iarc_agents", () => db.delete(IarcAgentsTable));
+    await db.delete(IarcAgentsTable);
+    console.log("Cleared iarc_agents table");
 
     console.log("All data cleared successfully!");
   } catch (error) {
@@ -1716,7 +1544,6 @@ async function main() {
   results.push(await seedFoodNutrition());
   results.push(await seedFoodAiAnalysis());
   results.push(await seedIarcAgents());
-  results.push(await seedIarcCancerSites());
 
   for (const r of results) {
     console.log(`Seeded ${r.inserted} rows into ${r.table}`);
