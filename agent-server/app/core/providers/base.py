@@ -95,3 +95,48 @@ class BaseEmbeddingProvider(ABC):
             配置是否有效
         """
         pass
+
+
+class BaseMultiModalConversationProvider(ABC):
+    """多模态对话提供者抽象基类"""
+
+    def __init__(self, config: dict):
+        """
+        初始化多模态对话提供者
+        
+        Args:
+            config: 提供者配置字典
+        """
+        self.config = config
+        self._instance: Optional[Any] = None
+
+    @abstractmethod
+    def create_instance(self) -> Any:
+        """
+        创建多模态对话实例
+        
+        Returns:
+            多模态对话实例（支持 invoke 方法）
+        """
+        pass
+
+    def get_instance(self) -> Any:
+        """
+        获取多模态对话实例（单例模式）
+        
+        Returns:
+            多模态对话实例
+        """
+        if self._instance is None:
+            self._instance = self.create_instance()
+        return self._instance
+
+    @abstractmethod
+    def validate_config(self) -> bool:
+        """
+        验证配置是否有效
+        
+        Returns:
+            配置是否有效
+        """
+        pass

@@ -82,7 +82,23 @@ class VectorStore:
         """
         # chunk.to_documents() 返回 List[Document]，需要展开为扁平列表
         documents = [doc for chunk in chunks for doc in chunk.to_documents()]
-        self.vector_store.add_documents(documents)
+        
+        # 过滤掉空文档（page_content 为空或只包含空白字符）
+        # 空文档会导致 embeddings 为空，从而在 upsert 时出错
+        filtered_documents = [
+            doc for doc in documents 
+            if doc.page_content and doc.page_content.strip()
+        ]
+        
+        if not filtered_documents:
+            print("警告: 没有有效的文档可以添加到向量存储（所有文档都为空）")
+            return False
+        
+        if len(filtered_documents) < len(documents):
+            skipped_count = len(documents) - len(filtered_documents)
+            print(f"警告: 跳过了 {skipped_count} 个空文档")
+        
+        self.vector_store.add_documents(filtered_documents)
         return True
 
     def search(self, query: str, top_k: int = 10, **kwargs) -> List[Document]:

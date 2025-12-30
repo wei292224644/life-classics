@@ -38,6 +38,31 @@ def get_llm(
     return ModelFactory.get_llm(provider_name, provider_config=provider_config)
 
 
+def get_multimodal(
+    provider_name: Optional[str] = None, provider_config: Optional[Dict] = None
+):
+    """
+    获取多模态对话实例（单例模式）
+    使用统一的模型提供者工厂，支持多模态对话（如图片理解）
+
+    Args:
+        provider_name: 可选的提供者名称，如果为 None 则使用 "dashscope"
+                      支持的提供者: "dashscope"
+        provider_config: 运行时配置覆盖，例如自定义模型名称、温度等
+
+    Returns:
+        多模态对话实例（支持 invoke 方法）
+
+    Examples:
+        # 使用默认配置的多模态提供者
+        multimodal = get_multimodal()
+
+        # 使用指定的提供者和配置
+        multimodal = get_multimodal("dashscope", {"model": "qwen3-vl-plus-2025-12-19"})
+    """
+    return ModelFactory.get_multimodal(provider_name, provider_config=provider_config)
+
+
 def chat(
     messages: List[BaseMessage],
     provider_name: Optional[str] = None,

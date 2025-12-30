@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     DASHSCOPE_API_KEY: str = "sk-03f3eb5bc4cf446bafa1c76e762f65ad"
     QWEN_MODEL: str = "qwen3-max-preview"
     QWEN_EMBEDDING_MODEL: str = "text-embedding-v2"  # Qwen嵌入模型
+    QWEN_VL_MODEL: str = "qwen3-vl-plus-2025-12-19"
 
     # Ollama配置
     OLLAMA_BASE_URL: str = "http://localhost:11434"  # Ollama服务地址

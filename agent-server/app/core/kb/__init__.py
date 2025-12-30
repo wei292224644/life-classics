@@ -5,7 +5,6 @@ from app.core.document_chunk import ContentType, DocumentChunk
 from app.core.kb.imports.import_pdf import import_pdf
 from app.core.kb.imports.import_markdown import import_markdown
 from app.core.kb.imports.import_text import import_text
-from app.core.kb.pre_parse.ocr_step import ocr_step
 from app.core.kb.pre_parse.convert_to_structured import convert_to_structured
 from app.core.kb.strategy.structured_strategy import split_structured
 from app.core.kb.strategy.text_strategy import split_text
@@ -67,9 +66,6 @@ def import_file_step(
 
     # pre-parse
     for i, document in enumerate(documents):
-        if document.meta.get("IMAGE_OCR_RESULT", False):
-            documents[i] = ocr_step(document)
-
         if strategy == "structured":
             documents[i] = convert_to_structured(document)
 
@@ -94,6 +90,4 @@ def import_pdf_step(file_path: str, strategy: str, **kwargs) -> List[DocumentChu
 
 
 if __name__ == "__main__":
-    documents = import_markdown("markdown_cache/GB5009.263-2016.md")
-    documents = split_step(documents, "structured")
-    vector_store_manager.add_chunks(documents)
+    documents = import_pdf_step("files/GB-31613.2-2021.pdf", "structured")

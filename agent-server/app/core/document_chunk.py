@@ -157,7 +157,7 @@ class DocumentChunk:
             )
 
             # 使用 LLM 将表格行转换为自然语言描述
-            human_prompt = f"""请将这份数据转换为自然语言描述，直接输出结果，不要过分解读和理解。内容为:{row_content_str}"""
+            human_prompt = f"""请将这份数据转换为自然语言描述，直接输出结果，不要返回结构化内容用自然语言描述，不要过分解读和理解。内容为:{row_content_str}"""
             page_content = chat(
                 messages=[HumanMessage(content=human_prompt)],
                 provider_name="ollama",
@@ -252,10 +252,6 @@ class DocumentChunk:
                 "reasoning": False,
             },
         )
-        print("=" * 20)
-        print("list content to string:")
-        print(page_content)
-        print("=" * 20)
         return page_content
 
     def metadata_to_documents(self, content: list, metadata: dict) -> List[Document]:

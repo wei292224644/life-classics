@@ -11,7 +11,9 @@ from app.core.providers.base import BaseLLMProvider, BaseEmbeddingProvider
 from app.core.providers.dashscope import (
     DashScopeLLMProvider,
     DashScopeEmbeddingProvider,
+    DashScopeMultiModalConversationProvider,
 )
+from app.core.providers.base import BaseMultiModalConversationProvider
 from app.core.providers.ollama import OllamaLLMProvider, OllamaEmbeddingProvider
 from app.core.providers.openrouter import (
     OpenRouterLLMProvider,
@@ -38,9 +40,15 @@ class ModelFactory:
         "openrouter": OpenRouterEmbeddingProvider,
     }
 
+    # 注册的多模态对话提供者
+    _multimodal_providers: Dict[str, type] = {
+        "dashscope": DashScopeMultiModalConversationProvider,
+    }
+
     # 缓存实例
     _llm_instances: Dict[str, Any] = {}
     _embedding_instances: Dict[str, Any] = {}
+    _multimodal_instances: Dict[str, Any] = {}
 
     @classmethod
     def register_llm_provider(cls, name: str, provider_class: type):
@@ -136,6 +144,31 @@ class ModelFactory:
             config = {
                 "api_key": settings.OPENROUTER_API_KEY,
                 "model": settings.OPENROUTER_EMBEDDING_MODEL,
+            }
+
+        return config
+
+    @classmethod
+    def get_multimodal_provider_config(cls, provider_name: str) -> Dict:
+        """
+        获取指定多模态提供者的配置
+
+        Args:
+            provider_name: 提供者名称
+
+        Returns:
+            配置字典
+        """
+        provider_name = provider_name.lower()
+        config = {}
+
+        if provider_name == "dashscope":
+            config = {
+                "api_key": settings.DASHSCOPE_API_KEY,
+                "model": settings.QWEN_VL_MODEL,
+                "temperature": 0.5,
+                "enable_thinking": False,
+                "top_p": 0.5,
             }
 
         return config
@@ -324,6 +357,7 @@ class ModelFactory:
         logger.info("清除所有缓存的模型实例")
         cls._llm_instances.clear()
         cls._embedding_instances.clear()
+        cls._multimodal_instances.clear()
 
     @classmethod
     def list_available_llm_providers(cls) -> List[str]:
@@ -344,6 +378,103 @@ class ModelFactory:
             提供者名称列表
         """
         return list(cls._embedding_providers.keys())
+
+    @classmethod
+    def create_multimodal_provider(
+        cls,
+        provider_name: Optional[str] = None,
+        provider_config: Optional[Dict] = None,
+    ) -> BaseMultiModalConversationProvider:
+        """
+        创建多模态对话提供者实例
+
+        Args:
+            provider_name: 提供者名称，如果为 None 则使用 "dashscope"
+            provider_config: 运行时配置覆盖
+
+        Returns:
+            多模态对话提供者实例
+
+        Raises:
+            ValueError: 如果提供者名称不支持
+            ImportError: 如果提供者依赖未安装
+        """
+        if provider_name is None:
+            provider_name = "dashscope"
+
+        provider_name = provider_name.lower()
+
+        if provider_name not in cls._multimodal_providers:
+            available = ", ".join(cls._multimodal_providers.keys())
+            raise ValueError(
+                f"不支持的多模态提供者: {provider_name}。"
+                f"支持的提供者: {available}"
+            )
+
+        try:
+            provider_class = cls._multimodal_providers[provider_name]
+            default_config = cls.get_multimodal_provider_config(provider_name)
+            merged_config = {**default_config, **(provider_config or {})}
+            provider = provider_class(merged_config)
+            logger.info(f"成功创建多模态提供者: {provider_name}")
+            return provider
+        except ImportError as e:
+            logger.error(f"创建多模态提供者失败 ({provider_name}): {e}")
+            raise
+        except Exception as e:
+            logger.error(f"创建多模态提供者时发生错误 ({provider_name}): {e}")
+            raise
+
+    @classmethod
+    def get_multimodal(
+        cls,
+        provider_name: Optional[str] = None,
+        provider_config: Optional[Dict] = None,
+    ) -> Any:
+        """
+        获取多模态对话实例（单例模式）
+
+        Args:
+            provider_name: 提供者名称，如果为 None 则使用 "dashscope"
+            provider_config: 运行时配置覆盖
+
+        Returns:
+            多模态对话实例（支持 invoke 方法）
+
+        Raises:
+            ValueError: 如果提供者名称不支持或配置无效
+            ImportError: 如果提供者依赖未安装
+        """
+        if provider_name is None:
+            provider_name = "dashscope"
+        else:
+            provider_name = provider_name.lower()
+
+        # 构建缓存键
+        import hashlib
+        import json
+
+        if provider_config:
+            config_str = json.dumps(provider_config, sort_keys=True)
+            config_hash = hashlib.md5(config_str.encode()).hexdigest()[:8]
+            cache_key = f"multimodal_{provider_name}_{config_hash}"
+        else:
+            cache_key = f"multimodal_{provider_name}"
+
+        # 检查缓存
+        if cache_key not in cls._multimodal_instances:
+            logger.info(
+                f"初始化多模态实例: {provider_name} (配置: {provider_config})"
+            )
+            provider = cls.create_multimodal_provider(
+                provider_name, provider_config=provider_config
+            )
+            cls._multimodal_instances[cache_key] = provider.get_instance()
+            logger.info(f"多模态实例已缓存: {cache_key}")
+        else:
+            logger.debug(f"使用缓存的多模态实例: {cache_key}")
+
+        return cls._multimodal_instances[cache_key]
 
     @classmethod
     def validate_provider_config(
