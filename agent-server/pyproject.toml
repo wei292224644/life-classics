@@ -33,6 +33,8 @@ dependencies = [
     "pdf2image>=1.17.0",
     "unstructured>=0.18.21",
     "langchain-unstructured>=1.0.1",
+    "pymupdf>=1.26.6",
+    "pymupdf-layout>=1.26.6",
 ]
 
 [build-system]
