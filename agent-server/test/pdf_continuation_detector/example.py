@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """
-使用示例：对 GB2760-2024.pdf 的前 20 页进行是否延续的分析
+根据给定的页数范围切分PDF内容，导出成txt文件
+
+示例：
+    page_ranges = [[1, 2], [3]]  # 将1-2页分成一个内容，3页分成一个内容
+    page_ranges = [[1, 2], [2, 3]]  # 将1-2页分成一个内容，2-3页分成一个内容（重叠情况，TODO处理）
 """
 
 import sys
 from pathlib import Path
+from typing import List, Tuple
 
 # 添加项目根目录到路径
 project_root = Path(__file__).parent.parent.parent
@@ -12,23 +17,20 @@ sys.path.insert(0, str(project_root))
 
 try:
     import pdfplumber
+
     PDFPLUMBER_AVAILABLE = True
 except ImportError:
     PDFPLUMBER_AVAILABLE = False
     print("警告: pdfplumber 未安装，请安装: pip install pdfplumber")
 
-from core.detector import detect_page_continuation
-from core.models import PageContext
-from core.config import CONTINUATION_THRESHOLD
-
 
 def clean_header_footer(text: str) -> str:
     """
     清理页眉页脚：删除页眉中的"GB"和页脚的页数
-    
+
     Args:
         text: 原始文本
-        
+
     Returns:
         清理后的文本
     """
@@ -51,148 +53,177 @@ def clean_header_footer(text: str) -> str:
     return "\n".join(cleaned_lines)
 
 
-def analyze_pdf_continuation(pdf_path: str, max_pages: int = 20):
+def extract_pages_text(
+    pdf_path: str, page_ranges: List[List[int]], output_dir: str = None
+) -> List[Tuple[str, str]]:
     """
-    分析 PDF 前 N 页，判断每一页是否是上一页的延续
-    
+    根据给定的页数范围切分PDF内容，导出成txt文件
+
     Args:
-        pdf_path: PDF 文件路径
-        max_pages: 要处理的最大页数
+        pdf_path: PDF文件路径
+        page_ranges: 页数范围列表，如 [[1,2], [3]] 或 [[1,2], [2,3]]
+        output_dir: 输出目录，如果为None则使用PDF同目录下的chunks子目录
+
+    Returns:
+        列表，每个元素为 (输出文件路径, 内容)
     """
     if not PDFPLUMBER_AVAILABLE:
-        print("错误: pdfplumber 未安装，无法读取 PDF 文件")
-        print("请安装: pip install pdfplumber")
-        return
-    
+        raise ImportError("pdfplumber 未安装，请安装: pip install pdfplumber")
+
     pdf_file = Path(pdf_path)
     if not pdf_file.exists():
-        print(f"错误: PDF 文件不存在: {pdf_path}")
-        return
-    
+        raise FileNotFoundError(f"PDF文件不存在: {pdf_path}")
+
+    # 检查是否有重叠的页数范围
+    all_pages = set()
+    overlapping_ranges = []
+    for i, page_range in enumerate(page_ranges):
+        if len(page_range) == 1:
+            page_set = {page_range[0]}
+        else:
+            start, end = page_range[0], page_range[1]
+            page_set = set(range(start, end + 1))
+
+        # 检查是否与之前的范围重叠
+        if all_pages & page_set:
+            overlapping_ranges.append((i, page_range, all_pages & page_set))
+
+        all_pages.update(page_set)
+
+    # TODO: 处理重叠的页数范围
+    # 如果 page_ranges 中有重叠（如 [[1,2], [2,3]]），说明某些页既属于第一块，也属于第二块
+    # 需要决定如何处理：是复制内容到两个文件，还是只保留在一个文件中
+    # 当前实现：如果范围重叠，会在两个文件中都包含重叠的页面内容
+    if overlapping_ranges:
+        print("⚠️  警告: 检测到重叠的页数范围:")
+        for idx, page_range, overlapping_pages in overlapping_ranges:
+            print(
+                f"  范围 {idx+1}: {page_range} 与之前的范围重叠，重叠页数: {sorted(overlapping_pages)}"
+            )
+        print("  TODO: 后续需要处理重叠页面的分割逻辑")
+        print()
+
+    # 确定输出目录
+    if output_dir is None:
+        output_dir = pdf_file.parent / "chunks"
+    else:
+        output_dir = Path(output_dir)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     print("=" * 80)
-    print(f"PDF 跨页延续判定分析")
+    print(f"PDF 内容切分")
     print(f"文件: {pdf_path}")
-    print(f"处理页数: 前 {max_pages} 页")
-    print(f"判定阈值: {CONTINUATION_THRESHOLD}")
+    print(f"页数范围: {page_ranges}")
+    print(f"输出目录: {output_dir}")
     print("=" * 80)
     print()
-    
-    # 存储每一页的文本和行
-    page_data = []  # [(page_num, text, lines), ...]
-    
+
+    results = []
+
     try:
         with pdfplumber.open(str(pdf_file)) as pdf:
             total_pages = len(pdf.pages)
-            pages_to_process = min(max_pages, total_pages)
-            
-            print(f"PDF 总页数: {total_pages}")
-            print(f"将处理前 {pages_to_process} 页\n")
-            
-            # 提取每一页的文本
-            for page_num in range(1, pages_to_process + 1):
-                try:
-                    page = pdf.pages[page_num - 1]
-                    text = page.extract_text(layout=True) or ""
-                    if text:
-                        # 清理页眉页脚
-                        cleaned_text = clean_header_footer(text)
-                        # 分割为行
-                        lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
-                        page_data.append((page_num, cleaned_text, lines))
-                        print(f"✓ 已提取第 {page_num} 页文本 ({len(cleaned_text)} 字符, {len(lines)} 行)")
-                    else:
-                        page_data.append((page_num, "", []))
-                        print(f"⚠ 第 {page_num} 页无文本内容")
-                except Exception as e:
-                    print(f"✗ 提取第 {page_num} 页失败: {e}")
-                    page_data.append((page_num, "", []))
-        
-        print()
+            print(f"PDF 总页数: {total_pages}\n")
+
+            # 处理每个页数范围
+            for idx, page_range in enumerate(page_ranges, start=1):
+                # 确定页码范围
+                if len(page_range) == 1:
+                    start_page = end_page = page_range[0]
+                else:
+                    start_page, end_page = page_range[0], page_range[1]
+
+                # 验证页码范围
+                if start_page < 1 or end_page > total_pages:
+                    print(
+                        f"⚠️  范围 {idx}: 页码范围 {page_range} 超出PDF总页数 {total_pages}，跳过"
+                    )
+                    continue
+
+                if start_page > end_page:
+                    print(
+                        f"⚠️  范围 {idx}: 起始页 {start_page} 大于结束页 {end_page}，跳过"
+                    )
+                    continue
+
+                # 提取页码范围的内容
+                content_parts = []
+                print(f"处理范围 {idx}: 第 {start_page} 页 ~ 第 {end_page} 页")
+
+                for page_num in range(start_page, end_page + 1):
+                    try:
+                        page = pdf.pages[page_num - 1]  # pdfplumber 使用0-based索引
+                        text = page.extract_text_lines() or ""
+                        if text:
+                            # 清理页眉页脚
+                            cleaned_text = clean_header_footer(text)
+                            content_parts.append(cleaned_text)
+                            # print(f"  ✓ 已提取第 {page_num} 页文本 ({len(cleaned_text)} 字符)")
+                        else:
+                            print(f"  ⚠ 第 {page_num} 页无文本内容")
+                    except Exception as e:
+                        print(f"  ✗ 提取第 {page_num} 页失败: {e}")
+
+                # 合并内容
+                full_content = "\n\n".join(content_parts)
+
+                # 生成输出文件名
+                if len(page_range) == 1:
+                    filename = f"chunk_{idx:03d}_page_{start_page}.txt"
+                else:
+                    filename = f"chunk_{idx:03d}_pages_{start_page}-{end_page}.txt"
+
+                output_file = output_dir / filename
+
+                # 写入文件
+                with open(output_file, "w", encoding="utf-8") as f:
+                    f.write(full_content)
+
+                print(f"  ✓ 已保存到: {output_file} ({len(full_content)} 字符)\n")
+
+                results.append((str(output_file), full_content))
+
         print("=" * 80)
-        print("开始判定跨页延续...")
+        print(f"切分完成！共生成 {len(results)} 个文件")
         print("=" * 80)
-        print()
-        
-        # 统计信息
-        continuation_count = 0
-        non_continuation_count = 0
-        
-        # 对每一页（从第 2 页开始）判断是否是上一页的延续
-        for i in range(1, len(page_data)):
-            prev_page_num, prev_text, prev_lines = page_data[i - 1]
-            curr_page_num, curr_text, curr_lines = page_data[i]
-            
-            if not prev_text or not curr_text:
-                print(f"第 {curr_page_num} 页: 跳过（上一页或当前页无文本）")
-                continue
-            
-            # 构建 PageContext
-            context = PageContext(
-                page_index=i,  # 当前页索引（从 0 开始）
-                current_page_text=curr_text,
-                previous_page_text=prev_text,
-                current_page_lines=curr_lines,
-                previous_page_lines=prev_lines,
-                embedding_similarity=None,  # 暂时不使用嵌入向量
-            )
-            
-            # 判定是否为延续
-            result = detect_page_continuation(context)
-            
-            # 更新统计
-            if result.is_continuation:
-                continuation_count += 1
-            else:
-                non_continuation_count += 1
-            
-            # 显示结果
-            status = "✓ 延续" if result.is_continuation else "✗ 不延续"
-            print(f"第 {prev_page_num} 页 → 第 {curr_page_num} 页: {status}")
-            print(f"  分数: {result.score} (阈值: {CONTINUATION_THRESHOLD})")
-            
-            # 显示判定原因（如果有）
-            if result.reasons:
-                print(f"  判定原因:")
-                for reason in result.reasons:
-                    print(f"    - {reason}")
-            else:
-                print(f"  判定原因: 无规则匹配")
-            
-            # 显示上一页的最后几行和当前页的前几行（用于调试）
-            prev_last = '\n'.join(prev_lines[-3:]) if prev_lines else ""
-            curr_first = '\n'.join(curr_lines[:3]) if curr_lines else ""
-            
-            if prev_last and curr_first:
-                # 截断过长的文本
-                prev_preview = prev_last[:80] + "..." if len(prev_last) > 80 else prev_last
-                curr_preview = curr_first[:80] + "..." if len(curr_first) > 80 else curr_first
-                print(f"  上一页结尾: {prev_preview}")
-                print(f"  当前页开头: {curr_preview}")
-            
-            print()
-        
-        # 显示统计信息
-        print("=" * 80)
-        print("统计信息")
-        print("=" * 80)
-        total_judgments = continuation_count + non_continuation_count
-        if total_judgments > 0:
-            continuation_rate = continuation_count / total_judgments * 100
-            non_continuation_rate = non_continuation_count / total_judgments * 100
-            print(f"总判定次数: {total_judgments}")
-            print(f"判定为延续: {continuation_count} 次 ({continuation_rate:.1f}%)")
-            print(f"判定为不延续: {non_continuation_count} 次 ({non_continuation_rate:.1f}%)")
-        else:
-            print("没有进行任何判定")
-        print()
-        
+
+        return results
+
     except Exception as e:
-        print(f"错误: 处理 PDF 时发生异常: {e}")
+        print(f"错误: 处理PDF时发生异常: {e}")
         import traceback
+
         traceback.print_exc()
+        raise
 
 
 if __name__ == "__main__":
-    # 运行 PDF 分析
+    # 示例1: 简单的页数范围
+    # page_ranges = [[1, 2], [3]]
+
+    # 示例2: 有重叠的页数范围（TODO处理）
+    # page_ranges = [[1, 2], [2, 3]]
+
+    # 实际使用：根据延续判定结果设置页数范围
+    page_ranges = [
+        [1],
+        [2],
+        [3],
+        [4, 6],
+        [7],
+        [8, 148],
+        [149, 150],
+        [151],
+        [152, 168],
+        [168, 225],
+        [226, 227],
+        [227, 233],
+        [233, 242],
+        [243],
+        [244, 254],
+        [255, 264],
+    ]
+
     pdf_path = project_root / "test" / "gb2760" / "GB2760-2024.pdf"
-    analyze_pdf_continuation(str(pdf_path), max_pages=20)
+    extract_pages_text(str(pdf_path), page_ranges)

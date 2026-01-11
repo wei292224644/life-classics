@@ -404,7 +404,7 @@ def main():
             record
             for record in data
             if not (record.get("cancer_site", "").startswith("© IARC 2025"))
-            and  not (record.get("cancer_site", "").startswith("IARC, 25 avenue"))
+            and not (record.get("cancer_site", "").startswith("IARC, 25 avenue"))
         ]
 
         empty_count = len(

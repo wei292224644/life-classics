@@ -90,4 +90,4 @@ def import_pdf_step(file_path: str, strategy: str, **kwargs) -> List[DocumentChu
 
 
 if __name__ == "__main__":
-    documents = import_pdf_step("files/GB-31613.2-2021.pdf", "structured")
+    documents = import_pdf_step("files/20120518_2.pdf", "structured")

@@ -41,10 +41,10 @@ def analyze_with_llm(text: str) -> str:
         LLM的分析结果
     """
     # 限制文本长度（避免超出token限制）
-    max_length = 8000  # 可以根据模型调整
-    if len(text) > max_length:
-        print(f"\n⚠️  文本过长（{len(text)}字符），截取前{max_length}字符")
-        text = text[:max_length] + "\n\n[文本已截断...]"
+    # max_length = 8000  # 可以根据模型调整
+    # if len(text) > max_length:
+    #     print(f"\n⚠️  文本过长（{len(text)}字符），截取前{max_length}字符")
+    #     text = text[:max_length] + "\n\n[文本已截断...]"
 
     # 构建prompt
     system_prompt = """你是一名资深的【文档解析与知识工程专家】，

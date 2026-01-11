@@ -3,13 +3,15 @@ PDF 文件导入模块
 支持文本提取和图片型PDF的OCR识别（使用视觉模型）
 """
 
+import json
 import os
 import tempfile
 from io import BytesIO
 from typing import List, Optional
 from pathlib import Path
 
-import pdfplumber
+import pymupdf.layout  # 必须先导入这个来激活布局功能
+import pymupdf  # PyMuPDF
 from app.core.document_chunk import DocumentChunk, ContentType
 from app.core.config import settings
 from app.core.llm import get_multimodal
@@ -58,11 +60,12 @@ def extract_pdf_text(pdf_path: str) -> str:
     text_parts = []
 
     try:
-        with pdfplumber.open(pdf_path) as pdf:
-            print(f"PDF总页数: {len(pdf.pages)}")
+        with pymupdf.open(pdf_path) as pdf:
+            print(f"PDF总页数: {len(pdf)}")
 
-            for page_num, page in enumerate(pdf.pages, start=1):
-                text = page.extract_text()
+            for page_num, page in enumerate(pdf, start=1):
+                list = page.get_text_blocks() or ""
+                text = json.dumps(list, ensure_ascii=False)
                 if text:
                     text_parts.append(f"=== 第 {page_num} 页 ===\n{text}\n")
                     print(f"  第 {page_num} 页: 提取了 {len(text)} 个字符")

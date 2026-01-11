@@ -66,7 +66,7 @@ def extract_text_with_layout(page: pymupdf.Page) -> str:
     Returns:
         提取的文本内容，保留布局结构
     """
-    list= page.get_text_blocks() or ""
+    list = page.get_text_blocks() or ""
     res = json.dumps(list, ensure_ascii=False)
     return res
 
@@ -178,7 +178,6 @@ def convert_txt_to_markdown(text: str) -> str:
 输入数据格式为 列表数组，每个元素表示一个文本片段：
 
 (x0, y0, x1, y1, text, line_id, block_id)
-
 
 其中：
 
@@ -349,15 +348,15 @@ def split_pdf_by_page_ranges(
                     if page in overlap_set:
                         overlapping_pages_in_range.append(page)
 
-        # 写入txt文件
-        with open(filepath, "w", encoding="utf-8") as f:
-            # 如果有重叠页面，添加TODO标记
-            if overlapping_pages_in_range:
-                f.write(
-                    f"⚠️  TODO: 以下页面在其他块中也出现: {sorted(set(overlapping_pages_in_range))}\n\n"
-                )
+        # # 写入txt文件
+        # with open(filepath, "w", encoding="utf-8") as f:
+        #     # 如果有重叠页面，添加TODO标记
+        #     if overlapping_pages_in_range:
+        #         f.write(
+        #             f"⚠️  TODO: 以下页面在其他块中也出现: {sorted(set(overlapping_pages_in_range))}\n\n"
+        #         )
 
-            f.write(text)
+        #     f.write(text)
 
         # 转换为Markdown并保存
         md_filepath = filepath.with_suffix(".md")
@@ -402,9 +401,13 @@ if __name__ == "__main__":
 
     # 请修改下面的 page_ranges 来指定要分割的页数范围
     page_ranges = [
-        # [1], [2], [3], [4, 6]
-        # [7]
-        [9]
+        # [1, "smaple"],
+        # # [2], [3],
+        # [4, 6, "smaple"],
+        # [7, "sample"],
+        # [8, "dsl"],
+        # [9, "dsl"],
+        [156]
     ]  # 修改这里
 
     split_pdf_by_page_ranges(str(pdf_path), page_ranges, str(output_dir))

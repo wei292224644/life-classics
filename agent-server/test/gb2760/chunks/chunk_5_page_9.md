@@ -6,13 +6,13 @@ ADD_ADDITIVE {
   function: ["抗氧化剂", "护色剂"]
 
   usage {
-    food_category: null
-    food_name: "各类食品"
+    food_category: "—"
+    food_name: "各类食品,表A.2中编号为1~62、64~68的食品类别除外"
     max_amount: null
     unit: "g/kg"
     rule: "按生产需要适量使用"
     remark: null
-    reference_exclusion {
+    reference_exclusion: {
       standard: "GB2760"
       table: "A.2"
       ranges: "1~62,64~68"
@@ -38,13 +38,13 @@ ADD_ADDITIVE {
   function: ["酸度调节剂"]
 
   usage {
-    food_category: null
-    food_name: "各类食品"
+    food_category: "—"
+    food_name: "各类食品,表A.2中编号为1~68的食品类别除外"
     max_amount: null
     unit: "g/kg"
     rule: "按生产需要适量使用"
     remark: null
-    reference_exclusion {
+    reference_exclusion: {
       standard: "GB2760"
       table: "A.2"
       ranges: "1~68"
@@ -61,13 +61,13 @@ ADD_ADDITIVE {
   function: ["酸度调节剂"]
 
   usage {
-    food_category: null
-    food_name: "各类食品"
+    food_category: "—"
+    food_name: "各类食品,表A.2中编号为1~68的食品类别除外"
     max_amount: null
     unit: "g/kg"
     rule: "按生产需要适量使用"
     remark: null
-    reference_exclusion {
+    reference_exclusion: {
       standard: "GB2760"
       table: "A.2"
       ranges: "1~68"
@@ -125,5 +125,11 @@ ADD_ADDITIVE {
     unit: "g/kg"
     rule: "按生产需要适量使用"
     remark: null
+    reference_exclusion: {
+      standard: "GB2760"
+      table: "A.2"
+      ranges: null
+      text: "12.01 盐及代盐制品、12.09 香辛料类除外"
+    }
   }
 }
