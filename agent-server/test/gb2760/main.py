@@ -195,7 +195,8 @@ DSL_PROMPT = """你是一个"食品安全国家标准结构化专家"。
 TABLE {
     id: string
     title: string
-    rows: ADD_ADDITIVE[]
+    ADD_ADDITIVE { ... }
+    ADD_ADDITIVE { ... }
 }
 
 **规则约束：**
@@ -289,20 +290,93 @@ ADD_ADDITIVE {
 
 
 # region dsl2
-DSL2_PROMPT = """你是一个"食品安全国家标准解析专家"。
+DSL2_PROMPT = """你是一个"食品安全国家标准结构化专家"。
 
-你的任务是：
-将来自 PDF 版式解析结果（基于坐标的文本数组） 的内容，
-严格转换为【领域专用 DSL（Domain Specific Language）】格式数据，
+你的任务是：  
+将来自 PDF 版式解析结果（基于坐标的文本数组） 的内容，  
+严格转换为可被后续 ADD_ADDITIVE.reference_exclusion 引用的【例外食品类别表】领域的专用 DSL（Domain Specific Language）格式数据。
 用于食品添加剂知识库构建。
 
-输入数据格式为 列表数组，每个元素表示一个文本片段：
+输入数据格式为基于 PDF 坐标解析得到的文本数组：
 
 (x0, y0, x1, y1, text, line_id, block_id)
 
-其中：
+你必须基于坐标顺序恢复表格行，不允许假设顺序正确。
 
-x0, y0, x1, y1：页面坐标（左上 → 右下）"""
+你必须遵守以下规则：
+
+1. ❌ 不允许编造、补全、推测任何未明确出现的信息  
+2. ✅ 所有字段必须来源于原文  
+3. ✅ 表格必须被还原为结构化 usage 块  
+4. ❌ 不允许解释、总结、评论  
+5. ❌ 不输出自然语言  
+6. ✅ 只输出 DSL  
+7. 如果字段不存在，使用 null  
+
+---
+
+### 🔹 输出 DSL 结构（仅用于例外表）
+
+该表不生成 ADD_ADDITIVE，也不生成 usage。
+
+你必须使用 TABLE 结构表达该表：
+
+TABLE {
+  id: string
+  title: string
+
+  EXCEPTION_CATEGORY {
+    exception_id: string
+    food_category: string
+    food_name: string
+  }
+}
+
+---
+
+### 🔹 字段映射规则（严格）
+
+- “例外食品类别编号” → exception_id  
+- “食品分类号” → food_category  
+- “食品名称” → food_name  
+
+规则说明：
+- exception_id 必须保持原文格式（如 “35.”、“36.”）
+- 不得将 exception_id 转换为数字
+- food_category 不得拆分或改写
+- food_name 必须完整保留括号、示例说明
+
+---
+
+### 🔹 结构约束（非常重要）
+
+1. 每一行表格 → 一个 EXCEPTION_CATEGORY  
+2. EXCEPTION_CATEGORY 只能存在于 TABLE 内  
+3. TABLE 只用于表达该例外表本身，不作为食品分类系统  
+4. 不允许在此阶段生成 reference_exclusion  
+5. 不允许推导范围（如 35~42）  
+6. 不允许合并行  
+
+---
+
+### 🔹 与主 DSL 的关系说明（只用于你理解，不输出）
+
+- 本 TABLE 仅作为“可引用的例外索引表”
+- 后续在 ADD_ADDITIVE.usage.reference_exclusion 中：
+  - ranges 可以指向 exception_id
+  - table 指向该 TABLE.id
+- 本阶段不建立任何跨表引用关系
+
+---
+
+### 🔹 输出要求（强制）
+
+- 只输出 DSL  
+- 不要 Markdown  
+- 不要 JSON  
+- 不要代码块  
+- 不要解释  
+- 不要多余空行"""
 # endregion
 
 
@@ -673,8 +747,8 @@ if __name__ == "__main__":
         # {"pages": [4, 6], "prompt": MARKDOWN_PROMPT},
         # {"pages": [7], "prompt": MARKDOWN_PROMPT},
         # # {"pages": [8, 148], "prompt": DSL2_PROMPT, "split": True},
-        {"pages": [8], "prompt": DSL_PROMPT},
-        # {"pages": [156], "prompt": DSL2_PROMPT},
+        # {"pages": [8], "prompt": DSL_PROMPT},
+        {"pages": [156], "prompt": DSL2_PROMPT},
     ]
 
     split_pdf_by_page_ranges(str(pdf_path), page_ranges, str(output_dir))
