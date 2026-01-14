@@ -7,7 +7,7 @@ ADD_ADDITIVE {
 
   usage {
     food_category: "—"
-    food_name: "各类食品,表A.2中编号为1~62、64~68的食品类别除外"
+    food_name: "各类食品"
     max_amount: null
     unit: "g/kg"
     rule: "按生产需要适量使用"
@@ -39,7 +39,7 @@ ADD_ADDITIVE {
 
   usage {
     food_category: "—"
-    food_name: "各类食品,表A.2中编号为1~68的食品类别除外"
+    food_name: "各类食品"
     max_amount: null
     unit: "g/kg"
     rule: "按生产需要适量使用"
@@ -62,7 +62,7 @@ ADD_ADDITIVE {
 
   usage {
     food_category: "—"
-    food_name: "各类食品,表A.2中编号为1~68的食品类别除外"
+    food_name: "各类食品"
     max_amount: null
     unit: "g/kg"
     rule: "按生产需要适量使用"
@@ -125,11 +125,5 @@ ADD_ADDITIVE {
     unit: "g/kg"
     rule: "按生产需要适量使用"
     remark: null
-    reference_exclusion: {
-      standard: "GB2760"
-      table: "A.2"
-      ranges: null
-      text: "12.01 盐及代盐制品、12.09 香辛料类除外"
-    }
   }
 }

@@ -29,7 +29,7 @@ ADD_ADDITIVE {
     unit: "g/kg"
     rule: "按生产需要适量使用"
     remark: null
-    reference_exclusion {
+    reference_exclusion: {
       standard: "GB2760"
       table: "A.2"
       ranges: "1-68"
@@ -52,7 +52,7 @@ ADD_ADDITIVE {
     unit: "g/kg"
     rule: "按生产需要适量使用"
     remark: null
-    reference_exclusion {
+    reference_exclusion: {
       standard: "GB2760"
       table: "A.2"
       ranges: "1~68"
@@ -75,7 +75,7 @@ ADD_ADDITIVE {
     unit: "g/kg"
     rule: "按生产需要适量使用"
     remark: null
-    reference_exclusion {
+    reference_exclusion: {
       standard: "GB2760"
       table: "A.2"
       ranges: "1~68"
