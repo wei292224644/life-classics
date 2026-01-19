@@ -1,25 +1,28 @@
 """
 根据页数范围分割PDF文件
-输入格式：[{"pages": [1, 2], "messages": [SystemMessage(...)]}, {"pages": [3], "messages": [SystemMessage(...)]}]
+输入格式：[{"pages": [1, 2]}, {"pages": [3]}]
 每个配置项必须包含：
 - pages: 页数范围，可以是单个数字 [1] 或范围 [1, 2]
-- messages: 消息列表，包含 SystemMessage、HumanMessage 等
 可选配置项：
 - split: 布尔值，如果为True且pages是范围，则将范围拆分成多个单页处理（默认False）
+
+注意：prompt 现在通过 AI 自动生成，无需手动配置
 """
 
 import json
+import logging
 import pymupdf.layout  # 必须先导入这个来激活布局功能
 import pymupdf  # PyMuPDF
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple, Set, Dict, Any
 
 # 添加项目根目录到路径，以便导入app模块
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from app.core.llm import chat
 
 
@@ -150,274 +153,124 @@ x0, y0, x1, y1：页面坐标（左上 → 右下）
 
 # region dsl
 
+# DSL_SYSTEM_PROMPT = """你是一个国家食品安全标准的结构化解析引擎。
+
+# 你的任务是：
+# 将来自 PDF 版式解析结果（基于坐标的文本数组）的内容，
+# 严格、逐字地映射为调用方提供的领域专用 DSL 结构。
+
+# 输入数据由若干文本片段组成，每个片段格式为：
+# (x0, y0, x1, y1, text, line_id, block_id)
+
+# 解析与行为规则（必须严格遵守）：
+
+# 1. 你必须基于页面坐标顺序恢复真实阅读顺序与表格行结构，
+#    不得假设 line_id 或 block_id 是正确的。
+
+# 2. 你只能输出调用方在 schema_definition 中明确声明的结构与字段：
+#    - 不生成 schema 未声明的字段
+#    - 不生成 schema 未声明的结构
+#    - 不生成 schema 未声明的嵌套关系
+
+# 3. 所有字段值必须逐字来源于原文文本：
+#    - 不允许编造、补全、推测
+#    - 不允许语义推导或常识补充
+#    - 不允许合并未明确声明可合并的行或字段
+
+# 4. 如果某字段在原文中不存在，必须使用 null；
+#    如果整体内容与 schema_definition 不匹配，必须输出 EMPTY。
+
+# 5. 你不得输出任何解释性、总结性或评论性文本，
+#    不得输出自然语言说明。
+
+# 6. 你必须只输出 DSL 结构本身：
+#    - 不要 Markdown
+#    - 不要 JSON
+#    - 不要代码块
+#    - 不要多余空行
+
+# 7. 除非 schema_definition 明确允许，否则：
+#    - 不得跨表推导关系
+#    - 不得展开被引用内容
+#    - 不得建立隐含引用
+
+# 你的输出必须是一个确定性的、可被程序校验的 DSL 结果。
+# """
 DSL_SYSTEM_PROMPT = """你是一个国家食品安全标准的结构化解析引擎。
 
-你的任务是：
-将来自 PDF 版式解析结果（基于坐标的文本数组）的内容，
-严格、逐字地映射为调用方提供的领域专用 DSL 结构。
+你的唯一任务是：
+将来自 PDF 版式解析结果（基于坐标的文本数组）的内容，严格、逐字地映射为调用方提供的 SchemaIR 所定义的领域专用 DSL 结构。
 
-输入数据由若干文本片段组成，每个片段格式为：
+一、输入数据说明
+
+输入由若干文本片段组成，每个片段格式为：
+
 (x0, y0, x1, y1, text, line_id, block_id)
 
-解析与行为规则（必须严格遵守）：
+其中：
 
-1. 你必须基于页面坐标顺序恢复真实阅读顺序与表格行结构，
-   不得假设 line_id 或 block_id 是正确的。
+* 坐标用于恢复真实阅读顺序与表格结构
+* line_id、block_id 仅供参考，不具备权威性
 
-2. 你只能输出调用方在 schema_definition 中明确声明的结构与字段：
-   - 不生成 schema 未声明的字段
-   - 不生成 schema 未声明的结构
-   - 不生成 schema 未声明的嵌套关系
+二、Schema 约束（最高优先级）
 
-3. 所有字段值必须逐字来源于原文文本：
-   - 不允许编造、补全、推测
-   - 不允许语义推导或常识补充
-   - 不允许合并未明确声明可合并的行或字段
+你只能使用 SchemaIR 中明确声明的实体与字段。
 
-4. 如果某字段在原文中不存在，必须使用 null；
-   如果整体内容与 schema_definition 不匹配，必须输出 EMPTY。
+允许的实体：
 
-5. 你不得输出任何解释性、总结性或评论性文本，
-   不得输出自然语言说明。
+* RegulatoryStandard
+* TableReference
+* TableStructure
+* FlavoringSubstance
 
-6. 你必须只输出 DSL 结构本身：
-   - 不要 Markdown
-   - 不要 JSON
-   - 不要代码块
-   - 不要多余空行
+严格禁止：
 
-7. 除非 schema_definition 明确允许，否则：
-   - 不得跨表推导关系
-   - 不得展开被引用内容
-   - 不得建立隐含引用
+* 生成 Schema 未声明的实体
+* 生成 Schema 未声明的字段
+* 生成 Schema 未声明的嵌套关系
+* 改写字段名、合并字段、拆分字段
 
-你的输出必须是一个确定性的、可被程序校验的 DSL 结果。
-"""
-ADD_ADDITIVE_USAGE_SCHEMA = """SCHEMA_DEFINITION
+SchemaIR 是唯一合法的结构边界。
 
-SCHEMA_NAME: ADD_ADDITIVE_USAGE
+三、解析与映射规则（必须全部遵守）
 
-DESCRIPTION:
-本 schema 用于解析食品安全国家标准中
-“食品添加剂使用规定”相关表格或条文，
-输出食品添加剂在不同食品中的允许使用情况。
+1. 阅读顺序与表格恢复
 
-————————————————————
-【外层结构规则】
-————————————————————
+* 必须仅基于页面坐标恢复真实阅读顺序
+* 必须基于坐标对齐恢复表头与数据行
+* 不得假设 line_id 或 block_id 是正确的
+* 不得跨页、跨表推导结构关系，除非 Schema 明确允许
 
-当原文中存在明确的表格标题，且该标题在版式上作为一组添加剂条目的共同来源时，
-允许使用 TABLE 作为最外层容器。
+2. 字段填充规则（逐字映射）
 
-TABLE {
-  id: string        // 原文中的表编号，如“表 A.1”
-  title: string     // 原文表标题全文，不得改写
-}
+* 所有字段值必须逐字来源于原文 text，但应将原文中的换行符 \n 删除，内容连续性保持不变。
+* 不允许编造、补全、推测、语义归纳或常识推导
+* 不允许合并未在 Schema 中明确允许合并的多行文本
 
-如果原文未出现明确表标题：
-- 不生成 TABLE
-- 直接输出 ADD_ADDITIVE
+3. 缺失与不匹配处理
 
-不允许嵌套 TABLE。
+* 若某字段在原文中完全不存在，必须填 null
+* 若整体内容无法与 SchemaIR 匹配，必须输出 EMPTY
+* 不得为了“看起来完整”而强行构造结构
 
-————————————————————
-【TABLE.title 判定规则（重要）】
-————————————————————
+四、输出规则（强制）
 
-TABLE.title 仅在原文中存在“明确的表主题描述”时才赋值。
+* 你只能输出 DSL 结构本身
+* 严禁输出 Markdown、JSON、代码块、注释或任何解释性、总结性自然语言
+* 输出必须是确定性的、可被程序校验的、严格符合 SchemaIR 的 DSL(Domain Specific Language) 结果
+* 不得输出任何解释性、总结性或评论性文本，不得输出自然语言说明。
+* 输出必须是确定性的、可被程序校验的 JSON
 
-判定规则：
-- 如果表标题文本中，除表编号外，还包含对表内容的描述性文字，
-  则该描述性文字作为 title。
-- 描述性文字必须逐字来源于原文，不得改写。
+五、失败即 EMPTY
 
-以下情况，TABLE.title 必须为 null：
-- 标题仅包含表编号
-- 标题包含“（续）”“（续表）”“continued”等续表标记
-- 标题未提供新的表主题信息
+只要出现以下任一情况，必须输出 EMPTY：
 
-示例（仅用于判定理解，不输出）：
-- “表 A.2 表 A.1中例外食品编号对应的食品类别”
-  → id = “表 A.2”
-  → title = “表 A.1中例外食品编号对应的食品类别”
+* Schema 无法匹配
+* 表格结构无法确定
+* 字段来源不明确
 
-- “表 A.2（续）”
-  → id = “表 A.2”
-  → title = null
-
-————————————————————
-【核心记录结构】
-————————————————————
-
-ADD_ADDITIVE {
-  name_zh: string                // 添加剂中文名称，来源于标题或条文
-  name_en: string | null         // 英文名称（如原文存在）
-  CNS: string[] | null           // CNS 号，允许多行合并
-  INS: string[] | null           // INS 号，允许多行合并
-  function: string[] | null      // 功能，可为多个
-
-  usage {
-    food_category: string        // 食品分类号
-    food_name: string            // 食品名称
-    max_amount: number | null    // 最大使用量
-    unit: "g/kg" | null          // 单位，仅当原文出现
-    rule: string | null          // 使用规则原文
-    remark: string | null        // 备注
-    reference_exclusion: reference_exclusion | null
-  }
-}
-
-————————————————————
-【usage 行生成规则】
-————————————————————
-
-- 表格中的每一行对应一个 usage
-- “食品分类号” → food_category
-- “食品名称” → food_name
-- “最大使用量” → max_amount
-- 单位统一为 g/kg（仅当原文出现）
-- “备注” → remark
-
-特殊规则：
-- 原文为“按生产需要适量使用”：
-  - max_amount = null
-  - rule = 原文完整表述
-- 相邻但不属于表格的说明性文字，不生成 usage
-
-————————————————————
-【特殊字段处理】
-————————————————————
-
-- CNS号、INS号可能分散在多行，需要合并为数组
-- 功能字段如出现多个，用数组表示
-- 中英文名称分别识别，不得混合
-- 添加剂标题即为 name_zh
-
-————————————————————
-【标准内部引用 / 排除规则】
-————————————————————
-
-当原文出现以下类型表述时：
-- “表 X.X 中编号为……除外”
-- “见表 X.X”
-- “附录 X 中……除外”
-- “除……外”
-
-必须判断这是【标准内部引用】，而不是食品名称。
-
-处理方式：
-- 不得将该文本作为 food_name
-- 在对应 usage 中生成 reference_exclusion 结构
-
-reference_exclusion {
-  standard: string | null   // 如 GB2760（仅当原文可判断）
-  table: string | null      // 表编号，如 A.2
-  ranges: string | null     // 编号范围，无法解析则为 null
-  text: string              // 原文原句，不得改写
-}
-
-规则：
-- 不展开被引用表内容
-- 不推导或补全编号范围
-- 即使仅出现“见表 X.X”，也必须生成 reference_exclusion
-
-"""
-# endregion
-
-
-# region dsl2
-DSL2_PROMPT = """SCHEMA_DEFINITION
-
-SCHEMA_NAME: EXCEPTION_CATEGORY_INDEX
-
-DESCRIPTION:
-本 schema 用于解析食品安全国家标准中的
-“例外食品类别表”，
-作为后续 reference_exclusion 的可引用索引表。
-
-本 schema 不生成任何添加剂使用规则。
-
-————————————————————
-【外层结构（强制）】
-————————————————————
-
-必须使用 TABLE 作为唯一外层结构。
-
-TABLE {
-  id: string        // 原文表编号
-  title: string     // 原文表标题全文，如果原文中没有 title，则 title 为 null
-}
-
-TABLE 仅用于表达该例外表本身，
-不得作为食品分类系统。
-
-————————————————————
-【TABLE.title 判定规则（重要）】
-————————————————————
-
-TABLE.title 仅在原文中存在“明确的表主题描述”时才赋值。
-
-判定规则：
-- 如果表标题文本中，除表编号外，还包含对表内容的描述性文字，
-  则该描述性文字作为 title。
-- 描述性文字必须逐字来源于原文，不得改写。
-
-以下情况，TABLE.title 必须为 null：
-- 标题仅包含表编号
-- 标题包含“（续）”“（续表）”“continued”等续表标记
-- 标题未提供新的表主题信息
-
-示例（仅用于判定理解，不输出）：
-- “表 A.2 表 A.1中例外食品编号对应的食品类别”
-  → id = “表 A.2”
-  → title = “表 A.1中例外食品编号对应的食品类别”
-
-- “表 A.2（续）”
-  → id = “表 A.2”
-  → title = null
-
-————————————————————
-【核心记录结构】
-————————————————————
-
-EXCEPTION_CATEGORY {
-  exception_id: string     // 例外食品类别编号，如“35.”
-  food_category: string   // 食品分类号
-  food_name: string       // 食品名称（含括号、示例）
-}
-
-————————————————————
-【行映射规则】
-————————————————————
-
-- 表格中的每一行对应一个 EXCEPTION_CATEGORY
-- “例外食品类别编号” → exception_id
-- “食品分类号” → food_category
-- “食品名称” → food_name
-
-————————————————————
-【严格约束】
-————————————————————
-
-- exception_id 必须保持原文格式（如“35.”、“36.”）
-- 不得将 exception_id 转换为数字
-- 不得推导编号范围（如 35~42）
-- 不得合并多行
-- food_category 不得拆分或改写
-- food_name 必须完整保留括号与示例说明
-
-————————————————————
-【禁止行为】
-————————————————————
-
-- 不生成 ADD_ADDITIVE
-- 不生成 usage
-- 不生成 reference_exclusion
-- 不建立任何跨表引用关系
-
-本 TABLE 仅作为“可被引用的例外索引表”存在。
-"""
-# endregion
+你不是解释器，不是总结器，不是知识补全模型。
+你是一个严格的、零推理容错的法规结构映射引擎。"""
 
 
 def clean_page_header_footer(text: str) -> str:
@@ -473,14 +326,14 @@ def extract_text_with_layout(page: pymupdf.Page) -> str:
 
 
 def extract_pages_text(
-    pdf_path: str, page_ranges: List[Tuple[int, int, List[BaseMessage]]]
+    pdf_path: str, page_ranges: List[Tuple[int, int, bool]]
 ) -> List[str]:
     """
     从PDF中提取指定页数范围的文本
 
     Args:
         pdf_path: PDF文件路径
-        page_ranges: 页数范围列表，每个元素为(start_page, end_page, messages)元组
+        page_ranges: 页数范围列表，每个元素为(start_page, end_page, is_split)元组
 
     Returns:
         文本内容列表，每个元素对应一个页数范围的文本
@@ -493,7 +346,7 @@ def extract_pages_text(
         total_pages = len(doc)
         print(f"PDF总页数: {total_pages}")
 
-        for start_page, end_page, messages in page_ranges:
+        for start_page, end_page, _ in page_ranges:
             # 验证页数范围
             if start_page < 1 or end_page > total_pages:
                 print(
@@ -531,21 +384,21 @@ def extract_pages_text(
 
 def parse_page_range_config(
     page_ranges: List[Dict[str, Any]],
-) -> List[Tuple[int, int, List[BaseMessage]]]:
+) -> List[Tuple[int, int, bool]]:
     """
     解析页数范围配置
 
     Args:
         page_ranges: 页数范围列表，格式为：
             [
-                {"pages": [1, 2], "messages": [SystemMessage(content="提示词")]},
-                {"pages": [3], "messages": [SystemMessage(content="提示词")]},
-                {"pages": [8, 148], "messages": [SystemMessage(content="提示词")], "split": True}  # split为True时拆分成单页
+                {"pages": [1, 2]},
+                {"pages": [3]},
+                {"pages": [8, 148], "split": True}  # split为True时拆分成单页
             ]
 
     Returns:
-        解析后的配置列表，每个元素为 (start_page, end_page, messages) 元组
-        messages 为消息列表（SystemMessage/HumanMessage等）
+        解析后的配置列表，每个元素为 (start_page, end_page, is_split) 元组
+        is_split: 表示该配置是否来自 split=True 的拆分
         如果配置项设置了 split=True，范围会被拆分成多个单页配置
     """
     parsed_configs = []
@@ -558,16 +411,6 @@ def parse_page_range_config(
         pages = range_item.get("pages", [])
         if not pages:
             print(f"警告: 配置项缺少 'pages' 字段: {range_item}，跳过")
-            continue
-
-        # 必须提供 messages 字段
-        if "messages" not in range_item:
-            print(f"警告: 配置项缺少 'messages' 字段: {range_item}，跳过")
-            continue
-
-        messages = range_item["messages"]
-        if not messages or not isinstance(messages, list) or len(messages) == 0:
-            print(f"警告: messages 不能为空且必须是列表: {range_item}，跳过")
             continue
 
         # 解析页数范围
@@ -584,27 +427,25 @@ def parse_page_range_config(
         if split and start_page != end_page:
             # 将范围拆分成多个单页配置
             for page_num in range(start_page, end_page + 1):
-                parsed_configs.append((page_num, page_num, messages))
+                parsed_configs.append((page_num, page_num, True))
             print(
-                f"  ✓ 配置: 页数 [{start_page}, {end_page}] 拆分为 {end_page - start_page + 1} 个单页, 提示词长度: {len(messages)} 字符"
+                f"  ✓ 配置: 页数 [{start_page}, {end_page}] 拆分为 {end_page - start_page + 1} 个单页"
             )
         else:
-            parsed_configs.append((start_page, end_page, messages))
-            print(
-                f"  ✓ 配置: 页数 [{start_page}, {end_page}], 提示词长度: {len(messages)} 字符"
-            )
+            parsed_configs.append((start_page, end_page, False))
+            print(f"  ✓ 配置: 页数 [{start_page}, {end_page}]")
 
     return parsed_configs
 
 
 def check_overlapping_pages(
-    page_ranges: List[Tuple[int, int, List[BaseMessage]]],
+    page_ranges: List[Tuple[int, int, bool]],
 ) -> List[Set[int]]:
     """
     检查页数范围是否有重叠
 
     Args:
-        page_ranges: 页数范围列表，每个元素为 (start_page, end_page, messages) 元组
+        page_ranges: 页数范围列表，每个元素为 (start_page, end_page, is_split) 元组
     Returns:
         重叠页面的集合列表，每个集合包含重叠的页面编号
     """
@@ -612,7 +453,7 @@ def check_overlapping_pages(
 
     # 收集所有页面
     all_pages = {}
-    for idx, (start, end, messages) in enumerate(page_ranges):
+    for idx, (start, end, _) in enumerate(page_ranges):
         for page in range(start, end + 1):
             if page not in all_pages:
                 all_pages[page] = []
@@ -626,169 +467,203 @@ def check_overlapping_pages(
     return overlapping_pages
 
 
-def detect_content_type(text: str) -> Tuple[str, str]:
+def detect_content_type(text: str) -> str:
     """
     检测内容是文本还是表格，如果是表格则直接生成并返回 schemaIR
     在一次 AI 调用中完成类型检测和 schemaIR 生成（如果是表格）
-    
+
     Args:
         text: 原始文本内容
-        
+
     Returns:
-        (content_type, schema_ir) 元组
-        - content_type: "text" 或 "table"
-        - schema_ir: 如果是表格，返回生成的 schemaIR；如果是文本，返回空字符串
+        content_type: "text" 或 "table"
     """
     if not text or not text.strip():
-        return ("text", "")
-    
-    # 取前5000字符用于检测和生成 schemaIR
-    text_sample = text[:5000]
-    
-    detection_prompt = f"""请分析以下内容，判断它是文本还是表格。
+        return "text"
 
-内容：
+    # 取前1000字符用于检测和生成 schemaIR
+    text_sample = text[:1000]
+
+    system_prompt = """你是一个“食品安全国家标准表结构分析器”。
+
+你的唯一任务是：
+判断输入内容是【连续文本】还是【结构化表格】。
+
+你不负责解析具体数据，
+不生成任何 ADD_ADDITIVE、usage 或 EXCEPTION_CATEGORY 实例，
+只描述“这张表应该如何被解析”。
+
+---
+
+【输入】
+
+输入内容来自 PDF 版式解析结果，形式为文本片段集合，
+每个片段包含坐标与文本信息，例如：
+
+(x0, y0, x1, y1, text, line_id, block_id)
+
+坐标仅用于判断阅读顺序与是否构成表格结构，
+不得推测缺失内容。
+
+---
+
+【判断规则】
+
+1. 如果内容不具备稳定的行列结构，仅为说明性或连续性文字：
+   - 直接输出字符串：
+     "text"
+
+2. 如果内容呈现明确的表格结构（存在表头、行对应关系、重复列语义）：
+   - 输出字符串：
+     "table"
+---
+
+【输出规则】
+
+- 如果判断为文本：
+  只输出字符串：
+  "text"
+
+- 如果判断为表格：
+  只输出字符串：
+  "table"
+"""
+
+    human_prompt = f"""请分析以下内容，判断是文本还是表格：
 <<<
 {text_sample}
 >>>
+"""
 
-如果内容是表格，请直接生成一个 schemaIR 来描述这个表格的结构。
-如果内容是文本，请只回答 "text"。
-
-schemaIR 应该包含：
-1. 表格的基本信息（表编号、表标题等）
-2. 表格的列结构
-3. 每列的数据类型和含义
-4. 表格的行映射规则
-
-请以 JSON 格式输出 schemaIR，格式如下：
-{{
-  "schema_name": "表格名称",
-  "description": "表格描述",
-  "table": {{
-    "id": "表编号字段名",
-    "title": "表标题字段名（如果存在）"
-  }},
-  "columns": [
-    {{
-      "name": "字段名",
-      "type": "string|number|null",
-      "description": "字段描述",
-      "source": "来源列名或位置"
-    }}
-  ],
-  "row_mapping": "行映射规则说明"
-}}
-
-输出格式：
-- 如果是文本：只输出 "text"
-- 如果是表格：输出 JSON 格式的 schemaIR"""
-    
     try:
         messages = [
-            SystemMessage(content="你是一个内容类型检测和表格结构分析专家。请根据内容判断是文本还是表格。如果是表格，请直接生成描述其结构的 schemaIR。"),
-            HumanMessage(content=detection_prompt),
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=human_prompt),
         ]
         result = chat(
             messages,
             provider_name="dashscope",
-            provider_config={"model": "qwen3-max-preview", "temperature": 0.1},
+            provider_config={
+                "model": "qwen-flash",
+                "temperature": 0.1,
+                "reasoning": False,
+            },
         )
         result = result.strip()
-        
+
         # 判断返回结果
         result_lower = result.lower()
         if "text" in result_lower and len(result) < 10:
             # 纯文本响应
-            return ("text", "")
+            return "text"
         else:
-            # 尝试解析为 JSON（表格的 schemaIR）
-            try:
-                import json
-                import re
-                # 尝试提取 JSON 内容（可能被代码块包裹）
-                json_text = result.strip()
-                # 移除可能的 markdown 代码块标记
-                json_text = re.sub(r'^```(?:json)?\s*\n', '', json_text, flags=re.MULTILINE)
-                json_text = re.sub(r'\n```\s*$', '', json_text, flags=re.MULTILINE)
-                json_text = json_text.strip()
-                
-                # 尝试提取 JSON 对象
-                json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', json_text, re.DOTALL)
-                if json_match:
-                    json_text = json_match.group(0)
-                
-                # 验证是否为有效的 JSON
-                schema_data = json.loads(json_text)
-                # 如果解析成功，说明是表格的 schemaIR
-                print("  📊 检测到表格，已生成 schemaIR")
-                return ("table", result)
-            except (json.JSONDecodeError, ValueError):
-                # 如果不是有效的 JSON，可能是文本
-                if "text" in result_lower:
-                    return ("text", "")
-                else:
-                    # 无法确定，默认按文本处理
-                    print(f"⚠️  无法解析返回结果，默认按文本处理: {result[:100]}")
-                    return ("text", "")
-                    
+            return "table"
+
     except Exception as e:
         print(f"⚠️  内容类型检测失败: {e}，默认按文本处理")
-        return ("text", "")
+        return "text"
 
 
 def generate_schema_ir(text: str) -> str:
     """
     如果检测到是表格，生成 schemaIR 来描述表格结构
-    
+
     Args:
         text: 原始文本内容（表格）
-        
+
     Returns:
         schemaIR 字符串
     """
-    schema_generation_prompt = f"""请分析以下表格内容，生成一个 schemaIR 来描述这个表格的结构。
+    schema_generation_prompt = """你是一名“结构化信息建模专家（Schema Designer）”。
 
-schemaIR 应该包含：
-1. 表格的基本信息（表编号、表标题等）
-2. 表格的列结构
-3. 每列的数据类型和含义
-4. 表格的行映射规则
+我将提供一组来自中国食品安全法规（如 GB 2760）的 OCR 坐标文本数据。
+这些数据是非结构化的，包含标题、表格、字段名、数据行和注释。
 
-请以 JSON 格式输出 schemaIR，格式如下：
-{{
-  "schema_name": "表格名称",
-  "description": "表格描述",
-  "table": {{
-    "id": "表编号字段名",
-    "title": "表标题字段名（如果存在）"
-  }},
-  "columns": [
-    {{
-      "name": "字段名",
-      "type": "string|number|null",
-      "description": "字段描述",
-      "source": "来源列名或位置"
-    }}
-  ],
-  "row_mapping": "行映射规则说明"
-}}
+你的任务不是整理具体数据，
+而是【仅根据这份数据本身】，抽象并生成一份 SchemaIR 结构定义。
 
-内容：
+━━━━━━━━━━━━━━━━━━
+【你的目标】
+
+1. 识别文档中隐含的“核心实体”（如：标准、表格、食品添加剂、使用规则）
+2. 推导这些实体之间的层级关系
+3. 为每个实体设计字段（字段名 + 含义）
+4. 判断哪些字段是：
+   - 单值 / 多值
+   - 可为空 / 必填
+   - 子结构 / 数组
+5. 输出一个通用、可复用的 SchemaIR，
+   使其可以用于解析同一法规中其他表格或页面
+
+━━━━━━━━━━━━━━━━━━
+【SchemaIR 输出要求】
+
+- 使用 JSON 表达 Schema 结构（不是数据实例）
+- 字段值类型使用以下占位形式：
+  - string
+  - number
+  - boolean
+  - string | null
+  - object
+  - array
+- 不允许引入 OCR 数据中未体现的概念
+- 不允许绑定某一个具体添加剂或食品
+- 结构应具备“法规级长期复用性”
+
+━━━━━━━━━━━━━━━━━━
+【Schema 抽象规则（非常重要）】
+
+1. 表格标题、标准编号 → 应提升为高层结构
+2. 重复出现的“食品添加剂名称 + 编号 + 功能” → 独立实体
+3. 表头（如“食品分类号 / 食品名称 / 最大使用量 / 备注”）
+   → 必须转化为子结构 schema
+4. 同一添加剂下出现多行食品分类
+   → 推导为 array 结构
+5. “功能”若出现并列词语
+   → 必须设计为数组字段
+6. 表下注释（如 1)、2)）
+   → 设计为可扩展说明字段，而不是硬编码字段
+
+━━━━━━━━━━━━━━━━━━
+【输出格式（仅此一种）】
+
+{
+  "SchemaIR": {
+    "entities": [
+      {
+        "name": "EntityName",
+        "description": "该实体在法规中的语义角色",
+        "fields": [
+          {
+            "field": "field_name",
+            "type": "string | array | object | string | null",
+            "description": "字段含义"
+          }
+        ]
+      }
+    ]
+  }
+}
+"""
+
+    human_prompt = f"""
+━━━━━━━━━━━━━━━━━━
+【OCR 原始数据如下】
+━━━━━━━━━━━━━━━━━━
 <<<
-{text[:5000]}
+{text}
 >>>
 """
-    
+
     try:
         messages = [
-            SystemMessage(content="你是一个表格结构分析专家。请分析表格内容并生成描述其结构的 schemaIR。"),
-            HumanMessage(content=schema_generation_prompt),
+            SystemMessage(content=schema_generation_prompt),
+            HumanMessage(content=human_prompt),
         ]
         schema_ir = chat(
             messages,
             provider_name="dashscope",
-            provider_config={"model": "qwen3-max-preview", "temperature": 0.1},
+            provider_config={"model": "qwen-flash", "temperature": 0.1},
         )
         return schema_ir.strip()
     except Exception as e:
@@ -796,86 +671,17 @@ schemaIR 应该包含：
         return ""
 
 
-def render_schema_prompt(schema_ir: str) -> str:
-    """
-    将 schemaIR 转化为 prompt
-    
-    Args:
-        schema_ir: schemaIR JSON 字符串（可能包含代码块标记）
-        
-    Returns:
-        生成的 prompt 字符串
-    """
-    try:
-        import json
-        import re
-        
-        # 尝试提取 JSON 内容（可能被代码块包裹）
-        json_text = schema_ir.strip()
-        # 移除可能的 markdown 代码块标记
-        json_text = re.sub(r'^```(?:json)?\s*\n', '', json_text, flags=re.MULTILINE)
-        json_text = re.sub(r'\n```\s*$', '', json_text, flags=re.MULTILINE)
-        json_text = json_text.strip()
-        
-        # 尝试提取 JSON 对象（如果 LLM 返回了其他文本）
-        json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', json_text, re.DOTALL)
-        if json_match:
-            json_text = json_match.group(0)
-        
-        schema_data = json.loads(json_text)
-        
-        # 构建 prompt
-        prompt_parts = []
-        prompt_parts.append("SCHEMA_DEFINITION\n")
-        prompt_parts.append(f"SCHEMA_NAME: {schema_data.get('schema_name', 'UNKNOWN')}\n\n")
-        prompt_parts.append(f"DESCRIPTION:\n{schema_data.get('description', '')}\n\n")
-        
-        # 外层结构
-        if "table" in schema_data:
-            prompt_parts.append("————————————————————\n")
-            prompt_parts.append("【外层结构】\n")
-            prompt_parts.append("————————————————————\n\n")
-            prompt_parts.append("TABLE {\n")
-            if "id" in schema_data["table"]:
-                prompt_parts.append(f"  id: string        // {schema_data['table']['id']}\n")
-            if "title" in schema_data["table"]:
-                prompt_parts.append(f"  title: string | null     // {schema_data['table']['title']}\n")
-            prompt_parts.append("}\n\n")
-        
-        # 核心记录结构
-        if "columns" in schema_data:
-            prompt_parts.append("————————————————————\n")
-            prompt_parts.append("【核心记录结构】\n")
-            prompt_parts.append("————————————————————\n\n")
-            prompt_parts.append("RECORD {\n")
-            for col in schema_data["columns"]:
-                col_type = col.get("type", "string")
-                col_name = col.get("name", "")
-                col_desc = col.get("description", "")
-                prompt_parts.append(f"  {col_name}: {col_type}     // {col_desc}\n")
-            prompt_parts.append("}\n\n")
-        
-        # 行映射规则
-        if "row_mapping" in schema_data:
-            prompt_parts.append("————————————————————\n")
-            prompt_parts.append("【行映射规则】\n")
-            prompt_parts.append("————————————————————\n\n")
-            prompt_parts.append(f"{schema_data['row_mapping']}\n\n")
-        
-        return "".join(prompt_parts)
-    except Exception as e:
-        print(f"⚠️  SchemaIR 渲染失败: {e}")
-        return ""
-
-
-def convert_txt_to_markdown(text: str, messages: List[BaseMessage]) -> str:
+def convert_txt_to_markdown(
+    text: str, content_type: str = None, schema_prompt: str = None
+) -> str:
     """
     使用LLM将txt文本转换为markdown格式
-    首先检测内容是文本还是表格，然后选择相应的处理策略
+    首先检测内容是文本还是表格，然后通过AI自动生成相应的prompt进行处理
 
     Args:
         text: 原始文本内容
-        messages: 系统提示词列表（如果检测到表格，此参数可能被忽略）
+        content_type: 可选，预检测的内容类型（"text" 或 "table"），如果提供则跳过检测
+        schema_prompt: 可选，预生成的 schema prompt，如果提供则跳过生成
 
     Returns:
         转换后的markdown格式文本
@@ -883,10 +689,13 @@ def convert_txt_to_markdown(text: str, messages: List[BaseMessage]) -> str:
     if not text or not text.strip():
         return text
 
-    # 步骤1: 检测内容类型（如果是表格，会直接生成 schemaIR）
-    print("  🔍 正在检测内容类型...")
-    content_type, schema_ir = detect_content_type(text)
-    print(f"  ✓ 检测结果: {content_type}")
+    # 步骤1: 检测内容类型（如果未提供）
+    if content_type is None:
+        print("  🔍 正在检测内容类型...")
+        content_type = detect_content_type(text)
+        print(f"  ✓ 检测结果: {content_type}")
+    else:
+        print(f"  ✓ 使用缓存的 content_type: {content_type}")
 
     try:
         if content_type == "text":
@@ -904,61 +713,38 @@ def convert_txt_to_markdown(text: str, messages: List[BaseMessage]) -> str:
             markdown_text = chat(
                 conversion_messages,
                 provider_name="dashscope",
-                provider_config={"model": "qwen3-max-preview", "temperature": 0.1},
+                provider_config={"model": "qwen-flash", "temperature": 0.1},
             )
             return markdown_text.strip()
-        
+
         else:  # content_type == "table"
-            # schemaIR 已经在检测阶段生成
-            if not schema_ir:
-                print("  ⚠️  SchemaIR 生成失败，使用默认 DSL 模式")
-                # 如果生成失败，使用默认的 DSL 模式
-                human_prompt = f"""请按照要求转换：
-<<<
-{text}
->>>
-"""
-                conversion_messages = [
-                    SystemMessage(content=DSL_SYSTEM_PROMPT),
-                    HumanMessage(content=DSL2_PROMPT),
-                    HumanMessage(content=human_prompt),
-                ]
+            # 生成 schema prompt（如果未提供）
+            if schema_prompt is None:
+                print("  🔧 生成 schemaIR...")
+                schema_prompt = generate_schema_ir(text)
+                schema_prompt = (
+                    "以下是表格的schemaIR，请按照要求转换：\n" + schema_prompt
+                )
             else:
-                print("  🔧 将 schemaIR 转换为 prompt...")
-                schema_prompt = render_schema_prompt(schema_ir)
-                
-                if not schema_prompt:
-                    print("  ⚠️  Prompt 渲染失败，使用默认 DSL 模式")
-                    human_prompt = f"""请按照要求转换：
+                print("  ✓ 使用缓存的 schema prompt")
+
+            print("  ✅ 使用生成的 schema prompt 进行转换...")
+            human_prompt = f"""请按照要求转换：
 <<<
 {text}
 >>>
 """
-                    conversion_messages = [
-                        SystemMessage(content=DSL_SYSTEM_PROMPT),
-                        HumanMessage(content=DSL2_PROMPT),
-                        HumanMessage(content=human_prompt),
-                    ]
-                else:
-                    print("  ✅ 使用生成的 schema prompt 进行转换...")
-                    human_prompt = f"""请按照要求转换：
-<<<
-{text}
->>>
-"""
-                    conversion_messages = [
-                        SystemMessage(content=DSL_SYSTEM_PROMPT),
-                        HumanMessage(content=schema_prompt),
-                        HumanMessage(content=human_prompt),
-                    ]
-            
-            markdown_text = chat(
-                conversion_messages,
+            dsl_messages = [
+                SystemMessage(content=DSL_SYSTEM_PROMPT),
+                HumanMessage(content=schema_prompt),
+                HumanMessage(content=human_prompt),
+            ]
+            dsl_text = chat(
+                dsl_messages,
                 provider_name="dashscope",
-                provider_config={"model": "qwen3-max-preview", "temperature": 0.1},
+                provider_config={"model": "qwen-flash", "temperature": 0.1},
             )
-            return markdown_text.strip()
-            
+            return dsl_text.strip()
     except Exception as e:
         print(f"⚠️  LLM转换失败: {e}")
         print("   将使用原始文本作为Markdown内容")
@@ -967,7 +753,7 @@ def convert_txt_to_markdown(text: str, messages: List[BaseMessage]) -> str:
 
 def split_pdf_by_page_ranges(
     pdf_path: str,
-    page_ranges: List[Dict[str, Any]],
+    page_ranges: list[dict[str, Any]],
     output_dir: str = "chunks",
 ):
     """
@@ -977,13 +763,16 @@ def split_pdf_by_page_ranges(
         pdf_path: PDF文件路径
         page_ranges: 页数范围列表，格式为：
             [
-                {"pages": [1, 2], "messages": [SystemMessage(...)]},
-                {"pages": [3], "messages": [SystemMessage(...)]}
+                {"pages": [1, 2]},
+                {"pages": [3]},
+                {"pages": [3, 100], "split": True}
             ]
         output_dir: 输出目录
+
+    注意：prompt 现在通过 AI 自动生成，无需手动配置
     """
     print("\n📋 解析配置...")
-    # 解析配置，获取页数范围和对应的提示词
+    # 解析配置，获取页数范围
     parsed_configs = parse_page_range_config(page_ranges)
 
     if not parsed_configs:
@@ -1008,9 +797,40 @@ def split_pdf_by_page_ranges(
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
+    # 创建统一的日志文件
+    log_filepath = output_path / "processing.log"
+    logger = logging.getLogger("pdf_processing")
+    logger.setLevel(logging.INFO)
+    logger.handlers = []  # 清除已有处理器
+
+    # 创建文件处理器
+    file_handler = logging.FileHandler(log_filepath, encoding="utf-8", mode="w")
+    file_handler.setLevel(logging.INFO)
+
+    # 创建格式化器
+    formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    # 记录处理开始
+    logger.info("=" * 80)
+    logger.info("开始处理 PDF 分割任务")
+    logger.info(f"输出目录: {output_path}")
+    logger.info(f"共 {len(parsed_configs)} 个配置项")
+    logger.info("=" * 80)
+
     # 保存每个块
     print("\n💾 转换并保存文件...")
-    for idx, ((start_page, end_page, messages), text) in enumerate(
+
+    # 缓存用于 split=True 的情况
+    cached_content_type = None
+    cached_schema_prompt = None
+    current_split_group_start_idx = None
+
+    for idx, ((start_page, end_page, is_split), text) in enumerate(
         zip(parsed_configs, texts), 1
     ):
         # 生成文件名
@@ -1021,6 +841,13 @@ def split_pdf_by_page_ranges(
 
         filepath = output_path / filename
 
+        # 记录开始处理
+        start_time = datetime.now()
+        logger.info(f"开始处理第 {start_page}-{end_page} 页")
+        logger.info(f"配置索引: {idx}/{len(parsed_configs)}")
+        logger.info(f"是否 split: {is_split}")
+        logger.info(f"原始文本字符数: {len(text):,}")
+
         # 检查是否有重叠页面
         overlapping_pages_in_range = []
         if overlapping:
@@ -1028,27 +855,126 @@ def split_pdf_by_page_ranges(
                 for overlap_set in overlapping:
                     if page in overlap_set:
                         overlapping_pages_in_range.append(page)
-
-        # 转换为Markdown并保存
-        md_filepath = filepath.with_suffix(".md")
-        print(
-            f"\n  [{idx}/{len(parsed_configs)}] 正在处理第 {start_page}-{end_page} 页..."
-        )
-        print(f"  正在使用LLM转换为Markdown...")
-        markdown_content = convert_txt_to_markdown(text, messages=messages)
-
-        with open(md_filepath, "w", encoding="utf-8") as f:
-            # 如果有重叠页面，添加TODO标记
             if overlapping_pages_in_range:
-                f.write(
-                    f"⚠️  TODO: 以下页面在其他块中也出现: {sorted(set(overlapping_pages_in_range))}\n\n"
+                logger.warning(
+                    f"检测到页面重叠: {sorted(set(overlapping_pages_in_range))}"
                 )
 
-            f.write(markdown_content)
+        try:
+            # with open(filepath, "w", encoding="utf-8") as f:
+            #     f.write(text)
+            # logger.info(f"已保存原始文本: {filepath}")
 
-        print(f"  ✓ 已保存: {md_filepath} (字符数: {len(markdown_content):,})")
+            # 转换为Markdown并保存
+            md_filepath = filepath.with_suffix(".md")
+            print(
+                f"\n  [{idx}/{len(parsed_configs)}] 正在处理第 {start_page}-{end_page} 页..."
+            )
+
+            # 如果是 split=True 的情况，检测并缓存 content_type 和 schema_prompt
+            use_cached_content_type = None
+            use_cached_schema_prompt = None
+
+            if is_split:
+                # 检查是否是新的 split 组
+                is_new_split_group = False
+                if idx == 1:
+                    # 第一个配置项，肯定是新组
+                    is_new_split_group = True
+                elif current_split_group_start_idx is None:
+                    # 没有缓存，是新组
+                    is_new_split_group = True
+                else:
+                    # 检查上一个配置项
+                    prev_start, prev_end, prev_is_split = parsed_configs[idx - 2]
+                    if not prev_is_split:
+                        # 上一个不是 split，是新组
+                        is_new_split_group = True
+                    elif prev_end != start_page - 1:
+                        # 页面不连续，是新组
+                        is_new_split_group = True
+
+                if is_new_split_group:
+                    # 新的 split 组，检测第一页并缓存
+                    logger.info(f"检测 split 组的第一页（第 {start_page} 页）...")
+                    print(f"  🔍 检测 split 组的第一页（第 {start_page} 页）...")
+                    cached_content_type = detect_content_type(text)
+                    logger.info(f"内容类型检测结果: {cached_content_type}")
+                    print(f"  ✓ 检测结果: {cached_content_type}")
+
+                    if cached_content_type == "table":
+                        logger.info("开始生成 schemaIR...")
+                        print("  🔧 生成 schemaIR...")
+                        cached_schema_prompt = generate_schema_ir(text)
+                        cached_schema_prompt = (
+                            "以下是表格的schemaIR，请按照要求转换：\n"
+                            + cached_schema_prompt
+                        )
+                        logger.info(f"cached_schema_prompt: {cached_schema_prompt}")
+                        logger.info(
+                            f"schemaIR 生成完成，长度: {len(cached_schema_prompt):,} 字符"
+                        )
+                    else:
+                        cached_schema_prompt = None
+                        logger.info("内容类型为文本，无需生成 schemaIR")
+
+                    current_split_group_start_idx = idx
+                    use_cached_content_type = cached_content_type
+                    use_cached_schema_prompt = cached_schema_prompt
+                else:
+                    # 复用缓存的 content_type 和 schema_prompt
+                    logger.info(
+                        f"复用 split 组的缓存（content_type: {cached_content_type}）"
+                    )
+                    print(
+                        f"  ✓ 复用 split 组的缓存（content_type: {cached_content_type}）"
+                    )
+                    use_cached_content_type = cached_content_type
+                    use_cached_schema_prompt = cached_schema_prompt
+            else:
+                logger.info("非 split 模式，将进行内容类型检测")
+
+            logger.info("开始使用 LLM 转换为 Markdown...")
+            print(f"  正在使用LLM转换为Markdown...")
+            markdown_content = convert_txt_to_markdown(
+                text,
+                content_type=use_cached_content_type,
+                schema_prompt=use_cached_schema_prompt,
+            )
+            logger.info(f"Markdown 转换完成，字符数: {len(markdown_content):,}")
+
+            with open(md_filepath, "w", encoding="utf-8") as f:
+                # 如果有重叠页面，添加TODO标记
+                if overlapping_pages_in_range:
+                    f.write(
+                        f"⚠️  TODO: 以下页面在其他块中也出现: {sorted(set(overlapping_pages_in_range))}\n\n"
+                    )
+
+                f.write(markdown_content)
+
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            logger.info(f"已保存 Markdown 文件: {md_filepath}")
+            logger.info(f"处理完成，耗时: {duration:.2f} 秒")
+            print(f"  ✓ 已保存: {md_filepath} (字符数: {len(markdown_content):,})")
+
+        except Exception as e:
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            logger.error(f"处理失败: {str(e)}", exc_info=True)
+            logger.error(f"失败时耗时: {duration:.2f} 秒")
+            print(f"  ❌ 处理失败: {e}")
+            raise
+
+    # 关闭日志处理器
+    logger.info("=" * 80)
+    logger.info(f"处理完成！共生成 {len(texts)} 个md文件")
+    logger.info("=" * 80)
+    file_handler.close()
+    logger.removeHandler(file_handler)
 
     print(f"\n✅ 完成！共生成 {len(texts)} 个md文件")
+    print(f"📝 日志文件: {log_filepath}")
 
 
 if __name__ == "__main__":
@@ -1067,40 +993,15 @@ if __name__ == "__main__":
     output_dir = script_dir / "chunks"
 
     # ==================== 配置示例 ====================
-    # 示例1: 基本使用
-    # page_ranges = [
-    #     {"pages": [1, 2], "prompt": "你的提示词1"},
-    #     {"pages": [3], "prompt": "你的提示词2"},
-    # ]
-
-    # 示例2: 有重叠页面的情况
-    # page_ranges = [
-    #     {"pages": [1, 2], "prompt": "提示词1"},
-    #     {"pages": [2, 3], "prompt": "提示词2"},  # 第2页重叠
-    # ]
 
     # ==================== 当前配置 ====================
-    # 请修改下面的 page_ranges 来指定要分割的页数范围和提示词
+    # 请修改下面的 page_ranges 来指定要分割的页数范围
+    # 注意：prompt 现在通过 AI 自动生成，无需手动配置
     page_ranges = [
-        # {"pages": [1], "prompt": MARKDOWN_PROMPT},
-        # {"pages": [4, 6], "prompt": MARKDOWN_PROMPT},
-        # {"pages": [7], "prompt": MARKDOWN_PROMPT},
-        # # {"pages": [8, 148], "prompt": DSL2_PROMPT, "split": True},
-        # {"pages": [8], "prompt": DSL_PROMPT},
-        # {
-        #     "pages": [149,150],
-        #     "messages": [
-        #         SystemMessage(content=DSL_SYSTEM_PROMPT),
-        #         HumanMessage(content=DSL2_PROMPT),
-        #     ],
-        #     "split": True,
-        # },
-        {
-            "pages": [151],
-            "messages": [
-                SystemMessage(content=MARKDOWN_PROMPT),
-            ],
-        },
+        # {"pages": [4, 6]},
+        # {"pages": [8, 10], "split": True},
+        # {"pages": [149, 150], "split": True},
+        {"pages": [220, 221], "split": True},
     ]
 
     split_pdf_by_page_ranges(str(pdf_path), page_ranges, str(output_dir))
