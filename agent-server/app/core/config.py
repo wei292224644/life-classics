@@ -28,8 +28,9 @@ class Settings(BaseSettings):
 
     # Ollama配置
     OLLAMA_BASE_URL: str = "http://localhost:11434"  # Ollama服务地址
-    OLLAMA_MODEL: str = "qwen3:latest"  # Ollama模型名称，如: llama2, mistral, qwen等
+    OLLAMA_MODEL: str = "qwen3:30b"  # Ollama模型名称，如: llama2, mistral, qwen等
     OLLAMA_EMBEDDING_MODEL: str = "qwen3-embedding:4b"  # Ollama嵌入模型
+    OLLAMA_RERANKER_MODEL: str = "dengcao/Qwen3-Reranker-8B:Q5_K_M"
 
     # OpenRouter配置
     OPENROUTER_API_KEY: str = ""
@@ -38,9 +39,13 @@ class Settings(BaseSettings):
 
     # Reranker配置
     RERANKER_PROVIDER: str = "ollama"
-    RERANKER_MODEL: str = "dengcao/Qwen3-Reranker-8B:Q5_K_M"
+    RERANKER_MODEL: str = OLLAMA_RERANKER_MODEL
     RERANKER_TEMPERATURE: float = 0.4
-    RERANKER_REASONING: bool = True
+    
+    # Embedding 增强配置
+    EMBEDDING_ENHANCEMENT_PROVIDER: str = "ollama"
+    EMBEDDING_ENHANCEMENT_MODEL: str = OLLAMA_EMBEDDING_MODEL
+    EMBEDDING_ENHANCEMENT_TEMPERATURE: float = 0.4
 
     # ChromaDB配置
     CHROMA_PERSIST_DIR: str = "./chroma_db"
@@ -72,6 +77,10 @@ class Settings(BaseSettings):
     CHUNK_OVERLAP: int = 200
     CHUNK_SEPARATOR: str = "\n\n"
     CLEAN_TEXT_ENABLED: bool = True
+
+    # Embedding 增强配置
+    ENABLE_DOCUMENT_ENHANCEMENT: bool = True  # 是否启用文档增强（录入时）
+    ENABLE_QUERY_ENHANCEMENT: bool = True  # 是否启用查询增强（检索时）
 
     class Config:
         env_file = ".env"

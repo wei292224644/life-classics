@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.core.document_chunk import DocumentChunk
 from app.core.embeddings import get_embedding_model
 from app.core.kb.vector_store.rerank import rerank_documents, RerankedChunk
+from app.core.kb.vector_store.embedding import enhance_documents, enhance_query
 
 
 class VectorStore:
@@ -97,6 +98,11 @@ class VectorStore:
             skipped_count = len(documents) - len(filtered_documents)
             print(f"警告: 跳过了 {skipped_count} 个空文档")
 
+        # 对文档进行增强（如果启用）
+        if settings.ENABLE_DOCUMENT_ENHANCEMENT:
+            print("正在增强文档内容...")
+            filtered_documents = enhance_documents(filtered_documents)
+
         self.vector_store.add_documents(filtered_documents)
         return True
 
@@ -112,6 +118,13 @@ class VectorStore:
         Returns:
             相似的知识库数据块列表
         """
+        # 对查询进行增强（如果启用）
+        if settings.ENABLE_QUERY_ENHANCEMENT:
+            enhanced_query = enhance_query(query)
+            print(f"原始查询: {query}")
+            print(f"增强查询: {enhanced_query}")
+            query = enhanced_query
+
         return self.vector_store.similarity_search(query, k=top_k)
 
     def search_with_rerank(
@@ -147,7 +160,8 @@ class VectorStore:
             ...     print(f"分数: {chunk.relevance_score:.2f}")
             ...     print(chunk.document.page_content[:100])
         """
-        # 先检索更多文档
+        # 对查询进行增强（如果启用，在 search 方法中已经处理）
+        # 先检索更多文档（search 方法内部会处理查询增强）
         retrieved_docs = self.search(query, top_k=max(retrieve_k, top_k * 2), **kwargs)
 
         # 进行重排序

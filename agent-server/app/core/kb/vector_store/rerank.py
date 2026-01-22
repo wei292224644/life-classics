@@ -289,7 +289,6 @@ reranker = Reranker(
     provider_config={
         "model": settings.RERANKER_MODEL,
         "temperature": settings.RERANKER_TEMPERATURE,
-        "reasoning": settings.RERANKER_REASONING,
     },
 )
 
