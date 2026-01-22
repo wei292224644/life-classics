@@ -1,105 +1,29 @@
-{
-  "FoodAdditiveStandard": {
-    "standard_id": "GB2760—2024",
-    "table_reference": "表A.1",
-    "table_title": "L(+)-酒石酸,dl-酒石酸 L(+)-tartaricacid,dl-tartaricacid",
-    "footnotes": [],
-    "additives": [
-      {
-        "name_chinese": "L(+)-酒石酸,dl-酒石酸",
-        "name_english": "L(+)-tartaricacid,dl-tartaricacid",
-        "cns_number": "01.111,01.313",
-        "ins_number": "334,—",
-        "functions": [
-          "酸度调节剂"
-        ],
-        "usage_rules": [
-          {
-            "food_category_code": "04.02.02.03",
-            "food_name": "腌渍的蔬菜",
-            "max_usage_level": "3.0g/kg",
-            "remarks": "以酒石酸计"
-          },
-          {
-            "food_category_code": "05.02",
-            "food_name": "糖果",
-            "max_usage_level": "30g/kg",
-            "remarks": "以酒石酸计"
-          },
-          {
-            "food_category_code": "06.03.02.05",
-            "food_name": "油炸面制品",
-            "max_usage_level": "10.0g/kg",
-            "remarks": "以酒石酸计"
-          },
-          {
-            "food_category_code": "06.05.02.01",
-            "food_name": "粉丝、粉条",
-            "max_usage_level": "2.0g/kg",
-            "remarks": "以酒石酸计"
-          },
-          {
-            "food_category_code": "06.11",
-            "food_name": "面糊(如用于鱼和禽肉的拖面糊)、裹粉、煎炸粉",
-            "max_usage_level": "10.0g/kg",
-            "remarks": "以酒石酸计"
-          },
-          {
-            "food_category_code": "12.10.01",
-            "food_name": "固体复合调味料",
-            "max_usage_level": "10.0g/kg",
-            "remarks": "以酒石酸计"
-          },
-          {
-            "food_category_code": "14.02.03",
-            "food_name": "果蔬汁(浆)类饮料",
-            "max_usage_level": "5.0g/kg",
-            "remarks": "以酒石酸计,以即饮状态计,相应的固体饮料按稀释倍数增加使用量"
-          },
-          {
-            "food_category_code": "14.03.02",
-            "food_name": "植物蛋白饮料",
-            "max_usage_level": "5.0g/kg",
-            "remarks": "以酒石酸计,以即饮状态计,相应的固体饮料按稀释倍数增加使用量"
-          },
-          {
-            "food_category_code": "14.03.03",
-            "food_name": "复合蛋白饮料",
-            "max_usage_level": "5.0g/kg",
-            "remarks": "以酒石酸计,以即饮状态计,相应的固体饮料按稀释倍数增加使用量"
-          },
-          {
-            "food_category_code": "14.04",
-            "food_name": "碳酸饮料",
-            "max_usage_level": "5.0g/kg",
-            "remarks": "以酒石酸计,以即饮状态计,相应的固体饮料按稀释倍数增加使用量"
-          },
-          {
-            "food_category_code": "14.05",
-            "food_name": "茶、咖啡、植物(类)饮料",
-            "max_usage_level": "5.0g/kg",
-            "remarks": "以酒石酸计,以即饮状态计,相应的固体饮料按稀释倍数增加使用量"
-          },
-          {
-            "food_category_code": "14.07",
-            "food_name": "特殊用途饮料",
-            "max_usage_level": "5.0g/kg",
-            "remarks": "以酒石酸计,以即饮状态计,相应的固体饮料按稀释倍数增加使用量"
-          },
-          {
-            "food_category_code": "14.08",
-            "food_name": "风味饮料",
-            "max_usage_level": "5.0g/kg",
-            "remarks": "以酒石酸计,以即饮状态计,相应的固体饮料按稀释倍数增加使用量"
-          },
-          {
-            "food_category_code": "15.03.01",
-            "food_name": "葡萄酒",
-            "max_usage_level": "4.0g/L",
-            "remarks": "以酒石酸计"
-          }
-        ]
-      }
-    ]
-  }
-}
+.11[(][续][)] 
+
+表 A.11 
+
+L[(] +[)] -[酒石酸][,] dl-[酒石酸] 
+
+L[(] +[)] -tartaricacid[,] dl-tartaricacid INS[号] 334[,—] 
+
+|L(+)-酒石酸,dl-酒石酸<br>L(+)-tartaricacid,dl-tartaricacid|L(+)-酒石酸,dl-酒石酸<br>L(+)-tartaricacid,dl-tartaricacid|L(+)-酒石酸,dl-酒石酸<br>L(+)-tartaricacid,dl-tartaricacid|L(+)-酒石酸,dl-酒石酸<br>L(+)-tartaricacid,dl-tartaricacid|
+|---|---|---|---|
+|CNS号01.<br>111,01.<br>313<br>INS号334,—<br>功能 酸度调节剂||||
+|食品分类号|食品名称|最大使用量|备注|
+|04.<br>02.<br>02.<br>03|腌渍的蔬菜|3.<br>0g/kg|以酒石酸计|
+|05.<br>02|糖果|30g/kg|以酒石酸计|
+|06.<br>03.<br>02.<br>05|油炸面制品|10.<br>0g/kg|以酒石酸计|
+|06.<br>05.<br>02.<br>01|粉丝、粉条|2.<br>0g/kg|以酒石酸计|
+|06.<br>11|面糊(如用于鱼和禽肉的拖面糊)、裹<br>粉、煎炸粉|10.<br>0g/kg|以酒石酸计|
+|12.<br>10.<br>01|固体复合调味料|10.<br>0g/kg|以酒石酸计|
+|14.<br>02.<br>03|果蔬汁(浆)类饮料|5.<br>0g/kg|以酒石酸计,以即饮状态计,相<br>应的固体饮料按稀释倍数增加<br>使用量|
+|14.<br>03.<br>02|植物蛋白饮料|5.<br>0g/kg|以酒石酸计,以即饮状态计,相<br>应的固体饮料按稀释倍数增加<br>使用量|
+|14.<br>03.<br>03|复合蛋白饮料|5.<br>0g/kg|以酒石酸计,以即饮状态计,相<br>应的固体饮料按稀释倍数增加<br>使用量|
+|14.<br>04|碳酸饮料|5.<br>0g/kg|以酒石酸计,以即饮状态计,相<br>应的固体饮料按稀释倍数增加<br>使用量|
+|14.<br>05|茶、咖啡、植物(类)饮料|5.<br>0g/kg|以酒石酸计,以即饮状态计,相<br>应的固体饮料按稀释倍数增加<br>使用量|
+|14.<br>07|特殊用途饮料|5.<br>0g/kg|以酒石酸计,以即饮状态计,相<br>应的固体饮料按稀释倍数增加<br>使用量|
+|14.<br>08|风味饮料|5.<br>0g/kg|以酒石酸计,以即饮状态计,相<br>应的固体饮料按稀释倍数增加<br>使用量|
+|15.<br>03.<br>01|葡萄酒|4.<br>0g/L|以酒石酸计|
+
+
+

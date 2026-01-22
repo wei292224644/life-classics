@@ -39,6 +39,18 @@ async def upload_page(request: Request):
     return templates.TemplateResponse("upload.html", {"request": request})
 
 
+@router.get("/search", response_class=HTMLResponse)
+async def search_page(request: Request):
+    """检索测试页面"""
+    return templates.TemplateResponse("search.html", {"request": request})
+
+
+@router.get("/chat", response_class=HTMLResponse)
+async def chat_page(request: Request):
+    """知识库对话页面"""
+    return templates.TemplateResponse("chat.html", {"request": request})
+
+
 @router.get("/documents/{doc_id}/edit", response_class=HTMLResponse)
 async def edit_document_page(request: Request, doc_id: str):
     """编辑文档的 markdown_cache 页面"""

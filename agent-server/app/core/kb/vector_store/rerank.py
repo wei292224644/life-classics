@@ -17,6 +17,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 @dataclass
 class RerankedChunk:
     """重排序后的 chunk"""
+
     document: Document
     relevance_score: float
     relevance_reason: str
@@ -41,7 +42,7 @@ class Reranker:
             provider_config: LLM 配置
         """
         self.provider_name = provider_name
-        self.provider_config = provider_config or {"model": settings.DASHSCOPE_MODEL}
+        self.provider_config = provider_config
 
     def rerank(
         self,
@@ -101,12 +102,12 @@ class Reranker:
             # 提取文档内容
             content = doc.page_content[:1000]  # 限制长度避免 token 过多
             metadata = doc.metadata or {}
-            
+
             # 构建文档描述
             section_path = metadata.get("section_path", [])
             section_path_str = " > ".join(section_path) if section_path else "根目录"
             content_type = metadata.get("content_type", "unknown")
-            
+
             doc_info = {
                 "index": i,
                 "section_path": section_path_str,
@@ -149,7 +150,7 @@ class Reranker:
                 SystemMessage(content=system_prompt),
                 HumanMessage(content=user_prompt),
             ]
-            
+
             response = chat(
                 messages=messages,
                 provider_name=self.provider_name,
@@ -158,7 +159,7 @@ class Reranker:
 
             # 解析 LLM 返回的评分结果
             scores_dict = self._parse_llm_response(response, len(documents))
-            
+
             # 构建重排序结果
             reranked_chunks = []
             for i, doc in enumerate(documents):
@@ -196,7 +197,7 @@ class Reranker:
             评分字典，key 为文档索引，value 为 {"score": float, "reason": str}
         """
         scores_dict = {}
-        
+
         try:
             # 尝试提取 JSON
             # 移除可能的 markdown 代码块标记
@@ -205,10 +206,10 @@ class Reranker:
                 # 移除代码块标记
                 lines = response.split("\n")
                 response = "\n".join(lines[1:-1]) if len(lines) > 2 else response
-            
+
             # 解析 JSON
             result = json.loads(response)
-            
+
             if "scores" in result:
                 for score_item in result["scores"]:
                     index = score_item.get("index", -1)
@@ -252,7 +253,7 @@ class Reranker:
         for doc in documents:
             content = doc.page_content.lower()
             metadata = doc.metadata or {}
-            
+
             # 计算关键词匹配分数
             content_words = set(content.split())
             matched_words = query_words.intersection(content_words)
@@ -283,13 +284,21 @@ class Reranker:
         return scored_chunks[:top_k]
 
 
+reranker = Reranker(
+    provider_name=settings.RERANKER_PROVIDER,
+    provider_config={
+        "model": settings.RERANKER_MODEL,
+        "temperature": settings.RERANKER_TEMPERATURE,
+        "reasoning": settings.RERANKER_REASONING,
+    },
+)
+
+
 def rerank_documents(
     query: str,
     documents: List[Document],
     top_k: int = 5,
     use_llm: bool = True,
-    provider_name: str = "dashscope",
-    provider_config: Optional[Dict[str, Any]] = None,
 ) -> List[RerankedChunk]:
     """
     对检索到的文档进行重排序（便捷函数）
@@ -308,13 +317,11 @@ def rerank_documents(
     Example:
         >>> from app.core.kb.vector_store.vector_store import VectorStore
         >>> from app.core.kb.vector_store.rerank import rerank_documents
-        >>> 
+        >>>
         >>> vector_store = VectorStore()
         >>> documents = vector_store.search("β-胡萝卜素含量", top_k=10)
         >>> reranked = rerank_documents("β-胡萝卜素含量", documents, top_k=5)
         >>> for chunk in reranked:
         ...     print(f"分数: {chunk.relevance_score:.2f} - {chunk.document.page_content[:100]}")
     """
-    reranker = Reranker(provider_name=provider_name, provider_config=provider_config)
     return reranker.rerank(query, documents, top_k, use_llm=use_llm)
-

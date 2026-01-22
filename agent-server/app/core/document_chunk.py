@@ -4,7 +4,7 @@ from typing import Any, List
 from enum import Enum
 
 from langchain_core.documents import Document
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.core.config import settings
 from app.core.llm import chat, get_llm
@@ -237,14 +237,30 @@ class DocumentChunk:
             {
                 "section_path": self.section_path,
                 "content": content,
-                "meta": self.meta,
+                # "meta": self.meta,
             },
             ensure_ascii=False,
         )
 
-        human_prompt = f"""请将这份数据转换为自然语言描述，直接输出结果，不要过分解读和理解。内容为:{raw_str}"""
+        system_prompt = f"""你是一个文本重组助手。
+
+请根据给定的结构化数据，将其重组为一段通顺、连贯的自然语言描述。
+
+要求：
+1. 仅使用提供的信息，不要添加、推断或解释任何内容。
+2. 将 section_path 视为从大到小的章节层级，按顺序组织语句。
+3. 输出应为完整的一句话或一小段话，而不是列表、字段复述或碎片化文本。
+4. 保持原文含义不变，仅对语序和表述进行整理。
+5. 直接输出最终整理后的文本，不要输出分析过程、步骤说明或任何多余内容。
+
+"""
+
+        human_prompt = f"""输入数据：{raw_str}"""
         page_content = chat(
-            messages=[HumanMessage(content=human_prompt)],
+            messages=[
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=human_prompt),
+            ],
             provider_name="ollama",
             provider_config={
                 "model": "qwen3:1.7b",
@@ -269,60 +285,32 @@ class DocumentChunk:
         return documents
 
 
-# test
-
-# {
-#     "chunk_id": "95bf7c2f090e1b2c",
-#     "doc_id": "20120518_10_analysis",
-#     "doc_title": "20120518_10_analysis",
-#     "section_path": [
-#       "3 技术要求",
-#       "3.1 感官要求：应符合表1 的规定。",
-#       "表1 感官要求"
-#     ],
-#     "content_type": "specification_table",
-#     "content": {
-#       "title": "表1 感官要求",
-#       "rows": [
-#         {
-#           "项目": "色泽",
-#           "要求": "暗红色至棕红色",
-#           "检验方法": "取适量样品置于清洁、干燥的白瓷盘中，在自然光线下，观察其色泽和状态"
-#         },
-#         {
-#           "项目": "状态",
-#           "要求": "结晶或结晶性粉末",
-#           "检验方法": "取适量样品置于清洁、干燥的白瓷盘中，在自然光线下，观察其色泽和状态"
-#         }
-#       ]
-#     },
-#     "meta": {
-#       "standard_type": "国家标准",
-#       "source": "20120518_10_analysis.md"
-#     }
-#   }
 if __name__ == "__main__":
     document_chunk = DocumentChunk(
-        doc_id="20120518_2",
-        doc_title="20120518_2",
-        section_path=["附 录 A 检验方法", "A.2 碘值的测定", "A.2.1 试剂和材料"],
-        content_type=ContentType.SPECIFICATION_TABLE,
-        content=[
-            "乙酸",
-            "碘",
-            "氯气",
-            "环己烷-乙酸混合液：1+1",
-            "碘化钾溶液：150 g/L",
-            "淀粉指示液：10 g/L",
-            "硫代硫酸钠标准滴定溶液：c(Na₂S₂O₃) = 0.1 mol/L",
-            "氯化碘溶液（韦氏溶液）：溶解13 g碘于1000 mL乙酸中（溶解时略加热），然后置于1000 mL棕色瓶中，冷却，此为碘溶液。量取100 mL～200 mL于另一棕色瓶中，置阴暗处供调整用。通入氯气至剩余的800 mL～900 mL碘溶液中，至溶液由深色渐渐变淡直至呈桔红色透明为止。氯气通入量按校正方法校正后，用预先留存的碘溶液予以调整。",
+        doc_id="20120518_35",
+        doc_title="20120518_35",
+        section_path=[
+            "中华人民共和国国家标准 食品添加剂 2-甲基丁酸乙酯",
+            "附录 B 食品添加剂2-甲基丁酸乙酯典型气相色谱图 (面积归一化法)",
+            "B.2 操作条件",
+            "B.2.11 分流比",
         ],
-        meta={"standard_type": "国家标准", "source": "20120518_2.md"},
+        content_type=ContentType.INSTRUMENT,
+        content=[{"分流比": "1/10"}],
+        meta={
+            "standard_type": "国家标准",
+            "source": "",
+            "file_name": "20120518_35.pdf",
+            "file_path": "/var/folders/ym/msxcyrs92dj8zw06k9w7wxh40000gn/T/tmp3gpcniim.pdf",
+            "source_format": "pdf",
+            "markdown_cache": True,
+        },
     )
     start_time = time.time()
-    document_chunk.convert_list_to_document()
+    documents = document_chunk.to_documents()
     print("=" * 20)
-    print(document_chunk.content)
-    print("=" * 20)
-    end_time = time.time()
-    print("耗时：", end_time - start_time)
+    for document in documents:
+        print(document.page_content)
+        print("=" * 20)
+        print(document.metadata)
+        print("=" * 20)

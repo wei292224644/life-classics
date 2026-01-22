@@ -35,6 +35,7 @@ dependencies = [
     "langchain-unstructured>=1.0.1",
     "pymupdf>=1.26.6",
     "pymupdf-layout>=1.26.6",
+    "pymupdf4llm>=0.2.9",
 ]
 
 [build-system]

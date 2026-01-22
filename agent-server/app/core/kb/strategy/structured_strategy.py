@@ -523,3 +523,20 @@ def split_structured(documents: List[DocumentChunk], **kwargs) -> List[DocumentC
         all_chunks.extend(chunks)
 
     return all_chunks
+
+
+if __name__ == "__main__":
+    from pathlib import Path
+    
+    # 获取项目根目录（假设 structured_strategy.py 在 app/core/kb/strategy/ 目录下）
+    current_file = Path(__file__)
+    project_root = current_file.parent.parent.parent.parent.parent
+    markdown_cache_path = project_root / "markdown_cache" / "20120518_35.md"
+    
+    with open(markdown_cache_path, "r", encoding="utf-8") as f:
+        markdown_content = f.read()
+    parser = StructuredMarkdownParser()
+    chunks = parser.parse_markdown(markdown_content=markdown_content, doc_id="20120518_35", doc_title="20120518_35", source="20120518_35.md", base_meta=None)
+    for chunk in chunks:
+        print(chunk.to_documents())
+        print("=" * 20)

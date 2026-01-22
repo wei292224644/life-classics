@@ -79,3 +79,44 @@ def chat(
         return response
     else:
         return str(response)
+
+
+async def chat_stream(
+    messages: List[BaseMessage],
+    provider_name: Optional[str] = None,
+    provider_config: Optional[Dict] = None,
+):
+    """
+    与LLM进行流式对话
+    
+    Yields:
+        str: 流式返回的文本块
+    """
+    llm = get_llm(provider_name, provider_config=provider_config)
+    
+    # 尝试使用流式方法
+    if hasattr(llm, "astream"):
+        async for chunk in llm.astream(messages):
+            if hasattr(chunk, "content"):
+                yield chunk.content
+            elif isinstance(chunk, str):
+                yield chunk
+            else:
+                yield str(chunk)
+    elif hasattr(llm, "stream"):
+        for chunk in llm.stream(messages):
+            if hasattr(chunk, "content"):
+                yield chunk.content
+            elif isinstance(chunk, str):
+                yield chunk
+            else:
+                yield str(chunk)
+    else:
+        # 如果不支持流式，回退到普通调用
+        response = llm.invoke(messages)
+        if hasattr(response, "content"):
+            yield response.content
+        elif isinstance(response, str):
+            yield response
+        else:
+            yield str(response)

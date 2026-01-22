@@ -38,7 +38,9 @@ class Settings(BaseSettings):
 
     # Reranker配置
     RERANKER_PROVIDER: str = "ollama"
-    RERANKER_MODEL: str = "dengcao/Qwen3-Reranker-8B:Q4_K_M"
+    RERANKER_MODEL: str = "dengcao/Qwen3-Reranker-8B:Q5_K_M"
+    RERANKER_TEMPERATURE: float = 0.4
+    RERANKER_REASONING: bool = True
 
     # ChromaDB配置
     CHROMA_PERSIST_DIR: str = "./chroma_db"

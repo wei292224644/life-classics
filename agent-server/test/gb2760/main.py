@@ -12,6 +12,7 @@
 import json
 import logging
 import pymupdf.layout  # 必须先导入这个来激活布局功能
+import pymupdf4llm
 import pymupdf  # PyMuPDF
 import re
 import sys
@@ -272,6 +273,8 @@ SchemaIR 是唯一合法的结构边界。
 你不是解释器，不是总结器，不是知识补全模型。
 你是一个严格的、零推理容错的法规结构映射引擎。"""
 
+logger = logging.getLogger("pdf_processing")
+
 
 def clean_page_header_footer(text: str) -> str:
     """
@@ -310,6 +313,69 @@ def clean_page_header_footer(text: str) -> str:
     return "\n".join(cleaned_lines)
 
 
+def clean_coordinate_data(data: Any, precision: int = 5) -> Any:
+    """
+    清洗坐标数据：降低精度、移除不需要的字段
+
+    Args:
+        data: 要清洗的数据（可以是列表、字典、数字等）
+        precision: 浮点数精度（保留的小数位数）
+
+    Returns:
+        清洗后的数据
+    """
+
+    def _round_number(value: float) -> float:
+        if abs(value) < 10 ** (-precision - 1):
+            return 0.0
+        return round(value, precision)
+
+    def _try_parse_numeric_string(value: str) -> Any:
+        # 尝试将纯数字字符串转为数值再降精度；否则原样返回
+        try:
+            if re.match(r"^-?\d+(?:\.\d+)?$", value.strip()):
+                num = float(value)
+                return _round_number(num)
+            return value
+        except Exception:
+            return value
+
+    if isinstance(data, dict):
+        # 白名单：只保留 bbox 和 chars，其它字段全部丢弃以最大化压缩
+        allowed_fields = {"bbox", "chars"}
+        cleaned = {}
+        for key, value in data.items():
+            key_lower = str(key).lower()
+            if key_lower not in allowed_fields:
+                continue
+            cleaned_value = clean_coordinate_data(value, precision)
+            if cleaned_value not in (None, [], {}):
+                cleaned[key] = cleaned_value
+        return cleaned
+
+    if isinstance(data, list):
+        cleaned_list = [clean_coordinate_data(item, precision) for item in data]
+        return [item for item in cleaned_list if item not in (None, [], {})]
+
+    if isinstance(data, tuple):
+        cleaned_tuple = [clean_coordinate_data(item, precision) for item in data]
+        return [item for item in cleaned_tuple if item not in (None, [], {})]
+
+    if isinstance(data, float):
+        return _round_number(data)
+
+    if isinstance(data, int):
+        return data
+
+    if isinstance(data, str):
+        return _try_parse_numeric_string(data)
+
+    if isinstance(data, bool) or data is None:
+        return data
+
+    return data
+
+
 def extract_text_with_layout(page: pymupdf.Page) -> str:
     """
     使用PyMuPDF的layout功能提取文本，保留布局信息
@@ -320,8 +386,13 @@ def extract_text_with_layout(page: pymupdf.Page) -> str:
     Returns:
         提取的文本内容，保留布局结构
     """
-    list = page.get_text_blocks() or ""
-    res = json.dumps(list, ensure_ascii=False)
+    list_data = page.get_text_words() or []
+
+    # 清洗数据：降低精度、移除不需要的字段
+    # cleaned_data = clean_coordinate_data(list_data, precision=3)
+
+    # 使用紧凑格式（移除不必要的空格）进一步压缩数据
+    res = json.dumps(list_data, ensure_ascii=False, separators=(",", ":"))
     return res
 
 
@@ -329,18 +400,18 @@ def extract_pages_text(
     pdf_path: str, page_ranges: List[Tuple[int, int, bool]]
 ) -> List[str]:
     """
-    从PDF中提取指定页数范围的文本
+    从PDF中提取指定页数范围的文本，使用 pymupdf4llm.to_markdown 转换为 markdown
 
     Args:
         pdf_path: PDF文件路径
         page_ranges: 页数范围列表，每个元素为(start_page, end_page, is_split)元组
 
     Returns:
-        文本内容列表，每个元素对应一个页数范围的文本
+        markdown 文本内容列表，每个元素对应一个页数范围的 markdown 文本
     """
     texts = []
 
-    # 使用PyMuPDF打开PDF（已导入pymupdf.layout激活布局功能）
+    # 使用PyMuPDF打开PDF
     doc = pymupdf.open(pdf_path)
     try:
         total_pages = len(doc)
@@ -360,21 +431,19 @@ def extract_pages_text(
                 texts.append("")
                 continue
 
-            # 提取指定页面的文本（使用layout功能）
-            page_texts = []
-            for page_num in range(start_page, end_page + 1):
-                page = doc[page_num - 1]  # PyMuPDF的索引从0开始
-                # 使用layout功能提取文本
-                text = extract_text_with_layout(page) or ""
-                if text:
-                    # 清理页头和页尾
-                    cleaned_text = clean_page_header_footer(text)
-                    page_texts.append(cleaned_text)
+            # 构建页数列表（pymupdf4llm 使用 0-based 索引）
+            page_indices = [
+                page_num - 1 for page_num in range(start_page, end_page + 1)
+            ]
 
-            combined_text = "\n".join(page_texts)
-            texts.append(combined_text)
+            # 使用 pymupdf4llm.to_markdown 提取并转换为 markdown
+            markdown_text = pymupdf4llm.to_markdown(
+                doc, pages=page_indices, header=False, footer=False
+            )
+
+            texts.append(markdown_text)
             print(
-                f"✓ 已提取第 {start_page}-{end_page} 页，共 {end_page - start_page + 1} 页，字符数量: {len(combined_text)}"
+                f"✓ 已提取第 {start_page}-{end_page} 页，共 {end_page - start_page + 1} 页，字符数量: {len(markdown_text):,}"
             )
     finally:
         doc.close()
@@ -544,7 +613,7 @@ def detect_content_type(text: str) -> str:
             messages,
             provider_name="dashscope",
             provider_config={
-                "model": "qwen-flash",
+                "model": "deepseek-v3.2",
                 "temperature": 0.1,
                 "reasoning": False,
             },
@@ -599,51 +668,35 @@ def generate_schema_ir(text: str) -> str:
 【SchemaIR 输出要求】
 
 - 使用 JSON 表达 Schema 结构（不是数据实例）
-- 字段值类型使用以下占位形式：
-  - string
-  - number
-  - boolean
-  - string | null
-  - object
-  - array
+- 字段类型使用openapi的schema格式
 - 不允许引入 OCR 数据中未体现的概念
 - 不允许绑定某一个具体添加剂或食品
 - 结构应具备“法规级长期复用性”
+- 不要总结表格内容，不要输出任何其他内容
+
 
 ━━━━━━━━━━━━━━━━━━
 【Schema 抽象规则（非常重要）】
 
 1. 表格标题、标准编号 → 应提升为高层结构
-2. 重复出现的“食品添加剂名称 + 编号 + 功能” → 独立实体
-3. 表头（如“食品分类号 / 食品名称 / 最大使用量 / 备注”）
-   → 必须转化为子结构 schema
-4. 同一添加剂下出现多行食品分类
-   → 推导为 array 结构
-5. “功能”若出现并列词语
-   → 必须设计为数组字段
-6. 表下注释（如 1)、2)）
-   → 设计为可扩展说明字段，而不是硬编码字段
+2. 请严格按照表格划分处理变量定义，不要出现变量定义跨表格的情况
+3. 如果表格明确划分了变量定义，则按照表格划分处理变量定义，不要因为内容相似就将不同列的变量定义合并到一起。
+4. 如果内容为双语，则按照双语分别处理变量定义
+5. 请注意元数据是否有表头，如果有明确的表头，则应该按照表头划分处理变量定义。
+    - 示例：
+      [67.92399597167969, 133.6739501953125, 462.56597900390625, 144.9767303466797, "序号 酶 来源a 供体b", 1, 0]
+      这种很可能就是表头，需要单独处理。
+
+6. 表头是字段定义的唯一合法来源：
+    - 任何 Schema 字段，必须能够在表头文本中找到直接或等价的文字依据
+    - 不允许基于数据内容、语义理解或领域知识新增字段
+    - 若表头为纵向排列、多行或合并单元格，应先还原逻辑表头，再据此定义字段
 
 ━━━━━━━━━━━━━━━━━━
 【输出格式（仅此一种）】
 
-{
-  "SchemaIR": {
-    "entities": [
-      {
-        "name": "EntityName",
-        "description": "该实体在法规中的语义角色",
-        "fields": [
-          {
-            "field": "field_name",
-            "type": "string | array | object | string | null",
-            "description": "字段含义"
-          }
-        ]
-      }
-    ]
-  }
-}
+输出格式按照openapi的schema格式输出，不要输出任何其他内容
+
 """
 
     human_prompt = f"""
@@ -663,7 +716,11 @@ def generate_schema_ir(text: str) -> str:
         schema_ir = chat(
             messages,
             provider_name="dashscope",
-            provider_config={"model": "qwen-flash", "temperature": 0.1},
+            provider_config={
+                "model": "deepseek-v3.2",
+                "temperature": 0.1,
+                "reasoning": True,
+            },
         )
         return schema_ir.strip()
     except Exception as e:
@@ -713,7 +770,7 @@ def convert_txt_to_markdown(
             markdown_text = chat(
                 conversion_messages,
                 provider_name="dashscope",
-                provider_config={"model": "qwen-flash", "temperature": 0.1},
+                provider_config={"model": "deepseek-v3.2", "temperature": 0.1},
             )
             return markdown_text.strip()
 
@@ -725,6 +782,7 @@ def convert_txt_to_markdown(
                 schema_prompt = (
                     "以下是表格的schemaIR，请按照要求转换：\n" + schema_prompt
                 )
+                logger.info(f"schema_prompt: {schema_prompt}")
             else:
                 print("  ✓ 使用缓存的 schema prompt")
 
@@ -742,7 +800,7 @@ def convert_txt_to_markdown(
             dsl_text = chat(
                 dsl_messages,
                 provider_name="dashscope",
-                provider_config={"model": "qwen-flash", "temperature": 0.1},
+                provider_config={"model": "deepseek-v3.2", "temperature": 0.1},
             )
             return dsl_text.strip()
     except Exception as e:
@@ -799,7 +857,6 @@ def split_pdf_by_page_ranges(
 
     # 创建统一的日志文件
     log_filepath = output_path / "processing.log"
-    logger = logging.getLogger("pdf_processing")
     logger.setLevel(logging.INFO)
     logger.handlers = []  # 清除已有处理器
 
@@ -823,30 +880,25 @@ def split_pdf_by_page_ranges(
     logger.info("=" * 80)
 
     # 保存每个块
-    print("\n💾 转换并保存文件...")
+    print("\n💾 保存 Markdown 文件...")
 
-    # 缓存用于 split=True 的情况
-    cached_content_type = None
-    cached_schema_prompt = None
-    current_split_group_start_idx = None
-
-    for idx, ((start_page, end_page, is_split), text) in enumerate(
+    for idx, ((start_page, end_page, is_split), markdown_content) in enumerate(
         zip(parsed_configs, texts), 1
     ):
         # 生成文件名
         if start_page == end_page:
-            filename = f"page_{start_page}.txt"
+            filename = f"page_{start_page}.md"
         else:
-            filename = f"pages_{start_page}_{end_page}.txt"
+            filename = f"pages_{start_page}_{end_page}.md"
 
-        filepath = output_path / filename
+        md_filepath = output_path / filename
 
         # 记录开始处理
         start_time = datetime.now()
         logger.info(f"开始处理第 {start_page}-{end_page} 页")
         logger.info(f"配置索引: {idx}/{len(parsed_configs)}")
         logger.info(f"是否 split: {is_split}")
-        logger.info(f"原始文本字符数: {len(text):,}")
+        logger.info(f"Markdown 字符数: {len(markdown_content):,}")
 
         # 检查是否有重叠页面
         overlapping_pages_in_range = []
@@ -861,88 +913,44 @@ def split_pdf_by_page_ranges(
                 )
 
         try:
-            # with open(filepath, "w", encoding="utf-8") as f:
-            #     f.write(text)
-            # logger.info(f"已保存原始文本: {filepath}")
-
-            # 转换为Markdown并保存
-            md_filepath = filepath.with_suffix(".md")
             print(
                 f"\n  [{idx}/{len(parsed_configs)}] 正在处理第 {start_page}-{end_page} 页..."
             )
 
-            # 如果是 split=True 的情况，检测并缓存 content_type 和 schema_prompt
-            use_cached_content_type = None
-            use_cached_schema_prompt = None
+            # 使用 LLM 分析 markdown 内容
+            logger.info("开始使用 LLM 分析 Markdown 内容...")
+            print(f"  正在使用LLM分析Markdown内容...")
 
-            if is_split:
-                # 检查是否是新的 split 组
-                is_new_split_group = False
-                if idx == 1:
-                    # 第一个配置项，肯定是新组
-                    is_new_split_group = True
-                elif current_split_group_start_idx is None:
-                    # 没有缓存，是新组
-                    is_new_split_group = True
-                else:
-                    # 检查上一个配置项
-                    prev_start, prev_end, prev_is_split = parsed_configs[idx - 2]
-                    if not prev_is_split:
-                        # 上一个不是 split，是新组
-                        is_new_split_group = True
-                    elif prev_end != start_page - 1:
-                        # 页面不连续，是新组
-                        is_new_split_group = True
+            human_prompt = f"""请按照要求转换以下 Markdown 内容：
+<<<
+{markdown_content}
+>>>
+"""
+            conversion_messages = [
+                SystemMessage(content=MARKDOWN_PROMPT),
+                HumanMessage(content=human_prompt),
+            ]
 
-                if is_new_split_group:
-                    # 新的 split 组，检测第一页并缓存
-                    logger.info(f"检测 split 组的第一页（第 {start_page} 页）...")
-                    print(f"  🔍 检测 split 组的第一页（第 {start_page} 页）...")
-                    cached_content_type = detect_content_type(text)
-                    logger.info(f"内容类型检测结果: {cached_content_type}")
-                    print(f"  ✓ 检测结果: {cached_content_type}")
+            try:
+                analyzed_content = chat(
+                    conversion_messages,
+                    provider_name="dashscope",
+                    provider_config={
+                        "model": "qwen3-max-preview",
+                        "temperature": 0.1,
+                        "reasoning": False,
+                    },
+                )
+                analyzed_content = analyzed_content.strip()
+                logger.info(f"LLM 分析完成，字符数: {len(analyzed_content):,}")
+                print(f"  ✓ LLM 分析完成")
+            except Exception as e:
+                logger.error(f"LLM 分析失败: {str(e)}", exc_info=True)
+                print(f"  ⚠️  LLM 分析失败: {e}，使用原始内容")
+                analyzed_content = markdown_content
 
-                    if cached_content_type == "table":
-                        logger.info("开始生成 schemaIR...")
-                        print("  🔧 生成 schemaIR...")
-                        cached_schema_prompt = generate_schema_ir(text)
-                        cached_schema_prompt = (
-                            "以下是表格的schemaIR，请按照要求转换：\n"
-                            + cached_schema_prompt
-                        )
-                        logger.info(f"cached_schema_prompt: {cached_schema_prompt}")
-                        logger.info(
-                            f"schemaIR 生成完成，长度: {len(cached_schema_prompt):,} 字符"
-                        )
-                    else:
-                        cached_schema_prompt = None
-                        logger.info("内容类型为文本，无需生成 schemaIR")
-
-                    current_split_group_start_idx = idx
-                    use_cached_content_type = cached_content_type
-                    use_cached_schema_prompt = cached_schema_prompt
-                else:
-                    # 复用缓存的 content_type 和 schema_prompt
-                    logger.info(
-                        f"复用 split 组的缓存（content_type: {cached_content_type}）"
-                    )
-                    print(
-                        f"  ✓ 复用 split 组的缓存（content_type: {cached_content_type}）"
-                    )
-                    use_cached_content_type = cached_content_type
-                    use_cached_schema_prompt = cached_schema_prompt
-            else:
-                logger.info("非 split 模式，将进行内容类型检测")
-
-            logger.info("开始使用 LLM 转换为 Markdown...")
-            print(f"  正在使用LLM转换为Markdown...")
-            markdown_content = convert_txt_to_markdown(
-                text,
-                content_type=use_cached_content_type,
-                schema_prompt=use_cached_schema_prompt,
-            )
-            logger.info(f"Markdown 转换完成，字符数: {len(markdown_content):,}")
-
+            # 保存分析后的内容
+            print(f"  正在保存文件...")
             with open(md_filepath, "w", encoding="utf-8") as f:
                 # 如果有重叠页面，添加TODO标记
                 if overlapping_pages_in_range:
@@ -950,13 +958,13 @@ def split_pdf_by_page_ranges(
                         f"⚠️  TODO: 以下页面在其他块中也出现: {sorted(set(overlapping_pages_in_range))}\n\n"
                     )
 
-                f.write(markdown_content)
+                f.write(analyzed_content)
 
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
             logger.info(f"已保存 Markdown 文件: {md_filepath}")
             logger.info(f"处理完成，耗时: {duration:.2f} 秒")
-            print(f"  ✓ 已保存: {md_filepath} (字符数: {len(markdown_content):,})")
+            print(f"  ✓ 已保存: {md_filepath} (字符数: {len(analyzed_content):,})")
 
         except Exception as e:
             end_time = datetime.now()
@@ -998,10 +1006,12 @@ if __name__ == "__main__":
     # 请修改下面的 page_ranges 来指定要分割的页数范围
     # 注意：prompt 现在通过 AI 自动生成，无需手动配置
     page_ranges = [
-        # {"pages": [4, 6]},
+        {"pages": [4, 6]},
         # {"pages": [8, 10], "split": True},
         # {"pages": [149, 150], "split": True},
-        {"pages": [220, 221], "split": True},
+        # {"pages": [220, 221], "split": True},
+        # {"pages": [238, 241], "split": True},
+        {"pages": [232, 234], "split": True},
     ]
 
     split_pdf_by_page_ranges(str(pdf_path), page_ranges, str(output_dir))
