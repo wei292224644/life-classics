@@ -5,8 +5,10 @@
 from typing import Optional, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
+from app.core.config import settings
 from app.core.document_chunk import DocumentChunk
-from app.core.llm import get_llm
+from app.core.llm import chat
+from app.core.markdown_db import markdown_db
 
 
 def convert_to_structured(document: DocumentChunk) -> DocumentChunk:
@@ -20,13 +22,17 @@ def convert_to_structured(document: DocumentChunk) -> DocumentChunk:
         转换后的文档
     """
     text = analyze_with_llm(document.content)
-    # 保存到缓存
-    with open(f"./markdown_cache/{document.doc_id}.md", "w") as f:
-        f.write(text)
+    
+    # 保存到数据库（文件保存由 markdown_db 内部处理）
+    markdown_db.insert_markdown(
+        markdown_id=document.markdown_id,
+        doc_id=document.doc_id,
+        doc_title=document.doc_title,
+        content=text,
+    )
+    
     # 更新文档内容
     document.content = text
-    # 更新文档元数据
-    document.meta["markdown_cache"] = True
     return document
 
 
@@ -166,16 +172,16 @@ def analyze_with_llm(text: str) -> str:
 
     try:
         print("\n正在调用LLM分析...")
-        llm = get_llm("dashscope")
-        response = llm.invoke(
-            [SystemMessage(content=system_prompt), HumanMessage(content=human_prompt)]
+        response = chat(
+            messages=[
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=human_prompt),
+            ],
+            provider_name=settings.DOCUMENT_STRUCTURE_PROVIDER,
+            model=settings.DOCUMENT_STRUCTURE_MODEL,
+            provider_config={"temperature": settings.DOCUMENT_STRUCTURE_TEMPERATURE},
         )
-        if hasattr(response, "content"):
-            return response.content
-        elif isinstance(response, str):
-            return response
-        else:
-            return str(response)
+        return response
 
     except Exception as e:
         print(f"LLM调用失败: {e}")

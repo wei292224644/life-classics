@@ -14,58 +14,62 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     # 模型提供者配置
-    # LLM提供者选择: "dashscope", "ollama", "openrouter"
-    LLM_PROVIDER: str = "ollama"
-    # Embedding提供者选择: "dashscope", "ollama", "openrouter"
-    # 可以独立配置，例如：LLM使用ollama，Embedding使用dashscope
-    EMBEDDING_PROVIDER: str = "ollama"
+    LLM_PROVIDER: str = "ollama"  # "dashscope", "ollama", "openrouter"
 
-    # Qwen/DashScope配置
+    # DashScope配置
     DASHSCOPE_API_KEY: str = "sk-03f3eb5bc4cf446bafa1c76e762f65ad"
-    QWEN_MODEL: str = "qwen3-max-preview"
-    QWEN_EMBEDDING_MODEL: str = "text-embedding-v2"  # Qwen嵌入模型
-    QWEN_VL_MODEL: str = "qwen3-vl-plus-2025-12-19"
 
     # Ollama配置
-    OLLAMA_BASE_URL: str = "http://localhost:11434"  # Ollama服务地址
-    OLLAMA_MODEL: str = "qwen3:30b"  # Ollama模型名称，如: llama2, mistral, qwen等
-    OLLAMA_EMBEDDING_MODEL: str = "qwen3-embedding:4b"  # Ollama嵌入模型
-    OLLAMA_RERANKER_MODEL: str = "dengcao/Qwen3-Reranker-8B:Q5_K_M"
+    OLLAMA_BASE_URL: str = "http://192.168.66.234:11434"
+
+    # Chat配置
+    CHAT_PROVIDER: str = "dashscope"
+    CHAT_MODEL: str = "qwen3-max-preview"
+    CHAT_TEMPERATURE: float = 0.4
 
     # OpenRouter配置
     OPENROUTER_API_KEY: str = ""
-    OPENROUTER_MODEL: str = "openai/gpt-3.5-turbo"  # OpenRouter模型名称
-    OPENROUTER_EMBEDDING_MODEL: str = "text-embedding-ada-002"  # OpenRouter嵌入模型
+    OPENROUTER_MODEL: str = "openai/gpt-3.5-turbo"
+    OPENROUTER_EMBEDDING_MODEL: str = "text-embedding-ada-002"
 
     # Reranker配置
     RERANKER_PROVIDER: str = "ollama"
-    RERANKER_MODEL: str = OLLAMA_RERANKER_MODEL
+    RERANKER_MODEL: str = "dengcao/Qwen3-Reranker-8B:Q5_K_M"
     RERANKER_TEMPERATURE: float = 0.4
-    
-    # Embedding 增强配置
-    EMBEDDING_ENHANCEMENT_PROVIDER: str = "ollama"
-    EMBEDDING_ENHANCEMENT_MODEL: str = OLLAMA_EMBEDDING_MODEL
-    EMBEDDING_ENHANCEMENT_TEMPERATURE: float = 0.4
+
+    # Embedding配置
+    EMBEDDING_PROVIDER: str = "ollama"
+    EMBEDDING_MODEL: str = "qwen3-embedding:4b"
+
+    # DOCUMENT_CONVERT配置
+    DOCUMENT_CONVERT_PROVIDER: str = "ollama"
+    DOCUMENT_CONVERT_MODEL: str = "qwen3:1.7b"
+
+    # 文档Chunk配置
+    DOCUMENT_STRUCTURE_PROVIDER: str = "dashscope"
+    DOCUMENT_STRUCTURE_MODEL: str = "qwen3-max-preview"
+    DOCUMENT_STRUCTURE_TEMPERATURE: float = 0.4
+    MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
+    SUPPORTED_EXTENSIONS: List[str] = [".pdf", ".txt", ".md", ".docx", ".pptx"]
+    MARKDOWN_CACHE_DIR: str = "./markdown_cache"
 
     # ChromaDB配置
     CHROMA_PERSIST_DIR: str = "./chroma_db"
     CHROMA_COLLECTION_NAME: str = "knowledge_base"
+    
+    # Markdown数据库配置
+    MARKDOWN_PERSIST_DIR: str = "./markdown_db"
+    MARKDOWN_COLLECTION_NAME: str = "markdown_base"
 
-    # 文档处理配置
-    MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
-    SUPPORTED_EXTENSIONS: List[str] = [".pdf", ".txt", ".md", ".docx", ".pptx"]
-
-    # OCR配置（用于处理图片型PDF）
-    ENABLE_OCR: bool = True  # 是否启用OCR功能
-    OCR_LANG: str = "chi_sim+eng"  # OCR语言，chi_sim=简体中文，eng=英文，可组合使用
-    OCR_MIN_TEXT_LENGTH: int = 10  # 如果提取的文本长度小于此值，尝试使用OCR
+    # OCR配置
+    ENABLE_OCR: bool = True
+    OCR_LANG: str = "chi_sim+eng"
+    OCR_MIN_TEXT_LENGTH: int = 10
 
     # 网络搜索配置
-    ENABLE_WEB_SEARCH: bool = True  # 是否启用网络搜索功能
-    SEARCH_PROVIDER: str = "duckduckgo"  # 搜索提供者: "duckduckgo", "tavily", "serper"
-    # Tavily Search API 配置（https://tavily.com）
+    ENABLE_WEB_SEARCH: bool = True
+    SEARCH_PROVIDER: str = "duckduckgo"  # "duckduckgo", "tavily", "serper"
     TAVILY_API_KEY: str = ""
-    # Serper API 配置（https://serper.dev）
     SERPER_API_KEY: str = ""
 
     # 服务器配置
@@ -77,10 +81,6 @@ class Settings(BaseSettings):
     CHUNK_OVERLAP: int = 200
     CHUNK_SEPARATOR: str = "\n\n"
     CLEAN_TEXT_ENABLED: bool = True
-
-    # Embedding 增强配置
-    ENABLE_DOCUMENT_ENHANCEMENT: bool = True  # 是否启用文档增强（录入时）
-    ENABLE_QUERY_ENHANCEMENT: bool = True  # 是否启用查询增强（检索时）
 
     class Config:
         env_file = ".env"

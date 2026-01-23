@@ -19,9 +19,16 @@
         <div class="mb-4 p-4 bg-muted rounded-lg">
             <div class="text-sm">
                 <p class="font-medium mb-1">文档 ID: <code class="px-1 py-0.5 bg-background rounded">{{ doc_id }}</code></p>
-                <p class="text-muted-foreground">
-                    修改 Markdown 内容后，点击"保存并重新处理"将删除当前文档的所有 chunks 并重新生成。
+                <p class="text-muted-foreground mb-3">
+                    修改 Markdown 内容后，点击"保存并重新处理"将删除当前 markdown 的所有 chunks 并重新生成。
                 </p>
+                <!-- Markdown 列表选择器 -->
+                <div id="markdownSelectorContainer" class="hidden">
+                    <label class="block text-sm font-medium mb-2">选择 Markdown:</label>
+                    <select id="markdownSelector" class="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="">加载中...</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -102,16 +109,75 @@
     const docId = "{{ doc_id }}";
     // API_BASE 已在 layout.html 中声明
     let easyMDE = null;
+    let currentMarkdownId = null;
+    let markdownList = [];
 
-    async function loadMarkdown() {
+    // 加载 markdown 列表
+    async function loadMarkdownList() {
+        try {
+            const response = await fetch(`${API_BASE}/documents/${encodeURIComponent(docId)}/markdowns`);
+            const data = await response.json();
+            
+            if (response.ok && data.markdowns && data.markdowns.length > 0) {
+                markdownList = data.markdowns;
+                
+                // 填充选择器
+                const selector = document.getElementById('markdownSelector');
+                selector.innerHTML = '';
+                
+                markdownList.forEach((md, index) => {
+                    const option = document.createElement('option');
+                    option.value = md.markdown_id;
+                    option.textContent = `${md.doc_title || '未命名'} (${md.markdown_id.substring(0, 8)}...)`;
+                    if (index === 0) {
+                        option.selected = true;
+                        currentMarkdownId = md.markdown_id;
+                    }
+                    selector.appendChild(option);
+                });
+                
+                // 显示选择器
+                document.getElementById('markdownSelectorContainer').classList.remove('hidden');
+                
+                // 监听选择器变化
+                selector.addEventListener('change', (e) => {
+                    currentMarkdownId = e.target.value;
+                    loadMarkdown(currentMarkdownId);
+                });
+                
+                return currentMarkdownId;
+            } else {
+                showError('该文档没有 markdown 记录');
+                return null;
+            }
+        } catch (error) {
+            console.error('加载 markdown 列表失败:', error);
+            showError(`加载 markdown 列表失败: ${error.message}`);
+            return null;
+        }
+    }
+
+    async function loadMarkdown(markdownId = null) {
         showLoading();
         
         try {
-            const response = await fetch(`${API_BASE}/documents/${encodeURIComponent(docId)}/markdown`);
+            const url = markdownId 
+                ? `${API_BASE}/documents/${encodeURIComponent(docId)}/markdown?markdown_id=${encodeURIComponent(markdownId)}`
+                : `${API_BASE}/documents/${encodeURIComponent(docId)}/markdown`;
+            
+            const response = await fetch(url);
             const data = await response.json();
             
             if (response.ok) {
-                // 初始化 EasyMDE 编辑器
+                currentMarkdownId = data.markdown_id;
+                
+                // 更新选择器选中项
+                const selector = document.getElementById('markdownSelector');
+                if (selector) {
+                    selector.value = currentMarkdownId;
+                }
+                
+                // 初始化或更新 EasyMDE 编辑器
                 if (!easyMDE) {
                     easyMDE = new EasyMDE({
                         element: document.getElementById('markdownEditor'),
@@ -168,6 +234,10 @@
             return;
         }
 
+        if (!currentMarkdownId) {
+            alert('请先选择一个 Markdown');
+            return;
+        }
 
         const saveBtn = document.getElementById('saveBtn');
         saveBtn.disabled = true;
@@ -178,14 +248,17 @@
 
         try {
             // 1. 保存 Markdown
+            const saveParams = new URLSearchParams({
+                content: content,
+                markdown_id: currentMarkdownId,
+            });
+            
             const saveResponse = await fetch(`${API_BASE}/documents/${encodeURIComponent(docId)}/markdown`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: new URLSearchParams({
-                    content: content,
-                }),
+                body: saveParams,
             });
 
             if (!saveResponse.ok) {
@@ -196,14 +269,17 @@
             updateProgress(30, '正在删除现有 chunks...');
 
             // 2. 重新处理
+            const reprocessParams = new URLSearchParams({
+                strategy: 'structured',
+                markdown_id: currentMarkdownId,
+            });
+            
             const reprocessResponse = await fetch(`${API_BASE}/documents/${encodeURIComponent(docId)}/reprocess`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: new URLSearchParams({
-                    strategy: 'structured',
-                }),
+                body: reprocessParams,
             });
 
             updateProgress(70, '正在重新生成 chunks...');
@@ -234,14 +310,18 @@
         document.getElementById('progressText').textContent = text;
     }
 
-    // 页面加载时加载 Markdown
-    document.addEventListener('DOMContentLoaded', () => {
-        loadMarkdown();
+    // 页面加载时先加载 markdown 列表，然后加载第一个 markdown
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 先加载 markdown 列表
+        const firstMarkdownId = await loadMarkdownList();
+        
+        // 然后加载 markdown 内容
+        if (firstMarkdownId) {
+            await loadMarkdown(firstMarkdownId);
+        }
 
         // 保存按钮
         document.getElementById('saveBtn').addEventListener('click', saveAndReprocess);
-
-        // EasyMDE 已经内置了格式化功能，不需要额外的格式化按钮
     });
 </script>
 {% endblock %}

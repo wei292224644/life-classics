@@ -32,6 +32,7 @@ class StructuredMarkdownParser:
         doc_title: str,
         source: str,
         base_meta: Optional[Dict[str, Any]] = None,
+        markdown_id: str = None,
     ) -> List[DocumentChunk]:
         """
         解析 Markdown 文档并生成 DocumentChunk 列表
@@ -48,6 +49,8 @@ class StructuredMarkdownParser:
         """
         self.current_section_path = []
         self.chunk_counter = {}
+        # 如果没有提供 markdown_id，使用 doc_id 作为默认值（向后兼容）
+        self.markdown_id = markdown_id if markdown_id is not None else doc_id
         chunks: List[DocumentChunk] = []
 
         lines = markdown_content.split("\n")
@@ -140,6 +143,7 @@ class StructuredMarkdownParser:
                     content=parsed_content,
                     source=source,
                     base_meta=base_meta,
+                    markdown_id=self.markdown_id,  # 传递 markdown_id
                 )
                 chunks.append(chunk)
                 i = next_i
@@ -440,6 +444,7 @@ class StructuredMarkdownParser:
         content: Any,
         source: str,
         base_meta: Optional[Dict[str, Any]] = None,
+        markdown_id: str = None,
     ) -> DocumentChunk:
         """创建 DocumentChunk 对象"""
         # 生成 chunk_id
@@ -480,6 +485,9 @@ class StructuredMarkdownParser:
         if base_meta:
             meta.update(base_meta)
 
+        # 如果没有提供 markdown_id，使用 doc_id 作为默认值（向后兼容）
+        final_markdown_id = markdown_id if markdown_id is not None else doc_id
+        
         return DocumentChunk(
             doc_id=doc_id,
             doc_title=doc_title,
@@ -487,6 +495,7 @@ class StructuredMarkdownParser:
             content_type=content_type_enum,
             content=content,
             meta=meta,
+            markdown_id=final_markdown_id,  # 添加 markdown_id
         )
 
 
@@ -518,25 +527,9 @@ def split_structured(documents: List[DocumentChunk], **kwargs) -> List[DocumentC
             doc_title=document.doc_title,
             source=document.meta.get("source", ""),
             base_meta=document.meta,
+            markdown_id=document.markdown_id,  # 传递 markdown_id
         )
 
         all_chunks.extend(chunks)
 
     return all_chunks
-
-
-if __name__ == "__main__":
-    from pathlib import Path
-    
-    # 获取项目根目录（假设 structured_strategy.py 在 app/core/kb/strategy/ 目录下）
-    current_file = Path(__file__)
-    project_root = current_file.parent.parent.parent.parent.parent
-    markdown_cache_path = project_root / "markdown_cache" / "20120518_35.md"
-    
-    with open(markdown_cache_path, "r", encoding="utf-8") as f:
-        markdown_content = f.read()
-    parser = StructuredMarkdownParser()
-    chunks = parser.parse_markdown(markdown_content=markdown_content, doc_id="20120518_35", doc_title="20120518_35", source="20120518_35.md", base_meta=None)
-    for chunk in chunks:
-        print(chunk.to_documents())
-        print("=" * 20)

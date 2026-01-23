@@ -12,9 +12,8 @@ from langchain_core.documents import Document
 
 from app.core.config import settings
 from app.core.document_chunk import DocumentChunk
-from app.core.embeddings import get_embedding_model
+from app.core.llm import get_embedding
 from app.core.kb.vector_store.rerank import rerank_documents, RerankedChunk
-from app.core.kb.vector_store.embedding import enhance_documents, enhance_query
 
 
 class VectorStore:
@@ -31,8 +30,9 @@ class VectorStore:
         """
         os.makedirs(settings.CHROMA_PERSIST_DIR, exist_ok=True)
         # 获取嵌入模型
-        self.embedding_model = get_embedding_model(
+        self.embedding_model = get_embedding(
             provider_name=settings.EMBEDDING_PROVIDER,
+            model=settings.EMBEDDING_MODEL,
         )
 
         # 初始化ChromaDB向量存储
@@ -98,11 +98,6 @@ class VectorStore:
             skipped_count = len(documents) - len(filtered_documents)
             print(f"警告: 跳过了 {skipped_count} 个空文档")
 
-        # 对文档进行增强（如果启用）
-        if settings.ENABLE_DOCUMENT_ENHANCEMENT:
-            print("正在增强文档内容...")
-            filtered_documents = enhance_documents(filtered_documents)
-
         self.vector_store.add_documents(filtered_documents)
         return True
 
@@ -118,13 +113,6 @@ class VectorStore:
         Returns:
             相似的知识库数据块列表
         """
-        # 对查询进行增强（如果启用）
-        if settings.ENABLE_QUERY_ENHANCEMENT:
-            enhanced_query = enhance_query(query)
-            print(f"原始查询: {query}")
-            print(f"增强查询: {enhanced_query}")
-            query = enhanced_query
-
         return self.vector_store.similarity_search(query, k=top_k)
 
     def search_with_rerank(
@@ -132,7 +120,6 @@ class VectorStore:
         query: str,
         top_k: int = 5,
         retrieve_k: int = 10,
-        use_llm: bool = True,
         **kwargs,
     ) -> List[RerankedChunk]:
         """
@@ -142,7 +129,6 @@ class VectorStore:
             query: 查询文本
             top_k: 返回前 k 个最相关的结果
             retrieve_k: 初始检索的文档数量（应该 >= top_k）
-            use_llm: 是否使用 LLM 进行重排序
             **kwargs: 其他搜索参数
 
         Returns:
@@ -153,8 +139,7 @@ class VectorStore:
             >>> reranked = vector_store.search_with_rerank(
             ...     "β-胡萝卜素含量",
             ...     top_k=5,
-            ...     retrieve_k=10,
-            ...     use_llm=True
+            ...     retrieve_k=10
             ... )
             >>> for chunk in reranked:
             ...     print(f"分数: {chunk.relevance_score:.2f}")
@@ -169,7 +154,6 @@ class VectorStore:
             query=query,
             documents=retrieved_docs,
             top_k=top_k,
-            use_llm=use_llm,
         )
 
         return reranked_chunks
@@ -187,6 +171,19 @@ class VectorStore:
         self.vector_store.delete(where={"doc_id": doc_id})
         return True
 
+    def delete_by_markdown_id(self, markdown_id: str) -> bool:
+        """
+        根据 markdown ID 删除向量数据
+
+        Args:
+            markdown_id: markdown 文件的唯一标识
+
+        Returns:
+            是否删除成功
+        """
+        self.vector_store.delete(where={"markdown_id": markdown_id})
+        return True
+
     def clear_all(self) -> bool:
         """
         清空所有文档和 chunks（删除集合并重新创建）
@@ -195,25 +192,25 @@ class VectorStore:
             是否清空成功
         """
         try:
-            # 删除集合并重新创建
-            self.vector_store.delete_collection()
-            self.vector_store = Chroma(
-                persist_directory=settings.CHROMA_PERSIST_DIR,
-                collection_name=settings.CHROMA_COLLECTION_NAME,
-                embedding_function=self.embedding_model,
-            )
+            # 先尝试删除所有文档
+            all_results = self.vector_store._collection.get(include=[])
+            ids = all_results.get("ids", []) or []
+            if ids:
+                self.vector_store._collection.delete(ids=ids)
             return True
         except Exception as e:
-            print(f"清空集合失败: {e}")
-            # 如果 delete_collection 失败，尝试删除所有文档
+            print(f"删除所有文档失败: {e}")
+            # 如果删除文档失败，尝试删除集合并重新创建
             try:
-                all_results = self.vector_store._collection.get(include=[])
-                ids = all_results.get("ids", []) or []
-                if ids:
-                    self.vector_store._collection.delete(ids=ids)
+                self.vector_store.delete_collection()
+                self.vector_store = Chroma(
+                    persist_directory=settings.CHROMA_PERSIST_DIR,
+                    collection_name=settings.CHROMA_COLLECTION_NAME,
+                    embedding_function=self.embedding_model,
+                )
                 return True
             except Exception as e2:
-                print(f"删除所有文档失败: {e2}")
+                print(f"清空集合失败: {e2}")
                 return False
 
 

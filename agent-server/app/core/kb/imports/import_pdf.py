@@ -4,6 +4,7 @@ PDF 文件导入模块
 """
 
 import os
+import uuid
 from typing import List
 from pathlib import Path
 
@@ -12,6 +13,7 @@ import pymupdf4llm  # PyMuPDF for LLM
 import pymupdf  # PyMuPDF
 from app.core.document_chunk import DocumentChunk, ContentType
 from app.core.config import settings
+from app.core.markdown_db import markdown_db
 
 
 def extract_pdf_text(
@@ -85,12 +87,13 @@ def import_pdf(file_path: str, original_filename: str = None) -> List[DocumentCh
     # 使用原始文件名或文件路径中的文件名
     if original_filename:
         file_name = original_filename
-        doc_id = Path(original_filename).stem
         doc_title = Path(original_filename).stem
     else:
         file_name = os.path.basename(file_path)
-        doc_id = file_path_obj.stem
         doc_title = file_path_obj.stem
+    
+    # 生成 doc_id（使用 UUID）
+    doc_id = uuid.uuid4().hex
 
     # 步骤1: 提取文本（使用 pymupdf4llm.to_markdown，自动处理OCR）
     print(f"\n处理PDF文件: {file_name}")
@@ -109,6 +112,18 @@ def import_pdf(file_path: str, original_filename: str = None) -> List[DocumentCh
         print(f"警告: 未能从PDF中提取到内容: {file_name}")
         return []
 
+    # 生成 markdown_id（唯一标识）
+    # 使用 UUID 的前16个字符作为唯一标识
+    markdown_id = uuid.uuid4().hex[:16]
+
+    # 保存到数据库
+    markdown_db.insert_markdown(
+        markdown_id=markdown_id,
+        doc_id=doc_id,
+        doc_title=doc_title,
+        content=final_content,
+    )
+
     return [
         DocumentChunk(
             doc_id=doc_id,
@@ -121,5 +136,6 @@ def import_pdf(file_path: str, original_filename: str = None) -> List[DocumentCh
                 "file_path": file_path,
                 "source_format": "pdf",
             },
+            markdown_id=markdown_id,  # 添加 markdown_id
         )
     ]

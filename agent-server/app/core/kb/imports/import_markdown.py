@@ -3,11 +3,13 @@ Markdown 文件导入模块
 """
 
 import os
+import uuid
 from pathlib import Path
 from langchain_unstructured import UnstructuredLoader
 from typing import List
 
 from app.core.document_chunk import ContentType, DocumentChunk
+from app.core.markdown_db import markdown_db
 
 
 def import_markdown(
@@ -29,12 +31,25 @@ def import_markdown(
     # 使用原始文件名或文件路径中的文件名
     if original_filename:
         file_name = original_filename
-        doc_id = Path(original_filename).stem
         doc_title = Path(original_filename).stem
     else:
         file_name = os.path.basename(file_path)
-        doc_id = file_name
         doc_title = file_name
+    
+    # 生成 doc_id（使用 UUID）
+    doc_id = uuid.uuid4().hex
+
+    # 生成 markdown_id（唯一标识）
+    # 使用 UUID 的前16个字符作为唯一标识
+    markdown_id = uuid.uuid4().hex[:16]
+
+    # 保存到数据库
+    markdown_db.insert_markdown(
+        markdown_id=markdown_id,
+        doc_id=doc_id,
+        doc_title=doc_title,
+        content=content,
+    )
 
     return [
         DocumentChunk(
@@ -48,5 +63,6 @@ def import_markdown(
                 "file_path": file_path,
                 "source_format": "markdown",
             },
+            markdown_id=markdown_id,  # 添加 markdown_id
         )
     ]

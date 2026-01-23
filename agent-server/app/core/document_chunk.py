@@ -7,7 +7,7 @@ from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.core.config import settings
-from app.core.llm import chat, get_llm
+from app.core.llm import chat
 
 
 class ContentType(Enum):
@@ -36,6 +36,7 @@ class DocumentChunk:
     content_type: ContentType
     content: Any
     meta: dict
+    markdown_id: str  # markdown 文件的唯一标识
 
     def __init__(
         self,
@@ -45,6 +46,7 @@ class DocumentChunk:
         content_type: ContentType,
         content: Any,
         meta: dict,
+        markdown_id: str = None,
     ):
         self.doc_id = doc_id
         self.doc_title = doc_title
@@ -52,6 +54,8 @@ class DocumentChunk:
         self.content_type = content_type
         self.content = content
         self.meta = meta
+        # 如果没有提供 markdown_id，使用 doc_id 作为默认值（向后兼容）
+        self.markdown_id = markdown_id if markdown_id is not None else doc_id
 
     def to_documents(self) -> List[Document]:
         """
@@ -72,6 +76,7 @@ class DocumentChunk:
             "section_path": json.dumps(self.section_path, ensure_ascii=False),
             "content_type": self.content_type.value,
             "meta": json.dumps(self.meta, ensure_ascii=False),
+            "markdown_id": self.markdown_id,  # 添加 markdown_id 到 metadata
         }
 
         # 特殊处理：表格类型
@@ -160,12 +165,9 @@ class DocumentChunk:
             human_prompt = f"""请将这份数据转换为自然语言描述，直接输出结果，不要返回结构化内容用自然语言描述，不要过分解读和理解。内容为:{row_content_str}"""
             page_content = chat(
                 messages=[HumanMessage(content=human_prompt)],
-                provider_name="ollama",
-                provider_config={
-                    "model": "qwen3:1.7b",
-                    "temperature": 0.1,
-                    "reasoning": False,
-                },
+                provider_name=settings.DOCUMENT_CONVERT_PROVIDER,
+                model=settings.DOCUMENT_CONVERT_MODEL,
+                provider_config={"temperature": 0.1, "reasoning": False},
             )
             documents.append(
                 Document(
@@ -261,12 +263,9 @@ class DocumentChunk:
                 SystemMessage(content=system_prompt),
                 HumanMessage(content=human_prompt),
             ],
-            provider_name="ollama",
-            provider_config={
-                "model": "qwen3:1.7b",
-                "temperature": 0.1,
-                "reasoning": False,
-            },
+            provider_name=settings.DOCUMENT_CONVERT_PROVIDER,
+            model=settings.DOCUMENT_CONVERT_MODEL,
+            provider_config={"temperature": 0.1, "reasoning": False},
         )
         return page_content
 
@@ -303,7 +302,6 @@ if __name__ == "__main__":
             "file_name": "20120518_35.pdf",
             "file_path": "/var/folders/ym/msxcyrs92dj8zw06k9w7wxh40000gn/T/tmp3gpcniim.pdf",
             "source_format": "pdf",
-            "markdown_cache": True,
         },
     )
     start_time = time.time()
