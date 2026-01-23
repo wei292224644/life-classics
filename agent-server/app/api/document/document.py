@@ -190,9 +190,7 @@ async def get_document_markdowns(doc_id: str):
             "total": len(markdown_list),
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"获取 markdown 列表失败: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"获取 markdown 列表失败: {str(e)}")
 
 
 @router.get("/documents/{doc_id}/markdown/check")
@@ -208,9 +206,7 @@ async def check_markdown_cache(
     try:
         return MarkdownService.check_markdown(doc_id, markdown_id)
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"检查 markdown 失败: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"检查 markdown 失败: {str(e)}")
 
 
 @router.get("/documents/{doc_id}/markdown")
@@ -228,9 +224,7 @@ async def get_markdown_cache(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"获取 markdown 失败: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"获取 markdown 失败: {str(e)}")
 
 
 @router.put("/documents/{doc_id}/markdown")

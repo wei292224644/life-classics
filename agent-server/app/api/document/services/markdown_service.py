@@ -78,9 +78,7 @@ class MarkdownService:
             }
 
     @staticmethod
-    def get_markdown(
-        doc_id: str, markdown_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+    def get_markdown(doc_id: str, markdown_id: Optional[str] = None) -> Dict[str, Any]:
         """
         获取 markdown 内容
 
@@ -98,14 +96,10 @@ class MarkdownService:
             # 使用指定的 markdown_id
             markdown_record = markdown_db.get_markdown(markdown_id)
             if not markdown_record:
-                raise ValueError(
-                    f"markdown_cache (markdown_id: {markdown_id}) 不存在"
-                )
+                raise ValueError(f"markdown_cache (markdown_id: {markdown_id}) 不存在")
             # 验证 markdown 是否属于该 doc_id
             if markdown_record.get("doc_id") != doc_id:
-                raise ValueError(
-                    f"markdown_id {markdown_id} 不属于文档 {doc_id}"
-                )
+                raise ValueError(f"markdown_id {markdown_id} 不属于文档 {doc_id}")
             file_id = markdown_id
         else:
             # 如果没有提供 markdown_id，获取第一个 markdown
