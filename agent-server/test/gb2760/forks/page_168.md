@@ -1,21 +1,5 @@
-## B.22 允许使用的食品用天然香料名单（续）
-
-表 B.22 允许使用的食品用天然香料名单（续）
-
-|序号|编码|香料中文名称|香料英文名称|FEMA 编号|
-|---|---|---|---|---|
-|381|N397|香厚壳桂皮油|Massoi bark oil (Cryptocarya massoio)|3747|
-|382|N398|(-)-高圣草酚钠盐|(-)-Homoeriodyctiol sodium salt|4228|
-|383|N399|酶处理异槲皮苷|Isoquercitrin, enzymatically modified|4225|
-|384|N400|葡萄籽提取物|Grape seed extract (Vitis vinifera)|4045|
-|385|N401|留兰香提取物|Spearmint extract (Mentha spicata L.)|3031|
-|386|N402|杂醇油（精制过）|Fusel oil, refined|2497|
-|387|N403|葡萄糖基甜菊糖苷|Glucosyl steviol glycosides|4728|
-|388|N404|非洲竹芋提取物|Katemfe fruit extract (Thaumatococcus daniellii fruit extract)|4831|
-
 ## B.3 允许使用的食品用合成香料名单
 
-表 B.3 允许使用的食品用合成香料名单
 
 |序号|编码|香料中文名称|香料英文名称|FEMA 编号|
 |---|---|---|---|---|

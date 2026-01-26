@@ -1,1 +1,27 @@
-"## .33[(][续][)] \n\n表 C.33 \n\n|||表C.<br>3(续)||\n|---|---|---|---|\n|序号|酶|来源a|供体b|\n|13|蛋白质谷氨酰胺酶Protein-glu-<br>taminase|解朊金黄杆菌<br>Chryseobacteriumproteolyticum||\n|14|单宁酶<br>Tannase|米曲霉Aspergillusoryzae||\n|15|多聚半乳糖醛酸酶Polygalacturo-<br>nase|黑曲霉cAspergillusniger||\n|||米根霉Rhizopusoryzae||\n|||黑曲霉Aspergillusniger|黑曲霉Aspergillusniger|\n|||李氏木霉<br>Trichodermareesei|塔宾曲霉<br>Aspergillustubingensis|\n|16|甘油磷脂胆固醇酰基转移酶<br>Glycerophospholipid<br>Cholesterol<br>Acyltransferase(GCAT)|地衣芽孢杆菌Bacilluslichenifor-<br>mis|杀鲑气单胞菌杀鲑亚种<br>Aeromonassalmonicidasubsp.Sal-<br>monicida|\n|17|谷氨酰胺酶<br>Glutaminase|解淀粉芽孢杆菌<br>Bacillus<br>amyloliquefaciens||\n|||地衣芽孢杆菌<br>Bacilluslicheniformis|地衣芽孢杆菌<br>Bacilluslicheniformis|\n|18|谷氨酰胺转氨酶GlutamineTrans-<br>aminase|茂原链轮丝菌(又名茂源链霉菌)<br>Streptomycesmobaraensis||\n|19|果胶裂解酶Pectinlyase|黑曲霉Aspergillusniger||\n|||黑曲霉Aspergillusniger|黑曲霉Aspergillusniger|\n|||李氏木霉Trichodermareesei|黑曲霉Aspergillusniger|\n|20|果胶酶Pectinase|黑曲霉Aspergillusniger||\n|||米根霉Rhizopusoryzae||\n|21|果胶酯酶(果胶甲基酯酶)Pectines-<br>terase(Pectinmethylesterase)|黑曲霉Aspergillusniger||\n|||黑曲霉Aspergillusniger|黑曲霉Aspergillusniger|\n|||米曲霉Aspergillusoryzae|针尾曲霉Aspergillusaculeatus|\n|||李氏木霉<br>Trichodermareesei|塔宾曲霉<br>Aspergillustubingensis|\n|22|过氧化氢酶Catalase|黑曲霉Aspergillusniger||\n|||牛、猪或马的肝脏bovine,pigor<br>horseliver||\n|||溶壁微球菌Micrococcuslysode-<br>icticus||\n|23|核酸酶Nuclease|橘青霉penicilliumcitrinum||\n|||||\n\n\n\n"
+## 表 C.3（续）
+
+| 序号 | 酶 | 来源<sup>a</sup> | 供体<sup>b</sup> |
+|------|----|----------------|----------------|
+| 13 | 蛋白质谷氨酰胺酶（Protein-glutaminase） | 解朊金黄杆菌（*Chryseobacterium proteolyticum*） |  |
+| 14 | 单宁酶（Tannase） | 米曲霉（*Aspergillus oryzae*） |  |
+| 15 | 多聚半乳糖醛酸酶（Polygalacturonase） | 黑曲霉（*Aspergillus niger*） |  |
+|  |  | 米根霉（*Rhizopus oryzae*） |  |
+|  |  | 黑曲霉（*Aspergillus niger*） | 黑曲霉（*Aspergillus niger*） |
+|  |  | 李氏木霉（*Trichoderma reesei*） | 塔宾曲霉（*Aspergillus tubingensis*） |
+| 16 | 甘油磷脂胆固醇酰基转移酶（Glycerophospholipid Cholesterol Acyltransferase, GCAT） | 地衣芽孢杆菌（*Bacillus licheniformis*） | 杀鲑气单胞菌杀鲑亚种（*Aeromonas salmonicida* subsp. *salmonicida*） |
+| 17 | 谷氨酰胺酶（Glutaminase） | 解淀粉芽孢杆菌（*Bacillus amyloliquefaciens*） |  |
+|  |  | 地衣芽孢杆菌（*Bacillus licheniformis*） | 地衣芽孢杆菌（*Bacillus licheniformis*） |
+| 18 | 谷氨酰胺转氨酶（Glutamine Transaminase） | 茂原链轮丝菌（又名茂源链霉菌）（*Streptomyces mobaraensis*） |  |
+| 19 | 果胶裂解酶（Pectinlyase） | 黑曲霉（*Aspergillus niger*） |  |
+|  |  | 黑曲霉（*Aspergillus niger*） | 黑曲霉（*Aspergillus niger*） |
+|  |  | 李氏木霉（*Trichoderma reesei*） | 黑曲霉（*Aspergillus niger*） |
+| 20 | 果胶酶（Pectinase） | 黑曲霉（*Aspergillus niger*） |  |
+|  |  | 米根霉（*Rhizopus oryzae*） |  |
+| 21 | 果胶酯酶（果胶甲基酯酶）（Pectinesterase / Pectin methylesterase） | 黑曲霉（*Aspergillus niger*） |  |
+|  |  | 黑曲霉（*Aspergillus niger*） | 黑曲霉（*Aspergillus niger*） |
+|  |  | 米曲霉（*Aspergillus oryzae*） | 针尾曲霉（*Aspergillus aculeatus*） |
+|  |  | 李氏木霉（*Trichoderma reesei*） | 塔宾曲霉（*Aspergillus tubingensis*） |
+| 22 | 过氧化氢酶（Catalase） | 黑曲霉（*Aspergillus niger*） |  |
+|  |  | 牛、猪或马的肝脏（bovine, pig or horse liver） |  |
+|  |  | 溶壁微球菌（*Micrococcus lysodeikticus*） |  |
+| 23 | 核酸酶（Nuclease） | 橘青霉（*Penicillium citrinum*） |  |

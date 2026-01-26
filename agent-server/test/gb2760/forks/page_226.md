@@ -36,3 +36,24 @@ C.2.3 表 C.3 以酶制剂名称汉语拼音排序，规定了食品加工中允
 | 14   | 硫酸钠                       | sodium sulfate                     |
 | 15   | 氯化铵                       | ammonium chloride                  |
 | 16   | 氯化钙                       | calcium chloride                   |
+|17|氯化钾|potassium chloride|
+|18|柠檬酸|citric acid|
+|19|氢气|hydrogen|
+|20|氢氧化钙|calcium hydroxide|
+|21|氢氧化钾|potassium hydroxide|
+|22|氢氧化钠|sodium hydroxide|
+|23|乳酸|lactic acid|
+|24|硅酸镁|magnesium trisilicate|
+|25|碳酸钙（包括轻质碳酸钙、重质碳酸钙）|calcium carbonate (light, heavy)|
+|26|碳酸钾|potassium carbonate|
+|27|碳酸镁（包括轻质碳酸镁、重质碳酸镁）|magnesium carbonate (light, heavy)|
+|28|碳酸钠|sodium carbonate|
+|29|碳酸氢钾|potassium hydrogen carbonate|
+|30|碳酸氢钠|sodium hydrogen carbonate|
+|31|纤维素|cellulose|
+|32|盐酸|hydrochloric acid|
+|33|氧化钙|calcium oxide|
+|34|氧化镁（包括重质氧化镁、轻质氧化镁）|magnesium oxide (heavy, light)|
+|35|乙醇|ethanol|
+|36|冰乙酸（又名冰醋酸）|acetic acid|
+|37|植物活性炭|vegetable carbon (activated)|

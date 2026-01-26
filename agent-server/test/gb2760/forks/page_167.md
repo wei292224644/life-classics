@@ -1,4 +1,4 @@
-## 表 B.22（续）
+## 表 B.2（续）
 
 |序号|编码|香料中文名称|香料英文名称|FEMA 编号|
 |---|---|---|---|---|
@@ -28,3 +28,11 @@
 |378|N394|高倍天然苹果香料|Folded apple essence|—|
 |379|N395|β-愈疮木烯|β-Guaiene<br>Guaia-1(5),7(11)-diene|—|
 |380|N396|褐藻胶|Algin (Laminaria spp. and other kelps)|2014|
+|381|N397|香厚壳桂皮油|Massoi bark oil (Cryptocarya massoio)|3747|
+|382|N398|(-)-高圣草酚钠盐|(-)-Homoeriodyctiol sodium salt|4228|
+|383|N399|酶处理异槲皮苷|Isoquercitrin, enzymatically modified|4225|
+|384|N400|葡萄籽提取物|Grape seed extract (Vitis vinifera)|4045|
+|385|N401|留兰香提取物|Spearmint extract (Mentha spicata L.)|3031|
+|386|N402|杂醇油（精制过）|Fusel oil, refined|2497|
+|387|N403|葡萄糖基甜菊糖苷|Glucosyl steviol glycosides|4728|
+|388|N404|非洲竹芋提取物|Katemfe fruit extract (Thaumatococcus daniellii fruit extract)|4831|

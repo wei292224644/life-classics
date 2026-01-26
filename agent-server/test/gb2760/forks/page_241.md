@@ -1,4 +1,4 @@
-### 表 C.33（续）
+## 表 C.3（续）
 
 | 序号 | 酶 | 来源<sup>a</sup> | 供体<sup>b</sup> |
 |------|----|----------------|----------------|
@@ -24,3 +24,12 @@
 |  |  | 米曲霉 *Aspergillus oryzae* | 棉状嗜热丝孢菌 *Thermomyces lanuginosus* |
 |  |  | 小牛或小羊的唾液腺或前胃组织<br>salivary glands or forestomach of calf, kid, or lamb | — |
 |  |  | 雪白根霉 *Rhizopus niveus* | — |
+|  | | 羊咽喉（goat gullets）                                                           | —                                                                                |
+|      |                            | 猪或牛的胰腺（hog or bovine pancreas）                                           | —                                                                                |
+|      |                            | 米曲霉（*Aspergillus oryzae*）                                                   | 米黑根霉（*Rhizomucor miehei*）                                                 |
+|      |                            | 柱晶假丝酵母（*Candida cylindracea*）                                            | —                                                                                |
+|      |                            | 卷枝毛霉（*Mucor circinelloides*）（又名：爪哇毛霉 *Mucor javanicus*）          | —                                                                                |
+|      |                            | 黑曲霉（*Aspergillus niger*）                                                    | 黄色镰刀菌（*Fusarium culmorum*）                                               |
+|      |                            | 多形汉逊酵母（*Hansenula polymorpha*）                                           | 异孢镰刀菌（*Fusarium heterosporum*）                                           |
+|      |                            | 李氏木霉（*Trichoderma reesei*）                                                 | 黑曲霉塔宾变种（*Aspergillus niger* var. *tubingensis*）                       |
+|      |                            | 李氏木霉（*Trichoderma reesei*）                                                 | 尖孢镰刀菌（*Fusarium oxysporum*）                                              |
