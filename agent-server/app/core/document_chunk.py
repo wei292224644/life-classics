@@ -88,7 +88,25 @@ class DocumentChunk:
             return self.calculation_formula_to_documents(content, metadata)
 
         elif self.content_type == ContentType.METADATA:
-            return self.metadata_to_documents(content, metadata)
+            # 如果 content 是 None 或不是列表，使用默认处理
+            if content is None:
+                # content 为 None 时，返回空列表或使用默认处理
+                page_content = ""
+                document = Document(
+                    page_content=page_content,
+                    metadata=metadata,
+                )
+                return [document]
+            elif not isinstance(content, list):
+                # 如果不是列表，转换为字符串处理
+                page_content = str(content) if content is not None else ""
+                document = Document(
+                    page_content=page_content,
+                    metadata=metadata,
+                )
+                return [document]
+            else:
+                return self.metadata_to_documents(content, metadata)
 
         # 处理数组类型（reagent, instrument 等）
         elif isinstance(content, list):
@@ -272,16 +290,35 @@ class DocumentChunk:
     def metadata_to_documents(self, content: list, metadata: dict) -> List[Document]:
         """
         将 metadata 内容转换为 Document 列表
+        
+        Args:
+            content: 元数据列表（字符串列表）
+            metadata: 元数据字典
+            
+        Returns:
+            Document 列表
         """
         documents = []
-        for item in content:
+        if content is None:
+            # 如果 content 为 None，返回一个空内容的 Document
             documents.append(
                 Document(
-                    page_content=item,
+                    page_content="",
                     metadata=metadata,
                 )
             )
-        return documents
+        else:
+            for item in content:
+                if item is not None:
+                    documents.append(
+                        Document(
+                            page_content=str(item),
+                            metadata=metadata,
+                        )
+                    )
+        return documents if documents else [
+            Document(page_content="", metadata=metadata)
+        ]
 
 
 if __name__ == "__main__":

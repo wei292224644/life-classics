@@ -33,6 +33,7 @@ class StructuredMarkdownParser:
         source: str,
         base_meta: Optional[Dict[str, Any]] = None,
         markdown_id: str = None,
+        skip_metadata: bool = False,
     ) -> List[DocumentChunk]:
         """
         解析 Markdown 文档并生成 DocumentChunk 列表
@@ -43,6 +44,8 @@ class StructuredMarkdownParser:
             doc_title: 文档标题
             source: 原始文件名或来源标识
             base_meta: 基础元数据（会合并到每个 chunk 的 meta 中）
+            markdown_id: Markdown 文档 ID
+            skip_metadata: 是否跳过 content_type 为 metadata 的块
 
         Returns:
             DocumentChunk 列表
@@ -113,6 +116,11 @@ class StructuredMarkdownParser:
 
             # 如果找到 content_type，处理内容
             if content_type and content_type in ALLOWED_CONTENT_TYPES:
+                # 如果设置了 skip_metadata 且当前是 metadata 类型，跳过
+                if skip_metadata and content_type == "metadata":
+                    i = next_i
+                    continue
+                
                 # 处理特殊合并规则
                 if content_type == "calculation_formula":
                     # 检查后面是否有变量定义
@@ -499,12 +507,13 @@ class StructuredMarkdownParser:
         )
 
 
-def split_structured(documents: List[DocumentChunk], **kwargs) -> List[DocumentChunk]:
+def split_structured(documents: List[DocumentChunk], skip_metadata: bool = False, **kwargs) -> List[DocumentChunk]:
     """
     结构化切分策略
 
     Args:
         documents: 待切分的文档列表（每个 DocumentChunk 的 content 应该是 Markdown 格式）
+        skip_metadata: 是否跳过 content_type 为 metadata 的块
         **kwargs: 其他参数
 
     Returns:
@@ -528,6 +537,7 @@ def split_structured(documents: List[DocumentChunk], **kwargs) -> List[DocumentC
             source=document.meta.get("source", ""),
             base_meta=document.meta,
             markdown_id=document.markdown_id,  # 传递 markdown_id
+            skip_metadata=skip_metadata,  # 传递 skip_metadata 参数
         )
 
         all_chunks.extend(chunks)

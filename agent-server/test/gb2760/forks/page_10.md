@@ -1,7 +1,7 @@
 ## 表 A.1（续）
 
 ## L(+)-酒石酸、dl-酒石酸
-**L(+)-tartaric acid, dl-tartaric acid**  
+l(+)-tartaric acid, dl-tartaric acid  
 **CNS号**：01.111, 01.313  
 **INS号**：334  
 **功能**：酸度调节剂  

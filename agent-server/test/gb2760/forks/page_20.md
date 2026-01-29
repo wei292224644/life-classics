@@ -2,7 +2,7 @@
 
 ## 爱德万甜（又名 N-{N-[3-(3-羟基-4-甲氧苯基)丙基]-L-α-天冬氨酰}-L-苯丙氨酸甲酯）
 
-
+advantame(N-[N-[3-(3-hydroxy-4-methoxyphenyl)propyl]-L-α-aspartyl]-L-phenylalanine1-methylester)  
 **CNS号：** 19.026  
 **INS号：** 969  
 **功能：** 甜味剂  

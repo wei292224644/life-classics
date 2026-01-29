@@ -20,11 +20,11 @@ class Settings(BaseSettings):
     DASHSCOPE_API_KEY: str = "sk-03f3eb5bc4cf446bafa1c76e762f65ad"
 
     # Ollama配置
-    OLLAMA_BASE_URL: str = "http://192.168.66.234:11434"
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
 
     # Chat配置
     CHAT_PROVIDER: str = "dashscope"
-    CHAT_MODEL: str = "qwen3-max-preview"
+    CHAT_MODEL: str = "qwen3-max-2026-01-23"
     CHAT_TEMPERATURE: float = 0.4
 
     # OpenRouter配置
@@ -47,7 +47,7 @@ class Settings(BaseSettings):
 
     # 文档Chunk配置
     DOCUMENT_STRUCTURE_PROVIDER: str = "dashscope"
-    DOCUMENT_STRUCTURE_MODEL: str = "qwen3-max-preview"
+    DOCUMENT_STRUCTURE_MODEL: str = "qwen3-max-2026-01-23"
     DOCUMENT_STRUCTURE_TEMPERATURE: float = 0.4
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
     SUPPORTED_EXTENSIONS: List[str] = [".pdf", ".txt", ".md", ".docx", ".pptx"]
