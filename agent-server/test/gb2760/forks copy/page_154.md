@@ -1,7 +1,5 @@
-## 表 B.2（续）
-
 |序号|编码|香料中文名称|香料英文名称|FEMA 编号|
-|---|---|---|---|---|
+|---|---|---|---|
 |29|N030|白兰叶油|Michelia alba leaf oil|3950|
 |30|N031|白兰花净油|Michelia alba flower absolute|3950|
 |31|N032|白兰花浸膏|Michelia alba flower concrete|3950|
