@@ -4,11 +4,11 @@
 
 ## 功能特性
 
-- 📄 **多格式文档支持**：支持 PDF、Markdown、Text 等格式的文档导入
-- 🔪 **智能切分策略**：提供 text、structured、table、heading、parent_child 等多种切分策略
-- 🧠 **LLM 增强处理**：使用 LLM 进行文档结构分析和内容结构化转换
-- 🔍 **OCR 支持**：自动识别图片型 PDF，使用 OCR 提取文本内容
+- 📄 **多格式文档支持**：支持 PDF（经 MinerU 转 Markdown）、Markdown、Text 等格式的文档导入
+- 🔪 **智能切分策略**：PDF 按标题粗粒度切分；其他格式支持 text、structured、heading 等策略
 - 📊 **向量存储与检索**：基于 ChromaDB 的向量存储，支持语义检索和重排序（Rerank）
+- 🕸 **知识图谱**：Neo4j 存储文档与块关系（Document -[:CONTAINS]-> Chunk），便于扩展实体与关系
+- 🤖 **Agent 模块**：基于 Deep Agents 的多工具编排，支持知识库检索、网络搜索、Neo4j/PostgreSQL 查询；接口：`/api/agent/chat`
 - 🌐 **多模型提供者**：支持 DashScope（通义千问）、Ollama、OpenRouter 等多种 LLM 和 Embedding 提供者
 - 🎨 **Web 界面**：提供友好的 Web 界面用于文档管理和查看
 - 🔌 **RESTful API**：完整的 API 接口，支持集成到其他系统
@@ -74,6 +74,22 @@ RERANKER_MODEL=dengcao/Qwen3-Reranker-8B:Q4_K_M
 # ChromaDB 配置
 CHROMA_PERSIST_DIR=./chroma_db
 CHROMA_COLLECTION_NAME=knowledge_base
+
+# MinerU 服务（PDF 转 Markdown，本地 Docker 等）
+MINERU_SERVICE_URL=http://localhost:8000
+MINERU_REQUEST_TIMEOUT=300
+
+# Neo4j 知识图谱（RAG 用默认库；GB2760 按版本分库，如 gb2760_2024）
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=neo4j
+NEO4J_DATABASE=neo4j
+
+# Agent（Deep Agents）
+CHAT_PROVIDER=dashscope
+CHAT_MODEL=qwen3-max-2026-01-23
+AGENT_SKILLS_PATH=app/skills
+AGENT_MAX_ITERATIONS=10
 ```
 
 ### 启动服务
@@ -97,55 +113,53 @@ uvicorn app.main:app --host 0.0.0.0 --port 9999 --reload
 ```
 agent-server/
 ├── app/
-│   ├── api/                    # API 路由模块
+│   ├── main.py                 # FastAPI 应用入口
+│   ├── api/                    # API 路由
 │   │   ├── __init__.py
-│   │   └── document.py         # 文档导入和管理 API
-│   ├── core/                   # 核心功能模块
-│   │   ├── config.py           # 应用配置
-│   │   ├── document_chunk.py   # 文档块数据结构
-│   │   ├── embeddings.py       # Embedding 模型管理
-│   │   ├── file_converter.py   # 文件格式转换
-│   │   ├── llm.py              # LLM 模型管理
-│   │   ├── kb/                 # 知识库核心模块
+│   │   ├── document/           # 知识库：文档上传、检索、纯 RAG 对话
+│   │   │   ├── document.py
+│   │   │   ├── models.py
+│   │   │   └── services/
+│   │   └── agent/             # Agent：多工具编排（RAG / 网络 / Neo4j / PostgreSQL）
+│   │       ├── __init__.py
+│   │       ├── router.py
+│   │       └── models.py
+│   ├── core/                   # 核心模块
+│   │   ├── config.py
+│   │   ├── document_chunk.py
+│   │   ├── llm/                # LLM 调用
+│   │   ├── kb/                 # 知识库：导入、切分、向量存储
+│   │   │   ├── imports/
+│   │   │   ├── pre_parse/
+│   │   │   ├── strategy/
+│   │   │   └── vector_store/
+│   │   ├── kg/                 # 知识图谱（Neo4j）
 │   │   │   ├── __init__.py
-│   │   │   ├── imports/        # 文档导入模块
-│   │   │   │   ├── import_pdf.py
-│   │   │   │   ├── import_markdown.py
-│   │   │   │   ├── import_text.py
-│   │   │   │   └── import_json.py
-│   │   │   ├── pre_parse/      # 预处理模块
-│   │   │   │   ├── convert_to_structured.py  # PDF 转结构化 Markdown
-│   │   │   │   └── ocr_step.py              # OCR 处理
-│   │   │   ├── strategy/       # 切分策略模块
-│   │   │   │   ├── text_strategy.py
-│   │   │   │   ├── structured_strategy.py
-│   │   │   │   ├── table_strategy.py
-│   │   │   │   ├── heading_strategy.py
-│   │   │   │   └── parent_child_strategy.py
-│   │   │   └── vector_store/   # 向量存储模块
-│   │   │       ├── __init__.py
-│   │   │       ├── retriever.py
-│   │   │       └── rerank.py
-│   │   ├── providers/          # LLM 提供者实现
-│   │   │   ├── base.py
-│   │   │   ├── dashscope.py
-│   │   │   ├── ollama.py
-│   │   │   ├── openrouter.py
-│   │   │   └── factory.py
-│   │   └── tools/              # 工具模块
-│   │       └── web_search.py
-│   ├── web/                    # Web 界面
-│   │   ├── main.py
-│   │   ├── index.html
-│   │   └── templates/          # HTML 模板
-│   └── main.py                 # FastAPI 应用入口
-├── chroma_db/                  # ChromaDB 数据目录
-├── files/                      # 上传文件存储目录
-├── markdown_cache/             # Markdown 缓存目录
-├── pyproject.toml              # 项目配置
-├── requirements.txt            # Python 依赖
-├── run.py                      # 启动脚本
-└── README.md                   # 项目文档
+│   │   │   └── neo4j_store.py
+│   │   ├── pdf/                # PDF 解析（MinerU 适配）
+│   │   │   ├── __init__.py
+│   │   │   └── mineru_adapter.py
+│   │   ├── agent/              # Agent 编排（Deep Agents）
+│   │   │   ├── __init__.py
+│   │   │   ├── factory.py
+│   │   │   └── llm_adapter.py
+│   │   ├── markdown_db/
+│   │   └── tools/              # Agent 工具
+│   │       ├── web_search.py
+│   │       └── ...
+│   ├── skills/                 # Agent Skills（Markdown）
+│   │   ├── national-standard-rag/SKILL.md
+│   │   ├── web-search/SKILL.md
+│   │   ├── neo4j-graph/SKILL.md
+│   │   └── postgres-query/SKILL.md
+│   └── web/                    # Web 界面
+├── docs/plans/                 # 设计文档与实施计划（见 2026-03-02-full-refactor-implementation-plan.md）
+├── chroma_db/
+├── files/
+├── markdown_cache/
+├── pyproject.toml
+├── run.py
+└── README.md
 ```
 
 ## 知识库架构设计
@@ -170,18 +184,12 @@ agent-server/
 
 - **PDF** (.pdf)：支持文本型和图片型 PDF，图片型 PDF 自动使用 OCR 提取
 - **Markdown** (.md, .markdown)：支持标准 Markdown 格式
-- **Text** (.txt)：纯文本文件
-- **JSON** (.json)：暂未实现
 
 ### 切分策略
 
 系统提供多种切分策略，可根据文档类型和需求选择：
 
-- **`text`**（默认）：文本切分，按照段落、句子等文本单位进行切分
-- **`structured`**：结构化切分，按照章节、小节、段落等结构进行切分。当导入 PDF 时，会通过 LLM 分析文档结构，再转化为 Markdown 格式，然后进行切分。`暂不支持 Text/JSON 格式文件`
-- **`table`**：表格切分，按照表格、行、列等表格单位进行切分
-- **`heading`**：标题切分，按照标题、副标题等标题单位进行切分
-- **`parent_child`**：父子切分，按照父子关系进行切分
+- **`structured`**：结构化切分，按照章节、小节、段落等结构进行切分。当导入 PDF 时，会通过 LLM 分析文档结构，再转化为 Markdown 格式，然后进行切分。
 
 ### 知识库导入流程
 
@@ -193,85 +201,13 @@ agent-server/
 4. **内容切分**：根据选择的切分策略对文档进行切分
 5. **向量化存储**：将切分后的内容转换为向量并存储到 ChromaDB
 
-## Content Type 说明
-
-知识库系统支持多种内容类型（content_type），用于对文档内容进行语义分类和结构化存储。以下是所有支持的内容类型及其含义：
-
-### 文档元信息类
-
-- **`metadata`**：文档元信息，包括标准编号、标准名称、发布日期、适用对象等基本信息
-
-### 适用范围类
-
-- **`scope`**：适用范围，描述标准或文档的适用对象、应用领域等
-
-### 定义类
-
-- **`definition`**：概念、术语、常数定义，用于解释文档中使用的专业术语或常量
-
-### 化学信息类
-
-- **`chemical_formula`**：分子式，化学物质的分子式表示（如 C₄₀H₅₆）
-- **`chemical_structure`**：结构式说明，包括"原文未给出结构图"的明确描述
-- **`molecular_weight`**：相对分子质量，化学物质的相对分子质量数值
-
-### 技术规范类
-
-- **`specification_table`**：技术指标/限量/要求类表格，以结构化表格形式存储的技术规范
-- **`specification_text`**：技术要求，非表格形式的文字性规范要求
-
-### 检验方法类
-
-- **`test_method`**：检验方法/测定步骤，流程性的检验操作描述
-- **`identification_test`**：鉴别试验，用于识别和验证物质的方法
-- **`chromatographic_method`**：色谱/光谱/顶空/UV-Vis 等仪器分析方法
-
-### 实验条件类
-
-- **`instrument`**：仪器与设备，实验或检验所需的仪器设备说明
-- **`reagent`**：试剂与材料，实验或检验所需的试剂和材料清单
-
-### 计算公式类
-
-- **`calculation_formula`**：计算公式，包含公式本体和变量定义的计算公式
-
-### 规则说明类
-
-- **`general_rule`**：一般规定、通用规则，适用于整个文档或特定章节的通用规则
-- **`note`**：注释、说明、补充性文字，包括"注：……"形式的补充说明
-
-### 使用说明
-
-在 Markdown 文档中，使用以下格式标注 content_type：
-
-```markdown
-【content_type: scope】
-本标准适用于...
-
-【content_type: specification_table】
-| 项目 | 要求 | 检验方法 |
-|------|------|----------|
-| 色泽 | 暗红色至棕红色 | ... |
-```
-
-或者使用 fenced block 格式：
-
-````markdown
-```specification_table
-| 项目 | 要求 |
-|------|------|
-| ... | ... |
-```
-````
-
-系统会根据 content_type 对内容进行结构化解析和存储，便于后续的语义检索和知识推理。
-
 ## API 文档
 
 启动服务后，访问 http://localhost:9999/swagger 查看完整的 API 文档。
 
 主要 API 端点：
 
+- **Agent**：`POST /api/agent/chat` — 多工具对话（知识库 / 网络 / Neo4j / PostgreSQL）
 - `POST /api/doc/upload`：上传文档到知识库
 - `GET /api/doc/documents`：获取文档列表
 - `GET /api/doc/documents/{doc_id}`：获取文档详情
@@ -285,6 +221,7 @@ agent-server/
 
 - **模型提供者**：可选择 DashScope、Ollama 或 OpenRouter
 - **向量数据库**：ChromaDB 持久化目录和集合名称
+- **Neo4j**：`NEO4J_DATABASE` 指定当前库；GB2760 按版本使用不同 database（见 `docs/plans/2026-03-02-knowledge-base-gb2760-strategy.md`、`docs/assets/neo4j_schema.cypher`）
 - **文档处理**：支持的文件格式、最大文件大小等
 - **OCR 配置**：OCR 语言、最小文本长度等
 - **文本切分**：chunk_size、chunk_overlap 等参数

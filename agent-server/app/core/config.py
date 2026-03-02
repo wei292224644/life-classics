@@ -82,6 +82,24 @@ class Settings(BaseSettings):
     CHUNK_SEPARATOR: str = "\n\n"
     CLEAN_TEXT_ENABLED: bool = True
 
+    # MinerU 服务配置（本地 Docker 等）
+    MINERU_SERVICE_URL: str = "http://localhost:8000"
+    MINERU_REQUEST_TIMEOUT: int = 300
+
+    # Neo4j 配置（RAG 用 Document/Chunk 与 GB2760 业务图可同实例不同 database）
+    NEO4J_URI: str = "bolt://localhost:7687"
+    NEO4J_USER: str = "neo4j"
+    NEO4J_PASSWORD: str = "neo4j"
+    NEO4J_DATABASE: str = "neo4j"  # 默认库；GB2760 按版本使用如 gb2760_2014、gb2760_2024
+
+    # PostgreSQL 配置（Agent 查询用）
+    POSTGRES_URI: str = "postgresql://user:pass@localhost:5432/dbname"
+    POSTGRES_READONLY: bool = True
+
+    # Agent 配置
+    AGENT_SKILLS_PATH: str = "app/skills"
+    AGENT_MAX_ITERATIONS: int = 10
+
     class Config:
         env_file = ".env"
         case_sensitive = True
