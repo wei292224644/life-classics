@@ -8,6 +8,8 @@
 
 **Tech Stack:** Python 3.12+, langgraph>=1.1.0, langchain>=1.2.0, langchain-openai>=1.1.3, pytest
 
+**Spec:** `docs/superpowers/specs/2026-03-13-gb-standard-parser-workflow-design.md`
+
 ---
 
 ## 文件结构
@@ -42,6 +44,7 @@ agent-server/
     ├── test_transform_node.py        # split_rows、preserve_as_is、plain_embed
     ├── test_classify_node.py         # LLM 分段分类（mock）、has_unknown 检测
     ├── test_escalate_node.py         # LLM 推断、状态回写、规则追加（mock）
+    ├── test_graph.py                 # _should_escalate 路由、图装配
     └── test_workflow.py              # 端到端集成（全 mock LLM）
 ```
 
@@ -2273,3 +2276,7 @@ git commit -m "test(parser-workflow): add end-to-end integration tests"
 cd agent-server && pytest tests/ -v
 ```
 预期：所有测试全部 PASS（含现有测试）
+
+---
+
+Plan 已保存于 `docs/superpowers/plans/2026-03-13-gb-standard-parser-workflow.md`。如需执行，请使用 superpowers:subagent-driven-development 或 superpowers:executing-plans。
