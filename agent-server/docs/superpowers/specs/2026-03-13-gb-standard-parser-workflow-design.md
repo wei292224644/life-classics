@@ -121,6 +121,7 @@ class TypedSegment(TypedDict):
     content_type: str               # "table" / "formula" / "plain_text" / ...
     transform_params: dict          # 来自 content_type_rules.json 的转化参数
     confidence: float               # < CONFIDENCE_THRESHOLD 时触发 escalate
+    escalated: bool                 # 是否经过 escalate_node 处理（默认 False，escalate 后置 True）
 
 # 最终输出块（本 Workflow 专属，调用方负责适配目标存储格式）
 class DocumentChunk(TypedDict):
@@ -351,15 +352,18 @@ async def run_parser_workflow(
         "errors": [],
     }
     result_state = await graph.ainvoke(initial_state)
+    # escalate_count 在 escalate_node 运行前统计（has_unknown 在回写后置 False，故此处用 final_chunks 中的 meta 标记）
+    escalate_count = sum(
+        1 for c in result_state["classified_chunks"]
+        if any(s.get("escalated") for s in c["segments"])
+    )
     return ParserResult(
         chunks=result_state["final_chunks"],
         doc_metadata=result_state["doc_metadata"],
         errors=result_state["errors"],
         stats={
             "chunk_count": len(result_state["final_chunks"]),
-            "escalate_count": sum(
-                1 for c in result_state["classified_chunks"] if c["has_unknown"]
-            ),
+            "escalate_count": escalate_count,  # 触发过 escalate 的 chunk 数
         }
     )
 
