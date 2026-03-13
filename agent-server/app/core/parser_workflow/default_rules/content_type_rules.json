@@ -7,28 +7,31 @@
       "description": "Markdown 表格，以 | 开头的连续行",
       "transform": {
         "strategy": "split_rows",
-        "preserve_header": true
+        "prompt_template": "请将以下GB标准表格转化为规范化文本：\n"
       }
     },
     {
       "id": "formula",
       "description": "数学或化学公式，含 LaTeX 语法或化学分子式",
       "transform": {
-        "strategy": "preserve_as_is"
+        "strategy": "preserve_as_is",
+        "prompt_template": "请将以下GB标准公式转化为规范化文本：\n"
       }
     },
     {
       "id": "numbered_list",
       "description": "有序编号列表，步骤或条款",
       "transform": {
-        "strategy": "preserve_as_list"
+        "strategy": "preserve_as_list",
+        "prompt_template": "请将以下GB标准有序编号列表转化为规范化文本：\n"
       }
     },
     {
       "id": "plain_text",
       "description": "普通说明性段落，无特殊结构",
       "transform": {
-        "strategy": "plain_embed"
+        "strategy": "plain_embed",
+        "prompt_template": "请将以下GB标准普通说明性段落转化为规范化文本：\n"
       }
     }
   ]

@@ -14,6 +14,7 @@ class ParserConfig(TypedDict, total=False):
     slice_heading_levels: List[int]
     classify_model: str
     escalate_model: str
+    transform_model: str
     doc_type_llm_model: str
     llm_api_key: str
     llm_base_url: str

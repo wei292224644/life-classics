@@ -6,11 +6,7 @@ from app.core.parser_workflow.models import (
     TypedSegment,
     WorkflowState,
 )
-from app.core.parser_workflow.nodes.transform_node import (
-    apply_strategy,
-    dominant_content_type,
-    transform_node,
-)
+from app.core.parser_workflow.nodes.transform_node import apply_strategy, transform_node
 
 
 def _seg(content: str, ct: str, strategy: str = "plain_embed") -> TypedSegment:
@@ -40,68 +36,8 @@ def _make_state(classified: list) -> WorkflowState:
     )
 
 
-def test_dominant_type_single_segment():
-    segs = [_seg("短文本", "plain_text")]
-    assert dominant_content_type(segs) == "plain_text"
-
-
-def test_dominant_type_picks_largest_by_char_count():
-    segs = [
-        _seg("x" * 100, "plain_text"),
-        _seg("y" * 20, "table"),
-    ]
-    assert dominant_content_type(segs) == "plain_text"
-
-
-def test_preserve_as_is_returns_single_chunk():
-    seg = _seg("公式内容 $E=mc^2$", "formula", "preserve_as_is")
-    raw = _raw("公式内容 $E=mc^2$")
-    chunks = apply_strategy([seg], raw, {"standard_no": "GB_TEST", "title": "t"})
-    assert len(chunks) == 1
-    assert chunks[0]["content"] == "公式内容 $E=mc^2$"
-    assert chunks[0]["content_type"] == "formula"
-
-
-def test_plain_embed_strips_extra_whitespace():
-    seg = _seg("  内容  \n\n  说明  ", "plain_text", "plain_embed")
-    raw = _raw("  内容  \n\n  说明  ")
-    chunks = apply_strategy([seg], raw, {"standard_no": "GB_TEST", "title": "t"})
-    assert len(chunks) == 1
-    assert chunks[0]["content"].strip() == chunks[0]["content"]
-
-
-def test_split_rows_produces_one_chunk_per_data_row():
-    table_md = "| 项目 | 指标 |\n|---|---|\n| 含量 | ≥96% |\n| 水分 | ≤0.5% |"
-    seg = _seg(table_md, "table", "split_rows")
-    seg["transform_params"]["preserve_header"] = True
-    raw = _raw(table_md)
-    chunks = apply_strategy([seg], raw, {"standard_no": "GB_TEST", "title": "t"})
-    assert len(chunks) == 2
-    assert all(c["content_type"] == "table" for c in chunks)
-    assert all(c["meta"].get("table_row_index") is not None for c in chunks)
-    assert all("项目" in c["content"] for c in chunks)
-
-
-def test_split_rows_preserves_raw_content():
-    table_md = "| A | B |\n|---|---|\n| 1 | 2 |"
-    seg = _seg(table_md, "table", "split_rows")
-    seg["transform_params"]["preserve_header"] = True
-    raw = _raw(table_md)
-    chunks = apply_strategy([seg], raw, {"standard_no": "GB_TEST", "title": "t"})
-    assert all(c["raw_content"] == table_md for c in chunks)
-
-
-def test_split_rows_header_only_table_falls_back_to_preserve():
-    header_only = "| 项目 | 指标 |\n|---|---|"
-    seg = _seg(header_only, "table", "split_rows")
-    seg["transform_params"]["preserve_header"] = True
-    raw = _raw(header_only)
-    chunks = apply_strategy([seg], raw, {"standard_no": "GB_TEST", "title": "t"})
-    assert len(chunks) == 1
-    assert chunks[0]["content"] == header_only
-
-
 def test_transform_node_produces_final_chunks():
+    """验证 transform_node 会调用 apply_strategy 并产生 chunk（通过 patch 避免真实 LLM 依赖）。"""
     classified = [
         ClassifiedChunk(
             raw_chunk=_raw("普通文本内容"),
@@ -109,7 +45,62 @@ def test_transform_node_produces_final_chunks():
             has_unknown=False,
         )
     ]
-    result = transform_node(_make_state(classified))
-    assert len(result["final_chunks"]) >= 1
-    assert result["final_chunks"][0]["content_type"] == "plain_text"
+
+    from app.core.parser_workflow.nodes import transform_node as tn
+
+    called = {}
+
+    def _fake_apply_strategy(segments, raw_chunk, doc_metadata, config):
+        called["args"] = (segments, raw_chunk, doc_metadata, config)
+        return [
+            {
+                "chunk_id": "dummy",
+                "doc_metadata": doc_metadata,
+                "section_path": raw_chunk["section_path"],
+                "content_type": segments[0]["content_type"],
+                "content": "dummy",
+                "raw_content": raw_chunk["content"],
+                "meta": {},
+            }
+        ]
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(tn, "apply_strategy", _fake_apply_strategy)
+
+    try:
+        result = transform_node(_make_state(classified))
+    finally:
+        monkeypatch.undo()
+
+    assert len(result["final_chunks"]) == 1
+
+
+def test_llm_transform_uses_helper_and_produces_chunk(monkeypatch):
+    from app.core.parser_workflow.nodes import transform_node as tn
+
+    seg = _seg("原始内容", "formula", "llm_transform")
+    seg["transform_params"]["prompt_template"] = "PROMPT {content}"
+    raw = _raw("原始内容")
+
+    called = {}
+
+    def _fake_llm(content, transform_params, config):
+        called["args"] = (content, transform_params, config)
+        return "转写结果"
+
+    monkeypatch.setattr(tn, "_call_llm_transform", _fake_llm)
+    chunks = apply_strategy(
+        [seg],
+        raw,
+        {"standard_no": "GB_TEST", "title": "t"},
+        {"transform_model": "gpt-mock"},
+    )
+
+    assert called
+    assert len(chunks) == 1
+    c = chunks[0]
+    assert c["content"] == "转写结果"
+    assert c["raw_content"] == "原始内容"
+    assert c["meta"]["transform_strategy"] == "llm_transform"
+    assert c["meta"]["segment_raw_content"] == "原始内容"
 

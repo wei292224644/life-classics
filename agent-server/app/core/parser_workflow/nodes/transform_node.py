@@ -11,98 +11,72 @@ from app.core.parser_workflow.models import (
 )
 
 
-def dominant_content_type(segments: List[TypedSegment]) -> str:
-    """按字符数占比最高的 segment 的 content_type。"""
-    if not segments:
-        return "plain_text"
-    return max(segments, key=lambda s: len(s["content"]))["content_type"]
+def _call_llm_transform(
+    content: str,
+    transform_params: dict,
+    config: dict,
+) -> str:
+    """
+    使用 LLM 根据 prompt_template 将原始内容转化为自然语言文本。
+    在测试中会通过 patch 进行 mock。
+    """
+    from langchain_openai import ChatOpenAI  # type: ignore[import]
 
+    prompt_template = transform_params.get("prompt_template", "{content}")
+    prompt = prompt_template.replace("{content}", content)
 
-def _parse_table(table_md: str):
-    """解析 Markdown 表格，返回 (header_row, [data_rows])。"""
-    lines = [l for l in table_md.strip().splitlines() if l.strip()]
-    if len(lines) < 2:
-        return None, []
-    header = lines[0]
-    data_rows = lines[2:]
-    return header, data_rows
+    model_name = config.get("transform_model") or config.get("escalate_model")
+    if not model_name:
+        raise ValueError(
+            "transform_model or escalate_model must be provided for llm_transform"
+        )
 
-
-def _make_single_chunk(seg, raw_chunk, doc_metadata, content_type) -> DocumentChunk:
-    return DocumentChunk(
-        chunk_id=make_chunk_id(
-            doc_metadata.get("standard_no", ""),
-            raw_chunk["section_path"],
-            seg["content"],
-        ),
-        doc_metadata=doc_metadata,
-        section_path=raw_chunk["section_path"],
-        content_type=content_type,
-        content=seg["content"],
-        raw_content=raw_chunk["content"],
-        meta={},
+    chat = ChatOpenAI(
+        model=model_name,
+        api_key=config.get("llm_api_key", ""),
+        base_url=config.get("llm_base_url") or None,
     )
+    resp = chat.invoke(prompt)
+    # langchain_openai.ChatOpenAI 返回的是 BaseMessage
+    return getattr(resp, "content", str(resp))
 
 
 def apply_strategy(
     segments: List[TypedSegment],
     raw_chunk,
     doc_metadata: dict,
+    config: dict,
 ) -> List[DocumentChunk]:
-    """将一组 TypedSegment 按各自策略转化为 DocumentChunk 列表。"""
+    """
+    当前版本：无论 strategy 为何，都统一通过 LLM 转写为向量化文本。
+    未来如果需要区分不同策略，可以在此处分支。
+    """
     results: List[DocumentChunk] = []
 
     for seg in segments:
-        strategy = seg["transform_params"].get("strategy", "plain_embed")
         raw_content = raw_chunk["content"]
+        strategy = seg["transform_params"].get("strategy", "llm_transform")
 
-        if strategy == "split_rows":
-            header, data_rows = _parse_table(seg["content"])
-            if not data_rows:
-                results.append(
-                    _make_single_chunk(seg, raw_chunk, doc_metadata, seg["content_type"])
-                )
-                continue
-            for i, row in enumerate(data_rows):
-                content = f"{header}\n{row}" if header else row
-                results.append(
-                    DocumentChunk(
-                        chunk_id=make_chunk_id(
-                            doc_metadata.get("standard_no", ""),
-                            raw_chunk["section_path"],
-                            content,
-                        ),
-                        doc_metadata=doc_metadata,
-                        section_path=raw_chunk["section_path"],
-                        content_type=seg["content_type"],
-                        content=content,
-                        raw_content=raw_content,
-                        meta={"table_row_index": i},
-                    )
-                )
+        llm_text = _call_llm_transform(seg["content"], seg["transform_params"], config)
 
-        elif strategy == "plain_embed":
-            content = " ".join(seg["content"].split())
-            results.append(
-                DocumentChunk(
-                    chunk_id=make_chunk_id(
-                        doc_metadata.get("standard_no", ""),
-                        raw_chunk["section_path"],
-                        content,
-                    ),
-                    doc_metadata=doc_metadata,
-                    section_path=raw_chunk["section_path"],
-                    content_type=seg["content_type"],
-                    content=content,
-                    raw_content=raw_content,
-                    meta={},
-                )
+        results.append(
+            DocumentChunk(
+                chunk_id=make_chunk_id(
+                    doc_metadata.get("standard_no", ""),
+                    raw_chunk["section_path"],
+                    llm_text,
+                ),
+                doc_metadata=doc_metadata,
+                section_path=raw_chunk["section_path"],
+                content_type=seg["content_type"],
+                content=llm_text,
+                raw_content=raw_content,
+                meta={
+                    "transform_strategy": strategy,
+                    "segment_raw_content": seg["content"],
+                },
             )
-
-        else:  # preserve_as_is / preserve_as_list 等
-            results.append(
-                _make_single_chunk(seg, raw_chunk, doc_metadata, seg["content_type"])
-            )
+        )
 
     return results
 
@@ -114,7 +88,7 @@ def transform_node(state: WorkflowState) -> dict:
             classified["segments"],
             classified["raw_chunk"],
             state["doc_metadata"],
+            state.get("config", {}),
         )
         final_chunks.extend(chunks)
     return {"final_chunks": final_chunks}
-
