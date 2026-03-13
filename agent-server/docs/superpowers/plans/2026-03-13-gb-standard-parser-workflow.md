@@ -22,7 +22,7 @@ agent-server/
 │   │                                 #   ClassifiedChunk, DocumentChunk, ParserResult
 │   ├── config.py                     # ParserConfig TypedDict + 默认值常量
 │   ├── rules.py                      # RulesStore：加载/追加 doc_type 和 content_type 规则
-│   ├── default_rules/
+│   ├── rules/
 │   │   ├── doc_type_rules.json       # 内置默认文档类型规则
 │   │   └── content_type_rules.json   # 内置默认内容类型规则
 │   ├── nodes/
@@ -212,12 +212,12 @@ git commit -m "feat(parser-workflow): add core data models and config"
 ### Task 2：默认规则文件
 
 **Files:**
-- Create: `app/core/parser_workflow/default_rules/doc_type_rules.json`
-- Create: `app/core/parser_workflow/default_rules/content_type_rules.json`
+- Create: `app/core/parser_workflow/rules/doc_type_rules.json`
+- Create: `app/core/parser_workflow/rules/content_type_rules.json`
 
-- [ ] **Step 1：创建 default_rules 目录和文件**
+- [ ] **Step 1：创建 rules 目录和文件**
 
-`app/core/parser_workflow/default_rules/doc_type_rules.json`:
+`app/core/parser_workflow/rules/doc_type_rules.json`:
 ```json
 {
   "version": "1.0",
@@ -248,7 +248,7 @@ git commit -m "feat(parser-workflow): add core data models and config"
 }
 ```
 
-`app/core/parser_workflow/default_rules/content_type_rules.json`:
+`app/core/parser_workflow/rules/content_type_rules.json`:
 ```json
 {
   "version": "1.0",
@@ -293,8 +293,8 @@ git commit -m "feat(parser-workflow): add core data models and config"
 cd agent-server
 python -c "
 import json, pathlib
-for fname in ['app/core/parser_workflow/default_rules/doc_type_rules.json',
-              'app/core/parser_workflow/default_rules/content_type_rules.json']:
+for fname in ['app/core/parser_workflow/rules/doc_type_rules.json',
+              'app/core/parser_workflow/rules/content_type_rules.json']:
     data = json.loads(pathlib.Path(fname).read_text())
     assert 'version' in data, f'{fname} missing version'
 print('JSON structure OK')
@@ -306,7 +306,7 @@ print('JSON structure OK')
 
 ```bash
 cd agent-server
-git add app/core/parser_workflow/default_rules/
+git add app/core/parser_workflow/rules/
 git commit -m "feat(parser-workflow): add default rules JSON files"
 ```
 
@@ -424,7 +424,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
-_DEFAULT_RULES_DIR = Path(__file__).parent / "default_rules"
+RULES_DIR = Path(__file__).parent / "rules"
 
 
 class RulesStore:
@@ -449,7 +449,7 @@ class RulesStore:
             ("doc_type_rules.json", self._dt_path),
         ]:
             if not dst.exists():
-                src = _DEFAULT_RULES_DIR / src_name
+                src = RULES_DIR / src_name
                 dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
 
     # ── 加载 ─────────────────────────────────────────────────

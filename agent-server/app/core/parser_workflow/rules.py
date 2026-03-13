@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 
-_DEFAULT_RULES_DIR = Path(__file__).parent / "default_rules"
+RULES_DIR = Path(__file__).parent / "rules"
 
 
 class RulesStore:
@@ -28,7 +28,7 @@ class RulesStore:
             ("doc_type_rules.json", self._dt_path),
         ]:
             if not dst.exists():
-                src = _DEFAULT_RULES_DIR / src_name
+                src = RULES_DIR / src_name
                 dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
 
     def reload(self) -> None:
