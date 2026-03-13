@@ -31,8 +31,8 @@ agent-server/
 │   │   ├── structure_node.py         # 提取标题 + 规则推断 doc_type + LLM 兜底
 │   │   ├── slice_node.py             # 递归标题切分 + SOFT/HARD_MAX
 │   │   ├── classify_node.py          # 小模型同时分段+分类
-│   │   ├── escalate_node.py          # 大模型处理 unknown + 回写状态 + 追加规则
-│   │   └── transform_node.py         # 按 strategy 转化，输出 List[DocumentChunk]
+│   │   ├── escalate_node.py          # 大模型语义匹配已有类型 / 创建新类型（含 prompt_template）
+│   │   └── transform_node.py         # 按 strategy 转化，llm_transform 时调 LLM，输出 List[DocumentChunk]
 │   └── graph.py                      # StateGraph 装配 + run_parser_workflow 入口
 └── tests/core/parser_workflow/
     ├── __init__.py
@@ -41,7 +41,7 @@ agent-server/
     ├── test_parse_node.py            # metadata 验证与规范化
     ├── test_structure_node.py        # 规则匹配评分、LLM 兜底（mock）
     ├── test_slice_node.py            # 前言、SOFT_MAX、HARD_MAX、递归、无标题
-    ├── test_transform_node.py        # split_rows、preserve_as_is、plain_embed
+    ├── test_transform_node.py        # split_rows、preserve_as_is、plain_embed、llm_transform（mock LLM）
     ├── test_classify_node.py         # LLM 分段分类（mock）、has_unknown 检测
     ├── test_escalate_node.py         # LLM 推断、状态回写、规则追加（mock）
     ├── test_graph.py                 # _should_escalate 路由、图装配
@@ -181,6 +181,7 @@ class ParserConfig(TypedDict, total=False):
     slice_heading_levels: List[int]
     classify_model: str
     escalate_model: str
+    transform_model: str            # llm_transform 策略时使用，不填则 fallback 到 escalate_model
     doc_type_llm_model: str
     llm_api_key: str
     llm_base_url: str
@@ -1099,6 +1100,7 @@ git commit -m "feat(parser-workflow): add structure_node with rule-based doc_typ
 `tests/core/parser_workflow/test_transform_node.py`:
 ```python
 import pytest
+from unittest.mock import patch
 from app.core.parser_workflow.nodes.transform_node import (
     transform_node,
     apply_strategy,
@@ -1204,7 +1206,26 @@ def test_split_rows_header_only_table_falls_back_to_preserve():
     assert chunks[0]["content"] == header_only
 
 
-def test_transform_node_produces_final_chunks():
+@pytest.mark.asyncio
+async def test_llm_transform_calls_llm_and_uses_result():
+    seg = _seg("特殊结构内容", "special_type", "llm_transform")
+    seg["transform_params"]["prompt_template"] = "请转化：{content}"
+    state = _make_state([ClassifiedChunk(
+        raw_chunk=_raw("特殊结构内容"),
+        segments=[seg],
+        has_unknown=False,
+    )])
+    with patch(
+        "app.core.parser_workflow.nodes.transform_node._call_transform_llm",
+        return_value="转化后内容",
+    ):
+        result = await transform_node(state)
+    assert result["final_chunks"][0]["content"] == "转化后内容"
+    assert result["final_chunks"][0]["raw_content"] == "特殊结构内容"
+
+
+@pytest.mark.asyncio
+async def test_transform_node_produces_final_chunks():
     classified = [
         ClassifiedChunk(
             raw_chunk=_raw("普通文本内容"),
@@ -1212,7 +1233,7 @@ def test_transform_node_produces_final_chunks():
             has_unknown=False,
         )
     ]
-    result = transform_node(_make_state(classified))
+    result = await transform_node(_make_state(classified))
     assert len(result["final_chunks"]) >= 1
     assert result["final_chunks"][0]["content_type"] == "plain_text"
 ```
@@ -1228,8 +1249,7 @@ cd agent-server && pytest tests/core/parser_workflow/test_transform_node.py -v
 `app/core/parser_workflow/nodes/transform_node.py`:
 ```python
 from __future__ import annotations
-import re
-from typing import List
+from typing import Any, List
 from app.core.parser_workflow.models import (
     WorkflowState, ClassifiedChunk, TypedSegment, DocumentChunk
 )
@@ -1254,17 +1274,29 @@ def _parse_table(table_md: str):
     return header, data_rows
 
 
+async def _call_transform_llm(content: str, prompt_template: str, config: dict) -> str:
+    """调用 LLM 执行 llm_transform 策略的内容转化，返回转化后文本。"""
+    from langchain_openai import ChatOpenAI
+    model_name = config.get("transform_model") or config.get("escalate_model", "gpt-4o")
+    llm = ChatOpenAI(
+        model=model_name,
+        api_key=config.get("llm_api_key", ""),
+        base_url=config.get("llm_base_url") or None,
+    )
+    prompt = prompt_template.replace("{content}", content)
+    result = await llm.ainvoke(prompt)
+    return result.content
+
+
 def apply_strategy(
     segments: List[TypedSegment],
     raw_chunk,
     doc_metadata: dict,
 ) -> List[DocumentChunk]:
-    """将一组 TypedSegment 按各自策略转化为 DocumentChunk 列表。"""
+    """将一组 TypedSegment 按各自确定性策略转化为 DocumentChunk 列表。
+    llm_transform 的 segment 应在调用前已由 transform_node 完成内容替换。
+    """
     results: List[DocumentChunk] = []
-
-    # 整个 RawChunk 的主类型（用于多 segment 的单输出情况）
-    main_ct = dominant_content_type(segments)
-
     for seg in segments:
         strategy = seg["transform_params"].get("strategy", "plain_embed")
         raw_content = raw_chunk["content"]
@@ -1307,7 +1339,7 @@ def apply_strategy(
                 meta={},
             ))
 
-        else:  # preserve_as_is, preserve_as_list
+        else:  # preserve_as_is, preserve_as_list, llm_transform（content 已替换）
             results.append(_make_single_chunk(seg, raw_chunk, doc_metadata, seg["content_type"]))
 
     return results
@@ -1329,15 +1361,29 @@ def _make_single_chunk(seg, raw_chunk, doc_metadata, content_type) -> DocumentCh
     )
 
 
-def transform_node(state: WorkflowState) -> dict:
+async def transform_node(state: WorkflowState) -> dict:
+    """按 transform_params 策略转化所有 segments，输出 List[DocumentChunk]。
+    llm_transform 策略时先调 LLM 替换 content，再走 apply_strategy。
+    """
     final_chunks: List[DocumentChunk] = []
+    config = state.get("config", {})
+
     for classified in state["classified_chunks"]:
-        chunks = apply_strategy(
-            classified["segments"],
-            classified["raw_chunk"],
-            state["doc_metadata"],
-        )
+        resolved_segments = []
+        for seg in classified["segments"]:
+            if seg["transform_params"].get("strategy") == "llm_transform":
+                pt = seg["transform_params"].get("prompt_template", "{content}")
+                transformed = await _call_transform_llm(seg["content"], pt, config)
+                # 替换 content 后复用 preserve_as_is 路径，raw_content 由 apply_strategy 从 raw_chunk 读取
+                resolved_seg = {**seg, "content": transformed}
+                resolved_seg["transform_params"] = {**seg["transform_params"], "strategy": "preserve_as_is"}
+                resolved_segments.append(resolved_seg)
+            else:
+                resolved_segments.append(seg)
+
+        chunks = apply_strategy(resolved_segments, classified["raw_chunk"], state["doc_metadata"])
         final_chunks.extend(chunks)
+
     return {"final_chunks": final_chunks}
 ```
 
@@ -1346,7 +1392,7 @@ def transform_node(state: WorkflowState) -> dict:
 ```bash
 cd agent-server && pytest tests/core/parser_workflow/test_transform_node.py -v
 ```
-预期：8 个测试全部 PASS
+预期：9 个测试全部 PASS
 
 - [ ] **Step 5：提交**
 
@@ -1354,7 +1400,7 @@ cd agent-server && pytest tests/core/parser_workflow/test_transform_node.py -v
 cd agent-server
 git add app/core/parser_workflow/nodes/transform_node.py \
         tests/core/parser_workflow/test_transform_node.py
-git commit -m "feat(parser-workflow): add transform_node with split_rows/preserve/plain_embed"
+git commit -m "feat(parser-workflow): add transform_node with split_rows/preserve/plain_embed/llm_transform"
 ```
 
 ---
@@ -1662,14 +1708,23 @@ def _make_state(classified: list, rules_dir: str) -> WorkflowState:
     )
 
 
-MOCK_ESCALATE_RESPONSE = {
+MOCK_ESCALATE_CREATE = {
+    "action": "create_new",
     "content_type": "flowchart",
     "description": "流程图描述文字",
-    "transform": {"strategy": "preserve_as_is"}
+    "transform": {
+        "strategy": "llm_transform",
+        "prompt_template": "请将以下GB标准流程图文字描述转化为规范化文本：\n{content}"
+    }
+}
+
+MOCK_ESCALATE_USE_EXISTING = {
+    "action": "use_existing",
+    "content_type": "plain_text",
 }
 
 
-def test_escalate_resolves_unknown_segment(tmp_path):
+def test_escalate_resolves_unknown_segment_by_creating_new_type(tmp_path):
     classified = [ClassifiedChunk(
         raw_chunk=_raw("流程图内容"),
         segments=[_seg("流程图内容", "unknown", 0.3)],
@@ -1677,7 +1732,7 @@ def test_escalate_resolves_unknown_segment(tmp_path):
     )]
     with patch(
         "app.core.parser_workflow.nodes.escalate_node._call_escalate_llm",
-        return_value=MOCK_ESCALATE_RESPONSE,
+        return_value=MOCK_ESCALATE_CREATE,
     ):
         result = escalate_node(_make_state(classified, str(tmp_path)))
     cc = result["classified_chunks"][0]
@@ -1685,6 +1740,30 @@ def test_escalate_resolves_unknown_segment(tmp_path):
     assert cc["segments"][0]["content_type"] == "flowchart"
     assert cc["segments"][0]["escalated"] is True
     assert cc["segments"][0]["confidence"] == 1.0
+    assert cc["segments"][0]["transform_params"]["strategy"] == "llm_transform"
+
+
+def test_escalate_uses_existing_type_without_creating_rule(tmp_path):
+    """LLM 判断匹配已有类型时，不写文件，直接回写 content_type。"""
+    classified = [ClassifiedChunk(
+        raw_chunk=_raw("普通说明文字"),
+        segments=[_seg("普通说明文字", "unknown", 0.3)],
+        has_unknown=True,
+    )]
+    with patch(
+        "app.core.parser_workflow.nodes.escalate_node._call_escalate_llm",
+        return_value=MOCK_ESCALATE_USE_EXISTING,
+    ):
+        result = escalate_node(_make_state(classified, str(tmp_path)))
+    cc = result["classified_chunks"][0]
+    assert cc["has_unknown"] is False
+    assert cc["segments"][0]["content_type"] == "plain_text"
+    assert cc["segments"][0]["escalated"] is True
+    # 未创建新规则，只有内置默认类型
+    from app.core.parser_workflow.rules import RulesStore
+    store = RulesStore(str(tmp_path))
+    ids = [ct["id"] for ct in store.get_content_type_rules()["content_types"]]
+    assert "plain_text" in ids
 
 
 def test_escalate_appends_new_rule_to_file(tmp_path):
@@ -1695,13 +1774,17 @@ def test_escalate_appends_new_rule_to_file(tmp_path):
     )]
     with patch(
         "app.core.parser_workflow.nodes.escalate_node._call_escalate_llm",
-        return_value=MOCK_ESCALATE_RESPONSE,
+        return_value=MOCK_ESCALATE_CREATE,
     ):
         escalate_node(_make_state(classified, str(tmp_path)))
     from app.core.parser_workflow.rules import RulesStore
     store = RulesStore(str(tmp_path))
-    ids = [ct["id"] for ct in store.get_content_type_rules()["content_types"]]
+    ct_rules = store.get_content_type_rules()["content_types"]
+    ids = [ct["id"] for ct in ct_rules]
     assert "flowchart" in ids
+    # 验证 prompt_template 落盘
+    flowchart_rule = next(ct for ct in ct_rules if ct["id"] == "flowchart")
+    assert "prompt_template" in flowchart_rule["transform"]
 
 
 def test_escalate_skips_chunks_without_unknown(tmp_path):
@@ -1728,7 +1811,7 @@ def test_escalate_only_resolves_unknown_segments_not_known_ones(tmp_path):
     )]
     with patch(
         "app.core.parser_workflow.nodes.escalate_node._call_escalate_llm",
-        return_value=MOCK_ESCALATE_RESPONSE,
+        return_value=MOCK_ESCALATE_CREATE,
     ):
         result = escalate_node(_make_state(classified, str(tmp_path)))
     segs = result["classified_chunks"][0]["segments"]
@@ -1749,7 +1832,7 @@ cd agent-server && pytest tests/core/parser_workflow/test_escalate_node.py -v
 `app/core/parser_workflow/nodes/escalate_node.py`:
 ```python
 from __future__ import annotations
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Literal, Optional
 from app.core.parser_workflow.models import WorkflowState, ClassifiedChunk, TypedSegment
 from app.core.parser_workflow.rules import RulesStore
 
@@ -1760,24 +1843,37 @@ def _call_escalate_llm(
     config: dict,
 ) -> Dict[str, Any]:
     """
-    大模型判断 unknown 片段的类型，返回新 content_type 规则。
+    大模型两步判断：
+    1. 语义匹配：unknown 片段是否符合已有 content_type？
+       → action="use_existing", content_type=<existing_id>
+    2. 不符合则创建新类型（含 strategy + prompt_template）
+       → action="create_new", content_type=<new_id>, description=..., transform={...}
     """
     from langchain_openai import ChatOpenAI
     from pydantic import BaseModel
 
+    class TransformParams(BaseModel):
+        strategy: str                       # preserve_as_is / plain_embed / split_rows / preserve_as_list / llm_transform
+        prompt_template: Optional[str] = None  # 仅 llm_transform 时必填
+
     class EscalateOutput(BaseModel):
-        content_type: str
-        description: str
-        transform: Dict[str, Any]
+        action: Literal["use_existing", "create_new"]
+        content_type: str                   # use_existing: 已有 id；create_new: 新 id
+        description: Optional[str] = None  # 仅 create_new
+        transform: Optional[TransformParams] = None  # 仅 create_new
 
     type_list = "\n".join(f"- {t['id']}: {t['description']}" for t in existing_types)
     prompt = (
-        f"以下文本片段无法被现有内容类型识别。请判断它属于什么类型，"
-        f"并提供新的 content_type 定义。\n\n"
-        f"现有类型：\n{type_list}\n\n"
+        f"以下文本片段置信度过低，无法被自动分类。\n\n"
+        f"现有内容类型：\n{type_list}\n\n"
         f"文本内容：\n{segment_content}\n\n"
-        f"请返回新的 content_type（若已有合适类型可直接使用现有 id）、"
-        f"描述和 transform 参数（strategy 选 preserve_as_is / plain_embed / split_rows / preserve_as_list）。"
+        f"请先判断该文本是否语义上符合某个已有类型（action=use_existing）。"
+        f"若符合，返回对应 content_type id 即可。\n"
+        f"若不符合任何已有类型，请创建新类型（action=create_new），提供：\n"
+        f"- content_type：英文下划线命名的新 id\n"
+        f"- description：类型说明\n"
+        f"- transform.strategy：选 preserve_as_is / plain_embed / split_rows / preserve_as_list / llm_transform\n"
+        f"- transform.prompt_template：当 strategy=llm_transform 时必填，用 {{content}} 作为内容占位符"
     )
 
     model = ChatOpenAI(
@@ -1811,17 +1907,19 @@ def escalate_node(state: WorkflowState) -> dict:
             llm_result = _call_escalate_llm(seg["content"], existing_types, config)
             new_ct_id = llm_result["content_type"]
 
-            # 若是全新类型，追加到规则文件
-            known_ids = {t["id"] for t in existing_types}
-            if new_ct_id not in known_ids:
-                store.append_content_type({
-                    "id": new_ct_id,
-                    "description": llm_result["description"],
-                    "transform": llm_result["transform"],
-                })
-                # 重新获取（reload 已在 append 内部完成）
-                existing_types = store.get_content_type_rules().get("content_types", [])
+            if llm_result["action"] == "create_new":
+                # 追加新规则到文件（含 prompt_template）
+                known_ids = {t["id"] for t in existing_types}
+                if new_ct_id not in known_ids:
+                    transform = llm_result["transform"] or {}
+                    store.append_content_type({
+                        "id": new_ct_id,
+                        "description": llm_result["description"],
+                        "transform": transform,
+                    })
+                    existing_types = store.get_content_type_rules().get("content_types", [])
 
+            # use_existing 或 create_new 均从 store 读取最终 transform_params
             transform_params = store.get_transform_params(new_ct_id)
             new_segments[j] = TypedSegment(
                 content=seg["content"],
@@ -1895,7 +1993,7 @@ cd agent-server
 git add app/core/parser_workflow/nodes/escalate_node.py \
         app/core/parser_workflow/nodes/structure_node.py \
         tests/core/parser_workflow/test_escalate_node.py
-git commit -m "feat(parser-workflow): add escalate_node and complete structure_node LLM fallback"
+git commit -m "feat(parser-workflow): add escalate_node with two-step LLM logic and llm_transform support"
 ```
 
 ---
@@ -2214,9 +2312,13 @@ async def test_end_to_end_escalate_path_and_stats(tmp_path):
         "segments": [{"content": "奇怪内容", "content_type": "plain_text", "confidence": 0.2}]
     }
     escalate_response = {
+        "action": "create_new",
         "content_type": "new_type",
         "description": "新类型描述",
-        "transform": {"strategy": "preserve_as_is"},
+        "transform": {
+            "strategy": "llm_transform",
+            "prompt_template": "请转化：{content}"
+        },
     }
     with patch(
         "app.core.parser_workflow.nodes.classify_node._call_classify_llm",
@@ -2224,6 +2326,9 @@ async def test_end_to_end_escalate_path_and_stats(tmp_path):
     ), patch(
         "app.core.parser_workflow.nodes.escalate_node._call_escalate_llm",
         return_value=escalate_response,
+    ), patch(
+        "app.core.parser_workflow.nodes.transform_node._call_transform_llm",
+        return_value="转化后内容",
     ):
         result = await run_parser_workflow(
             md_content="## 技术要求\n\n奇怪内容。\n\n## 检验规则\n\n按批次检验。",
