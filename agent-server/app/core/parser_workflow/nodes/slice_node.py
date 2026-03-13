@@ -1,0 +1,119 @@
+from __future__ import annotations
+
+import re
+from typing import List, Tuple
+
+from app.core.parser_workflow.config import (
+    CHUNK_SOFT_MAX_DEFAULT,
+    CHUNK_HARD_MAX_DEFAULT,
+    SLICE_HEADING_LEVELS_DEFAULT,
+    get_config_value,
+)
+from app.core.parser_workflow.models import RawChunk, WorkflowState
+
+
+def _heading_pattern(level: int) -> re.Pattern:
+    prefix = "#" * level
+    return re.compile(rf"^{re.escape(prefix)} (.+)$", re.MULTILINE)
+
+
+def _split_by_heading(text: str, level: int) -> List[Tuple[str, str]]:
+    """
+    按指定级别标题切分。
+    返回 [(heading_title, block_content), ...]
+    - heading_title 为空字符串时表示标题前的内容（前言）
+    - block_content 包含标题行本身
+    """
+    pattern = _heading_pattern(level)
+    parts: List[Tuple[str, str]] = []
+    last_end = 0
+    last_title = ""
+
+    for m in pattern.finditer(text):
+        segment = text[last_end:m.start()]
+        if segment.strip() or last_title == "":
+            parts.append((last_title, segment))
+        last_title = m.group(1).strip()
+        last_end = m.start()
+
+    parts.append((last_title, text[last_end:]))
+    return parts
+
+
+def recursive_slice(
+    content: str,
+    heading_levels: List[int],
+    parent_path: List[str],
+    soft_max: int,
+    hard_max: int,
+    errors: List[str],
+) -> List[RawChunk]:
+    if not heading_levels:
+        chunk = RawChunk(
+            content=content, section_path=parent_path[:], char_count=len(content)
+        )
+        if len(content) > hard_max:
+            errors.append(
+                f"WARN: chunk exceeds HARD_MAX ({len(content)} chars) at {parent_path}"
+            )
+        return [chunk]
+
+    level = heading_levels[0]
+    parts = _split_by_heading(content, level)
+
+    if len(parts) == 1 and parts[0][0] == "":
+        return recursive_slice(content, heading_levels[1:], parent_path, soft_max, hard_max, errors)
+
+    result: List[RawChunk] = []
+    for title, block in parts:
+        if not block.strip() and not title:
+            continue
+        path = parent_path + ([title] if title else [])
+        char_count = len(block)
+        if char_count <= soft_max or len(heading_levels) <= 1:
+            chunk = RawChunk(
+                content=block, section_path=path, char_count=len(block)
+            )
+            if len(block) > hard_max:
+                errors.append(
+                    f"WARN: chunk exceeds HARD_MAX ({len(block)} chars) at {path}"
+                )
+            result.append(chunk)
+        else:
+            result.extend(
+                recursive_slice(block, heading_levels[1:], path, soft_max, hard_max, errors)
+            )
+    return result
+
+
+def slice_node(state: WorkflowState) -> dict:
+    cfg = state.get("config", {})
+    soft_max = get_config_value(cfg, "chunk_soft_max", CHUNK_SOFT_MAX_DEFAULT)
+    hard_max = get_config_value(cfg, "chunk_hard_max", CHUNK_HARD_MAX_DEFAULT)
+    levels = get_config_value(
+        cfg, "slice_heading_levels", SLICE_HEADING_LEVELS_DEFAULT
+    )
+
+    md = state["md_content"]
+    errors = list(state.get("errors", []))
+    raw_chunks: List[RawChunk] = []
+
+    # 前言处理：提取第一个顶级标题前的内容
+    first_heading_level = levels[0]
+    pattern = _heading_pattern(first_heading_level)
+    first_match = pattern.search(md)
+    if first_match and first_match.start() > 0:
+        preamble = md[: first_match.start()].strip()
+        if preamble:
+            raw_chunks.append(
+                RawChunk(
+                    content=preamble,
+                    section_path=["__preamble__"],
+                    char_count=len(preamble),
+                )
+            )
+        md = md[first_match.start():]
+
+    raw_chunks.extend(recursive_slice(md, levels, [], soft_max, hard_max, errors))
+    return {"raw_chunks": raw_chunks, "errors": errors}
+

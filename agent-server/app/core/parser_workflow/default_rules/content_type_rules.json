@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "confidence_threshold": 0.7,
+  "content_types": [
+    {
+      "id": "table",
+      "description": "Markdown 表格，以 | 开头的连续行",
+      "transform": {
+        "strategy": "split_rows",
+        "preserve_header": true
+      }
+    },
+    {
+      "id": "formula",
+      "description": "数学或化学公式，含 LaTeX 语法或化学分子式",
+      "transform": {
+        "strategy": "preserve_as_is"
+      }
+    },
+    {
+      "id": "numbered_list",
+      "description": "有序编号列表，步骤或条款",
+      "transform": {
+        "strategy": "preserve_as_list"
+      }
+    },
+    {
+      "id": "plain_text",
+      "description": "普通说明性段落，无特殊结构",
+      "transform": {
+        "strategy": "plain_embed"
+      }
+    }
+  ]
+}
+
