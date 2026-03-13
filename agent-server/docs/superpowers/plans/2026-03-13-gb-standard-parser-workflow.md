@@ -2171,13 +2171,14 @@ async def test_end_to_end_table_produces_split_row_chunks(tmp_path):
 
 @pytest.mark.asyncio
 async def test_end_to_end_no_llm_key_still_works_with_mocked_classify(tmp_path):
-    """验证在没有真实 LLM 密钥时，通过 mock 可以完整运行。"""
+    """验证在没有真实 LLM 密钥时，通过 mock 可以完整运行。
+    使用含 '技术要求' 关键词的 MD，确保 structure_node 规则命中，无需 LLM 兜底。"""
     with patch(
         "app.core.parser_workflow.nodes.classify_node._call_classify_llm",
         return_value=CLASSIFY_MOCK,
     ):
         result = await run_parser_workflow(
-            md_content="## 范围\n\n本标准适用范围。",
+            md_content="## 技术要求\n\n含量不低于 96%。\n\n## 检验规则\n\n按批次检验。",
             doc_metadata={"standard_no": "GB0000", "title": "测试标准"},
             rules_dir=str(tmp_path),
             config={},
@@ -2188,12 +2189,13 @@ async def test_end_to_end_no_llm_key_still_works_with_mocked_classify(tmp_path):
 
 @pytest.mark.asyncio
 async def test_end_to_end_records_error_when_standard_no_missing(tmp_path):
+    """使用含规则关键词的 MD，确保 structure_node 规则命中，不触发 LLM 兜底。"""
     with patch(
         "app.core.parser_workflow.nodes.classify_node._call_classify_llm",
         return_value=CLASSIFY_MOCK,
     ):
         result = await run_parser_workflow(
-            md_content="## 范围\n内容",
+            md_content="## 技术要求\n\n含量不低于 96%。",
             doc_metadata={"title": "无编号标准"},
             rules_dir=str(tmp_path),
             config={},
@@ -2203,7 +2205,8 @@ async def test_end_to_end_records_error_when_standard_no_missing(tmp_path):
 
 @pytest.mark.asyncio
 async def test_end_to_end_escalate_path_and_stats(tmp_path):
-    """验证含 unknown 片段时，escalate 路径被触发，stats.escalate_count 正确。"""
+    """验证含 unknown 片段时，escalate 路径被触发，stats.escalate_count 正确。
+    使用含规则关键词的 MD，确保 structure_node 规则命中。"""
     low_conf_classify = {
         "segments": [{"content": "奇怪内容", "content_type": "plain_text", "confidence": 0.2}]
     }
@@ -2220,7 +2223,7 @@ async def test_end_to_end_escalate_path_and_stats(tmp_path):
         return_value=escalate_response,
     ):
         result = await run_parser_workflow(
-            md_content="## 范围\n\n奇怪内容",
+            md_content="## 技术要求\n\n奇怪内容。\n\n## 检验规则\n\n按批次检验。",
             doc_metadata={"standard_no": "GB0000", "title": "t"},
             rules_dir=str(tmp_path),
             config={"confidence_threshold": 0.7},
