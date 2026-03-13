@@ -100,6 +100,11 @@ class Settings(BaseSettings):
     AGENT_SKILLS_PATH: str = "app/skills"
     AGENT_MAX_ITERATIONS: int = 10
 
+    # 文档类型推断（切分策略用）：agent=用 LLM 判断，rule=仅规则，agent_then_rule=先 Agent 失败则规则兜底
+    DOC_TYPE_INFERENCE: str = "agent_then_rule"
+    DOC_TYPE_AGENT_MODEL: str = ""  # 空则用 CHAT_MODEL
+    DOC_TYPE_AGENT_TIMEOUT: int = 15  # Agent 调用超时（秒）
+
     class Config:
         env_file = ".env"
         case_sensitive = True
