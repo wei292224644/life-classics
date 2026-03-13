@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional
+import json
 
 from app.core.parser_workflow.models import ClassifiedChunk, TypedSegment, WorkflowState
 from app.core.parser_workflow.rules import RulesStore
@@ -19,20 +20,10 @@ def _call_escalate_llm(
        → action="create_new", content_type=<new_id>, description=..., transform={...}
     """
     from langchain_openai import ChatOpenAI  # type: ignore[import]
-    from pydantic import BaseModel
-
-    class TransformParams(BaseModel):
-        strategy: str
-        prompt_template: Optional[str] = None
-
-    class EscalateOutput(BaseModel):
-        action: Literal["use_existing", "create_new"]
-        content_type: str
-        description: Optional[str] = None
-        transform: Optional[TransformParams] = None
 
     type_list = "\n".join(f"- {t['id']}: {t['description']}" for t in existing_types)
     prompt = (
+        "你是一个 JSON（json）结构生成助手。\n"
         "以下文本片段置信度过低，无法被自动分类。\n\n"
         f"现有内容类型：\n{type_list}\n\n"
         f"文本内容：\n{segment_content}\n\n"
@@ -43,16 +34,32 @@ def _call_escalate_llm(
         "- description：类型说明\n"
         "- transform.strategy：转化策略\n"
         "- transform.prompt_template：转化提示词\n"
+        "只返回一个 JSON 对象，不要包含任何多余说明。\n"
+        '推荐字段：{"action": "use_existing","content_type": "...","description": "...","transform": {"strategy": "...","prompt_template": "..."}}\n'
     )
 
-    model = ChatOpenAI(
+    chat = ChatOpenAI(
         model=config.get("escalate_model", "gpt-4o"),  # type: ignore[arg-type]
         api_key=config.get("llm_api_key", ""),
         base_url=config.get("llm_base_url") or None,
-    ).with_structured_output(EscalateOutput)
+    )
+    resp = chat.invoke(prompt)
+    text = getattr(resp, "content", str(resp))
 
-    result: EscalateOutput = model.invoke(prompt)
-    return result.model_dump()
+    try:
+        data = json.loads(text)
+    except Exception as e:  # pragma: no cover - 仅用于真实 LLM 调试
+        raise ValueError(f"escalate LLM 输出非 JSON：{text}") from e
+
+    if not isinstance(data, dict):
+        raise ValueError(f"escalate LLM JSON 结构不符合预期：{data!r}")
+
+    data.setdefault("action", "use_existing")
+    data.setdefault("content_type", "plain_text")
+    data.setdefault("description", "")
+    if "transform" in data and isinstance(data["transform"], dict):
+        data["transform"].setdefault("strategy", "llm_transform")
+    return data
 
 
 def escalate_node(state: WorkflowState) -> dict:

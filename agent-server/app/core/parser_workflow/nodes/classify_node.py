@@ -19,7 +19,7 @@ def _call_classify_llm(
 ) -> Dict[str, Any]:
     """
     调用小模型对 chunk 做分段 + 分类。
-    返回 {"segments": [{"content": ..., "content_type": ..., "confidence": ...}]}
+    使用 structured output 强制返回 JSON，避免 LLM 输出格式不稳定的问题。
     """
     from langchain_openai import ChatOpenAI  # type: ignore[import]
     from pydantic import BaseModel
@@ -36,18 +36,18 @@ def _call_classify_llm(
         f"- {ct['id']}: {ct['description']}" for ct in content_types
     )
     prompt = (
-        "请将以下文本拆分为语义独立的片段，并为每段指定 content_type 和置信度（0-1）。\n\n"
+        "请将以下文本拆分为语义独立的片段，并以 JSON 格式返回每段的 content_type 和置信度（0-1）。\n\n"
         f"可用的 content_type：\n{type_descriptions}\n\n"
         f"文本内容：\n{chunk_content}"
     )
 
-    model = ChatOpenAI(
+    chat = ChatOpenAI(
         model=config.get("classify_model", "gpt-4o-mini"),
         api_key=config.get("llm_api_key", ""),
         base_url=config.get("llm_base_url") or None,
     ).with_structured_output(ClassifyOutput)
 
-    result: ClassifyOutput = model.invoke(prompt)
+    result: ClassifyOutput = chat.invoke(prompt)
     return {"segments": [s.model_dump() for s in result.segments]}
 
 
