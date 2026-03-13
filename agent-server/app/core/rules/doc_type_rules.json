@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "match_threshold": 2,
+  "doc_types": [
+    {
+      "id": "single_additive",
+      "description": "单一食品添加剂或产品标准，含技术要求和理化指标",
+      "detect_keywords": ["技术要求", "理化指标", "鉴别", "含量"],
+      "detect_heading_patterns": ["技术要求", "检验规则"],
+      "source": "rule"
+    },
+    {
+      "id": "detection_method",
+      "description": "检测方法标准，含多种方法、试剂、仪器、操作步骤",
+      "detect_keywords": ["方法一", "方法二", "试剂", "仪器", "操作步骤"],
+      "detect_heading_patterns": ["试剂和材料", "仪器和设备", "分析步骤"],
+      "source": "rule"
+    },
+    {
+      "id": "microbiological",
+      "description": "微生物检验标准，含培养基、流程图、判定规则",
+      "detect_keywords": ["培养基", "菌落", "接种", "判定"],
+      "detect_heading_patterns": ["培养基和试剂", "检验程序"],
+      "source": "rule"
+    }
+  ]
+}
+
