@@ -11,11 +11,15 @@
 ### 目标
 构建一个完全独立的 LangGraph Workflow，只做一件事：将 MinerU 输出的 Markdown 文件，通过自动切片 + LLM 语义分类 + 按类型转化，输出为结构化 `List[DocumentChunk]`。
 
+### 独立性声明
+本 Workflow 与现有代码库（`app/core/kb/strategy/`、`app/core/document_chunk.py` 等）**完全独立**，不复用、不依赖现有类和函数。`DocumentChunk` 是本 Workflow 专属的输出数据结构，外部调用方负责将其适配到目标存储系统的格式。
+
 ### 约束
 - Workflow 本身**无副作用**：不直接写数据库，输出纯数据对象，由外部调用方决定如何存储
 - 切片逻辑**纯规则**，不调用 LLM
 - LLM 仅在两处介入：content_type 分类（小模型）、未知情况的兜底推断（大模型）
 - 规则以**外部 JSON 文件**形式管理，运行时动态加载，支持运行中追加新规则
+- 规则文件不存在时自动初始化为内置默认值
 
 ---
 
@@ -24,7 +28,7 @@
 ```
 [parse_node]
     ↓ md_content + doc_metadata
-[compress_node]
+[structure_node]                ← 原名 compress_node，重命名以准确反映职责
     ↓ 提取标题层级结构 + 推断 doc_type（规则优先，规则失败时调 LLM）
       → 新 doc_type 规则 append 到 doc_type_rules.json
 [slice_node]
@@ -37,7 +41,7 @@
                                         ↓ 补全 content_type
                                         ↓ append 新规则到 content_type_rules.json
                                    [transform_node]
-    ↓ 每块 List[TypedSegment] → 处理后合并为 DocumentChunk
+    ↓ 每块 List[TypedSegment] → 处理后输出 List[DocumentChunk]（一块可产出多个）
 输出：List[DocumentChunk]
 ```
 
@@ -46,21 +50,54 @@
 | 节点 | 职责 | LLM | 规则文件 |
 |---|---|---|---|
 | `parse_node` | 读取 MD 文件，提取文档元数据 | 否 | 否 |
-| `compress_node` | 提取标题结构 + 推断 doc_type | 失败时调用 | `doc_type_rules.json` |
+| `structure_node` | 提取标题结构 + 推断 doc_type | 失败时调用 | `doc_type_rules.json` |
 | `slice_node` | 递归标题切分 + 字符阈值控制 | 否 | 无（配置项） |
 | `classify_node` | 每块拆解为 List[TypedSegment] | 小模型 | `content_type_rules.json` |
 | `escalate_node` | 处理 unknown 片段 + 追加新规则 | 大模型 | `content_type_rules.json` |
-| `transform_node` | 按 transform_params 转化，合并为 DocumentChunk | 否 | 读 transform_params |
+| `transform_node` | 按 transform_params 转化，输出 List[DocumentChunk] | 否 | 读 transform_params |
+
+### LangGraph 图结构定义
+
+```python
+from langgraph.graph import StateGraph, END
+
+def should_escalate(state: WorkflowState) -> str:
+    """conditional edge: classify_node 后判断是否需要 escalate"""
+    has_unknown = any(
+        chunk.has_unknown for chunk in state["classified_chunks"]
+    )
+    return "escalate_node" if has_unknown else "transform_node"
+
+builder = StateGraph(WorkflowState)
+builder.add_node("parse_node", parse_node)
+builder.add_node("structure_node", structure_node)
+builder.add_node("slice_node", slice_node)
+builder.add_node("classify_node", classify_node)
+builder.add_node("escalate_node", escalate_node)
+builder.add_node("transform_node", transform_node)
+
+builder.set_entry_point("parse_node")
+builder.add_edge("parse_node", "structure_node")
+builder.add_edge("structure_node", "slice_node")
+builder.add_edge("slice_node", "classify_node")
+builder.add_conditional_edges("classify_node", should_escalate)
+builder.add_edge("escalate_node", "transform_node")
+builder.add_edge("transform_node", END)
+
+graph = builder.compile()
+```
 
 ---
 
 ## 3. 核心数据结构
 
 ```python
-# Workflow 全局状态
+# Workflow 全局状态（LangGraph State）
 class WorkflowState(TypedDict):
     md_content: str
     doc_metadata: dict              # standard_no, title, year, doc_type, doc_type_source
+    config: "ParserConfig"          # 由 run_parser_workflow 注入，节点通过 state["config"] 读取
+    rules_dir: str                  # 规则文件目录，由 run_parser_workflow 注入
     raw_chunks: List[RawChunk]
     classified_chunks: List[ClassifiedChunk]
     final_chunks: List[DocumentChunk]
@@ -69,7 +106,7 @@ class WorkflowState(TypedDict):
 # 切片后的原始块
 class RawChunk(TypedDict):
     content: str
-    section_path: List[str]         # 如 ["3", "3.1", "3.1.2"]
+    section_path: List[str]         # 标题文字列表，如 ["3 范围", "3.1 适用范围"]
     char_count: int
 
 # classify_node 输出（一个 RawChunk 的分析结果）
@@ -78,20 +115,33 @@ class ClassifiedChunk(TypedDict):
     segments: List[TypedSegment]
     has_unknown: bool               # 是否含需要 escalate 的片段
 
-# 有类型的内容片段
+# 有类型的内容片段（LLM 完成分段 + 分类）
 class TypedSegment(TypedDict):
     content: str
     content_type: str               # "table" / "formula" / "plain_text" / ...
     transform_params: dict          # 来自 content_type_rules.json 的转化参数
     confidence: float               # < CONFIDENCE_THRESHOLD 时触发 escalate
 
-# 最终输出块
+# 最终输出块（本 Workflow 专属，调用方负责适配目标存储格式）
 class DocumentChunk(TypedDict):
-    chunk_id: str
-    doc_metadata: dict              # 含 doc_type、standard_no 等
-    section_path: List[str]
-    segments: List[TypedSegment]
-    content_summary: str            # transform 后的文本表示，用于向量化
+    chunk_id: str                   # sha256(standard_no + section_path_str + content)[:16]
+    doc_metadata: dict              # 含 doc_type、standard_no、title、year 等
+    section_path: List[str]         # 与 RawChunk.section_path 一致
+    content_type: str               # 该 chunk 的主要内容类型：
+                                    # - split_rows 产出的行 chunk：固定为源 segment 的 content_type
+                                    # - 单输出 chunk：按字符数占比最高的 segment 的 content_type
+    content: str                    # transform 后的文本内容，用于向量化
+    raw_content: str                # 原始 Markdown 内容，原样保留
+    meta: dict                      # 扩展元数据（如 table_row_index、formula_vars 等）
+```
+
+### chunk_id 生成规则
+```python
+import hashlib
+
+def make_chunk_id(standard_no: str, section_path: List[str], content: str) -> str:
+    key = f"{standard_no}|{'|'.join(section_path)}|{content[:100]}"
+    return hashlib.sha256(key.encode()).hexdigest()[:16]
 ```
 
 ---
@@ -102,30 +152,40 @@ class DocumentChunk(TypedDict):
 
 | 参数 | 默认值 | 说明 |
 |---|---|---|
-| `SLICE_HEADING_LEVELS` | `[##, ###, ####]` | 按序尝试的标题级别 |
+| `SLICE_HEADING_LEVELS` | `[2, 3, 4]` | 按序尝试的标题级别（整数，对应 `##`=2，`###`=3，`####`=4） |
 | `CHUNK_SOFT_MAX` | 1500 字符 | 超过则尝试下一级标题继续拆 |
 | `CHUNK_HARD_MAX` | 3000 字符 | 超过且无标题可拆则保留，记录 warning |
+
+### 前置内容处理
+标题之前的内容（文档前言、封面信息等）作为独立块保留，`section_path = ["__preamble__"]`，不参与递归切分。
 
 ### 算法
 
 ```
-recursive_slice(content, heading_levels):
-    1. 按 heading_levels[0] 切分
-    2. 对每个子块：
-       a. char_count <= SOFT_MAX → 保留
-       b. char_count > SOFT_MAX 且还有更细标题级别 → recursive_slice(子块, heading_levels[1:])
-       c. char_count > HARD_MAX 且 heading_levels 已空 → 保留原块，errors.append(warning)
+recursive_slice(content, heading_levels, parent_path):
+    1. 按 heading_levels[0] 级别标题切分
+    2. 若无该级别标题 → 作为整体处理（跳到步骤 4）
+    3. 对每个子块（含其标题）：
+       a. char_count <= SOFT_MAX → 保留为 RawChunk
+       b. char_count > SOFT_MAX 且 len(heading_levels) > 1
+          → recursive_slice(子块, heading_levels[1:], 更新后的 path)
+       c. char_count > HARD_MAX 且 heading_levels 已空
+          → 保留为 RawChunk，errors.append(f"WARN: chunk exceeds HARD_MAX at {path}")
+    4. 收集所有子块，返回 List[RawChunk]
 ```
 
 ---
 
 ## 5. 规则文件设计
 
+规则文件存放在 `rules_dir` 目录下。若文件不存在，首次运行时自动创建并写入内置默认规则。
+
 ### 5.1 文档类型规则（`doc_type_rules.json`）
 
 ```json
 {
   "version": "1.0",
+  "match_threshold": 2,
   "doc_types": [
     {
       "id": "single_additive",
@@ -152,11 +212,21 @@ recursive_slice(content, heading_levels):
 }
 ```
 
-**推断逻辑（compress_node 内部）**：
-1. 提取所有 `##` 标题列表
-2. 逐个 `doc_type` 计算关键词匹配分（`detect_keywords` + `detect_heading_patterns`）
-3. 最高分超过阈值 → 命中，`doc_type_source = "rule"`
-4. 无命中 → 调 LLM，传入压缩后的标题列表，返回新 `doc_type` + 规则描述 → append 到文件，`doc_type_source = "llm"`
+**推断逻辑（structure_node 内部）**：
+1. 提取文档所有 `##` 标题列表
+2. 对每个 `doc_type` 统计匹配项数（`detect_keywords` + `detect_heading_patterns` 各计 1 分）
+3. 最高分 >= `match_threshold` → 命中，`doc_type_source = "rule"`
+4. 无命中 → 调 LLM，传入压缩后的标题列表，要求返回以下 JSON：
+   ```json
+   {
+     "id": "new_type_id",
+     "description": "...",
+     "detect_keywords": ["...", "..."],
+     "detect_heading_patterns": ["..."],
+     "source": "llm"
+   }
+   ```
+   验证格式后 append 到 `doc_type_rules.json`，`doc_type_source = "llm"`
 
 ### 5.2 内容类型规则（`content_type_rules.json`）
 
@@ -168,7 +238,6 @@ recursive_slice(content, heading_levels):
     {
       "id": "table",
       "description": "Markdown 表格，以 | 开头的连续行",
-      "detect_pattern": "^\\|",
       "transform": {
         "strategy": "split_rows",
         "preserve_header": true
@@ -177,7 +246,6 @@ recursive_slice(content, heading_levels):
     {
       "id": "formula",
       "description": "数学或化学公式，含 LaTeX 语法或化学分子式",
-      "detect_pattern": "\\$.*\\$|\\\\frac|[A-Z][a-z]?\\d*[\\+\\-]?",
       "transform": {
         "strategy": "preserve_as_is"
       }
@@ -185,7 +253,6 @@ recursive_slice(content, heading_levels):
     {
       "id": "numbered_list",
       "description": "有序编号列表，步骤或条款",
-      "detect_pattern": "^\\d+[\\.)）]",
       "transform": {
         "strategy": "preserve_as_list"
       }
@@ -193,7 +260,6 @@ recursive_slice(content, heading_levels):
     {
       "id": "plain_text",
       "description": "普通说明性段落，无特殊结构",
-      "detect_pattern": ".*",
       "transform": {
         "strategy": "plain_embed"
       }
@@ -202,48 +268,112 @@ recursive_slice(content, heading_levels):
 }
 ```
 
-**分类逻辑（classify_node 内部）**：
-- 小模型接收：chunk 文本 + `content_type_rules.json` 内容（作为 prompt 的一部分）
-- 模型输出：每个片段的 `content_type` + `confidence`
-- `confidence < threshold` 的片段标记为 `unknown`，交由 `escalate_node` 处理
+**classify_node 分类逻辑**：
+- 小模型接收：RawChunk 文本 + `content_type_rules.json` 中所有 content_type 的 id + description
+- 模型职责：**同时完成分段和分类**——将 chunk 文本拆解为语义片段，为每段指定 content_type 和 confidence
+- 模型输出 schema（强制 structured output）：
+  ```json
+  {
+    "segments": [
+      {
+        "content": "...",
+        "content_type": "table",
+        "confidence": 0.95
+      }
+    ]
+  }
+  ```
+- `confidence < confidence_threshold` 的片段标记为 `unknown`，交由 `escalate_node`
 
 **escalate_node 扩展逻辑**：
-- 大模型接收：unknown 片段文本 + 已有 content_type 列表
-- 模型输出：新 `content_type` ID + 描述 + detect_pattern + transform 参数
-- 自动 append 到 `content_type_rules.json`，下次运行生效
+- 大模型接收：unknown 片段文本 + 已有 content_type 列表（id + description）
+- 模型输出 schema（强制 structured output）：
+  ```json
+  {
+    "content_type": "new_type_id",
+    "description": "...",
+    "transform": {
+      "strategy": "preserve_as_is"
+    }
+  }
+  ```
+- 验证格式后 append 到 `content_type_rules.json`，当前运行立即生效
+- **状态回写**：escalate_node 将 unknown 片段的 `content_type` 补全后，直接修改 `state["classified_chunks"]` 中对应 `TypedSegment` 的字段（`content_type` 更新为推断结果，`confidence` 更新为 1.0），`has_unknown` 置为 `False`。`transform_node` 始终从 `state["classified_chunks"]` 读取，无需区分是否经过 escalate。
 
 ---
 
 ## 6. transform_node 转化策略
 
-| strategy | 行为 |
-|---|---|
-| `split_rows` | 表格按行拆分，每行保留表头上下文，各自生成独立 segment |
-| `preserve_as_is` | 原样保留，不做任何处理 |
-| `preserve_as_list` | 列表项保留编号结构，拼接为连续文本 |
-| `plain_embed` | 直接作为文本内容，去除多余空白 |
+**一个 RawChunk 可产出多个 DocumentChunk**（例如表格按行拆分时）。
 
-`transform_node` 处理完一个 `RawChunk` 的所有 `TypedSegment` 后，将结果合并为一个 `DocumentChunk`，其中 `content_summary` 为所有 segment 转化后文本的拼接，用于向量化。
+| strategy | 行为 | 产出 DocumentChunk 数 |
+|---|---|---|
+| `split_rows` | 表格每行作为独立 chunk，行内容 + 表头上下文拼接为 content | 每行一个 |
+| `preserve_as_is` | 原样保留，content = raw_content | 1 个 |
+| `preserve_as_list` | 列表结构保留，去除多余空白 | 1 个 |
+| `plain_embed` | 文本内容，去除多余空白 | 1 个 |
+
+`split_rows` 产出多行时，每个 `DocumentChunk.meta` 中附加 `table_row_index: int`，`content_type` 均标记为 `"table"`。
 
 ---
 
 ## 7. 对外接口
 
 ```python
+class ParserConfig(TypedDict, total=False):
+    # 切片参数
+    chunk_soft_max: int             # 默认 1500
+    chunk_hard_max: int             # 默认 3000
+    slice_heading_levels: List[int] # 默认 [2, 3, 4]
+    # LLM 参数
+    classify_model: str             # 小模型，用于 classify_node
+    escalate_model: str             # 大模型，用于 escalate_node
+    doc_type_llm_model: str         # structure_node LLM 推断时使用的模型
+    llm_api_key: str
+    llm_base_url: str
+    # 行为控制
+    confidence_threshold: float     # 默认读 content_type_rules.json，此处可覆盖
+
 async def run_parser_workflow(
     md_content: str,
-    doc_metadata: dict,         # 至少包含 standard_no, title
-    rules_dir: str,             # content_type_rules.json 和 doc_type_rules.json 所在目录
-    config: ParserConfig,       # CHUNK_SOFT_MAX, CHUNK_HARD_MAX, LLM 配置等
+    doc_metadata: dict,             # 至少包含 standard_no, title
+    rules_dir: str,                 # content_type_rules.json 和 doc_type_rules.json 所在目录
+    config: ParserConfig = {},
 ) -> ParserResult:
-    ...
+    initial_state: WorkflowState = {
+        "md_content": md_content,
+        "doc_metadata": doc_metadata,
+        "config": config,
+        "rules_dir": rules_dir,
+        "raw_chunks": [],
+        "classified_chunks": [],
+        "final_chunks": [],
+        "errors": [],
+    }
+    result_state = await graph.ainvoke(initial_state)
+    return ParserResult(
+        chunks=result_state["final_chunks"],
+        doc_metadata=result_state["doc_metadata"],
+        errors=result_state["errors"],
+        stats={
+            "chunk_count": len(result_state["final_chunks"]),
+            "escalate_count": sum(
+                1 for c in result_state["classified_chunks"] if c["has_unknown"]
+            ),
+        }
+    )
 
 class ParserResult(TypedDict):
     chunks: List[DocumentChunk]
-    doc_metadata: dict          # 含推断出的 doc_type
-    errors: List[str]           # 非阻塞警告
-    stats: dict                 # chunk_count, escalate_count, new_rules_added 等
+    doc_metadata: dict
+    errors: List[str]
+    stats: dict                     # chunk_count, escalate_count 等
 ```
+
+### classify_node 执行模式
+- 当前阶段：**顺序处理**，逐个 RawChunk 调用 LLM（实现简单，便于调试）
+- 规则文件在每次 `run_parser_workflow` 调用开始时加载一次，escalate_node 追加规则后立即重载，在当前运行内生效
+- 规则文件写入使用文件追加（append），不加分布式锁（当前单进程场景无需）
 
 ---
 
@@ -253,3 +383,4 @@ class ParserResult(TypedDict):
 - **新 doc_type**：向 `doc_type_rules.json` append 一条 entry，无需修改代码
 - **新 transform strategy**：在 `transform_node` 中注册新的 strategy 函数，JSON 中通过 `"strategy"` 字段引用
 - **切片参数**：通过 `ParserConfig` 调整，无需修改 Workflow 节点逻辑
+- **并发扩展**：如需并行处理多个 chunk，可将 `classify_node` 改为 LangGraph `Send`-based fan-out，接口不变
