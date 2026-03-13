@@ -37,9 +37,10 @@
     ↓ 小模型逐块分析，拆解为 List[TypedSegment]
     ├── 全部 confidence 达标 ──────────────────→ [transform_node]
     └── 含 unknown / 低置信度片段 → [escalate_node]
-                                        ↓ 大模型分析 unknown 片段
-                                        ↓ 补全 content_type
-                                        ↓ append 新规则到 content_type_rules.json
+                                        ↓ 大模型语义匹配：unknown 片段是否符合已有 content_type？
+                                        ├── 匹配已有 → 直接回写，不创建新规则
+                                        └── 不匹配 → 创建新 content_type（含 strategy + prompt_template）
+                                        ↓ append 新规则到 content_type_rules.json（仅创建时）
                                    [transform_node]
     ↓ 每块 List[TypedSegment] → 处理后输出 List[DocumentChunk]（一块可产出多个）
 输出：List[DocumentChunk]
@@ -53,8 +54,8 @@
 | `structure_node` | 提取标题结构 + 推断 doc_type | 失败时调用 | `doc_type_rules.json` |
 | `slice_node` | 递归标题切分 + 字符阈值控制 | 否 | 无（配置项） |
 | `classify_node` | 每块拆解为 List[TypedSegment] | 小模型 | `content_type_rules.json` |
-| `escalate_node` | 处理 unknown 片段 + 追加新规则 | 大模型 | `content_type_rules.json` |
-| `transform_node` | 按 transform_params 转化，输出 List[DocumentChunk] | 否 | 读 transform_params |
+| `escalate_node` | unknown 片段语义匹配已有类型 / 创建新类型（含 prompt_template） | 大模型 | `content_type_rules.json` |
+| `transform_node` | 按 transform_params 转化，输出 List[DocumentChunk] | 条件性（llm_transform 策略时） | 读 transform_params |
 
 ### LangGraph 图结构定义
 
@@ -287,19 +288,31 @@ recursive_slice(content, heading_levels, parent_path):
 - `confidence < confidence_threshold` 的片段标记为 `unknown`，交由 `escalate_node`
 
 **escalate_node 扩展逻辑**：
+
+职责单一：判断 unknown 片段归属，必要时创建新类型规则。不执行内容转化。
+
+**Step 1 — 语义匹配已有类型（LLM）**：
 - 大模型接收：unknown 片段文本 + 已有 content_type 列表（id + description）
-- 模型输出 schema（强制 structured output）：
+- 大模型判断：该片段是否语义上符合某个已有 content_type？
+- 若匹配 → 直接回写该 content_type，**不创建新规则，不写文件**，流程结束
+
+**Step 2 — 创建新类型（LLM，仅 Step 1 未匹配时执行）**：
+- 大模型为该片段生成新 content_type，输出 schema（强制 structured output）：
   ```json
   {
+    "action": "create_new",
     "content_type": "new_type_id",
     "description": "...",
     "transform": {
-      "strategy": "preserve_as_is"
+      "strategy": "llm_transform",
+      "prompt_template": "请将以下GB标准内容转化为规范化文本：\n{content}"
     }
   }
   ```
+  strategy 可为 `llm_transform` 或现有四种确定性策略之一；`prompt_template` 仅 `llm_transform` 时必填。
 - 验证格式后 append 到 `content_type_rules.json`，当前运行立即生效
-- **状态回写**：escalate_node 将 unknown 片段的 `content_type` 补全后，直接修改 `state["classified_chunks"]` 中对应 `TypedSegment` 的字段（`content_type` 更新为推断结果，`confidence` 更新为 1.0），`has_unknown` 置为 `False`。`transform_node` 始终从 `state["classified_chunks"]` 读取，无需区分是否经过 escalate。
+
+**状态回写**：escalate_node 将 unknown 片段的 `content_type` 补全后，直接修改 `state["classified_chunks"]` 中对应 `TypedSegment` 的字段（`content_type` 更新为推断结果，`confidence` 更新为 1.0，`transform_params` 更新为对应规则的 transform 字段），`has_unknown` 置为 `False`。`transform_node` 始终从 `state["classified_chunks"]` 读取，无需区分是否经过 escalate。
 
 ---
 
@@ -307,14 +320,17 @@ recursive_slice(content, heading_levels, parent_path):
 
 **一个 RawChunk 可产出多个 DocumentChunk**（例如表格按行拆分时）。
 
-| strategy | 行为 | 产出 DocumentChunk 数 |
-|---|---|---|
-| `split_rows` | 表格每行作为独立 chunk，行内容 + 表头上下文拼接为 content | 每行一个 |
-| `preserve_as_is` | 原样保留，content = raw_content | 1 个 |
-| `preserve_as_list` | 列表结构保留，去除多余空白 | 1 个 |
-| `plain_embed` | 文本内容，去除多余空白 | 1 个 |
+| strategy | 行为 | LLM | 产出 DocumentChunk 数 |
+|---|---|---|---|
+| `split_rows` | 表格每行作为独立 chunk，行内容 + 表头上下文拼接为 content | 否 | 每行一个 |
+| `preserve_as_is` | 原样保留，content = raw_content | 否 | 1 个 |
+| `preserve_as_list` | 列表结构保留，去除多余空白 | 否 | 1 个 |
+| `plain_embed` | 文本内容，去除多余空白 | 否 | 1 个 |
+| `llm_transform` | 读取 `transform_params.prompt_template`，将 `{content}` 替换为原始内容后调用 LLM，输出转化后文本 | 是（`transform_model`，fallback `escalate_model`） | 1 个 |
 
 `split_rows` 产出多行时，每个 `DocumentChunk.meta` 中附加 `table_row_index: int`，`content_type` 均标记为 `"table"`。
+
+`llm_transform` 产出的 DocumentChunk 中，`raw_content` 保留原始 Markdown，`content` 为 LLM 转化结果。
 
 ---
 
@@ -329,6 +345,7 @@ class ParserConfig(TypedDict, total=False):
     # LLM 参数
     classify_model: str             # 小模型，用于 classify_node
     escalate_model: str             # 大模型，用于 escalate_node
+    transform_model: str            # llm_transform 策略时使用的模型，不填则 fallback 到 escalate_model
     doc_type_llm_model: str         # structure_node LLM 推断时使用的模型
     llm_api_key: str
     llm_base_url: str
