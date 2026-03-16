@@ -25,6 +25,8 @@ async def delete_by_standard_no(standard_no: str, errors: List[str]) -> bool:
 
 async def write(chunks: List[DocumentChunk], doc_metadata: dict) -> None:
     """批量向量化并 upsert 到 ChromaDB。"""
+    if not chunks:
+        return
     collection = get_collection()
     embeddings = await embed_batch([c["content"] for c in chunks])
     collection.upsert(

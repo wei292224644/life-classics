@@ -85,3 +85,15 @@ async def test_write_section_path_serialized_with_pipe():
 
     meta = mock_col.upsert.call_args.kwargs["metadatas"][0]
     assert meta["section_path"] == "3|3.1|3.1.2"
+
+
+async def test_write_empty_chunks_is_noop():
+    """write 传入空列表时不调用 upsert"""
+    mock_col = MagicMock()
+
+    with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col), \
+         patch("app.core.kb.writer.chroma_writer.embed_batch", AsyncMock(return_value=[])):
+        from app.core.kb.writer.chroma_writer import write
+        await write([], _make_doc_metadata())
+
+    mock_col.upsert.assert_not_called()
