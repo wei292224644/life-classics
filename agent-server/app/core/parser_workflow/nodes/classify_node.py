@@ -41,6 +41,15 @@ def _call_classify_llm(
 可用的 content_type：
 {type_descriptions}
 
+保守切分原则：
+1. 只在相邻内容属于明显不同的 content_type 时才切分；同一逻辑章节的内容应保持整体。
+2. 标准前言（以"前言"为标题的章节）整体归为 preface 类型，内部变更条目列表（如"——增加了..."）不单独拆分。
+
+示例（前言章节的正确处理方式）：
+输入：包含前言标题、版本代替声明和多条变更条目的文本块
+正确输出：1 个 segment，content_type=preface，包含完整前言文本
+错误输出：多个 segment，将各变更条目拆分为独立的 numbered_list
+
 文本内容：
 {chunk_content}
 
