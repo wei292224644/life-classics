@@ -7,14 +7,8 @@ from app.core.parser_workflow.models import ClassifiedChunk, TypedSegment, Workf
 from app.core.parser_workflow.rules import RulesStore
 from pydantic import BaseModel
 from app.core.config import settings
-from langchain_openai import ChatOpenAI
 from app.core.parser_workflow.nodes.output import EscalateOutput
-
-chat = ChatOpenAI(
-    model=settings.ESCALATE_MODEL,
-    api_key=settings.LLM_API_KEY,
-    base_url=settings.LLM_BASE_URL or None,
-).with_structured_output(EscalateOutput)
+from app.core.parser_workflow.llm import create_chat_model, resolve_provider
 
 
 def _call_escalate_llm(
@@ -28,8 +22,8 @@ def _call_escalate_llm(
     2. 不符合则创建新类型（含 strategy + prompt_template）
        → action="create_new", content_type=<new_id>, description=..., transform={...}
     """
-    from langchain_openai import ChatOpenAI  # type: ignore[import]
-
+    provider = resolve_provider(settings.ESCALATE_LLM_PROVIDER)
+    chat = create_chat_model(settings.ESCALATE_MODEL, provider, output_schema=EscalateOutput)
     type_list = json.dumps(content_types, ensure_ascii=False, indent=2)
     format_example = """{
     "action": "use_existing" | "create_new",
