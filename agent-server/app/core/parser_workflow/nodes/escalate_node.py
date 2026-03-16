@@ -85,6 +85,9 @@ def escalate_node(state: WorkflowState) -> dict:
                 transform_params=transform_params,
                 confidence=1.0,
                 escalated=True,
+                cross_refs=[],
+                ref_context="",
+                failed_table_refs=[],
             )
 
         classified_chunks[i] = ClassifiedChunk(

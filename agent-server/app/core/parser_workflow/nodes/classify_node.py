@@ -86,6 +86,9 @@ def classify_raw_chunk(
                 },
                 confidence=confidence,
                 escalated=False,
+                cross_refs=[],
+                ref_context="",
+                failed_table_refs=[],
             )
             has_unknown = True
         else:
@@ -97,6 +100,9 @@ def classify_raw_chunk(
                 transform_params=transform_params,
                 confidence=confidence,
                 escalated=False,
+                cross_refs=[],
+                ref_context="",
+                failed_table_refs=[],
             )
         segments.append(seg)
 

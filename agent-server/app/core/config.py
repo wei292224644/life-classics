@@ -52,6 +52,15 @@ class Settings(BaseSettings):
     # 规则文件目录（运行时动态追加新规则）
     RULES_DIR: str = "app/core/parser_workflow/rules"
 
+    # ── Embedding 配置 ────────────────────────────────────────────────────────
+    EMBEDDING_MODEL: str = "text-embedding-v3"
+    EMBEDDING_LLM_PROVIDER: str = ""   # 空则使用 PARSER_LLM_PROVIDER，支持 openai/dashscope
+
+    # ── Neo4j 连接 ────────────────────────────────────────────────────────────
+    NEO4J_URI: str = "bolt://localhost:7687"
+    NEO4J_USERNAME: str = "neo4j"
+    NEO4J_PASSWORD: str = ""
+
     # ── 存储路径 ────────────────────────────────────────────────────────────
     CHROMA_PERSIST_DIR: str = "./chroma_db"
     MARKDOWN_DB_DIR: str = "./markdown_db"
