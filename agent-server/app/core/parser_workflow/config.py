@@ -5,7 +5,7 @@ from typing_extensions import TypedDict
 
 CHUNK_SOFT_MAX_DEFAULT = 1500
 CHUNK_HARD_MAX_DEFAULT = 3000
-SLICE_HEADING_LEVELS_DEFAULT = [1, 2, 3, 4, 5]
+SLICE_HEADING_LEVELS_DEFAULT = [2, 3, 4]
 
 
 class ParserConfig(TypedDict, total=False):
@@ -19,12 +19,8 @@ class ParserConfig(TypedDict, total=False):
     llm_api_key: str
     llm_base_url: str
     confidence_threshold: float
-    parser_llm_provider: str
-    classify_llm_provider: str
-    escalate_llm_provider: str
-    transform_llm_provider: str
-    doc_type_llm_provider: str
 
 
 def get_config_value(config: dict, key: str, default):
     return config.get(key, default)
+
