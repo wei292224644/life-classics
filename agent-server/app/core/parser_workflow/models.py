@@ -18,6 +18,9 @@ class TypedSegment(TypedDict):
     transform_params: dict
     confidence: float
     escalated: bool
+    cross_refs: List[str]         # 识别到的所有引用标识符，如 ["表1", "附录A", "图A.1"]
+    ref_context: str              # 已解析的被引用表格内容（拼接文本），未解析时为 ""
+    failed_table_refs: List[str]  # 尝试内联但未能解析的表格引用标识符
 
 
 class ClassifiedChunk(TypedDict):
