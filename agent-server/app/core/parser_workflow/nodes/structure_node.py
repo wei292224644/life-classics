@@ -1,20 +1,34 @@
 from __future__ import annotations
 
+from typing import List
 import re
 import json
 from typing import Optional, Tuple
+from pathlib import Path
 
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel
+
+from app.core.config import settings
 from app.core.parser_workflow.models import WorkflowState
 from app.core.parser_workflow.rules import RulesStore
+
+from app.core.parser_workflow.nodes.output import DocTypeOutput
+
+
+chat = ChatOpenAI(
+    model=settings.DOC_TYPE_LLM_MODEL,
+    api_key=settings.LLM_API_KEY,
+    base_url=settings.LLM_BASE_URL or None,
+    extra_body={"enable_thinking": False},  # 关闭思考模式，避免影响 structured output
+).with_structured_output(DocTypeOutput)
 
 
 def _extract_headings(md: str) -> list[str]:
     return [m.group(1).strip() for m in re.finditer(r"^## (.+)$", md, re.MULTILINE)]
 
 
-def match_doc_type_by_rules(
-    md: str, store: RulesStore
-) -> Optional[Tuple[str, str]]:
+def match_doc_type_by_rules(md: str, store: RulesStore) -> Optional[Tuple[str, str]]:
     """按规则匹配文档类型。命中返回 (doc_type_id, \"rule\")，否则返回 None。"""
     rules = store.get_doc_type_rules()
     threshold = rules.get("match_threshold", 2)
@@ -39,45 +53,33 @@ def match_doc_type_by_rules(
     return None
 
 
-def _infer_doc_type_with_llm(headings: list[str], existing_types: list, config: dict) -> dict:
+def _infer_doc_type_with_llm(
+    headings: list[str], existing_types: list, config: dict
+) -> dict:
     """调用 LLM 推断文档类型并返回新规则条目（在测试中会被 mock）。"""
     from langchain_openai import ChatOpenAI  # type: ignore[import]
 
     existing_ids = "\n".join(f"- {t['id']}: {t['description']}" for t in existing_types)
     headings_str = "\n".join(headings)
-    prompt = (
-        "你是一个 JSON（json）结构生成助手。\n"
-        "以下是一份国家标准文档的章节标题列表，请推断其文档类型。\n"
-        "只返回一个 JSON 对象，不要包含任何多余说明。\n"
-        '推荐字段：{\"id\": \"...\",\"description\": \"...\",\"detect_keywords\": [],\"detect_heading_patterns\": []}\n\n'
-        f"现有类型：\n{existing_ids}\n\n"
-        f"章节标题：\n{headings_str}\n\n"
-        "若与现有类型不符，请定义新的文档类型，提供 id（英文下划线）、描述、"
-        "detect_keywords（用于将来规则匹配的关键词）、detect_heading_patterns（标题模式）。"
-    )
+    sample_doc_type = """{
+    "id": "...",
+    "description": "...",
+    "detect_keywords": [],
+    "detect_heading_patterns": [],
+}"""
+    prompt = f"""
+    以下是一份国家标准文档的章节标题列表，请推断其文档类型。
+    只返回一个 JSON 对象，不要包含任何多余说明。
+    现有类型：
+    {existing_ids}
+    章节标题：
+    {headings_str}
+    返回格式（json）：
+    {sample_doc_type}
+    """
 
-    chat = ChatOpenAI(
-        model=config.get("doc_type_llm_model", "gpt-4o-mini"),
-        api_key=config.get("llm_api_key", ""),
-        base_url=config.get("llm_base_url") or None,
-    )
     resp = chat.invoke(prompt)
-    text = getattr(resp, "content", str(resp))
-
-    try:
-        data = json.loads(text)
-    except Exception as e:  # pragma: no cover - 仅用于真实 LLM 调试
-        raise ValueError(f"doc_type LLM 输出非 JSON：{text}") from e
-
-    if not isinstance(data, dict):
-        raise ValueError(f"doc_type LLM JSON 结构不符合预期：{data!r}")
-
-    data.setdefault("id", "unknown_type")
-    data.setdefault("description", "")
-    data.setdefault("detect_keywords", [])
-    data.setdefault("detect_heading_patterns", [])
-    data["source"] = "llm"
-    return data
+    return resp.model_dump()
 
 
 def structure_node(state: WorkflowState) -> dict:
@@ -91,10 +93,11 @@ def structure_node(state: WorkflowState) -> dict:
     else:
         headings = _extract_headings(state["md_content"])
         existing_types = store.get_doc_type_rules().get("doc_types", [])
-        new_rule = _infer_doc_type_with_llm(headings, existing_types, state.get("config", {}))
+        new_rule = _infer_doc_type_with_llm(
+            headings, existing_types, state.get("config", {})
+        )
         store.append_doc_type(new_rule)
         meta["doc_type"] = new_rule["id"]
         meta["doc_type_source"] = "llm"
 
     return {"doc_metadata": meta, "errors": errors}
-

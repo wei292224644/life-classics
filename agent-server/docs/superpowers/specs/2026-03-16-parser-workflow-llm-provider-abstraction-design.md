@@ -112,8 +112,7 @@ def create_chat_model(model, provider, output_schema=None, **kwargs):
                          base_url=settings.LLM_BASE_URL or None, **kwargs)
     elif provider == "dashscope":
         llm = ChatOpenAI(model=model, api_key=settings.DASHSCOPE_API_KEY,
-                         base_url=settings.DASHSCOPE_BASE_URL,
-                         extra_body={"enable_thinking": False}, **kwargs)
+                         base_url=settings.DASHSCOPE_BASE_URL,**kwargs)
     elif provider == "ollama":
         llm = ChatOllama(model=model,
                          base_url=settings.OLLAMA_BASE_URL or "http://localhost:11434",

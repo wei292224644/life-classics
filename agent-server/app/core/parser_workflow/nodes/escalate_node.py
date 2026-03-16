@@ -8,20 +8,7 @@ from app.core.parser_workflow.rules import RulesStore
 from pydantic import BaseModel
 from app.core.config import settings
 from langchain_openai import ChatOpenAI
-
-
-class EscalateOutput(BaseModel):
-    """LLM 结构化输出，需与 prompt 中的 format_example 一致。"""
-
-    action: Literal["use_existing", "create_new"]
-    id: str
-    description: str
-    transform: TransformParams
-
-    class TransformParams(BaseModel):
-        strategy: str
-        prompt_template: str
-
+from app.core.parser_workflow.nodes.output import EscalateOutput
 
 chat = ChatOpenAI(
     model=settings.ESCALATE_MODEL,

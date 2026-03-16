@@ -47,11 +47,16 @@ class RulesStore:
             return config_override
         return self._ct.get("confidence_threshold", 0.7)
 
+    _PLAIN_EMBED_PARAMS = {
+        "strategy": "plain_embed",
+        "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n",
+    }
+
     def get_transform_params(self, content_type_id: str) -> dict:
         for ct in self._ct.get("content_types", []):
             if ct["id"] == content_type_id:
-                return ct.get("transform", {"strategy": "plain_embed"})
-        return {"strategy": "plain_embed"}
+                return ct.get("transform", self._PLAIN_EMBED_PARAMS)
+        return self._PLAIN_EMBED_PARAMS
 
     def append_content_type(self, new_entry: dict) -> None:
         """追加新 content_type，持久化后立即 reload。"""

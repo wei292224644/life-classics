@@ -38,7 +38,7 @@ def _build_graph():
     return builder.compile()
 
 
-_graph = _build_graph()
+parser_graph = _build_graph()
 
 
 async def run_parser_workflow(
@@ -57,7 +57,7 @@ async def run_parser_workflow(
         final_chunks=[],
         errors=[],
     )
-    result_state = await _graph.ainvoke(initial_state)
+    result_state = await parser_graph.ainvoke(initial_state)
     escalate_count = sum(
         1
         for c in result_state["classified_chunks"]

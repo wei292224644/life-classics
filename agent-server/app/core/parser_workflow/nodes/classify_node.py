@@ -12,28 +12,16 @@ from app.core.parser_workflow.models import (
 from app.core.parser_workflow.rules import RulesStore
 from app.core.config import settings
 from langchain_openai import ChatOpenAI
-from pydantic import AliasChoices, BaseModel, Field, model_validator
-
-
-class SegmentItem(BaseModel):
-    content: str
-    content_type: str
-    confidence: float = Field(
-        default=0.8,
-        ge=0,
-        le=1
-    )
-
-
-class ClassifyOutput(BaseModel):
-    segments: List[SegmentItem]
+from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
 
 
 chat = ChatOpenAI(
     model=settings.CLASSIFY_MODEL,
     api_key=settings.LLM_API_KEY,
     base_url=settings.LLM_BASE_URL or None,
-    extra_body={"enable_thinking": False},  # 关闭 Qwen 思考模式，避免影响 structured outputoutputoutputoutputoutput
+    extra_body={
+        "enable_thinking": False
+    },  # 关闭 Qwen 思考模式，避免影响 structured outputoutputoutputoutputoutput
 ).with_structured_output(ClassifyOutput)
 
 
@@ -48,7 +36,7 @@ def _call_classify_llm(
     type_descriptions = "\n".join(
         f"- {ct['id']}: {ct['description']}" for ct in content_types
     )
-    format_example = '''{
+    format_example = """{
     "segments": [
         {
             "content": "片段文本内容",
@@ -56,7 +44,7 @@ def _call_classify_llm(
             "confidence": 0.0-1.0的浮点数
         }
     ]
-}'''
+}"""
     prompt = f"""请将以下文本拆分为语义独立的片段，并分析每个片段的 content_type 和置信度（0-1）。
 
 可用的 content_type：
@@ -92,7 +80,10 @@ def classify_raw_chunk(
             seg = TypedSegment(
                 content=item.content,
                 content_type="unknown",
-                transform_params={"strategy": "plain_embed"},
+                transform_params={
+                    "strategy": "plain_embed",
+                    "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n",
+                },
                 confidence=confidence,
                 escalated=False,
             )
