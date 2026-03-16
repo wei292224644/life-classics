@@ -1,27 +1,14 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional, Tuple
 import re
 import json
-from typing import Optional, Tuple
-from pathlib import Path
-
-from langchain_openai import ChatOpenAI
-from pydantic import BaseModel
 
 from app.core.config import settings
 from app.core.parser_workflow.models import WorkflowState
 from app.core.parser_workflow.rules import RulesStore
-
 from app.core.parser_workflow.nodes.output import DocTypeOutput
-
-
-chat = ChatOpenAI(
-    model=settings.DOC_TYPE_LLM_MODEL,
-    api_key=settings.LLM_API_KEY,
-    base_url=settings.LLM_BASE_URL or None,
-    extra_body={"enable_thinking": False},  # 关闭思考模式，避免影响 structured output
-).with_structured_output(DocTypeOutput)
+from app.core.parser_workflow.llm import create_chat_model, resolve_provider
 
 
 def _extract_headings(md: str) -> list[str]:
@@ -29,7 +16,7 @@ def _extract_headings(md: str) -> list[str]:
 
 
 def match_doc_type_by_rules(md: str, store: RulesStore) -> Optional[Tuple[str, str]]:
-    """按规则匹配文档类型。命中返回 (doc_type_id, \"rule\")，否则返回 None。"""
+    """按规则匹配文档类型。命中返回 (doc_type_id, "rule")，否则返回 None。"""
     rules = store.get_doc_type_rules()
     threshold = rules.get("match_threshold", 2)
     headings = _extract_headings(md)
@@ -57,8 +44,8 @@ def _infer_doc_type_with_llm(
     headings: list[str], existing_types: list, config: dict
 ) -> dict:
     """调用 LLM 推断文档类型并返回新规则条目（在测试中会被 mock）。"""
-    from langchain_openai import ChatOpenAI  # type: ignore[import]
-
+    provider = resolve_provider(settings.DOC_TYPE_LLM_PROVIDER)
+    chat = create_chat_model(settings.DOC_TYPE_LLM_MODEL, provider, output_schema=DocTypeOutput)
     existing_ids = "\n".join(f"- {t['id']}: {t['description']}" for t in existing_types)
     headings_str = "\n".join(headings)
     sample_doc_type = """{
