@@ -11,18 +11,8 @@ from app.core.parser_workflow.models import (
 )
 from app.core.parser_workflow.rules import RulesStore
 from app.core.config import settings
-from langchain_openai import ChatOpenAI
+from app.core.parser_workflow.llm import create_chat_model, resolve_provider
 from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
-
-
-chat = ChatOpenAI(
-    model=settings.CLASSIFY_MODEL,
-    api_key=settings.LLM_API_KEY,
-    base_url=settings.LLM_BASE_URL or None,
-    extra_body={
-        "enable_thinking": False
-    },  # 关闭 Qwen 思考模式，避免影响 structured outputoutputoutputoutputoutput
-).with_structured_output(ClassifyOutput)
 
 
 def _call_classify_llm(
@@ -33,6 +23,8 @@ def _call_classify_llm(
     调用小模型对 chunk 做分段 + 分类。
     使用 structured output 强制返回 JSON，避免 LLM 输出格式不稳定的问题。
     """
+    provider = resolve_provider(settings.CLASSIFY_LLM_PROVIDER)
+    chat = create_chat_model(settings.CLASSIFY_MODEL, provider, output_schema=ClassifyOutput)
     type_descriptions = "\n".join(
         f"- {ct['id']}: {ct['description']}" for ct in content_types
     )
