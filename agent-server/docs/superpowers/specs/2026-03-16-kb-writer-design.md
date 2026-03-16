@@ -17,27 +17,34 @@
 
 - 将 `ParserResult` 中的 `DocumentChunk` 写入 ChromaDB（向量检索）和 Neo4j（图关系查询）
 - 支持幂等写入：同一文档重复写入时，先删除旧数据再写入新数据
-- 独立调用：写入流程与 parser 流程解耦，由调用方串联
+- 独立调用：写入流程与 parser 流程解耦，由调用方（`POST /api/doc/upload`）串联
 
 ---
 
 ## 模块结构
 
+`kb_writer` 和 `kb_reader` 共享客户端和 embedding 工具，统一放在 `app/core/kb/` 下：
+
 ```
-app/core/kb_writer/
-├── __init__.py       # 暴露 write_to_kb
-├── models.py         # WriteResult
-├── chroma_writer.py  # ChromaDB 写/删逻辑
-└── neo4j_writer.py   # Neo4j 写/删逻辑
+app/core/kb/
+├── clients.py          # ChromaDB + Neo4j 客户端初始化（单例）
+├── embeddings.py       # embedding 调用（writer 批量向量化，reader 查询向量化）
+├── writer/
+│   ├── __init__.py     # 暴露 write_to_kb
+│   ├── models.py       # WriteResult
+│   ├── chroma_writer.py
+│   └── neo4j_writer.py
+└── reader/
+    └── ...             # 后续实现
 ```
 
 ---
 
 ## 主函数
 
-删除操作拆入各自 writer 中执行（`chroma_writer.delete_by_standard_no` 和 `neo4j_writer.delete_by_standard_no`），由 `write_to_kb` 先串行删除，再并行写入。
+`write_to_kb` 先串行删除旧数据，再并行写入两侧。删除操作各自封装在对应 writer 中。
 
-**前置条件**：`result["doc_metadata"]["standard_no"]` 必须存在（由 `parse_node` 的校验保证）。若缺失，`write_to_kb` 直接返回带 error 的 `WriteResult`，不抛异常。
+**前置条件**：`result["doc_metadata"]["standard_no"]` 必须存在（由 `parse_node` 的校验保证）。若缺失，直接返回带 error 的 `WriteResult`，不抛异常。
 
 ```python
 async def write_to_kb(result: ParserResult) -> WriteResult:
@@ -88,7 +95,7 @@ async def write_to_kb(result: ParserResult) -> WriteResult:
 - `chunks_written` 表示写入尝试的 chunk 数量（即 `len(result["chunks"])`），而非实际成功数；调用方通过 `chroma_ok`/`neo4j_ok` 判断各侧是否写入成功
 - 写入为"尽力而为"（best-effort）。删除成功但写入失败时，对应侧数据将丢失，调用方需通过 `WriteResult.errors` 检测并决定是否重试
 
-**调用方式**（独立于 parser）：
+**调用方式**（`parser_workflow` 完成后由上层串联）：
 
 ```python
 parser_result = await run_parser_workflow(md_content, doc_metadata, rules_dir)
@@ -134,7 +141,7 @@ collection.delete(where={"standard_no": {"$eq": standard_no}})
 ```
 
 **写入**：
-1. 批量调用项目配置的 embedding 模型（通过 `app/core/llm` 工厂获取），将所有 chunk 的 `content` 并发向量化
+1. 通过 `embeddings.py` 批量并发向量化所有 chunk 的 `content`
 2. 将向量通过 `embeddings` 参数显式传入 `collection.upsert()`，不依赖 ChromaDB 内置 embedding function
 
 ```python
@@ -155,22 +162,42 @@ collection.upsert(
 **图模型**：
 
 ```
-(:Document {standard_no, title, doc_type, doc_type_source})
+(:Document {
+    standard_no, title, doc_type, doc_type_source,
+    publish_date, implement_date, status, issuing_authority
+})
     -[:HAS_CHUNK]->
 (:Chunk {chunk_id, content_type, section_path, content, raw_content})
+
+(:Document)-[:REPLACES]->(:Document)    # 本标准替代的旧标准
+(:Document)-[:REPLACED_BY]->(:Document) # 本标准被哪个新标准替代
 ```
 
-`section_path` 存为数组（Neo4j 原生支持），方便按层级筛选。`DocumentChunk.meta` 字段不写入图库（仅用于调试）。
+- `section_path` 存为数组（Neo4j 原生支持），方便按层级筛选
+- `DocumentChunk.meta` 字段不写入图库（仅用于调试）
+- `REPLACES`/`REPLACED_BY` 关系通过 `doc_metadata` 中的对应字段写入，如字段不存在则跳过
 
-**写入 Cypher**：
+**写入接口**：`neo4j_writer` 同时提供两个接口：
+- `write_one(chunk, doc_metadata)` — 单条写入
+- `write_batch(chunks, doc_metadata)` — 批量写入，使用 `UNWIND` 一次事务完成，性能更好；`write_to_kb` 使用此接口
+
+**批量写入 Cypher**：
 
 ```cypher
 MERGE (d:Document {standard_no: $standard_no})
-SET d.title = $title, d.doc_type = $doc_type, d.doc_type_source = $doc_type_source
+SET d.title = $title, d.doc_type = $doc_type, d.doc_type_source = $doc_type_source,
+    d.publish_date = $publish_date, d.implement_date = $implement_date,
+    d.status = $status, d.issuing_authority = $issuing_authority
 
-CREATE (c:Chunk {chunk_id: $chunk_id, content_type: $content_type,
-                  section_path: $section_path, content: $content,
-                  raw_content: $raw_content})
+WITH d
+UNWIND $chunks AS chunk
+CREATE (c:Chunk {
+    chunk_id: chunk.chunk_id,
+    content_type: chunk.content_type,
+    section_path: chunk.section_path,
+    content: chunk.content,
+    raw_content: chunk.raw_content
+})
 CREATE (d)-[:HAS_CHUNK]->(c)
 ```
 
@@ -197,8 +224,10 @@ DETACH DELETE c, d
 ## 测试策略
 
 - `chroma_writer` 和 `neo4j_writer` 各自独立单测，mock 客户端
+- `embeddings.py` 单测，mock embedding 模型
 - `write_to_kb` 集成测试 mock 两个 writer，覆盖：
   - 正常路径：验证调用顺序（先 delete，再并行 write）
   - 单侧删除失败：对应侧写入被跳过，另一侧正常，`errors` 包含错误信息
   - 单侧写入失败：`errors` 包含错误，另一侧不受影响
+  - `standard_no` 缺失：直接返回 error WriteResult
 - 不写真实 DB 的集成测试，real-DB 测试单独标注并默认跳过
