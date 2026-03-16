@@ -98,6 +98,11 @@ def slice_node(state: WorkflowState) -> dict:
     errors = list(state.get("errors", []))
     raw_chunks: List[RawChunk] = []
 
+    # 如果文档中存在一级标题但配置未包含，则将 1 级标题提升为最高优先级。
+    # 这样可以兼容 GB 标准这类以 "#" 作为章节标题的文档，避免将 "# 2 技术要求" 等错算进前言块。
+    if 1 not in levels and _heading_pattern(1).search(md):
+        levels = [1] + [lvl for lvl in levels if lvl != 1]
+
     # 前言处理：提取第一个顶级标题前的内容
     first_heading_level = levels[0]
     pattern = _heading_pattern(first_heading_level)

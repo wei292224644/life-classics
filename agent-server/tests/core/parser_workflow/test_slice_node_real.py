@@ -60,7 +60,7 @@
 #             idx,
 #             chunk.get("section_path"),
 #             chunk.get("char_count"),
-#             (chunk.get("content") or "")[:80],
+#             (chunk.get("content") or ""),
 #         )
 #         assert chunk.get("content"), "RawChunk 应该包含 content"
 #         assert isinstance(chunk.get("section_path"), list), "RawChunk.section_path 应该是列表"
