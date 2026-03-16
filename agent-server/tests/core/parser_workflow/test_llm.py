@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from pydantic import BaseModel
 
 from app.core.parser_workflow.llm import create_chat_model, resolve_provider
@@ -20,7 +20,6 @@ def test_resolve_provider_explicit():
 
 def test_resolve_provider_fallback_to_global():
     """node_provider 为空时，回退到 PARSER_LLM_PROVIDER。"""
-    from unittest.mock import MagicMock
     mock_settings = MagicMock()
     mock_settings.PARSER_LLM_PROVIDER = "dashscope"
     with patch("app.core.parser_workflow.llm.settings", mock_settings):
@@ -30,7 +29,6 @@ def test_resolve_provider_fallback_to_global():
 
 def test_resolve_provider_hardcoded_fallback():
     """PARSER_LLM_PROVIDER 也为空时，回退到 'openai'。"""
-    from unittest.mock import MagicMock
     mock_settings = MagicMock()
     mock_settings.PARSER_LLM_PROVIDER = ""
     with patch("app.core.parser_workflow.llm.settings", mock_settings):
