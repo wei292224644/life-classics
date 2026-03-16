@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from typing import List
-from pathlib import Path
-import json
 
 from app.core.parser_workflow.models import (
     ClassifiedChunk,
