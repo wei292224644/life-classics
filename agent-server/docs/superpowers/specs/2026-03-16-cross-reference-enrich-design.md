@@ -59,10 +59,13 @@ class TypedSegment(TypedDict):
 meta={
     "transform_strategy": "...",
     "segment_raw_content": "...",
-    "cross_refs": ["表1", "附录A"],     # 所有识别到的引用
-    "unresolved_refs": ["附录A"],       # 未能内联的引用（包括图/附录/章节）
+    "cross_refs": ["表1", "附录A", "图A.1"],   # 所有识别到的引用标识符
+    "non_table_refs": ["附录A", "图A.1"],      # 图/附录/章节引用（设计上不内联，仅供下游跳转）
+    "failed_table_refs": [],                   # 尝试内联但未能找到对应内容的表格引用
 }
 ```
+
+区分 `non_table_refs`（设计上不处理）与 `failed_table_refs`（本应内联但解析失败），避免下游混淆。
 
 ---
 
@@ -80,6 +83,12 @@ enrich_node 必须在 escalate_node **之后**运行。escalate_node 可能将 `
 
 **输入**：`WorkflowState`（含 `raw_chunks` + `classified_chunks`，此时所有 content_type 均已确定）
 **输出**：更新后的 `classified_chunks`（TypedSegment 填充 cross_refs 和 ref_context）+ 可能追加的 `errors`
+
+**注意**：enrich_node 返回 errors 时必须追加而非覆盖：
+```python
+return {"classified_chunks": updated, "errors": state.get("errors", []) + new_errors}
+```
+LangGraph 对 `TypedDict` 状态做 merge，直接返回新列表会替换掉上游节点写入的 errors。
 
 ### 4.2 Step 1：建表格标签索引
 
@@ -107,7 +116,7 @@ TABLE_REF_PATTERN = re.compile(
 
 ```python
 OTHER_REF_PATTERN = re.compile(
-    r'(?:见|参见|按照?)\s*((?:图|附录)[^\s，。；]{0,15}|第?\s*\d+[\.\d]*\s*[节章条]|\d+\.\d+[\.\d]*)',
+    r'(?:见|参见|参照|按照?)\s*((?:图|附录)[^\s，。；]{0,15}|第?\s*\d+[\.\d]*\s*[节章条]|\d+\.\d+[\.\d]*)',
     re.UNICODE
 )
 ```
@@ -186,7 +195,7 @@ def _should_escalate(state: WorkflowState) -> str:
 | `nodes/transform_node.py` | 修改 | _call_llm_transform 追加 ref_context 到 prompt |
 | `nodes/classify_node.py` | 修改 | 构造 TypedSegment 时补充 cross_refs=[]、ref_context="" 默认值 |
 | `nodes/escalate_node.py` | 修改 | 构造 TypedSegment 时补充 cross_refs=[]、ref_context="" 默认值 |
-| `graph.py` | 修改 | 插入 enrich_node，条件边从 enrich_node 发出 |
+| `graph.py` | 修改 | 插入 enrich_node；条件边仍从 classify_node 发出，但 `_should_escalate` 返回值从 `"transform_node"` 改为 `"enrich_node"`；escalate_node → enrich_node 新增边；enrich_node → transform_node 新增边 |
 | `nodes/__init__.py` | 修改 | 导出 enrich_node |
 
 ---
