@@ -19,6 +19,11 @@ class ParserConfig(TypedDict, total=False):
     llm_api_key: str
     llm_base_url: str
     confidence_threshold: float
+    parser_llm_provider: str
+    classify_llm_provider: str
+    escalate_llm_provider: str
+    transform_llm_provider: str
+    doc_type_llm_provider: str
 
 
 def get_config_value(config: dict, key: str, default):

@@ -21,6 +21,20 @@ class Settings(BaseSettings):
     LLM_API_KEY: str = ""
     LLM_BASE_URL: str = ""          # OpenAI-compatible endpoint，空则用 SDK 默认
 
+    # ── DashScope 专用凭证 ────────────────────────────────────────────────────
+    DASHSCOPE_API_KEY: str = ""
+    DASHSCOPE_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+
+    # ── Ollama 连接 ───────────────────────────────────────────────────────────
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+
+    # ── Parser Workflow Provider 选择 ─────────────────────────────────────────
+    PARSER_LLM_PROVIDER: str = "openai"    # 全局默认，可选 openai / dashscope / ollama
+    CLASSIFY_LLM_PROVIDER: str = ""        # 节点级覆盖，空则使用全局默认
+    ESCALATE_LLM_PROVIDER: str = ""
+    TRANSFORM_LLM_PROVIDER: str = ""
+    DOC_TYPE_LLM_PROVIDER: str = ""        # 对应 structure_node.py
+
     # ── 各用途模型 ──────────────────────────────────────────────────────────
     # parser workflow：classify_node（小模型，追求速度）
     CLASSIFY_MODEL: str = "qwen-turbo"
