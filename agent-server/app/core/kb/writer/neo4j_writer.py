@@ -44,6 +44,12 @@ MERGE (old:Document {standard_no: $old_sn})
 MERGE (d)-[:REPLACES]->(old)
 """
 
+_REPLACED_BY_CYPHER = """
+MERGE (d:Document {standard_no: $standard_no})
+MERGE (new_doc:Document {standard_no: $new_sn})
+MERGE (d)-[:REPLACED_BY]->(new_doc)
+"""
+
 _DELETE_CYPHER = """
 MATCH (d:Document {standard_no: $standard_no})
 OPTIONAL MATCH (d)-[:HAS_CHUNK]->(c:Chunk)
@@ -94,6 +100,13 @@ async def write_batch(chunks: List[DocumentChunk], doc_metadata: dict) -> None:
                 _REPLACES_CYPHER,
                 standard_no=doc_metadata["standard_no"],
                 old_sn=old_sn,
+            )
+        # 建立被替代关系
+        for new_sn in doc_metadata.get("replaced_by", []):
+            await session.run(
+                _REPLACED_BY_CYPHER,
+                standard_no=doc_metadata["standard_no"],
+                new_sn=new_sn,
             )
 
 

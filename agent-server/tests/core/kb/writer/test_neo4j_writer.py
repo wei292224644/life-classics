@@ -123,6 +123,25 @@ async def test_write_batch_skips_replaces_when_absent():
     assert mock_session.run.call_count == 1
 
 
+async def test_write_batch_creates_replaced_by_relation_when_present():
+    """doc_metadata 有 replaced_by 字段时创建 REPLACED_BY 关系"""
+    mock_session = AsyncMock()
+    mock_driver = MagicMock()
+    mock_driver.session.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_driver.session.return_value.__aexit__ = AsyncMock(return_value=False)
+
+    meta = _make_doc_metadata(replaced_by=["GB/T-002"])
+
+    with patch("app.core.kb.writer.neo4j_writer.get_neo4j_driver", return_value=mock_driver):
+        from app.core.kb.writer.neo4j_writer import write_batch
+        await write_batch([], meta)
+
+    # 主写入 + 1次 REPLACED_BY 关系写入
+    assert mock_session.run.call_count == 2
+    replaced_by_cypher = mock_session.run.call_args_list[1].args[0]
+    assert "REPLACED_BY" in replaced_by_cypher
+
+
 # ── write_one ──────────────────────────────────────────────────────────
 
 async def test_write_one_creates_single_chunk():
