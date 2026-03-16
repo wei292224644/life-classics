@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from typing import Dict, List
+from typing import Dict
 from app.core.parser_workflow.nodes.enrich_node import (
     build_table_label_index,
     extract_table_refs,
