@@ -6,8 +6,10 @@ from app.core.parser_workflow.nodes.enrich_node import (
     build_table_label_index,
     extract_table_refs,
     extract_other_refs,
+    resolve_table_ref,
+    enrich_node,
 )
-from app.core.parser_workflow.models import RawChunk
+from app.core.parser_workflow.models import ClassifiedChunk, RawChunk, TypedSegment
 
 
 # ── build_table_label_index ──────────────────────────────────────────
@@ -127,8 +129,6 @@ def test_extract_other_refs_no_table():
     """纯表格引用不应出现在 other_refs 中"""
     refs = extract_other_refs("条件见表1。")
     assert refs == []
-from app.core.parser_workflow.nodes.enrich_node import resolve_table_ref
-from app.core.parser_workflow.models import ClassifiedChunk, TypedSegment
 
 
 # ── resolve_table_ref ────────────────────────────────────────────────
@@ -192,9 +192,6 @@ def test_resolve_ignores_non_table_chunks():
     cc = _make_classified_chunk(["5", "表1 卡拉胶质量指标"], content_type="plain_text")
     result = resolve_table_ref("表1", index, [cc])
     assert result is None
-
-
-from app.core.parser_workflow.nodes.enrich_node import enrich_node
 
 
 # ── enrich_node ──────────────────────────────────────────────────────
