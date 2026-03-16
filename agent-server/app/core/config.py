@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     # ── Embedding 配置 ────────────────────────────────────────────────────────
     EMBEDDING_MODEL: str = "text-embedding-v3"
     EMBEDDING_LLM_PROVIDER: str = ""   # 空则使用 PARSER_LLM_PROVIDER，支持 openai/dashscope
+    EMBEDDING_PROVIDER: str = "dashscope"  # 向量化提供商（支持 dashscope/ollama）
 
     # ── Neo4j 连接 ────────────────────────────────────────────────────────────
     NEO4J_URI: str = "bolt://localhost:7687"
@@ -63,7 +64,9 @@ class Settings(BaseSettings):
 
     # ── 存储路径 ────────────────────────────────────────────────────────────
     CHROMA_PERSIST_DIR: str = "./chroma_db"
+    CHROMA_COLLECTION_NAME: str = "documents"
     MARKDOWN_DB_DIR: str = "./markdown_db"
+    MARKDOWN_PERSIST_DIR: str = "./markdown_db"
 
 
 settings = Settings()
