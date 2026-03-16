@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional, Tuple
 import re
-import json
 
 from app.core.config import settings
 from app.core.parser_workflow.models import WorkflowState
@@ -15,7 +13,7 @@ def _extract_headings(md: str) -> list[str]:
     return [m.group(1).strip() for m in re.finditer(r"^## (.+)$", md, re.MULTILINE)]
 
 
-def match_doc_type_by_rules(md: str, store: RulesStore) -> Optional[Tuple[str, str]]:
+def match_doc_type_by_rules(md: str, store: RulesStore) -> tuple[str, str] | None:
     """按规则匹配文档类型。命中返回 (doc_type_id, "rule")，否则返回 None。"""
     rules = store.get_doc_type_rules()
     threshold = rules.get("match_threshold", 2)
@@ -41,7 +39,7 @@ def match_doc_type_by_rules(md: str, store: RulesStore) -> Optional[Tuple[str, s
 
 
 def _infer_doc_type_with_llm(
-    headings: list[str], existing_types: list, config: dict
+    headings: list[str], existing_types: list, config: dict  # config 预留，暂未使用
 ) -> dict:
     """调用 LLM 推断文档类型并返回新规则条目（在测试中会被 mock）。"""
     provider = resolve_provider(settings.DOC_TYPE_LLM_PROVIDER)
