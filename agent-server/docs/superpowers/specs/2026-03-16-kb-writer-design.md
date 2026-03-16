@@ -133,7 +133,20 @@ class WriteResult(TypedDict):
 collection.delete(where={"standard_no": {"$eq": standard_no}})
 ```
 
-**写入**：批量 `upsert`，embedding 由 ChromaDB embedding function 自动生成。
+**写入**：
+1. 批量调用项目配置的 embedding 模型（通过 `app/core/llm` 工厂获取），将所有 chunk 的 `content` 并发向量化
+2. 将向量通过 `embeddings` 参数显式传入 `collection.upsert()`，不依赖 ChromaDB 内置 embedding function
+
+```python
+# 伪代码
+embeddings = await embed_batch([c["content"] for c in chunks])  # 并发
+collection.upsert(
+    ids=[c["chunk_id"] for c in chunks],
+    documents=[c["content"] for c in chunks],
+    embeddings=embeddings,
+    metadatas=[{...} for c in chunks],
+)
+```
 
 ---
 
