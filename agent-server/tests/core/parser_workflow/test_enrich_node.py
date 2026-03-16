@@ -405,3 +405,66 @@ def test_enrich_node_sees_table_corrected_by_escalate():
     ref_segs = result["classified_chunks"][0]["segments"]
     # section_path 包含 "表1"，应能通过回退匹配找到表格内容
     assert "水分" in ref_segs[0]["ref_context"]
+
+
+# ── graph integration ────────────────────────────────────────────────
+
+from app.core.parser_workflow.graph import _build_graph, _should_escalate
+
+
+def test_should_escalate_returns_enrich_node_when_no_unknown():
+    """无 unknown 段时 _should_escalate 应返回 'enrich_node'（原返回 'transform_node'）"""
+    state = {
+        "md_content": "",
+        "doc_metadata": {},
+        "config": {},
+        "rules_dir": "rules",
+        "raw_chunks": [],
+        "classified_chunks": [
+            ClassifiedChunk(
+                raw_chunk={"content": "x", "section_path": [], "char_count": 1},
+                segments=[{
+                    "content": "x",
+                    "content_type": "plain_text",
+                    "transform_params": {},
+                    "confidence": 0.9,
+                    "escalated": False,
+                    "cross_refs": [],
+                    "ref_context": "",
+                    "failed_table_refs": [],
+                }],
+                has_unknown=False,
+            )
+        ],
+        "final_chunks": [],
+        "errors": [],
+    }
+    assert _should_escalate(state) == "enrich_node"
+
+
+def test_should_escalate_returns_escalate_node_when_has_unknown():
+    """有 unknown 段时 _should_escalate 应返回 'escalate_node'"""
+    state = {
+        "md_content": "",
+        "doc_metadata": {},
+        "config": {},
+        "rules_dir": "rules",
+        "raw_chunks": [],
+        "classified_chunks": [
+            ClassifiedChunk(
+                raw_chunk={"content": "x", "section_path": [], "char_count": 1},
+                segments=[],
+                has_unknown=True,
+            )
+        ],
+        "final_chunks": [],
+        "errors": [],
+    }
+    assert _should_escalate(state) == "escalate_node"
+
+
+def test_graph_contains_enrich_node():
+    """编译后的 graph 应包含 enrich_node 节点"""
+    graph = _build_graph()
+    node_names = list(graph.nodes.keys())
+    assert "enrich_node" in node_names

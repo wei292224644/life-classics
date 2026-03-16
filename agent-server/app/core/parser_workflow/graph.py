@@ -6,6 +6,7 @@ from langgraph.graph import END, StateGraph  # type: ignore[import]
 
 from app.core.parser_workflow.models import ParserResult, WorkflowState
 from app.core.parser_workflow.nodes.classify_node import classify_node
+from app.core.parser_workflow.nodes.enrich_node import enrich_node
 from app.core.parser_workflow.nodes.escalate_node import escalate_node
 from app.core.parser_workflow.nodes.parse_node import parse_node
 from app.core.parser_workflow.nodes.slice_node import slice_node
@@ -16,7 +17,7 @@ from app.core.parser_workflow.nodes.transform_node import transform_node
 def _should_escalate(state: WorkflowState) -> str:
     if any(c["has_unknown"] for c in state["classified_chunks"]):
         return "escalate_node"
-    return "transform_node"
+    return "enrich_node"
 
 
 def _build_graph():
@@ -26,6 +27,7 @@ def _build_graph():
     builder.add_node("slice_node", slice_node)
     builder.add_node("classify_node", classify_node)
     builder.add_node("escalate_node", escalate_node)
+    builder.add_node("enrich_node", enrich_node)
     builder.add_node("transform_node", transform_node)
 
     builder.set_entry_point("parse_node")
@@ -33,7 +35,8 @@ def _build_graph():
     builder.add_edge("structure_node", "slice_node")
     builder.add_edge("slice_node", "classify_node")
     builder.add_conditional_edges("classify_node", _should_escalate)
-    builder.add_edge("escalate_node", "transform_node")
+    builder.add_edge("escalate_node", "enrich_node")
+    builder.add_edge("enrich_node", "transform_node")
     builder.add_edge("transform_node", END)
     return builder.compile()
 
@@ -72,4 +75,3 @@ async def run_parser_workflow(
             "escalate_count": escalate_count,
         },
     )
-
