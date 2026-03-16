@@ -18,6 +18,7 @@ from app.core.parser_workflow.nodes.output import TransformOutput
 def _call_llm_transform(
     content: str,
     transform_params: dict,
+    ref_context: str = "",
 ) -> str:
     """
     使用 LLM 根据 prompt_template 将原始内容转化为自然语言文本。
@@ -40,6 +41,9 @@ def _call_llm_transform(
     {format_example}
     """
 
+    if ref_context:
+        prompt += f"\n\n以下是文中引用的表格内容，请结合该表格理解上下文：\n{ref_context}"
+
     resp: TransformOutput = chat.invoke(prompt)
     return resp.content
 
@@ -57,8 +61,11 @@ def apply_strategy(
 
     for seg in segments:
         raw_content = raw_chunk["content"]
+        ref_context = seg.get("ref_context", "")
+        cross_refs = seg.get("cross_refs", [])
+        failed_table_refs = seg.get("failed_table_refs", [])
 
-        llm_text = _call_llm_transform(seg["content"], seg["transform_params"])
+        llm_text = _call_llm_transform(seg["content"], seg["transform_params"], ref_context)
 
         results.append(
             DocumentChunk(
@@ -75,6 +82,9 @@ def apply_strategy(
                 meta={
                     "transform_strategy": seg["transform_params"]["strategy"],
                     "segment_raw_content": seg["content"],
+                    "cross_refs": cross_refs,
+                    "non_table_refs": [r for r in cross_refs if not r.startswith("表")],
+                    "failed_table_refs": failed_table_refs,
                 },
             )
         )

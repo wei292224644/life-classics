@@ -146,3 +146,90 @@ def test_transform_node_processes_all_chunks():
     assert "final_chunks" in result
     assert len(result["final_chunks"]) == 1
     assert result["final_chunks"][0]["content"] == "最终文本"
+
+
+def test_call_llm_transform_appends_ref_context_to_prompt():
+    """ref_context 非空时，prompt 应包含表格内容"""
+    mock_resp = MagicMock()
+    mock_resp.content = "转化后的文本"
+    captured_prompt = {}
+
+    def capture_invoke(prompt):
+        captured_prompt["value"] = prompt
+        return mock_resp
+
+    with patch(
+        "app.core.parser_workflow.nodes.transform_node.create_chat_model"
+    ) as mock_factory, patch(
+        "app.core.parser_workflow.nodes.transform_node.resolve_provider",
+        return_value="openai",
+    ):
+        mock_chat = MagicMock()
+        mock_chat.invoke.side_effect = capture_invoke
+        mock_factory.return_value = mock_chat
+
+        _call_llm_transform(
+            "样品浓缩条件见表1",
+            {"strategy": "semantic_standardization", "prompt_template": "请转化："},
+            ref_context="| 参数 | 值 |\n|---|---|\n| 流速 | 5mL/min |",
+        )
+
+    assert "流速" in captured_prompt["value"]
+    assert "表格" in captured_prompt["value"]
+
+
+def test_call_llm_transform_no_ref_context_unchanged():
+    """ref_context 为空时，prompt 不包含额外表格内容"""
+    mock_resp = MagicMock()
+    mock_resp.content = "转化后的文本"
+    captured_prompt = {}
+
+    def capture_invoke(prompt):
+        captured_prompt["value"] = prompt
+        return mock_resp
+
+    with patch(
+        "app.core.parser_workflow.nodes.transform_node.create_chat_model"
+    ) as mock_factory, patch(
+        "app.core.parser_workflow.nodes.transform_node.resolve_provider",
+        return_value="openai",
+    ):
+        mock_chat = MagicMock()
+        mock_chat.invoke.side_effect = capture_invoke
+        mock_factory.return_value = mock_chat
+
+        _call_llm_transform(
+            "普通内容",
+            {"strategy": "plain_embed", "prompt_template": "请转化："},
+        )
+
+    assert "表格" not in captured_prompt["value"]
+
+
+def test_apply_strategy_writes_cross_refs_to_meta():
+    """apply_strategy 应将 seg 的 cross_refs 写入 DocumentChunk.meta"""
+    raw_chunk: RawChunk = {
+        "content": "原始文本",
+        "section_path": ["1", "1.1"],
+        "char_count": 4,
+    }
+    seg: TypedSegment = {
+        "content": "片段内容",
+        "content_type": "plain_text",
+        "transform_params": {"strategy": "plain_embed", "prompt_template": "请转化："},
+        "confidence": 0.9,
+        "escalated": False,
+        "cross_refs": ["表1", "图A.1"],
+        "ref_context": "| 参数 | 值 |",
+        "failed_table_refs": [],
+    }
+    doc_metadata = {"standard_no": "GB/T-001", "title": "测试标准"}
+
+    with patch(
+        "app.core.parser_workflow.nodes.transform_node._call_llm_transform",
+        return_value="转化结果",
+    ):
+        result = apply_strategy([seg], raw_chunk, doc_metadata)
+
+    assert result[0]["meta"]["cross_refs"] == ["表1", "图A.1"]
+    assert "failed_table_refs" in result[0]["meta"]
