@@ -10,6 +10,7 @@ from app.core.parser_workflow.nodes.enrich_node import (
     enrich_node,
 )
 from app.core.parser_workflow.models import ClassifiedChunk, RawChunk, TypedSegment
+from app.core.parser_workflow.graph import _build_graph, _should_escalate
 
 
 # ── build_table_label_index ──────────────────────────────────────────
@@ -408,8 +409,6 @@ def test_enrich_node_sees_table_corrected_by_escalate():
 
 
 # ── graph integration ────────────────────────────────────────────────
-
-from app.core.parser_workflow.graph import _build_graph, _should_escalate
 
 
 def test_should_escalate_returns_enrich_node_when_no_unknown():
