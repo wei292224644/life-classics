@@ -19,7 +19,8 @@ _TABLE_TITLE_PATTERN = re.compile(
 
 # 匹配表格引用，如 "见表1"、"参见表A.1"、"条件见表 B.1"
 _TABLE_REF_PATTERN = re.compile(
-    r'(?:见|参见|参照)[^\n，。；]*?表\s*([\dA-Z]+(?:\.\d+)*)',
+    r'(?:见|参见|参照|应符合|符合|按照?|不[应得]超过|不[应得]低于)'
+    r'[^\n，。；]*?表\s*([\dA-Z]+(?:\.\d+)*)',
     re.UNICODE,
 )
 
@@ -36,6 +37,19 @@ _AMENDMENT_REF_PATTERN = re.compile(
     r'###\s+[一二三四五六七八九十]+、\s*(\d+(?:\.\d+)*)\s*',
     re.UNICODE,
 )
+
+
+def _filter_table_refs(refs: List[str]) -> List[str]:
+    """
+    后验过滤：对召回的表格引用标签做二次验证。
+    当前直接透传；后期如需排除误报可在此添加规则。
+
+    TODO: 如召回率提高后误报增多，在此添加过滤逻辑，
+          例如排除标题行自身（如"表1 感官要求"行首）、
+          排除特定 section_path 下的引用等。
+          主要误报源：含"表"字的非引用词，如"征求意见表"。
+    """
+    return refs
 
 
 def _normalize_label(raw: str) -> str:
@@ -59,9 +73,12 @@ def build_table_label_index(raw_chunks: List[RawChunk]) -> Dict[str, str]:
 def extract_table_refs(text: str) -> List[str]:
     """
     从文本中提取表格引用标识符列表（已规范化），如 ["表1", "表A.1"]。
-    匹配 "见表X"、"参见表X"、"参照表X" 及含前缀的形式。
+    匹配 "见表X"、"参见表X"、"参照表X"、"应符合表X"、"符合表X"、
+    "按表X"、"按照表X"、"不[应得]超过表X"、"不[应得]低于表X" 等形式。
+    结果经 _filter_table_refs 后验过滤后返回。
     """
-    return ["表" + _normalize_label(m.group(1)) for m in _TABLE_REF_PATTERN.finditer(text)]
+    raw = ["表" + _normalize_label(m.group(1)) for m in _TABLE_REF_PATTERN.finditer(text)]
+    return _filter_table_refs(raw)
 
 
 def extract_amendment_refs(text: str) -> List[str]:

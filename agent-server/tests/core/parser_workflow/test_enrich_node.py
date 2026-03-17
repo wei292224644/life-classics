@@ -470,6 +470,42 @@ def test_graph_contains_enrich_node():
     assert "enrich_node" in node_names
 
 
+def test_extract_table_refs_yingfuhe():
+    """'应符合表1的规定' 应提取 '表1'"""
+    refs = extract_table_refs("感官要求应符合表1的规定。")
+    assert "表1" in refs
+
+
+def test_extract_table_refs_fuhe():
+    """'符合表2的规定' 应提取 '表2'"""
+    refs = extract_table_refs("理化指标符合表2的规定。")
+    assert "表2" in refs
+
+
+def test_extract_table_refs_an():
+    """'按表3进行检验' 应提取 '表3'"""
+    refs = extract_table_refs("按表3进行检验。")
+    assert "表3" in refs
+
+
+def test_extract_table_refs_anzhao():
+    """'按照表A.1操作' 应提取 '表A.1'"""
+    refs = extract_table_refs("按照表A.1操作。")
+    assert "表A.1" in refs
+
+
+def test_extract_table_refs_bu_chao():
+    """'不得超过表4的规定' 应提取 '表4'"""
+    refs = extract_table_refs("污染物限量不得超过表4的规定。")
+    assert "表4" in refs
+
+
+def test_extract_table_refs_bu_di():
+    """'不应低于表B.1的要求' 应提取 '表B.1'"""
+    refs = extract_table_refs("检出限不应低于表B.1的要求。")
+    assert "表B.1" in refs
+
+
 # ── extract_amendment_refs ───────────────────────────────────────────
 
 
@@ -577,3 +613,87 @@ def test_enrich_node_non_amendment_segment_no_amendment_refs():
     cross_refs = result["classified_chunks"][0]["segments"][0]["cross_refs"]
     # 普通章节标题格式里的数字不应被提取为修改单引用
     assert "1" not in cross_refs
+
+
+def test_enrich_node_gb_style_multiple_refs():
+    """GB 风格段落含多种新前缀时，三个表格均应被内联到 ref_context"""
+    from app.core.parser_workflow.models import ClassifiedChunk, RawChunk, TypedSegment
+
+    ref_text = "感官要求应符合表1的规定。理化指标符合表2的规定。微生物指标按照表3执行。"
+
+    ref_raw: RawChunk = {
+        "content": ref_text,
+        "section_path": ["2"],
+        "char_count": len(ref_text),
+    }
+    table1_raw: RawChunk = {
+        "content": "表1 感官要求\n\n| 色泽 | 正常 |\n|---|---|\n| 白色 | 均匀 |",
+        "section_path": ["3"],
+        "char_count": 40,
+    }
+    table2_raw: RawChunk = {
+        "content": "表2 理化指标\n\n| 灰分 | ≤1% |\n|---|---|\n| 水分 | ≤12% |",
+        "section_path": ["4"],
+        "char_count": 40,
+    }
+    table3_raw: RawChunk = {
+        "content": "表3 微生物指标\n\n| 菌落总数 | ≤100 |\n|---|---|\n| 大肠菌群 | 阴性 |",
+        "section_path": ["5"],
+        "char_count": 45,
+    }
+
+    def _make_seg(content, structure_type, semantic_type):
+        return TypedSegment(
+            content=content,
+            structure_type=structure_type,
+            semantic_type=semantic_type,
+            transform_params={"strategy": "semantic_standardization", "prompt_template": ""},
+            confidence=0.9,
+            escalated=False,
+            cross_refs=[],
+            ref_context="",
+            failed_table_refs=[],
+        )
+
+    ref_cc = ClassifiedChunk(
+        raw_chunk=ref_raw,
+        segments=[_make_seg(ref_text, "paragraph", "requirement")],
+        has_unknown=False,
+    )
+    table1_cc = ClassifiedChunk(
+        raw_chunk=table1_raw,
+        segments=[_make_seg("| 色泽 | 正常 |", "table", "specification_table")],
+        has_unknown=False,
+    )
+    table2_cc = ClassifiedChunk(
+        raw_chunk=table2_raw,
+        segments=[_make_seg("| 灰分 | ≤1% |", "table", "specification_table")],
+        has_unknown=False,
+    )
+    table3_cc = ClassifiedChunk(
+        raw_chunk=table3_raw,
+        segments=[_make_seg("| 菌落总数 | ≤100 |", "table", "specification_table")],
+        has_unknown=False,
+    )
+
+    state = {
+        "md_content": "",
+        "doc_metadata": {"standard_no": "GB1886.47"},
+        "config": {},
+        "rules_dir": "rules",
+        "raw_chunks": [ref_raw, table1_raw, table2_raw, table3_raw],
+        "classified_chunks": [ref_cc, table1_cc, table2_cc, table3_cc],
+        "final_chunks": [],
+        "errors": [],
+    }
+
+    result = enrich_node(state)
+    seg = result["classified_chunks"][0]["segments"][0]
+    ref_context = seg["ref_context"]
+    cross_refs = seg["cross_refs"]
+
+    assert "色泽" in ref_context, "表1 未被内联"
+    assert "灰分" in ref_context, "表2 未被内联"
+    assert "菌落总数" in ref_context, "表3 未被内联"
+    assert set(["表1", "表2", "表3"]).issubset(set(cross_refs)), f"cross_refs 缺失标签: {cross_refs}"
+    assert seg["failed_table_refs"] == [], f"存在未解析引用: {seg['failed_table_refs']}"
