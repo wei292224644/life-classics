@@ -88,9 +88,22 @@ def recursive_slice(
                     )
                 result.append(RawChunk(content=block, section_path=path, char_count=len(block)))
         else:
-            result.extend(
-                recursive_slice(block, heading_levels[1:], path, soft_max, hard_max, errors)
+            # soft_max 超限时，检查直接子节是否真的需要拆分
+            # 仅检查一层（heading_levels[1]），孙节超限由下层递归处理（有意设计）
+            sub_parts = _split_by_heading(block, heading_levels[1])
+            # 过滤纯标题行子节，避免影响 hard_max 判断
+            any_sub_exceeds_hard = any(
+                len(p[1]) > hard_max for p in sub_parts if p[1].strip()
             )
+            if not any_sub_exceeds_hard:
+                # 所有直接子节均在 hard_max 以内，整体保留
+                # 注：不需要 _has_body_content 检查——block > soft_max > 1500，不可能是纯标题行
+                errors.append(f"INFO: soft_max exceeded but kept as single chunk at {path}")
+                result.append(RawChunk(content=block, section_path=path, char_count=len(block)))
+            else:
+                result.extend(
+                    recursive_slice(block, heading_levels[1:], path, soft_max, hard_max, errors)
+                )
     return result
 
 
