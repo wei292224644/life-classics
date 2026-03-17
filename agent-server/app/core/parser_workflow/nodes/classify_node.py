@@ -16,48 +16,39 @@ from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
 
 def _call_classify_llm(
     chunk_content: str,
-    content_types: List[Dict],
+    structure_types: List[Dict],
+    semantic_types: List[Dict],
 ) -> List[SegmentItem]:
     """
-    调用小模型对 chunk 做分段 + 分类。
-    使用 invoke_structured 强制返回结构化输出，失败时抛 StructuredOutputError。
+    调用小模型对 chunk 做分段 + 双维度分类（单次调用，prompt 内两步推断）。
     """
-    type_descriptions = "\n".join(
-        f"- {ct['id']}: {ct['description']}" for ct in content_types
+    structure_desc = "\n".join(
+        f"- {t['id']}: {t['description']}" for t in structure_types
     )
-    format_example = """{
-    "segments": [
-        {
-            "content": "片段文本内容",
-            "content_type": "content_type_id",
-            "confidence": 0.0-1.0的浮点数
-        }
-    ]
-}"""
-    prompt = f"""请将以下文本拆分为语义独立的片段，并分析每个片段的 content_type 和置信度（0-1）。
+    semantic_desc = "\n".join(
+        f"- {t['id']}: {t['description']}" for t in semantic_types
+    )
+    prompt = f"""请将以下文本拆分为语义独立的片段，并对每个片段进行双维度分类。
 
-可用的 content_type：
-{type_descriptions}
+【结构类型（structure_type）】——描述内容的呈现形式：
+{structure_desc}
 
-保守切分原则：
-1. 只在相邻内容属于明显不同的 content_type 时才切分；同一逻辑章节的内容应保持整体。
-2. 标准前言（以"前言"为标题的章节）整体归为 preface 类型，内部变更条目列表（如"——增加了..."）不单独拆分。
+【语义类型（semantic_type）】——描述内容对读者的用途：
+{semantic_desc}
 
-示例（前言章节的正确处理方式）：
-输入：包含前言标题、版本代替声明和多条变更条目的文本块
-正确输出：1 个 segment，content_type=preface，包含完整前言文本
-错误输出：多个 segment，将各变更条目拆分为独立的 numbered_list
+分类规则：
+1. 保守切分：只在相邻内容属于明显不同语义单元时才切分；同一逻辑章节保持整体。
+2. 对每个片段独立推断两个维度，互不干扰：先判断呈现形式（structure_type），再判断用途（semantic_type）。
+3. confidence 反映你对两个判断综合的把握程度（0-1）。
 
 文本内容：
 {chunk_content}
-
-返回格式（json）：
-{format_example}
 """
     result = invoke_structured(
         node_name="classify_node",
         prompt=prompt,
         response_model=ClassifyOutput,
+        extra_body={"enable_thinking": False},
     )
     return result.segments
 
@@ -66,13 +57,12 @@ def classify_raw_chunk(
     raw_chunk: RawChunk,
     store: RulesStore,
 ) -> ClassifiedChunk:
-    threshold = store.get_confidence_threshold(
-        settings.CONFIDENCE_THRESHOLD,
-    )
+    threshold = store.get_confidence_threshold(settings.CONFIDENCE_THRESHOLD)
     ct_rules = store.get_content_type_rules()
-    content_types = ct_rules.get("content_types", [])
+    structure_types = ct_rules.get("structure_types", [])
+    semantic_types = ct_rules.get("semantic_types", [])
 
-    llm_output = _call_classify_llm(raw_chunk["content"], content_types)
+    llm_output = _call_classify_llm(raw_chunk["content"], structure_types, semantic_types)
 
     segments: List[TypedSegment] = []
     has_unknown = False
@@ -81,7 +71,8 @@ def classify_raw_chunk(
         if confidence < threshold:
             seg = TypedSegment(
                 content=item.content,
-                content_type="unknown",
+                structure_type="unknown",
+                semantic_type="unknown",
                 transform_params={
                     "strategy": "plain_embed",
                     "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n",
@@ -94,11 +85,11 @@ def classify_raw_chunk(
             )
             has_unknown = True
         else:
-            ct_id = item.content_type
-            transform_params = store.get_transform_params(ct_id)
+            transform_params = store.get_transform_params(item.semantic_type)
             seg = TypedSegment(
                 content=item.content,
-                content_type=ct_id,
+                structure_type=item.structure_type,
+                semantic_type=item.semantic_type,
                 transform_params=transform_params,
                 confidence=confidence,
                 escalated=False,
