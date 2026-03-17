@@ -94,10 +94,14 @@ def test_apply_strategy_returns_document_chunks():
     }
     seg: TypedSegment = {
         "content": "片段内容",
-        "content_type": "scope",
+        "structure_type": "paragraph",
+        "semantic_type": "scope",
         "transform_params": {"strategy": "plain_embed", "prompt_template": "请转化："},
         "confidence": 0.9,
         "escalated": False,
+        "cross_refs": [],
+        "ref_context": "",
+        "failed_table_refs": [],
     }
     doc_metadata = {"standard_no": "GB/T-001", "title": "测试标准"}
 
@@ -111,7 +115,8 @@ def test_apply_strategy_returns_document_chunks():
     chunk = result[0]
     assert chunk["content"] == "转化结果"
     assert chunk["raw_content"] == "原始文本"
-    assert chunk["content_type"] == "scope"
+    assert chunk["structure_type"] == "paragraph"
+    assert chunk["semantic_type"] == "scope"
     assert chunk["meta"]["transform_strategy"] == "plain_embed"
     assert chunk["meta"]["segment_raw_content"] == "片段内容"
 
@@ -128,10 +133,14 @@ def test_transform_node_processes_all_chunks():
     }
     seg: TypedSegment = {
         "content": "片段",
-        "content_type": "definition",
+        "structure_type": "paragraph",
+        "semantic_type": "definition",
         "transform_params": {"strategy": "plain_embed", "prompt_template": "转化："},
         "confidence": 0.95,
         "escalated": False,
+        "cross_refs": [],
+        "ref_context": "",
+        "failed_table_refs": [],
     }
     classified: ClassifiedChunk = {
         "raw_chunk": raw_chunk,
@@ -217,7 +226,8 @@ def test_apply_strategy_writes_cross_refs_to_meta():
     }
     seg: TypedSegment = {
         "content": "片段内容",
-        "content_type": "plain_text",
+        "structure_type": "list",
+        "semantic_type": "procedure",
         "transform_params": {"strategy": "plain_embed", "prompt_template": "请转化："},
         "confidence": 0.9,
         "escalated": False,

@@ -13,7 +13,8 @@ from app.core.parser_workflow.structured_llm import StructuredOutputError
 
 def test_invoke_structured_fails_raises_structured_output_error():
     """invoke_structured 失败时应抛出 StructuredOutputError（fail-fast）。"""
-    content_types = [{"id": "preface", "description": "前言"}]
+    structure_types = [{"id": "paragraph", "description": "叙述性段落"}]
+    semantic_types = [{"id": "scope", "description": "适用范围"}]
     err = StructuredOutputError(
         "结构化输出校验失败: classify_node",
         provider="openai",
@@ -29,7 +30,7 @@ def test_invoke_structured_fails_raises_structured_output_error():
         side_effect=err,
     ):
         with pytest.raises(StructuredOutputError) as exc_info:
-            _call_classify_llm("前言", content_types)
+            _call_classify_llm("前言", structure_types, semantic_types)
 
         assert exc_info.value.node_name == "classify_node"
         assert exc_info.value.response_model == "ClassifyOutput"
@@ -37,10 +38,11 @@ def test_invoke_structured_fails_raises_structured_output_error():
 
 def test_invoke_structured_succeeds_returns_segments():
     """invoke_structured 成功时返回 segments。"""
-    content_types = [{"id": "preface", "description": "前言"}]
+    structure_types = [{"id": "list", "description": "编号列表"}]
+    semantic_types = [{"id": "procedure", "description": "操作步骤"}]
     expected = ClassifyOutput(
         segments=[
-            SegmentItem(content="前言内容", content_type="preface", confidence=0.93)
+            SegmentItem(content="前言内容", structure_type="list", semantic_type="procedure", confidence=0.93)
         ]
     )
 
@@ -48,11 +50,12 @@ def test_invoke_structured_succeeds_returns_segments():
         "app.core.parser_workflow.nodes.classify_node.invoke_structured",
         return_value=expected,
     ):
-        segments = _call_classify_llm("前言", content_types)
+        segments = _call_classify_llm("前言", structure_types, semantic_types)
 
     assert len(segments) == 1
     assert segments[0].content == "前言内容"
-    assert segments[0].content_type == "preface"
+    assert segments[0].structure_type == "list"
+    assert segments[0].semantic_type == "procedure"
     assert segments[0].confidence == 0.93
 
 
@@ -66,7 +69,8 @@ def test_classify_raw_chunk_builds_typed_segments_with_threshold():
     store = MagicMock()
     store.get_confidence_threshold.return_value = 0.7
     store.get_content_type_rules.return_value = {
-        "content_types": [{"id": "preface", "description": "前言"}]
+        "structure_types": [{"id": "paragraph", "description": "叙述性段落"}],
+        "semantic_types": [{"id": "scope", "description": "适用范围"}],
     }
     store.get_transform_params.return_value = {
         "strategy": "plain_embed",
@@ -76,13 +80,15 @@ def test_classify_raw_chunk_builds_typed_segments_with_threshold():
     with patch(
         "app.core.parser_workflow.nodes.classify_node._call_classify_llm",
         return_value=[
-            SegmentItem(content="低置信片段", content_type="preface", confidence=0.5),
-            SegmentItem(content="高置信片段", content_type="preface", confidence=0.9),
+            SegmentItem(content="低置信片段", structure_type="paragraph", semantic_type="scope", confidence=0.5),
+            SegmentItem(content="高置信片段", structure_type="list", semantic_type="procedure", confidence=0.9),
         ],
     ):
         out = classify_raw_chunk(raw_chunk, store)
 
     assert out["has_unknown"] is True
     assert len(out["segments"]) == 2
-    assert out["segments"][0]["content_type"] == "unknown"
-    assert out["segments"][1]["content_type"] == "preface"
+    assert out["segments"][0]["structure_type"] == "unknown"
+    assert out["segments"][0]["semantic_type"] == "unknown"
+    assert out["segments"][1]["structure_type"] == "list"
+    assert out["segments"][1]["semantic_type"] == "procedure"
