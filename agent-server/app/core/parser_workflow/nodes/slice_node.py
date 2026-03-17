@@ -40,6 +40,16 @@ def _split_by_heading(text: str, level: int) -> List[Tuple[str, str]]:
     return parts
 
 
+def _has_body_content(block: str) -> bool:
+    """
+    判断 block 是否有标题行以外的实质内容。
+    去除所有以 # 开头的行后，检查剩余内容是否非空。
+    """
+    lines = block.splitlines()
+    body = "\n".join(line for line in lines if not line.startswith("#"))
+    return bool(body.strip())
+
+
 def recursive_slice(
     content: str,
     heading_levels: List[int],
