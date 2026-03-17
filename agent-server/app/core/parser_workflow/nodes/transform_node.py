@@ -75,7 +75,8 @@ def apply_strategy(
                 ),
                 doc_metadata=doc_metadata,
                 section_path=raw_chunk["section_path"],
-                content_type=seg["content_type"],
+                structure_type=seg["structure_type"],
+                semantic_type=seg["semantic_type"],
                 content=llm_text,
                 raw_content=raw_content,
                 meta={
