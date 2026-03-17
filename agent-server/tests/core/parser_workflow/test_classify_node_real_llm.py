@@ -299,11 +299,10 @@ def test_classify_node_html_table_attribute_content_preserved_with_real_llm():
         f"拼合内容：{all_content!r}"
     )
 
-    valid_structure_types = {"paragraph", "list", "table", "formula", "header", "unknown"}
-    valid_semantic_types = {
-        "metadata", "scope", "limit", "procedure",
-        "material", "calculation", "definition", "amendment", "unknown",
-    }
+    store = RulesStore(str(rules_dir))
+    ct_rules = store.get_content_type_rules()
+    valid_structure_types = {t["id"] for t in ct_rules.get("structure_types", [])} | {"unknown"}
+    valid_semantic_types = {t["id"] for t in ct_rules.get("semantic_types", [])} | {"unknown"}
     for cc in classified_chunks:
         for seg in cc.get("segments", []):
             assert seg.get("structure_type") in valid_structure_types, (
@@ -312,3 +311,7 @@ def test_classify_node_html_table_attribute_content_preserved_with_real_llm():
             assert seg.get("semantic_type") in valid_semantic_types, (
                 f"非法 semantic_type：{seg.get('semantic_type')!r}"
             )
+            assert 0 <= seg.get("confidence", -1) <= 1, (
+                f"confidence 超出范围：{seg.get('confidence')!r}"
+            )
+            assert seg.get("content"), "segment content 不能为空"

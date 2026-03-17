@@ -76,7 +76,32 @@ def extract_table_refs(text: str) -> list[str]:
 
 ### 新增集成测试（`enrich_node` 区块）
 
-`test_enrich_node_gb_style_multiple_refs`：用 GB1886 风格段落（含 `应符合表1`、`符合表2`、`按照表3`）构造 state，验证三个表格均被内联到 `ref_context`。
+`test_enrich_node_gb_style_multiple_refs`：用 GB1886 风格段落（含 `应符合表1`、`符合表2`、`按照表3`）验证三个表格均被内联到 `ref_context`。
+
+此测试**不使用** `_make_state()` 辅助函数（该函数只支持单表），而是编写 inline fixture，结构如下：
+
+三张表的内容各含唯一字段名（互不重叠），以便断言各自被内联：
+
+```
+ref_text = "感官要求应符合表1的规定。理化指标符合表2的规定。微生物指标按照表3执行。"
+
+raw_chunks（顺序）：
+  [0] RawChunk(ref_text, section_path=["2"])               # 引用段，放首位
+  [1] RawChunk("表1 感官要求\n| 色泽 | 正常 |", ...)       # 唯一字段：色泽
+  [2] RawChunk("表2 理化指标\n| 灰分 | ≤1% |", ...)        # 唯一字段：灰分
+  [3] RawChunk("表3 微生物指标\n| 菌落总数 | ≤100 |", ...) # 唯一字段：菌落总数
+
+classified_chunks（顺序与 raw_chunks 一致）：
+  [0] ref ClassifiedChunk，segment 使用 structure_type="paragraph", semantic_type="requirement"
+  [1][2][3] table ClassifiedChunk，segment 使用 structure_type="table", semantic_type="specification_table"
+```
+
+断言（针对 `result["classified_chunks"][0]["segments"][0]`，即 ref chunk）：
+- `"色泽" in ref_context`（表1 被内联）
+- `"灰分" in ref_context`（表2 被内联）
+- `"菌落总数" in ref_context`（表3 被内联）
+- `set(["表1","表2","表3"]).issubset(set(cross_refs))`（三个标签均识别）
+- `failed_table_refs == []`
 
 ---
 
