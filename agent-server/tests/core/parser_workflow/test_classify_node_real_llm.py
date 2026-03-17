@@ -3,7 +3,7 @@ from typing import List
 import pytest
 
 from app.core.parser_workflow.models import ClassifiedChunk, RawChunk, WorkflowState
-from app.core.parser_workflow.nodes.classify_node import classify_node
+from app.core.parser_workflow.nodes.classify_node import classify_node, classify_raw_chunk
 from app.core.parser_workflow.nodes.parse_node import parse_node
 from app.core.parser_workflow.nodes.output import ClassifyOutput
 from app.core.parser_workflow.nodes.slice_node import slice_node
@@ -248,6 +248,43 @@ def test_classify_prompt_regression_with_mixed_quotes_sample():
         assert seg.structure_type
         assert seg.semantic_type
         assert 0 <= seg.confidence <= 1
+
+
+def test_header_semantic_type_is_metadata_for_method_sections():
+    """附录方法节标题 header 的 semantic_type 应一律为 metadata"""
+    store = RulesStore(str(get_rules_dir()))
+    content = "## A.5 总灰分的测定"
+    chunk = RawChunk(content=content, section_path=["A.5"], char_count=len(content))
+    result = classify_raw_chunk(chunk, store)
+    seg = result.segments[0]
+    assert seg.structure_type == "header"
+    assert seg.semantic_type == "metadata"
+
+
+def test_header_semantic_type_a6():
+    store = RulesStore(str(get_rules_dir()))
+    content = "## A.6 酸不溶灰分的测定"
+    chunk = RawChunk(content=content, section_path=["A.6"], char_count=len(content))
+    result = classify_raw_chunk(chunk, store)
+    assert result.segments[0].semantic_type == "metadata"
+
+
+def test_document_identity_metadata_not_degraded():
+    """文档身份信息 semantic_type 不退化"""
+    store = RulesStore(str(get_rules_dir()))
+    content = "GB 1886.169—2016\n2016-08-31 发布  2017-01-01 实施"
+    chunk = RawChunk(content=content, section_path=[], char_count=len(content))
+    result = classify_raw_chunk(chunk, store)
+    assert any(seg.semantic_type == "metadata" for seg in result.segments)
+
+
+def test_definition_body_not_misclassified_as_metadata():
+    """含实质术语正文的段落仍分类为 definition，不被误归为 metadata"""
+    store = RulesStore(str(get_rules_dir()))
+    content = "3 术语和定义\n3.1 卡拉胶\n卡拉胶是指以红藻类植物为原料..."
+    chunk = RawChunk(content=content, section_path=["3"], char_count=len(content))
+    result = classify_raw_chunk(chunk, store)
+    assert any(seg.semantic_type == "definition" for seg in result.segments)
 
 
 def test_classify_node_html_table_attribute_content_preserved_with_real_llm():

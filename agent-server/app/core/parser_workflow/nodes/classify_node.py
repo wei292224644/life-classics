@@ -14,6 +14,16 @@ from app.core.parser_workflow.structured_llm import invoke_structured
 from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
 
 
+def _build_type_desc(types: List[Dict]) -> str:
+    lines = []
+    for t in types:
+        lines.append(f"- {t['id']}: {t['description']}")
+        if t.get("examples"):
+            examples_str = " / ".join(t["examples"])
+            lines.append(f"  示例：{examples_str}")
+    return "\n".join(lines)
+
+
 def _call_classify_llm(
     chunk_content: str,
     structure_types: List[Dict],
@@ -25,9 +35,7 @@ def _call_classify_llm(
     structure_desc = "\n".join(
         f"- {t['id']}: {t['description']}" for t in structure_types
     )
-    semantic_desc = "\n".join(
-        f"- {t['id']}: {t['description']}" for t in semantic_types
-    )
+    semantic_desc = _build_type_desc(semantic_types)
     prompt = f"""请将以下文本拆分为语义独立的片段，并对每个片段进行双维度分类。
 
 【结构类型（structure_type）】——描述内容的呈现形式：
@@ -43,7 +51,7 @@ def _call_classify_llm(
 4. 公式识别（强制规则）：文本中出现 $$...$$ 块级公式时，该部分及其紧邻的变量说明（"式中：m1——..."格式）必须作为独立 segment，structure_type=formula，semantic_type=calculation。不得因上下文中存在大量列表或段落而将含公式的内容归为 plain_text。
 
 文本内容：
-{chunk_content}
+{_escape_for_json_prompt(chunk_content)}
 """
     result = invoke_structured(
         node_name="classify_node",
@@ -52,6 +60,11 @@ def _call_classify_llm(
         extra_body={"enable_thinking": False},
     )
     return result.segments
+
+
+def _escape_for_json_prompt(text: str) -> str:
+    """转义文本中的 ASCII 双引号，防止 LLM 生成 JSON 时字符串值被提前截断。"""
+    return text.replace('"', '\\"')
 
 
 def classify_raw_chunk(
