@@ -12,6 +12,7 @@ from tests.core.parser_workflow.test_utils import (
 )
 
 logger = get_logger("workflow")
+pytestmark = pytest.mark.real_llm
 
 
 @pytest.mark.asyncio

@@ -14,6 +14,7 @@ from app.core.parser_workflow.rules import RulesStore
 from .test_utils import ensure_llm_api_key, get_logger, get_rules_dir, load_sample_markdown
 
 logger = get_logger("transform_node_real_llm")
+pytestmark = pytest.mark.real_llm
 
 
 @pytest.fixture(autouse=True)

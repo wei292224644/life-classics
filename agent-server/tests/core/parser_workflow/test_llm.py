@@ -2,13 +2,8 @@ from __future__ import annotations
 
 import pytest
 from unittest.mock import MagicMock, patch
-from pydantic import BaseModel
 
 from app.core.parser_workflow.llm import create_chat_model, resolve_provider
-
-
-class _DummySchema(BaseModel):
-    content: str
 
 
 # ── resolve_provider ────────────────────────────────────────────────────────
@@ -68,17 +63,6 @@ def test_create_chat_model_ollama():
         model = create_chat_model("llama3", "ollama")
     assert isinstance(model, ChatOllama)
     assert model.reasoning is False
-
-
-def test_create_chat_model_with_output_schema():
-    """传入 output_schema 时返回 with_structured_output 包装后的 Runnable。"""
-    from langchain_openai import ChatOpenAI
-    with patch("app.core.parser_workflow.llm.settings") as mock_settings:
-        mock_settings.LLM_API_KEY = "test-key"
-        mock_settings.LLM_BASE_URL = ""
-        model = create_chat_model("gpt-4o", "openai", output_schema=_DummySchema)
-    # with_structured_output 返回的是 RunnableSequence，不再是 ChatOpenAI 本身
-    assert not isinstance(model, ChatOpenAI)
 
 
 def test_create_chat_model_unknown_provider():

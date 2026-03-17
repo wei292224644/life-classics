@@ -41,6 +41,7 @@ dependencies = [
     "neo4j>=5.0.0",
     "deepagents>=0.4.0",
     "langgraph>=0.2.0",
+    "instructor>=1.14.5",
 ]
 
 [build-system]
@@ -57,3 +58,6 @@ dev = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+markers = [
+    "real_llm: tests that require real LLM credentials and external provider calls",
+]

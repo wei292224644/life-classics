@@ -3,15 +3,12 @@ from __future__ import annotations
 from typing import List
 
 from app.core.parser_workflow.models import (
-    ClassifiedChunk,
     DocumentChunk,
     TypedSegment,
     WorkflowState,
     make_chunk_id,
 )
-from app.core.config import settings
-from app.core.parser_workflow.llm import create_chat_model, resolve_provider
-
+from app.core.parser_workflow.structured_llm import invoke_structured
 from app.core.parser_workflow.nodes.output import TransformOutput
 
 
@@ -24,8 +21,6 @@ def _call_llm_transform(
     使用 LLM 根据 prompt_template 将原始内容转化为自然语言文本。
     在测试中会通过 patch 进行 mock。
     """
-    provider = resolve_provider(settings.TRANSFORM_LLM_PROVIDER)
-    chat = create_chat_model(settings.TRANSFORM_MODEL, provider, output_schema=TransformOutput)
     format_example = """
     {
         "content": "转化后的内容"
@@ -44,7 +39,11 @@ def _call_llm_transform(
     if ref_context:
         prompt += f"\n\n以下是文中引用的表格内容，请结合该表格理解上下文：\n{ref_context}"
 
-    resp: TransformOutput = chat.invoke(prompt)
+    resp = invoke_structured(
+        node_name="transform_node",
+        prompt=prompt,
+        response_model=TransformOutput,
+    )
     return resp.content
 
 

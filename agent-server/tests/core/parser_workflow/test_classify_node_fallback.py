@@ -1,50 +1,52 @@
 from __future__ import annotations
 
+from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from langchain_core.exceptions import OutputParserException
+import pytest
 
-from app.core.parser_workflow.nodes.classify_node import _call_classify_llm
-
-
-class _FakeMessage:
-    def __init__(self, content: str):
-        self.content = content
+from app.core.parser_workflow.nodes.classify_node import _call_classify_llm, classify_raw_chunk
+from app.core.parser_workflow.models import RawChunk
+from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
+from app.core.parser_workflow.structured_llm import StructuredOutputError
 
 
-class _FakeStructuredChat:
-    def __init__(self, invoke_result):
-        self._invoke_result = invoke_result
-
-    def invoke(self, _prompt):
-        return self._invoke_result
-
-
-class _FakeChat:
-    def __init__(self, invoke_result):
-        self._invoke_result = invoke_result
-
-    def with_structured_output(self, _schema, include_raw=False):
-        assert include_raw is True
-        return _FakeStructuredChat(self._invoke_result)
-
-
-def test_call_classify_llm_fallback_to_raw_json_when_parser_failed():
-    """当结构化解析失败但 raw.content 含 ```json 时，应自动清洗并成功解析。"""
-    invoke_result = {
-        "raw": _FakeMessage(
-            "```json\n"
-            '{"segments":[{"content":"前言内容","content_type":"preface","confidence":0.93}]}\n'
-            "```"
-        ),
-        "parsed": None,
-        "parsing_error": OutputParserException("Invalid json output: ```json"),
-    }
+def test_invoke_structured_fails_raises_structured_output_error():
+    """invoke_structured 失败时应抛出 StructuredOutputError（fail-fast）。"""
     content_types = [{"id": "preface", "description": "前言"}]
+    err = StructuredOutputError(
+        "结构化输出校验失败: classify_node",
+        provider="openai",
+        model="gpt-4o-mini",
+        node_name="classify_node",
+        response_model="ClassifyOutput",
+        retry_count=0,
+        raw_error="validation error",
+    )
 
     with patch(
-        "app.core.parser_workflow.nodes.classify_node.create_chat_model",
-        return_value=_FakeChat(invoke_result),
+        "app.core.parser_workflow.nodes.classify_node.invoke_structured",
+        side_effect=err,
+    ):
+        with pytest.raises(StructuredOutputError) as exc_info:
+            _call_classify_llm("前言", content_types)
+
+        assert exc_info.value.node_name == "classify_node"
+        assert exc_info.value.response_model == "ClassifyOutput"
+
+
+def test_invoke_structured_succeeds_returns_segments():
+    """invoke_structured 成功时返回 segments。"""
+    content_types = [{"id": "preface", "description": "前言"}]
+    expected = ClassifyOutput(
+        segments=[
+            SegmentItem(content="前言内容", content_type="preface", confidence=0.93)
+        ]
+    )
+
+    with patch(
+        "app.core.parser_workflow.nodes.classify_node.invoke_structured",
+        return_value=expected,
     ):
         segments = _call_classify_llm("前言", content_types)
 
@@ -52,3 +54,35 @@ def test_call_classify_llm_fallback_to_raw_json_when_parser_failed():
     assert segments[0].content == "前言内容"
     assert segments[0].content_type == "preface"
     assert segments[0].confidence == 0.93
+
+
+def test_classify_raw_chunk_builds_typed_segments_with_threshold():
+    """classify_raw_chunk 应按阈值生成 known/unknown 的 TypedSegment。"""
+    raw_chunk: RawChunk = {
+        "content": "测试文本",
+        "section_path": ["前言"],
+        "char_count": 4,
+    }
+    store = MagicMock()
+    store.get_confidence_threshold.return_value = 0.7
+    store.get_content_type_rules.return_value = {
+        "content_types": [{"id": "preface", "description": "前言"}]
+    }
+    store.get_transform_params.return_value = {
+        "strategy": "plain_embed",
+        "prompt_template": "请转化",
+    }
+
+    with patch(
+        "app.core.parser_workflow.nodes.classify_node._call_classify_llm",
+        return_value=[
+            SegmentItem(content="低置信片段", content_type="preface", confidence=0.5),
+            SegmentItem(content="高置信片段", content_type="preface", confidence=0.9),
+        ],
+    ):
+        out = classify_raw_chunk(raw_chunk, store)
+
+    assert out["has_unknown"] is True
+    assert len(out["segments"]) == 2
+    assert out["segments"][0]["content_type"] == "unknown"
+    assert out["segments"][1]["content_type"] == "preface"

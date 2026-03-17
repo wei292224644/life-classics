@@ -9,6 +9,7 @@ from app.core.parser_workflow.nodes.slice_node import slice_node
 from .test_utils import ensure_llm_api_key, get_logger, get_rules_dir, load_sample_markdown
 
 logger = get_logger("classify_node_real_llm")
+pytestmark = pytest.mark.real_llm
 
 
 @pytest.fixture(autouse=True)
