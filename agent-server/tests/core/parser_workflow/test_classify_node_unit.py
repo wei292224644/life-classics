@@ -2,7 +2,7 @@ from unittest.mock import patch
 import pytest
 
 from app.core.parser_workflow.models import RawChunk, WorkflowState
-from app.core.parser_workflow.nodes.classify_node import classify_node
+from app.core.parser_workflow.nodes.classify_node import classify_node, _escape_for_json_prompt
 from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
 
 
@@ -100,3 +100,18 @@ def test_classify_node_prompt_contains_formula_rule(tmp_path):
     assert "structure_type=formula" in prompt, "prompt 未要求含 $$ 的 segment 用 structure_type=formula"
     assert "semantic_type=calculation" in prompt, "prompt 未要求含 $$ 的 segment 用 semantic_type=calculation"
     assert "plain_text" in prompt, "prompt 中应提到不得将公式归为 plain_text"
+
+
+def test_escape_for_json_prompt_escapes_double_quotes():
+    """_escape_for_json_prompt 应将所有 ASCII 双引号替换为 \\"."""
+    raw = '<td rowspan="2">取适量试样</td>'
+    escaped = _escape_for_json_prompt(raw)
+    assert '\\"' in escaped
+    assert 'rowspan=\\"2\\"' in escaped
+    assert '"' not in escaped.replace('\\"', '')
+
+
+def test_escape_for_json_prompt_preserves_other_characters():
+    """_escape_for_json_prompt 不应修改无双引号的字符串。"""
+    raw = "<td>无属性的单元格</td>"
+    assert _escape_for_json_prompt(raw) == raw
