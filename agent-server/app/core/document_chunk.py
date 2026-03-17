@@ -10,6 +10,9 @@ from app.core.config import settings
 from app.core.llm import chat
 
 
+# DEPRECATED: 此枚举属于旧版 kb/strategy 流水线，不再用于 parser_workflow。
+# parser_workflow 改用 models.py 中 TypedSegment/DocumentChunk 的
+# structure_type + semantic_type 双字段体系。待 kb/strategy 重构时一并清理。
 class ContentType(Enum):
     METADATA = "metadata"  # 文档元信息（标准号、适用对象等）
     SCOPE = "scope"  # 适用范围
