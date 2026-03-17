@@ -5,46 +5,50 @@ from __future__ import annotations
 from typing import Any, Callable
 
 import instructor
-from openai import OpenAI
 from pydantic import BaseModel
 
 from app.core.config import settings
 
 
 def _create_openai_client(
+    model_ref: str,
     api_key: str,
     base_url: str | None,
     **extra_kwargs: Any,
-) -> Any:
-    """创建 OpenAI 兼容客户端并 patch 为 Instructor。"""
-    client = OpenAI(
+) -> instructor.Instructor:
+    """通过 from_provider 创建 Instructor 客户端。"""
+    return instructor.from_provider(
+        model_ref,
+        mode=instructor.Mode.JSON,
         api_key=api_key,
-        base_url=base_url or None,
+        base_url=base_url,
         timeout=settings.PARSER_STRUCTURED_TIMEOUT_SECONDS,
         **extra_kwargs,
     )
-    return instructor.patch(client, mode=instructor.Mode.JSON)
 
 
-def get_structured_client(provider: str) -> Callable[..., BaseModel]:
+def get_structured_client(provider: str, model: str) -> Callable[..., BaseModel]:
     """
     根据 provider 获取可调用的 Instructor 客户端（返回 chat.completions.create 的 callable）。
 
     支持的 provider：
     - openai: 使用 LLM_API_KEY / LLM_BASE_URL
-    - dashscope: 使用 DASHSCOPE_API_KEY / DASHSCOPE_BASE_URL，注入 enable_thinking=False
-    - ollama: 使用 OLLAMA_BASE_URL，注入 reasoning=False（通过 extra_body 或兼容方式）
+    - dashscope: 使用 DASHSCOPE_API_KEY / DASHSCOPE_BASE_URL
+    - ollama: 使用 OLLAMA_BASE_URL
 
     返回的 callable 签名兼容：
         create(model=..., messages=..., response_model=..., temperature=..., ...) -> BaseModel
     """
     if provider == "openai":
         client = _create_openai_client(
+            model_ref=f"openai/{model}",
             api_key=settings.LLM_API_KEY,
             base_url=settings.LLM_BASE_URL or None,
         )
     elif provider == "dashscope":
         client = _create_openai_client(
+            # DashScope 走 OpenAI-compatible 接口
+            model_ref=f"openai/{model}",
             api_key=settings.DASHSCOPE_API_KEY,
             base_url=settings.DASHSCOPE_BASE_URL,
         )
@@ -52,6 +56,7 @@ def get_structured_client(provider: str) -> Callable[..., BaseModel]:
     elif provider == "ollama":
         # Ollama 通常无需 api_key，base_url 指向本地
         client = _create_openai_client(
+            model_ref=f"ollama/{model}",
             api_key="ollama",  # ollama 本地无需真实 key，传占位即可
             base_url=settings.OLLAMA_BASE_URL or "http://localhost:11434",
         )
@@ -80,10 +85,9 @@ def get_structured_client(provider: str) -> Callable[..., BaseModel]:
         if provider == "dashscope":
             body = {**(extra_body or {}), "enable_thinking": False}
             create_kwargs["extra_body"] = body
-        elif provider == "ollama":
-            # ollama 通过 extra_body 注入 reasoning=False（若 API 支持）
-            body = {**(extra_body or {}), "reasoning": False}
-            create_kwargs["extra_body"] = body
+        elif extra_body is not None:
+            create_kwargs["extra_body"] = extra_body
+
         return client.chat.completions.create(**create_kwargs)
 
     return _create

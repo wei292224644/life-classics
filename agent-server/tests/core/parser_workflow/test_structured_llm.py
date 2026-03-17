@@ -318,8 +318,8 @@ def test_client_factory_dashscope_injects_enable_thinking():
     assert call_kwargs["extra_body"] == {"enable_thinking": False}
 
 
-def test_client_factory_ollama_injects_reasoning():
-    """ollama 分支注入 reasoning=False。"""
+def test_client_factory_ollama_does_not_inject_reasoning_by_default():
+    """ollama 分支默认不注入 reasoning（避免 OpenAI-compatible 400）。"""
     mock_client = MagicMock()
     mock_client.chat.completions.create.return_value = _DummyOutput(content="x")
 
@@ -335,4 +335,4 @@ def test_client_factory_ollama_injects_reasoning():
         )
     mock_client.chat.completions.create.assert_called_once()
     call_kwargs = mock_client.chat.completions.create.call_args.kwargs
-    assert call_kwargs["extra_body"] == {"reasoning": False}
+    assert "extra_body" not in call_kwargs
