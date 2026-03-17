@@ -29,12 +29,9 @@ class EscalateOutput(BaseModel):
 
 class SegmentItem(BaseModel):
     content: str
-    content_type: str
-    confidence: float = Field(
-        default=0.8,
-        ge=0,
-        le=1
-    )
+    structure_type: str
+    semantic_type: str
+    confidence: float = Field(default=0.8, ge=0, le=1)
 
 class ClassifyOutput(BaseModel):
     segments: List[SegmentItem]
