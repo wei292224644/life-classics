@@ -77,3 +77,26 @@ def test_classify_node_prompt_includes_both_type_lists(tmp_path):
         assert type_id in prompt, f"prompt 未包含 structure_type '{type_id}'"
     for type_id in ["metadata", "scope", "limit", "procedure", "material", "calculation", "definition", "amendment"]:
         assert type_id in prompt, f"prompt 未包含 semantic_type '{type_id}'"
+
+
+def test_classify_node_prompt_contains_formula_rule(tmp_path):
+    """prompt 中应包含公式识别确定性规则，要求含 $$ 的 segment 必须分类为 formula"""
+    mock_output = ClassifyOutput(segments=[
+        SegmentItem(content="x", structure_type="formula", semantic_type="calculation", confidence=0.9),
+    ])
+
+    captured_prompts = []
+
+    def capture_invoke(node_name, prompt, response_model, **kwargs):
+        captured_prompts.append(prompt)
+        return mock_output
+
+    with patch("app.core.parser_workflow.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
+        state = _make_state("x", tmp_path)
+        classify_node(state)
+
+    prompt = captured_prompts[0]
+    assert "$$" in prompt, "prompt 未包含 $$ 公式规则"
+    assert "structure_type=formula" in prompt, "prompt 未要求含 $$ 的 segment 用 structure_type=formula"
+    assert "semantic_type=calculation" in prompt, "prompt 未要求含 $$ 的 segment 用 semantic_type=calculation"
+    assert "plain_text" in prompt, "prompt 中应提到不得将公式归为 plain_text"
