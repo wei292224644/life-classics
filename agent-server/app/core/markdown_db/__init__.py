@@ -9,6 +9,6 @@ from app.core.markdown_db.database import MarkdownDB
 
 
 # 创建全局数据库实例
-markdown_db = MarkdownDB(db_path=str(Path(settings.MARKDOWN_PERSIST_DIR) / "markdown_db.sqlite"))
+# markdown_db = MarkdownDB(db_path=str(Path(settings.MARKDOWN_PERSIST_DIR) / "markdown_db.sqlite"))
 
-__all__ = ["markdown_db", "MarkdownDB"]
+# __all__ = ["markdown_db", "MarkdownDB"]

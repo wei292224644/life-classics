@@ -36,7 +36,8 @@ def create_chat_model(
     - "openai"    → ChatOpenAI，使用 LLM_API_KEY / LLM_BASE_URL
     - "dashscope" → ChatOpenAI，使用 DASHSCOPE_API_KEY / DASHSCOPE_BASE_URL，
                     自动注入 extra_body={"enable_thinking": False}
-    - "ollama"    → ChatOllama，使用 OLLAMA_BASE_URL
+    - "ollama"    → ChatOllama，使用 OLLAMA_BASE_URL，
+                    默认注入 reasoning=False（关闭 thinking 模式）
 
     若传入 output_schema，返回 llm.with_structured_output(output_schema)。
     未知 provider 抛出 ValueError。
@@ -56,11 +57,15 @@ def create_chat_model(
             api_key=settings.DASHSCOPE_API_KEY,
             base_url=settings.DASHSCOPE_BASE_URL,
             extra_body=extra_body,
+            format="json",
             **kwargs,
         )
     elif provider == "ollama":
-        from langchain_ollama import ChatOllama  # type: ignore[import]
+        from langchain_ollama import ChatOllama
 
+        # 默认关闭 Ollama reasoning(thinking) 模式，避免影响结构化输出稳定性
+        kwargs.setdefault("reasoning", False)
+        kwargs.setdefault("temperature", 0.0)
         llm = ChatOllama(
             model=model,
             base_url=settings.OLLAMA_BASE_URL or "http://localhost:11434",

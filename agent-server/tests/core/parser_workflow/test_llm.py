@@ -61,12 +61,13 @@ def test_create_chat_model_dashscope():
 
 
 def test_create_chat_model_ollama():
-    """provider='ollama' 返回 ChatOllama 实例。"""
+    """provider='ollama' 返回 ChatOllama 实例，且默认关闭 thinking(reasoning) 模式。"""
     from langchain_ollama import ChatOllama
     with patch("app.core.parser_workflow.llm.settings") as mock_settings:
         mock_settings.OLLAMA_BASE_URL = "http://localhost:11434"
         model = create_chat_model("llama3", "ollama")
     assert isinstance(model, ChatOllama)
+    assert model.reasoning is False
 
 
 def test_create_chat_model_with_output_schema():
