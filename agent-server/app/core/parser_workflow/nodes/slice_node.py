@@ -81,14 +81,12 @@ def recursive_slice(
         path = parent_path + ([title] if title else [])
         char_count = len(block)
         if char_count <= soft_max or len(heading_levels) <= 1:
-            chunk = RawChunk(
-                content=block, section_path=path, char_count=len(block)
-            )
-            if len(block) > hard_max:
-                errors.append(
-                    f"WARN: chunk exceeds HARD_MAX ({len(block)} chars) at {path}"
-                )
-            result.append(chunk)
+            if _has_body_content(block):
+                if len(block) > hard_max:
+                    errors.append(
+                        f"WARN: chunk exceeds HARD_MAX ({len(block)} chars) at {path}"
+                    )
+                result.append(RawChunk(content=block, section_path=path, char_count=len(block)))
         else:
             result.extend(
                 recursive_slice(block, heading_levels[1:], path, soft_max, hard_max, errors)
