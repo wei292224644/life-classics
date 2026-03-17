@@ -1,8 +1,5 @@
-from __future__ import annotations
-
 import pytest
-
-from app.core.parser_workflow.rules import RulesStore, RULES_DIR
+from app.core.parser_workflow.rules import RulesStore
 
 
 @pytest.fixture
@@ -11,53 +8,74 @@ def store(tmp_path):
     return RulesStore(str(tmp_path))
 
 
-# ── standard_header 规则 ──────────────────────────────────────────────
+# ── structure_types ───────────────────────────────────────────────────
 
-
-def test_standard_header_description_excludes_preface(store):
-    """standard_header 的 description 不应包含"前言"字样"""
+def test_structure_types_contains_five_types(store):
     rules = store.get_content_type_rules()
-    ct_map = {ct["id"]: ct for ct in rules["content_types"]}
-    assert "standard_header" in ct_map
-    desc = ct_map["standard_header"]["description"]
-    assert "前言" not in desc, f"standard_header description 不应含'前言'，实际：{desc!r}"
+    ids = [t["id"] for t in rules["structure_types"]]
+    assert set(ids) == {"paragraph", "list", "table", "formula", "header"}, f"实际：{ids}"
 
 
-def test_standard_header_has_no_action_field(store):
-    """standard_header 条目不应有多余的 action 字段"""
+def test_each_structure_type_has_description_and_examples(store):
     rules = store.get_content_type_rules()
-    ct_map = {ct["id"]: ct for ct in rules["content_types"]}
-    assert "action" not in ct_map["standard_header"], "standard_header 不应有 action 字段"
+    for t in rules["structure_types"]:
+        assert "description" in t, f"{t['id']} 缺 description"
+        assert "examples" in t and len(t["examples"]) >= 1, f"{t['id']} 缺 examples"
 
 
-def test_standard_header_prompt_template_is_complete(store):
-    """standard_header 的 prompt_template 不应是截断的字符串"""
+# ── semantic_types ────────────────────────────────────────────────────
+
+def test_semantic_types_contains_eight_types(store):
     rules = store.get_content_type_rules()
-    ct_map = {ct["id"]: ct for ct in rules["content_types"]}
-    pt = ct_map["standard_header"]["transform"]["prompt_template"]
-    # 合法的 prompt_template 应以换行符结束（约定）
-    assert pt.endswith("\n"), f"prompt_template 疑似截断，结尾：{pt[-20:]!r}"
+    ids = [t["id"] for t in rules["semantic_types"]]
+    assert set(ids) == {
+        "metadata", "scope", "limit", "procedure",
+        "material", "calculation", "definition", "amendment",
+    }, f"实际：{ids}"
 
 
-# ── preface 规则 ──────────────────────────────────────────────────────
-
-
-def test_preface_content_type_exists(store):
-    """content_type_rules.json 中应存在 preface 类型"""
+def test_each_semantic_type_has_description_and_examples(store):
     rules = store.get_content_type_rules()
-    ids = [ct["id"] for ct in rules["content_types"]]
-    assert "preface" in ids, f"未找到 preface 类型，现有：{ids}"
+    for t in rules["semantic_types"]:
+        assert "description" in t, f"{t['id']} 缺 description"
+        assert "examples" in t and len(t["examples"]) >= 1, f"{t['id']} 缺 examples"
 
 
-def test_preface_transform_params_use_plain_embed(store):
-    """preface 的 transform strategy 应为 plain_embed"""
-    params = store.get_transform_params("preface")
-    assert params["strategy"] == "plain_embed", f"实际 strategy：{params['strategy']!r}"
+# ── transform.by_semantic_type ────────────────────────────────────────
 
-
-def test_preface_description_mentions_no_split(store):
-    """preface 的 description 应说明内部列表不拆分"""
+def test_transform_exists_for_all_semantic_types(store):
     rules = store.get_content_type_rules()
-    ct_map = {ct["id"]: ct for ct in rules["content_types"]}
-    desc = ct_map["preface"]["description"]
-    assert "不拆分" in desc, f"description 未说明不拆分，实际：{desc!r}"
+    transform_map = rules["transform"]["by_semantic_type"]
+    for t in rules["semantic_types"]:
+        assert t["id"] in transform_map, f"semantic_type '{t['id']}' 缺少 transform 配置"
+
+
+def test_each_transform_has_strategy_and_non_empty_prompt_template(store):
+    rules = store.get_content_type_rules()
+    for sem_id, cfg in rules["transform"]["by_semantic_type"].items():
+        assert "strategy" in cfg, f"{sem_id} 缺 strategy"
+        assert cfg.get("prompt_template", ""), f"{sem_id} prompt_template 为空"
+
+
+# ── get_transform_params ──────────────────────────────────────────────
+
+def test_get_transform_params_by_semantic_type(store):
+    params = store.get_transform_params("procedure")
+    assert "strategy" in params
+    assert "prompt_template" in params
+    assert params["prompt_template"]
+
+
+def test_get_transform_params_unknown_falls_back_to_plain_embed(store):
+    params = store.get_transform_params("nonexistent_type")
+    assert params["strategy"] == "plain_embed"
+
+
+def test_get_transform_params_calculation_uses_formula_embed(store):
+    params = store.get_transform_params("calculation")
+    assert params["strategy"] == "formula_embed"
+
+
+def test_get_transform_params_limit_uses_table_to_text(store):
+    params = store.get_transform_params("limit")
+    assert params["strategy"] == "table_to_text"

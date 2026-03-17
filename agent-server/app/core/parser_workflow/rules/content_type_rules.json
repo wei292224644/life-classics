@@ -1,54 +1,84 @@
 {
-  "version": "1.0",
   "confidence_threshold": 0.7,
-  "content_types": [
+  "structure_types": [
+    {
+      "id": "paragraph",
+      "description": "叙述性段落，连续文字说明",
+      "examples": ["本标准适用于...", "本方法按照..."]
+    },
+    {
+      "id": "list",
+      "description": "编号或条目列表，包含 GB 标准中的条款项或操作步骤",
+      "examples": ["A.3.1.1 异丙醇溶液：60%", "——增加了酸不溶物指标"]
+    },
     {
       "id": "table",
-      "description": "表格数据（支持 Markdown | 或 HTML <table> 格式）",
-      "transform": {
-        "strategy": "split_rows",
-        "prompt_template": "请将以下表格（Markdown 或 HTML 格式）的每一行内容转化为规范化的陈述句。要求：\n1. 严格保持原始数据一致性，不得修改、添加或删除表格中的任何数值、术语或具体信息。\n2. 将每一行数据（Row）与其对应的表头（Header）一一对应，组合成独立的完整句子。\n3. 去除表格格式符（如 |、--、<tr>、<td> 等），仅输出纯文本陈述。\n4. 禁止进行任何总结、评价或对原文含义的扩充。\n\n待处理表格内容：\n"
-      }
+      "description": "表格数据，HTML <table> 或 Markdown | 格式",
+      "examples": ["表1 感官要求", "表2 理化指标"]
     },
     {
       "id": "formula",
-      "description": "数学或化学公式，含 LaTeX 语法或化学分子式",
-      "transform": {
-        "strategy": "augment_description",
-        "prompt_template": "请将以下 LaTeX 或化学公式转化为规范化的专业文本描述。要求：\n1. 严禁修改任何数值、符号、下标或变量名称。\n2. 用文字准确解说公式的逻辑含义（例如：'A等于B乘以C' 或 '某化学物质与某物质反应生成...'）。\n3. 保留原始 LaTeX 代码并在其后附加该逻辑说明，确保检索时能匹配到变量名或物理意义。\n4. 禁止进行任何计算或推导。\n\n待处理公式内容：\n"
-      }
+      "description": "数学或化学公式，含 LaTeX 语法",
+      "examples": ["$$w_1 = \\frac{m_1 - m_0}{m} \\times 100\\%$$"]
     },
     {
-      "id": "numbered_list",
-      "description": "有序编号列表，包含 GB 标准中的章、节、条、款、项或操作步骤",
-      "transform": {
-        "strategy": "flatten_with_context",
-        "prompt_template": "请将以下有序编号列表转化为规范化的完整陈述句。要求：\n1. 严格保持原始编号（如 1., a), 1.1 等）和内容，不得修改或删减任何文字。\n2. 如果列表存在层级，请将上级标题或前置步骤的核心语义整合进每一项中，确保每条信息独立存在时依然语义完整。\n3. 禁止对条款内容进行总结、缩减或改变语序。\n4. 去除多余的换行符，确保每一条规则或步骤输出为一行标准文本。\n\n待处理列表内容：\n"
-      }
-    },
-    {
-      "id": "plain_text",
-      "description": "普通说明性段落，包括定义、范围说明或通用技术要求",
-      "transform": {
-        "strategy": "semantic_standardization",
-        "prompt_template": "请将以下说明性段落转化为规范化的陈述文本。要求：\n1. 严格保留所有数值、技术参数、术语及核心语义，严禁随意修改或删减原文关键信息。\n2. 消除模糊指代：将文中的「本标准」、「本章」、「上述」、「该」等代词明确替换为其实际指向的主体（如根据上下文补充具体标准号或章节名）。\n3. 保持客观中性，去除无实际意义的修饰词，确保输出为一段完整且自包含的专业陈述。\n4. 禁止对内容进行概括或重组，必须维持原文的逻辑深度。\n\n待处理段落内容：\n"
-      }
-    },
-    {
-      "id": "standard_header",
-      "description": "标准文档头部元信息（标准号、发布机构、实施日期等）",
-      "transform": {
-        "strategy": "metadata_standardization",
-        "prompt_template": "请将以下标准文档头部信息转化为规范化的元数据陈述。要求：\n1. 准确识别并保留标准全称、标准号、发布及实施日期，保持格式统一。\n2. 明确解析版本替代关系（如有）。\n3. 禁止添加不存在于原文的推断内容。\n\n待处理内容：\n"
-      }
-    },
-    {
-      "id": "preface",
-      "description": "标准前言，包含版本代替关系及主要修订说明，整体作为一个语义单元，内部列表项不拆分",
-      "transform": {
-        "strategy": "plain_embed",
-        "prompt_template": "请将以下标准前言内容转化为规范化的版本元数据陈述，保留所有版本号、代替关系及修订说明条目：\n"
-      }
+      "id": "header",
+      "description": "纯章节标题，无实质内容",
+      "examples": ["## 2 技术要求（后无内容）", "# 附录 A 检验方法（后无内容）"]
     }
-  ]
+  ],
+  "semantic_types": [
+    {
+      "id": "metadata",
+      "description": "文档身份信息：标准号、发布机构、发布/实施日期",
+      "examples": ["GB 1886.169—2016", "2016-08-31 发布", "2017-01-01 实施"]
+    },
+    {
+      "id": "scope",
+      "description": "标准的适用范围与对象",
+      "examples": ["1 范围", "本标准适用于以红藻类植物为原料..."]
+    },
+    {
+      "id": "limit",
+      "description": "技术指标、限量值或感官/微生物要求",
+      "examples": ["感官要求", "理化指标", "微生物指标", "铅(Pb)/(mg/kg) ≤ 5.0"]
+    },
+    {
+      "id": "procedure",
+      "description": "操作步骤或测定方法的具体过程",
+      "examples": ["分析步骤", "A.3.3 分析步骤", "称取试样...置于..."]
+    },
+    {
+      "id": "material",
+      "description": "操作前需要准备的试剂或仪器设备",
+      "examples": ["试剂和材料", "仪器和设备", "A.9.1 试剂和材料", "A.3.2 仪器和设备"]
+    },
+    {
+      "id": "calculation",
+      "description": "计算公式及其变量说明，用于从测量值推导结果",
+      "examples": ["结果计算", "A.3.4 结果计算", "式中 m1——坩埚加残渣质量"]
+    },
+    {
+      "id": "definition",
+      "description": "术语、概念或常数的定义",
+      "examples": ["术语和定义", "卡拉胶是指..."]
+    },
+    {
+      "id": "amendment",
+      "description": "对原标准的修改记录",
+      "examples": ["第1号修改单", "将'...'修改为'...'"]
+    }
+  ],
+  "transform": {
+    "by_semantic_type": {
+      "metadata":    { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
+      "scope":       { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
+      "limit":       { "strategy": "table_to_text", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
+      "procedure":   { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
+      "material":    { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
+      "calculation": { "strategy": "formula_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
+      "definition":  { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
+      "amendment":   { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" }
+    }
+  }
 }
