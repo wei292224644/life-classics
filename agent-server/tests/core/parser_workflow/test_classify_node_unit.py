@@ -115,3 +115,71 @@ def test_escape_for_json_prompt_preserves_other_characters():
     """_escape_for_json_prompt 不应修改无双引号的字符串。"""
     raw = "<td>无属性的单元格</td>"
     assert _escape_for_json_prompt(raw) == raw
+
+
+def test_classify_node_html_chunk_prompt_escapes_attribute_quotes(tmp_path):
+    """classify_node 传给 LLM 的 prompt 中，HTML 属性双引号应被转义为 \\"."""
+    html_content = '<td rowspan="2">取适量试样置于清洁、干燥的白瓷盘中</td>'
+    mock_output = ClassifyOutput(segments=[
+        SegmentItem(
+            content=html_content,
+            structure_type="table",
+            semantic_type="procedure",
+            confidence=0.9,
+        ),
+    ])
+
+    captured_prompts = []
+
+    def capture_invoke(node_name, prompt, response_model, **kwargs):
+        captured_prompts.append(prompt)
+        return mock_output
+
+    with patch(
+        "app.core.parser_workflow.nodes.classify_node.invoke_structured",
+        side_effect=capture_invoke,
+    ):
+        state = _make_state(html_content, tmp_path)
+        classify_node(state)
+
+    assert captured_prompts
+    prompt = captured_prompts[0]
+    assert 'rowspan=\\"2\\"' in prompt, "prompt 中 HTML 属性双引号应已被转义"
+    assert 'rowspan="2"' not in prompt, "prompt 中不应含未转义的 HTML 属性双引号"
+
+
+def test_classify_node_html_chunk_content_unchanged_in_segment(tmp_path):
+    """segment.content 应存储原始未转义的 HTML（含真双引号），不得将 \\" 泄漏到存储内容中。
+
+    回归场景（ISSUE-02）：_escape_for_json_prompt 只能作用于 prompt，
+    若误将转义结果也写入 segment.content，此测试将捕获该回归。
+    """
+    html_content = '<td rowspan="2">取适量试样置于清洁、干燥的白瓷盘中</td>'
+    # mock LLM 返回原始未转义内容（正确行为：LLM 在 prompt 中看到 \" 后正确还原 "）
+    mock_output = ClassifyOutput(segments=[
+        SegmentItem(
+            content=html_content,
+            structure_type="table",
+            semantic_type="procedure",
+            confidence=0.9,
+        ),
+    ])
+
+    with patch(
+        "app.core.parser_workflow.nodes.classify_node.invoke_structured",
+        return_value=mock_output,
+    ):
+        state = _make_state(html_content, tmp_path)
+        result = classify_node(state)
+
+    seg = result["classified_chunks"][0]["segments"][0]
+    # 存储的 content 必须包含真双引号（未转义）
+    assert '"' in seg["content"], "segment.content 应含真双引号（未转义）"
+    # 存储的 content 不应含转义形式 \"
+    assert '\\"' not in seg["content"], (
+        "segment.content 不应含转义形式 \\\"，_escape_for_json_prompt 只应作用于 prompt"
+    )
+    # 完整 HTML 属性必须保持原样
+    assert 'rowspan="2"' in seg["content"], (
+        f'segment.content 中 rowspan="2" 属性丢失或被篡改，实际得到：{seg["content"]!r}'
+    )
