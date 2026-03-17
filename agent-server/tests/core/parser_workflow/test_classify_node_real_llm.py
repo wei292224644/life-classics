@@ -248,3 +248,67 @@ def test_classify_prompt_regression_with_mixed_quotes_sample():
         assert seg.structure_type
         assert seg.semantic_type
         assert 0 <= seg.confidence <= 1
+
+
+def test_classify_node_html_table_attribute_content_preserved_with_real_llm():
+    """
+    回归测试（ISSUE-02）：含 rowspan 属性的 HTML 表格 chunk 经 classify 后，
+    所有 segment content 拼合仍应包含 rowspan="2"，属性不得被 LLM 篡改。
+    """
+    rules_dir = get_rules_dir()
+    html_content = (
+        "<table>\n"
+        '<tr><td rowspan="2">取适量试样置于清洁、干燥的白瓷盘中，'
+        "在自然光线下观察其色泽和状态</td><td>符合要求</td></tr>\n"
+        "<tr><td>无异味</td></tr>\n"
+        "</table>"
+    )
+
+    state = WorkflowState(
+        md_content=html_content,
+        doc_metadata={"standard_no": "TEST-HTML-ATTR"},
+        config={},
+        rules_dir=str(rules_dir),
+        raw_chunks=[
+            RawChunk(
+                content=html_content,
+                section_path=["感官要求"],
+                char_count=len(html_content),
+            )
+        ],
+        classified_chunks=[],
+        final_chunks=[],
+        errors=[],
+    )
+
+    result = classify_node(state)
+    classified_chunks = result["classified_chunks"]
+
+    assert classified_chunks, "classify_node 应返回至少一个 ClassifiedChunk"
+
+    all_content = "".join(
+        seg.get("content", "")
+        for cc in classified_chunks
+        for seg in cc.get("segments", [])
+    )
+
+    logger.info("all_content from segments: %r", all_content)
+
+    assert 'rowspan="2"' in all_content, (
+        f'HTML 属性 rowspan="2" 在 segment content 中丢失或被篡改。\n'
+        f"拼合内容：{all_content!r}"
+    )
+
+    valid_structure_types = {"paragraph", "list", "table", "formula", "header", "unknown"}
+    valid_semantic_types = {
+        "metadata", "scope", "limit", "procedure",
+        "material", "calculation", "definition", "amendment", "unknown",
+    }
+    for cc in classified_chunks:
+        for seg in cc.get("segments", []):
+            assert seg.get("structure_type") in valid_structure_types, (
+                f"非法 structure_type：{seg.get('structure_type')!r}"
+            )
+            assert seg.get("semantic_type") in valid_semantic_types, (
+                f"非法 semantic_type：{seg.get('semantic_type')!r}"
+            )
