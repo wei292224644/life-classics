@@ -14,7 +14,8 @@ class RawChunk(TypedDict):
 
 class TypedSegment(TypedDict):
     content: str
-    content_type: str
+    structure_type: str        # 结构维度：paragraph / list / table / formula / header
+    semantic_type: str         # 语义维度：metadata / scope / limit / procedure / material / calculation / definition / amendment
     transform_params: dict
     confidence: float
     escalated: bool
@@ -33,7 +34,8 @@ class DocumentChunk(TypedDict):
     chunk_id: str
     doc_metadata: dict
     section_path: List[str]
-    content_type: str
+    structure_type: str
+    semantic_type: str
     content: str
     raw_content: str
     meta: dict
