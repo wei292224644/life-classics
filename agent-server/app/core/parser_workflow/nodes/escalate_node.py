@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List
 import json
 
 from app.core.parser_workflow.models import ClassifiedChunk, TypedSegment, WorkflowState
 from app.core.parser_workflow.rules import RulesStore
-from pydantic import BaseModel
-from app.core.config import settings
 from app.core.parser_workflow.nodes.output import EscalateOutput
-from app.core.parser_workflow.llm import create_chat_model, resolve_provider
+from app.core.parser_workflow.structured_llm import invoke_structured
 
 
 def _call_escalate_llm(
@@ -22,8 +20,6 @@ def _call_escalate_llm(
     2. 不符合则创建新类型（含 strategy + prompt_template）
        → action="create_new", content_type=<new_id>, description=..., transform={...}
     """
-    provider = resolve_provider(settings.ESCALATE_LLM_PROVIDER)
-    chat = create_chat_model(settings.ESCALATE_MODEL, provider, output_schema=EscalateOutput)
     type_list = json.dumps(content_types, ensure_ascii=False, indent=2)
     format_example = """{
     "action": "use_existing" | "create_new",
@@ -50,7 +46,11 @@ def _call_escalate_llm(
         返回格式（json）：
         {format_example}
     """
-    result: EscalateOutput = chat.invoke(prompt)
+    result = invoke_structured(
+        node_name="escalate_node",
+        prompt=prompt,
+        response_model=EscalateOutput,
+    )
     return result
 
 

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
+from app.core.parser_workflow.structured_llm import StructuredOutputError
 from app.core.parser_workflow.nodes.transform_node import (
     _call_llm_transform,
     apply_strategy,
@@ -22,52 +23,63 @@ from app.core.parser_workflow.models import (
 
 
 def test_call_llm_transform_returns_content():
-    """_call_llm_transform 调用 chat.invoke 后返回 content 字段"""
-    mock_resp = MagicMock()
-    mock_resp.content = "转化后的文本"
+    """_call_llm_transform 调用 invoke_structured 后返回 content 字段"""
+    from app.core.parser_workflow.nodes.output import TransformOutput
+
+    mock_resp = TransformOutput(content="转化后的文本")
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node.create_chat_model"
-    ) as mock_factory, patch(
-        "app.core.parser_workflow.nodes.transform_node.resolve_provider",
-        return_value="openai",
-    ):
-        mock_chat = MagicMock()
-        mock_chat.invoke.return_value = mock_resp
-        mock_factory.return_value = mock_chat
-
+        "app.core.parser_workflow.nodes.transform_node.invoke_structured",
+        return_value=mock_resp,
+    ) as mock_invoke:
         result = _call_llm_transform(
             "原始内容",
             {"strategy": "plain_embed", "prompt_template": "请转化以下内容："},
         )
 
     assert result == "转化后的文本"
-    mock_chat.invoke.assert_called_once()
+    mock_invoke.assert_called_once()
 
 
-def test_call_llm_transform_uses_correct_provider():
-    """_call_llm_transform 通过 resolve_provider 和 create_chat_model 创建 LLM"""
-    mock_resp = MagicMock()
-    mock_resp.content = "output"
+def test_call_llm_transform_uses_invoke_structured():
+    """_call_llm_transform 通过 invoke_structured 调用 LLM"""
+    from app.core.parser_workflow.nodes.output import TransformOutput
+
+    mock_resp = TransformOutput(content="output")
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node.resolve_provider",
-        return_value="dashscope",
-    ) as mock_resolve, patch(
-        "app.core.parser_workflow.nodes.transform_node.create_chat_model"
-    ) as mock_factory, patch(
-        "app.core.parser_workflow.nodes.transform_node.settings"
-    ) as mock_settings:
-        mock_settings.TRANSFORM_LLM_PROVIDER = "dashscope"
-        mock_settings.TRANSFORM_MODEL = "qwen-max"
-        mock_chat = MagicMock()
-        mock_chat.invoke.return_value = mock_resp
-        mock_factory.return_value = mock_chat
-
+        "app.core.parser_workflow.nodes.transform_node.invoke_structured",
+        return_value=mock_resp,
+    ) as mock_invoke:
         _call_llm_transform("内容", {"strategy": "s", "prompt_template": "p"})
 
-    mock_resolve.assert_called_once_with("dashscope")
-    mock_factory.assert_called_once()
+    mock_invoke.assert_called_once()
+    call_kwargs = mock_invoke.call_args.kwargs
+    assert call_kwargs["node_name"] == "transform_node"
+    assert call_kwargs["response_model"].__name__ == "TransformOutput"
+
+
+def test_call_llm_transform_invoke_structured_fails_raises():
+    """invoke_structured 失败时应上抛 StructuredOutputError（fail-fast）。"""
+    err = StructuredOutputError(
+        "结构化输出调用失败（不可恢复错误）: transform_node",
+        provider="openai",
+        model="qwen-max",
+        node_name="transform_node",
+        response_model="TransformOutput",
+        retry_count=0,
+        raw_error="validation error",
+    )
+    with patch(
+        "app.core.parser_workflow.nodes.transform_node.invoke_structured",
+        side_effect=err,
+    ):
+        with pytest.raises(StructuredOutputError) as exc_info:
+            _call_llm_transform(
+                "内容",
+                {"strategy": "plain_embed", "prompt_template": "请转化："},
+            )
+    assert exc_info.value.node_name == "transform_node"
 
 
 # ── apply_strategy ───────────────────────────────────────────────────
@@ -150,24 +162,19 @@ def test_transform_node_processes_all_chunks():
 
 def test_call_llm_transform_appends_ref_context_to_prompt():
     """ref_context 非空时，prompt 应包含表格内容"""
-    mock_resp = MagicMock()
-    mock_resp.content = "转化后的文本"
+    from app.core.parser_workflow.nodes.output import TransformOutput
+
+    mock_resp = TransformOutput(content="转化后的文本")
     captured_prompt = {}
 
-    def capture_invoke(prompt):
+    def capture_invoke(*, prompt, **kwargs):
         captured_prompt["value"] = prompt
         return mock_resp
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node.create_chat_model"
-    ) as mock_factory, patch(
-        "app.core.parser_workflow.nodes.transform_node.resolve_provider",
-        return_value="openai",
+        "app.core.parser_workflow.nodes.transform_node.invoke_structured",
+        side_effect=capture_invoke,
     ):
-        mock_chat = MagicMock()
-        mock_chat.invoke.side_effect = capture_invoke
-        mock_factory.return_value = mock_chat
-
         _call_llm_transform(
             "样品浓缩条件见表1",
             {"strategy": "semantic_standardization", "prompt_template": "请转化："},
@@ -180,24 +187,19 @@ def test_call_llm_transform_appends_ref_context_to_prompt():
 
 def test_call_llm_transform_no_ref_context_unchanged():
     """ref_context 为空时，prompt 不包含额外表格内容"""
-    mock_resp = MagicMock()
-    mock_resp.content = "转化后的文本"
+    from app.core.parser_workflow.nodes.output import TransformOutput
+
+    mock_resp = TransformOutput(content="转化后的文本")
     captured_prompt = {}
 
-    def capture_invoke(prompt):
+    def capture_invoke(*, prompt, **kwargs):
         captured_prompt["value"] = prompt
         return mock_resp
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node.create_chat_model"
-    ) as mock_factory, patch(
-        "app.core.parser_workflow.nodes.transform_node.resolve_provider",
-        return_value="openai",
+        "app.core.parser_workflow.nodes.transform_node.invoke_structured",
+        side_effect=capture_invoke,
     ):
-        mock_chat = MagicMock()
-        mock_chat.invoke.side_effect = capture_invoke
-        mock_factory.return_value = mock_chat
-
         _call_llm_transform(
             "普通内容",
             {"strategy": "plain_embed", "prompt_template": "请转化："},

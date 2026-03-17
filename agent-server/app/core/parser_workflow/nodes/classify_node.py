@@ -10,7 +10,7 @@ from app.core.parser_workflow.models import (
 )
 from app.core.parser_workflow.rules import RulesStore
 from app.core.config import settings
-from app.core.parser_workflow.llm import create_chat_model, resolve_provider
+from app.core.parser_workflow.structured_llm import invoke_structured
 from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
 
 
@@ -20,10 +20,8 @@ def _call_classify_llm(
 ) -> List[SegmentItem]:
     """
     调用小模型对 chunk 做分段 + 分类。
-    使用 structured output 强制返回 JSON，避免 LLM 输出格式不稳定的问题。
+    使用 invoke_structured 强制返回结构化输出，失败时抛 StructuredOutputError。
     """
-    provider = resolve_provider(settings.CLASSIFY_LLM_PROVIDER)
-    chat = create_chat_model(settings.CLASSIFY_MODEL, provider, output_schema=ClassifyOutput)
     type_descriptions = "\n".join(
         f"- {ct['id']}: {ct['description']}" for ct in content_types
     )
@@ -56,7 +54,11 @@ def _call_classify_llm(
 返回格式（json）：
 {format_example}
 """
-    result: ClassifyOutput = chat.invoke(prompt)
+    result = invoke_structured(
+        node_name="classify_node",
+        prompt=prompt,
+        response_model=ClassifyOutput,
+    )
     return result.segments
 
 

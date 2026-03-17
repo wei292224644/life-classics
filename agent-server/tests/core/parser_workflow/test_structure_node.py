@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from app.core.parser_workflow.structured_llm import StructuredOutputError
 from app.core.parser_workflow.nodes.structure_node import (
     _infer_doc_type_with_llm,
     match_doc_type_by_rules,
@@ -15,45 +16,56 @@ from app.core.parser_workflow.models import WorkflowState
 # ── _infer_doc_type_with_llm ─────────────────────────────────────────
 
 
-def test_infer_doc_type_with_llm_calls_factory():
-    """验证 resolve_provider 和 create_chat_model 被正确调用"""
-    mock_output = MagicMock()
-    mock_output.model_dump.return_value = {
-        "id": "additive_standard",
-        "description": "食品添加剂标准",
-        "detect_keywords": ["添加剂"],
-        "detect_heading_patterns": ["食品添加剂"],
-    }
+def test_infer_doc_type_with_llm_calls_invoke_structured():
+    """验证 invoke_structured 被正确调用并返回 DocTypeOutput"""
+    from app.core.parser_workflow.nodes.output import DocTypeOutput
+
+    mock_output = DocTypeOutput(
+        id="additive_standard",
+        description="食品添加剂标准",
+        detect_keywords=["添加剂"],
+        detect_heading_patterns=["食品添加剂"],
+    )
 
     with patch(
-        "app.core.parser_workflow.nodes.structure_node.resolve_provider",
-        return_value="dashscope",
-    ) as mock_resolve, patch(
-        "app.core.parser_workflow.nodes.structure_node.create_chat_model"
-    ) as mock_factory, patch(
-        "app.core.parser_workflow.nodes.structure_node.settings"
-    ) as mock_settings:
-        mock_settings.DOC_TYPE_LLM_PROVIDER = "dashscope"
-        mock_settings.DOC_TYPE_LLM_MODEL = "qwen-max"
-
-        mock_chat = MagicMock()
-        mock_chat.invoke.return_value = mock_output
-        mock_factory.return_value = mock_chat
-
+        "app.core.parser_workflow.nodes.structure_node.invoke_structured",
+        return_value=mock_output,
+    ) as mock_invoke:
         result = _infer_doc_type_with_llm(
             ["范围", "食品添加剂的使用"],
             [{"id": "existing_type", "description": "已有类型"}],
             {},
         )
 
-    mock_resolve.assert_called_once_with("dashscope")
-    mock_factory.assert_called_once()
-    # 验证传入了 output_schema
-    call_kwargs = mock_factory.call_args
-    assert call_kwargs.kwargs.get("output_schema") is not None or (
-        len(call_kwargs.args) >= 3 and call_kwargs.args[2] is not None
-    )
+    mock_invoke.assert_called_once()
+    call_kwargs = mock_invoke.call_args.kwargs
+    assert call_kwargs["node_name"] == "structure_node"
+    assert call_kwargs["response_model"].__name__ == "DocTypeOutput"
     assert result["id"] == "additive_standard"
+
+
+def test_infer_doc_type_with_llm_raises_on_structured_error():
+    """invoke_structured 失败时应上抛 StructuredOutputError（fail-fast）。"""
+    err = StructuredOutputError(
+        "结构化输出校验失败: structure_node",
+        provider="openai",
+        model="qwen-max",
+        node_name="structure_node",
+        response_model="DocTypeOutput",
+        retry_count=0,
+        raw_error="validation error",
+    )
+    with patch(
+        "app.core.parser_workflow.nodes.structure_node.invoke_structured",
+        side_effect=err,
+    ):
+        with pytest.raises(StructuredOutputError) as exc_info:
+            _infer_doc_type_with_llm(
+                ["范围", "食品添加剂的使用"],
+                [{"id": "existing_type", "description": "已有类型"}],
+                {},
+            )
+    assert exc_info.value.node_name == "structure_node"
 
 
 # ── match_doc_type_by_rules ──────────────────────────────────────────

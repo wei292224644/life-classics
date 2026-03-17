@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import re
 
-from app.core.config import settings
 from app.core.parser_workflow.models import WorkflowState
 from app.core.parser_workflow.rules import RulesStore
 from app.core.parser_workflow.nodes.output import DocTypeOutput
-from app.core.parser_workflow.llm import create_chat_model, resolve_provider
+from app.core.parser_workflow.structured_llm import invoke_structured
 
 
 def _extract_headings(md: str) -> list[str]:
@@ -42,8 +41,6 @@ def _infer_doc_type_with_llm(
     headings: list[str], existing_types: list, config: dict  # config 预留，暂未使用
 ) -> dict:
     """调用 LLM 推断文档类型并返回新规则条目（在测试中会被 mock）。"""
-    provider = resolve_provider(settings.DOC_TYPE_LLM_PROVIDER)
-    chat = create_chat_model(settings.DOC_TYPE_LLM_MODEL, provider, output_schema=DocTypeOutput)
     existing_ids = "\n".join(f"- {t['id']}: {t['description']}" for t in existing_types)
     headings_str = "\n".join(headings)
     sample_doc_type = """{
@@ -63,7 +60,11 @@ def _infer_doc_type_with_llm(
     {sample_doc_type}
     """
 
-    resp = chat.invoke(prompt)
+    resp = invoke_structured(
+        node_name="structure_node",
+        prompt=prompt,
+        response_model=DocTypeOutput,
+    )
     return resp.model_dump()
 
 

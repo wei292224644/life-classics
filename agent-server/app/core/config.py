@@ -45,6 +45,12 @@ class Settings(BaseSettings):
     # parser workflow：structure_node doc_type 推断兜底
     DOC_TYPE_LLM_MODEL: str = "qwen-max"
 
+    # ── Parser Workflow Structured Output（Instructor）────────────────────────
+    PARSER_STRUCTURED_MAX_RETRIES: int = 2
+    PARSER_STRUCTURED_TIMEOUT_SECONDS: int = 60
+    PARSER_STRUCTURED_TEMPERATURE: float = 0.0
+    PARSER_STRUCTURED_LOG_PROMPT_PREVIEW: bool = False
+
     # ── Parser Workflow 参数 ────────────────────────────────────────────────
     CHUNK_SOFT_MAX: int = 1500
     CHUNK_HARD_MAX: int = 3000
@@ -55,7 +61,6 @@ class Settings(BaseSettings):
     # ── Embedding 配置 ────────────────────────────────────────────────────────
     EMBEDDING_MODEL: str = "text-embedding-v3"
     EMBEDDING_LLM_PROVIDER: str = ""   # 空则使用 PARSER_LLM_PROVIDER，支持 openai/dashscope
-    EMBEDDING_PROVIDER: str = "dashscope"  # 兼容旧代码
 
     # ── Neo4j 连接 ────────────────────────────────────────────────────────────
     NEO4J_URI: str = "bolt://localhost:7687"
@@ -65,7 +70,6 @@ class Settings(BaseSettings):
     # ── 存储路径 ────────────────────────────────────────────────────────────
     CHROMA_PERSIST_DIR: str = "./chroma_db"
     MARKDOWN_DB_DIR: str = "./markdown_db"
-    MARKDOWN_PERSIST_DIR: str = "./markdown_db"  # 兼容旧代码，与 MARKDOWN_DB_DIR 等价
 
 
 settings = Settings()

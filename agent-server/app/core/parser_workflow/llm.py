@@ -1,10 +1,6 @@
 from __future__ import annotations
 
-from typing import Type
-
-from langchain_core.runnables import Runnable
 from langchain_openai import ChatOpenAI
-from pydantic import BaseModel
 
 from app.core.config import settings
 
@@ -26,9 +22,8 @@ def resolve_provider(node_provider: str | None) -> str:
 def create_chat_model(
     model: str,
     provider: str,
-    output_schema: Type[BaseModel] | dict | None = None,
     **kwargs,
-) -> Runnable:
+):
     """
     根据 provider 创建对应的 LangChain chat model。
 
@@ -36,9 +31,11 @@ def create_chat_model(
     - "openai"    → ChatOpenAI，使用 LLM_API_KEY / LLM_BASE_URL
     - "dashscope" → ChatOpenAI，使用 DASHSCOPE_API_KEY / DASHSCOPE_BASE_URL，
                     自动注入 extra_body={"enable_thinking": False}
-    - "ollama"    → ChatOllama，使用 OLLAMA_BASE_URL
+    - "ollama"    → ChatOllama，使用 OLLAMA_BASE_URL，
+                    默认注入 reasoning=False（关闭 thinking 模式）
 
-    若传入 output_schema，返回 llm.with_structured_output(output_schema)。
+    该函数仅用于非结构化调用。
+    结构化输出统一走 `app.core.parser_workflow.structured_llm.invoke_structured`。
     未知 provider 抛出 ValueError。
     """
     if provider == "openai":
@@ -56,11 +53,15 @@ def create_chat_model(
             api_key=settings.DASHSCOPE_API_KEY,
             base_url=settings.DASHSCOPE_BASE_URL,
             extra_body=extra_body,
+            format="json",
             **kwargs,
         )
     elif provider == "ollama":
-        from langchain_ollama import ChatOllama  # type: ignore[import]
+        from langchain_ollama import ChatOllama
 
+        # 默认关闭 Ollama reasoning(thinking) 模式，避免影响结构化输出稳定性
+        kwargs.setdefault("reasoning", False)
+        kwargs.setdefault("temperature", 0.0)
         llm = ChatOllama(
             model=model,
             base_url=settings.OLLAMA_BASE_URL or "http://localhost:11434",
@@ -71,6 +72,4 @@ def create_chat_model(
             f"未知 provider: {provider!r}。支持的 provider：openai, dashscope, ollama"
         )
 
-    if output_schema is not None:
-        return llm.with_structured_output(output_schema)
     return llm

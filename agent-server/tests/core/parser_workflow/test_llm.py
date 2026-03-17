@@ -2,13 +2,8 @@ from __future__ import annotations
 
 import pytest
 from unittest.mock import MagicMock, patch
-from pydantic import BaseModel
 
 from app.core.parser_workflow.llm import create_chat_model, resolve_provider
-
-
-class _DummySchema(BaseModel):
-    content: str
 
 
 # ── resolve_provider ────────────────────────────────────────────────────────
@@ -61,23 +56,13 @@ def test_create_chat_model_dashscope():
 
 
 def test_create_chat_model_ollama():
-    """provider='ollama' 返回 ChatOllama 实例。"""
+    """provider='ollama' 返回 ChatOllama 实例，且默认关闭 thinking(reasoning) 模式。"""
     from langchain_ollama import ChatOllama
     with patch("app.core.parser_workflow.llm.settings") as mock_settings:
         mock_settings.OLLAMA_BASE_URL = "http://localhost:11434"
         model = create_chat_model("llama3", "ollama")
     assert isinstance(model, ChatOllama)
-
-
-def test_create_chat_model_with_output_schema():
-    """传入 output_schema 时返回 with_structured_output 包装后的 Runnable。"""
-    from langchain_openai import ChatOpenAI
-    with patch("app.core.parser_workflow.llm.settings") as mock_settings:
-        mock_settings.LLM_API_KEY = "test-key"
-        mock_settings.LLM_BASE_URL = ""
-        model = create_chat_model("gpt-4o", "openai", output_schema=_DummySchema)
-    # with_structured_output 返回的是 RunnableSequence，不再是 ChatOpenAI 本身
-    assert not isinstance(model, ChatOpenAI)
+    assert model.reasoning is False
 
 
 def test_create_chat_model_unknown_provider():
