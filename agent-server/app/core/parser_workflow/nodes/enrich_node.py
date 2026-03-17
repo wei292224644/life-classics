@@ -31,6 +31,12 @@ _OTHER_REF_PATTERN = re.compile(
     re.UNICODE,
 )
 
+# 匹配修改单条目标题，如 "### 一、1 范围"、"### 二、2.3 微生物指标"
+_AMENDMENT_REF_PATTERN = re.compile(
+    r'###\s+[一二三四五六七八九十]+、\s*(\d+(?:\.\d+)*)\s*',
+    re.UNICODE,
+)
+
 
 def _normalize_label(raw: str) -> str:
     """将标签规范化：去除空格和全角空格，如'A.1' → 'A.1'"""
@@ -56,6 +62,15 @@ def extract_table_refs(text: str) -> List[str]:
     匹配 "见表X"、"参见表X"、"参照表X" 及含前缀的形式。
     """
     return ["表" + _normalize_label(m.group(1)) for m in _TABLE_REF_PATTERN.finditer(text)]
+
+
+def extract_amendment_refs(text: str) -> List[str]:
+    """
+    从修改单条目中提取被修改的章节编号。
+    如 "### 一、1 范围" → ["1"]
+       "### 二、2.3 微生物指标" → ["2.3"]
+    """
+    return [m.group(1) for m in _AMENDMENT_REF_PATTERN.finditer(text)]
 
 
 def extract_other_refs(text: str) -> List[str]:
@@ -88,8 +103,8 @@ def resolve_table_ref(
     # Step 2: section_path 模糊匹配
     label_norm = _normalize_label(label)
     for cc in classified_chunks:
-        # 只检查含 table 类型段的 chunk
-        if not any(seg["content_type"] == "table" for seg in cc["segments"]):
+        # 只检查含 table 结构类型的 chunk
+        if not any(seg.get("structure_type", seg.get("content_type")) == "table" for seg in cc["segments"]):
             continue
         raw = cc["raw_chunk"]
         for path_seg in raw["section_path"]:
@@ -126,6 +141,11 @@ def enrich_node(state: WorkflowState) -> dict:
             other_refs = extract_other_refs(text)
             all_refs = list(dict.fromkeys(table_refs + other_refs))  # 去重保序
 
+            # 修改单专用：提取被修改的章节编号写入 cross_refs
+            if seg.get("semantic_type") == "amendment":
+                amendment_refs = extract_amendment_refs(text)
+                all_refs = list(dict.fromkeys(all_refs + amendment_refs))
+
             # 解析表格引用
             resolved_parts: List[str] = []
             failed_labels: List[str] = []
@@ -143,7 +163,8 @@ def enrich_node(state: WorkflowState) -> dict:
 
             new_segments.append(TypedSegment(
                 content=seg["content"],
-                content_type=seg["content_type"],
+                structure_type=seg.get("structure_type", seg.get("content_type", "")),
+                semantic_type=seg.get("semantic_type", ""),
                 transform_params=seg["transform_params"],
                 confidence=seg["confidence"],
                 escalated=seg["escalated"],

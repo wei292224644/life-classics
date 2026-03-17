@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     DOC_TYPE_LLM_MODEL: str = "qwen-max"
 
     # ── Parser Workflow Structured Output（Instructor）────────────────────────
-    PARSER_STRUCTURED_MAX_RETRIES: int = 2
+    PARSER_STRUCTURED_MAX_RETRIES: int = 0
     PARSER_STRUCTURED_TIMEOUT_SECONDS: int = 60
     PARSER_STRUCTURED_TEMPERATURE: float = 0.0
     PARSER_STRUCTURED_LOG_PROMPT_PREVIEW: bool = False

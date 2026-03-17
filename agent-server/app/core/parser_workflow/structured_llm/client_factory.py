@@ -80,14 +80,10 @@ def get_structured_client(provider: str, model: str) -> Callable[..., BaseModel]
             "response_model": response_model,
             "temperature": temperature,
             "timeout": timeout or settings.PARSER_STRUCTURED_TIMEOUT_SECONDS,
+            "max_tokens": 8192,
+            "extra_body": extra_body,
             **kwargs,
         }
-        if provider == "dashscope":
-            body = {**(extra_body or {}), "enable_thinking": False}
-            create_kwargs["extra_body"] = body
-        elif extra_body is not None:
-            create_kwargs["extra_body"] = extra_body
-
         return client.chat.completions.create(**create_kwargs)
 
     return _create

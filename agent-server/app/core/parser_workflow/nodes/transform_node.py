@@ -21,28 +21,24 @@ def _call_llm_transform(
     使用 LLM 根据 prompt_template 将原始内容转化为自然语言文本。
     在测试中会通过 patch 进行 mock。
     """
-    format_example = """
-    {
-        "content": "转化后的内容"
-    }
-    """
 
     prompt = f"""
-    请根据以下提示词，将待处理内容转化为 JSON 结构。
+    按照以下提示词，处理原文本。
     {transform_params["prompt_template"]}
-    \n\n待处理内容：
+    \n\n原文本：
     {content}
-    \n\n返回格式（json）：
-    {format_example}
     """
 
     if ref_context:
-        prompt += f"\n\n以下是文中引用的表格内容，请结合该表格理解上下文：\n{ref_context}"
+        prompt += (
+            f"\n\n以下是文中引用的表格内容，请结合该表格理解上下文：\n{ref_context}"
+        )
 
     resp = invoke_structured(
         node_name="transform_node",
         prompt=prompt,
         response_model=TransformOutput,
+        extra_body={"enable_thinking": False},
     )
     return resp.content
 
@@ -64,7 +60,9 @@ def apply_strategy(
         cross_refs = seg.get("cross_refs", [])
         failed_table_refs = seg.get("failed_table_refs", [])
 
-        llm_text = _call_llm_transform(seg["content"], seg["transform_params"], ref_context)
+        llm_text = _call_llm_transform(
+            seg["content"], seg["transform_params"], ref_context
+        )
 
         results.append(
             DocumentChunk(
@@ -102,4 +100,3 @@ def transform_node(state: WorkflowState) -> dict:
         )
         final_chunks.extend(chunks)
     return {"final_chunks": final_chunks}
-

@@ -107,3 +107,30 @@ def test_single_heading_level_forces_keep():
     errors: list = []
     chunks = recursive_slice(block, [2], [], soft_max=1500, hard_max=3000, errors=errors)
     assert len(chunks) == 1
+
+
+# ── 整体超 hard_max 时必须拆分 ──────────────────────────────────────
+
+
+def test_block_exceeding_hard_max_is_split_even_if_no_single_sub_exceeds():
+    """
+    block > hard_max，即使所有直接子节均 <= hard_max，也必须递归拆分。
+    模拟附录 A 场景：多个 ## 节各自在 hard_max 以内，但合计远超 hard_max。
+    """
+    # 构造 8 个子节，每个约 600 chars，合计 ~4800 chars > hard_max=3000
+    sub_sections = "".join(
+        _make_section(f"A.{i}", level=2, body_chars=580)
+        for i in range(1, 9)
+    )
+    block = "# 附录 A 检验方法\n\n" + sub_sections
+    # 确认整体超 hard_max
+    assert len(block) > 3000
+    # 确认每个子节单独不超 hard_max
+    for i in range(1, 9):
+        sub = _make_section(f"A.{i}", level=2, body_chars=580)
+        assert len(sub) <= 3000
+    errors: list = []
+    chunks = recursive_slice(block, [1, 2], [], soft_max=1500, hard_max=3000, errors=errors)
+    assert len(chunks) > 1, (
+        f"整体超 hard_max 时应被拆分，实际生成 {len(chunks)} 个 chunk"
+    )

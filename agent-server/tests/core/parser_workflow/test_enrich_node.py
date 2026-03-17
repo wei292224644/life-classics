@@ -6,6 +6,7 @@ from app.core.parser_workflow.nodes.enrich_node import (
     build_table_label_index,
     extract_table_refs,
     extract_other_refs,
+    extract_amendment_refs,
     resolve_table_ref,
     enrich_node,
 )
@@ -467,3 +468,112 @@ def test_graph_contains_enrich_node():
     graph = _build_graph()
     node_names = list(graph.nodes.keys())
     assert "enrich_node" in node_names
+
+
+# ── extract_amendment_refs ───────────────────────────────────────────
+
+
+def test_extract_amendment_refs_single_chapter():
+    """'### 一、1 范围' 应提取 ['1']"""
+    refs = extract_amendment_refs("### 一、1 范围\n将\"原文\"修改为\"新文\"。")
+    assert refs == ["1"]
+
+
+def test_extract_amendment_refs_subsection():
+    """'### 二、2.3 微生物指标' 应提取 ['2.3']"""
+    refs = extract_amendment_refs("### 二、2.3 微生物指标\n将表 3 大肠埃希氏菌修改。")
+    assert refs == ["2.3"]
+
+
+def test_extract_amendment_refs_multiple_items():
+    """多个修改条目应提取所有被修改章节编号，顺序与文本一致"""
+    text = "### 一、1 范围\n将...修改\n\n### 二、2.3 微生物指标\n将表3..."
+    refs = extract_amendment_refs(text)
+    assert refs == ["1", "2.3"]
+
+
+def test_extract_amendment_refs_returns_empty_for_plain_text():
+    """普通正文无修改单标题格式，应返回空列表"""
+    refs = extract_amendment_refs("本标准规定了卡拉胶的质量要求。")
+    assert refs == []
+
+
+def test_extract_amendment_refs_returns_empty_for_table_ref():
+    """'见表1'这类引用不是修改单标题，应返回空列表"""
+    refs = extract_amendment_refs("样品浓缩条件见表1。")
+    assert refs == []
+
+
+# ── enrich_node amendment cross-refs ────────────────────────────────
+
+
+def test_enrich_node_amendment_segment_gets_cross_refs():
+    """semantic_type='amendment' 的 segment 应通过 extract_amendment_refs 填充 cross_refs"""
+    amendment_text = "### 一、1 范围\n将原文修改\n\n### 二、2.3 微生物指标\n将表3..."
+    raw: RawChunk = {
+        "content": amendment_text,
+        "section_path": ["GB 1886.169—2016 第1号修改单"],
+        "char_count": len(amendment_text),
+    }
+    seg: TypedSegment = {
+        "content": amendment_text,
+        "structure_type": "paragraph",
+        "semantic_type": "amendment",
+        "transform_params": {"strategy": "semantic_standardization", "prompt_template": ""},
+        "confidence": 0.9,
+        "escalated": False,
+        "cross_refs": [],
+        "ref_context": "",
+        "failed_table_refs": [],
+    }
+    cc = ClassifiedChunk(raw_chunk=raw, segments=[seg], has_unknown=False)
+    state = {
+        "md_content": "",
+        "doc_metadata": {"standard_no": "GB-001"},
+        "config": {},
+        "rules_dir": "rules",
+        "raw_chunks": [raw],
+        "classified_chunks": [cc],
+        "final_chunks": [],
+        "errors": [],
+    }
+    result = enrich_node(state)
+    cross_refs = result["classified_chunks"][0]["segments"][0]["cross_refs"]
+    assert "1" in cross_refs
+    assert "2.3" in cross_refs
+
+
+def test_enrich_node_non_amendment_segment_no_amendment_refs():
+    """semantic_type != 'amendment' 的 segment 不应提取修改单章节引用"""
+    text = "### 一、1 范围\n将原文修改"
+    raw: RawChunk = {
+        "content": text,
+        "section_path": ["5", "5.1"],
+        "char_count": len(text),
+    }
+    seg: TypedSegment = {
+        "content": text,
+        "structure_type": "paragraph",
+        "semantic_type": "scope",
+        "transform_params": {"strategy": "semantic_standardization", "prompt_template": ""},
+        "confidence": 0.9,
+        "escalated": False,
+        "cross_refs": [],
+        "ref_context": "",
+        "failed_table_refs": [],
+    }
+    cc = ClassifiedChunk(raw_chunk=raw, segments=[seg], has_unknown=False)
+    state = {
+        "md_content": "",
+        "doc_metadata": {"standard_no": "GB-001"},
+        "config": {},
+        "rules_dir": "rules",
+        "raw_chunks": [raw],
+        "classified_chunks": [cc],
+        "final_chunks": [],
+        "errors": [],
+    }
+    result = enrich_node(state)
+    cross_refs = result["classified_chunks"][0]["segments"][0]["cross_refs"]
+    # 普通章节标题格式里的数字不应被提取为修改单引用
+    assert "1" not in cross_refs

@@ -6,7 +6,7 @@
 
 **Architecture:** 自底向上修改——先改数据契约（models.py + output.py），再改规则 JSON 和 RulesStore，最后改两个节点（classify_node + transform_node）。每一步先写失败的测试，再写最小实现，再提交。
 
-**Tech Stack:** Python 3.11+, Pydantic v2, TypedDict, pytest, uv
+**Tech Stack:** Python 3.12+, Pydantic v2, TypedDict, pytest, uv
 
 ---
 

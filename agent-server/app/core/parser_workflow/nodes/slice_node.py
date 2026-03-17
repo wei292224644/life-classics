@@ -95,8 +95,8 @@ def recursive_slice(
             any_sub_exceeds_hard = any(
                 len(p[1]) > hard_max for p in sub_parts if p[1].strip()
             )
-            if not any_sub_exceeds_hard:
-                # 所有直接子节均在 hard_max 以内，整体保留
+            if not any_sub_exceeds_hard and char_count <= hard_max:
+                # 所有直接子节均在 hard_max 以内，且整体也在 hard_max 以内，整体保留
                 # 注：不需要 _has_body_content 检查——block > soft_max > 1500，不可能是纯标题行
                 errors.append(f"INFO: soft_max exceeded but kept as single chunk at {path}")
                 result.append(RawChunk(content=block, section_path=path, char_count=len(block)))

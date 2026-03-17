@@ -8,31 +8,59 @@
 - `agent-server/` — Python FastAPI 后端：基于 RAG 的多工具 Agent，用于查询中国食品安全国家标准（GB 标准）
 - `client/` — Next.js/React 前端（Turbo monorepo）
 
+## 执行环境说明
+
+### Git 执行环境
+**Git 仓库根目录为项目根目录（`/life-classics/`）**，所有 git 命令必须在根目录执行：
+```bash
+# 正确：在项目根目录执行
+git status
+git add agent-server/some_file.py
+git commit -m "..."
+
+# 错误：不要 cd 进子目录再执行 git
+# cd agent-server && git status  ← 禁止
+```
+
+### Python 执行环境
+`agent-server/` 使用 **uv** 管理 Python 虚拟环境。所有 Python 相关命令在 `agent-server/` 目录下执行，且必须通过 `uv run` 调用：
+
+```bash
+# 所有 Python 命令格式：uv run python3 ...
+cd agent-server
+uv run python3 some_script.py
+
+# 测试也通过 uv run 执行
+uv run pytest tests/ -v
+uv run pytest tests/core/kb/strategy/test_heading_strategy.py -v
+```
+
 ## agent-server 常用命令
 
 所有命令在 `agent-server/` 目录下执行。
 
-**安装依赖（使用 uv）：**
+**安装依赖：**
 ```bash
 uv sync
 ```
 
 **启动服务：**
 ```bash
-python run.py
-# 或：uvicorn app.main:app --host 0.0.0.0 --port 9999 --reload
+uv run python3 run.py
+# 或：uv run uvicorn app.main:app --host 0.0.0.0 --port 9999 --reload
 ```
 服务地址：http://localhost:9999 | Swagger 文档：http://localhost:9999/swagger
 
 **运行所有测试：**
 ```bash
-pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 **运行单个测试文件：**
 ```bash
-pytest tests/core/kb/strategy/test_heading_strategy.py -v
+uv run pytest tests/core/kb/strategy/test_heading_strategy.py -v
 ```
+
 
 ## 架构说明
 
