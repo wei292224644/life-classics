@@ -5,7 +5,11 @@ from app.core.tools.web_search import get_web_search_tool
 from app.core.tools.knowledge_base import knowledge_base
 from app.core.tools.neo4j_query import neo4j_query
 from app.core.tools.postgres_query import postgres_query
-from app.core.tools.document_type import document_type
+
+try:
+    from app.core.tools.document_type import document_type
+except ImportError:
+    document_type = None  # type: ignore[assignment]
 
 __all__ = [
     "get_web_search_tool",
