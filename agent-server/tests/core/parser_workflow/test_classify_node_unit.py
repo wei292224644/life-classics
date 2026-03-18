@@ -1,8 +1,12 @@
 from unittest.mock import patch
 import pytest
 
-from app.core.parser_workflow.models import RawChunk, WorkflowState
-from app.core.parser_workflow.nodes.classify_node import classify_node, _escape_for_json_prompt
+from app.core.parser_workflow.models import RawChunk, TypedSegment, WorkflowState
+from app.core.parser_workflow.nodes.classify_node import (
+    classify_node,
+    _escape_for_json_prompt,
+    _merge_formula_with_variables,
+)
 from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
 
 
@@ -183,3 +187,125 @@ def test_classify_node_html_chunk_content_unchanged_in_segment(tmp_path):
     assert 'rowspan="2"' in seg["content"], (
         f'segment.content 中 rowspan="2" 属性丢失或被篡改，实际得到：{seg["content"]!r}'
     )
+
+
+# ── _merge_formula_with_variables ──────────────────────────────────────────
+
+
+_CALC_PARAMS = {
+    "strategy": "formula_embed",
+    "prompt_template": "将以下计算公式及变量说明转化为可检索的混合文本。",
+}
+_PLAIN_PARAMS = {
+    "strategy": "plain_embed",
+    "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n",
+}
+
+
+def _formula_seg(content: str) -> TypedSegment:
+    return TypedSegment(
+        content=content,
+        structure_type="formula",
+        semantic_type="calculation",
+        transform_params=_CALC_PARAMS,
+        confidence=0.99,
+        escalated=False,
+        cross_refs=[],
+        ref_context="",
+        failed_table_refs=[],
+    )
+
+
+def _var_seg(content: str) -> TypedSegment:
+    return TypedSegment(
+        content=content,
+        structure_type="list",
+        semantic_type="calculation",
+        transform_params=_CALC_PARAMS,
+        confidence=0.98,
+        escalated=False,
+        cross_refs=[],
+        ref_context="",
+        failed_table_refs=[],
+    )
+
+
+def _para_seg(content: str) -> TypedSegment:
+    return TypedSegment(
+        content=content,
+        structure_type="paragraph",
+        semantic_type="procedure",
+        transform_params=_PLAIN_PARAMS,
+        confidence=0.95,
+        escalated=False,
+        cross_refs=[],
+        ref_context="",
+        failed_table_refs=[],
+    )
+
+
+FORMULA = "$$\nw_{2} = \\frac{m_1 - m_2}{m} \\times 100\\% \\tag{A.2}\n$$"
+VARIABLES = "式中：\n\nm₁——坩埚加酸不溶灰分的质量，单位为克 (g)；\nm₂——坩埚的质量，单位为克 (g)；\nm——试样的质量，单位为克 (g)。"
+
+
+def test_merge_formula_splits_merged_when_separated():
+    """公式与变量说明相邻时，应合并为一个 formula segment。"""
+    segments = [_formula_seg(FORMULA), _var_seg(VARIABLES)]
+    result = _merge_formula_with_variables(segments)
+
+    assert len(result) == 1
+    assert result[0]["structure_type"] == "formula"
+    assert result[0]["semantic_type"] == "calculation"
+    assert FORMULA in result[0]["content"]
+    assert VARIABLES in result[0]["content"]
+
+
+def test_merge_formula_no_change_when_already_merged():
+    """公式和变量说明已在同一 segment 时，不应触发合并（数量不变）。"""
+    already_merged = _formula_seg(FORMULA + "\n\n" + VARIABLES)
+    other = _para_seg("试验结果以平行测定结果的算术平均值为准。")
+    segments = [already_merged, other]
+    result = _merge_formula_with_variables(segments)
+
+    assert len(result) == 2
+    assert result[0]["content"] == already_merged["content"]
+
+
+def test_merge_formula_two_consecutive_formulas():
+    """两个连续公式各自有变量说明时，每对独立合并，互不干扰。"""
+    formula_b = "$$\nw_{3} = \\frac{m_1 - m_2 - m_3}{m} \\times 100\\% \\tag{A.3}\n$$"
+    variables_b = "式中：\n\nm₁——最终称量的总质量；\nm₂——助滤剂的质量；\nm₃——坩埚的质量。"
+    segments = [
+        _formula_seg(FORMULA),
+        _var_seg(VARIABLES),
+        _formula_seg(formula_b),
+        _var_seg(variables_b),
+    ]
+    result = _merge_formula_with_variables(segments)
+
+    assert len(result) == 2
+    assert FORMULA in result[0]["content"]
+    assert VARIABLES in result[0]["content"]
+    assert formula_b in result[1]["content"]
+    assert variables_b in result[1]["content"]
+
+
+def test_merge_formula_skips_non_shizong_calculation_list():
+    """紧邻 formula 的 calculation list 若不以"式中"开头，不应合并。"""
+    non_var = _var_seg("结果取平行测定的算术平均值。")  # calculation 但不是变量说明
+    segments = [_formula_seg(FORMULA), non_var]
+    result = _merge_formula_with_variables(segments)
+
+    assert len(result) == 2
+
+
+def test_merge_formula_preserves_surrounding_segments():
+    """合并只影响匹配的相邻对，前后其他 segment 应原样保留。"""
+    header = _para_seg("## A.6.4 结果计算")
+    footer = _para_seg("试验结果以平行测定结果的算术平均值为准。")
+    segments = [header, _formula_seg(FORMULA), _var_seg(VARIABLES), footer]
+    result = _merge_formula_with_variables(segments)
+
+    assert len(result) == 3
+    assert result[0]["content"] == header["content"]
+    assert result[2]["content"] == footer["content"]

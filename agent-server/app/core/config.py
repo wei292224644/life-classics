@@ -2,6 +2,7 @@
 全局配置，从 .env 读取，通过 settings 单例访问。
 """
 
+from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -55,6 +56,7 @@ class Settings(BaseSettings):
     CHUNK_SOFT_MAX: int = 1500
     CHUNK_HARD_MAX: int = 3000
     CONFIDENCE_THRESHOLD: float = 0.7
+    SLICE_HEADING_LEVELS: List[int] = [2, 3, 4]
     # 规则文件目录（运行时动态追加新规则）
     RULES_DIR: str = "app/core/parser_workflow/rules"
 

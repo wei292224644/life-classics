@@ -76,8 +76,22 @@ def test_limit_prompt_preserves_comparison_symbols():
 def test_calculation_prompt_usage_description_has_fallback():
     """calculation prompt 的用途描述规则应有 fallback（无法确定时跳过）"""
     prompt = _prompt(_load(), "calculation")
-    assert "无法从原文确定" in prompt or "跳过" in prompt, (
+    assert "无法从原文确定" in prompt, (
         f"用途概括应有 fallback，防止 LLM 猜测被测物质名称。实际内容：{prompt[:100]}"
+    )
+
+
+def test_calculation_prompt_skip_produces_no_output():
+    """calculation prompt 跳过步骤时不得输出任何解释性文字。
+    必须明确要求'直接从第2步开始输出'且'禁止输出任何解释'，
+    防止 LLM 将内部推理（如'计算对象未在原文中明确给出'）泄漏到最终 content。
+    """
+    prompt = _prompt(_load(), "calculation")
+    assert "直接从第2步开始输出" in prompt, (
+        "应包含'直接从第2步开始输出'，确保 LLM 不输出跳过说明。"
+    )
+    assert "禁止输出任何解释" in prompt, (
+        "应包含'禁止输出任何解释'，防止推理过程泄漏到 content。"
     )
 
 

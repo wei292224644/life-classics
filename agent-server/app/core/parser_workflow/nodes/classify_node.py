@@ -67,6 +67,38 @@ def _escape_for_json_prompt(text: str) -> str:
     return text.replace('"', '\\"')
 
 
+def _merge_formula_with_variables(segments: List[TypedSegment]) -> List[TypedSegment]:
+    """将 formula segment 与其后紧邻的变量说明 segment 合并为一个。
+
+    GB 标准中公式块（$$...$$）和变量说明（式中：...）是同一语义单元，
+    但 LLM 有时会将两者切分为相邻的两个 segment。此函数在分类后做确定性修正。
+    """
+    merged = []
+    i = 0
+    while i < len(segments):
+        seg = segments[i]
+        if (
+            seg["structure_type"] == "formula"
+            and i + 1 < len(segments)
+            and segments[i + 1]["semantic_type"] == "calculation"
+            and segments[i + 1]["content"].lstrip().startswith("式中")
+        ):
+            next_seg = segments[i + 1]
+            merged.append(
+                TypedSegment(
+                    **{
+                        **seg,
+                        "content": seg["content"] + "\n\n" + next_seg["content"],
+                    }
+                )
+            )
+            i += 2
+        else:
+            merged.append(seg)
+            i += 1
+    return merged
+
+
 def classify_raw_chunk(
     raw_chunk: RawChunk,
     store: RulesStore,
@@ -112,6 +144,8 @@ def classify_raw_chunk(
                 failed_table_refs=[],
             )
         segments.append(seg)
+
+    segments = _merge_formula_with_variables(segments)
 
     return ClassifiedChunk(
         raw_chunk=raw_chunk,

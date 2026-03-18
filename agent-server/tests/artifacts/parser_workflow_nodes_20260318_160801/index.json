@@ -1,6 +1,6 @@
 {
   "type": "meta",
-  "created_at": "2026-03-17T18:15:03",
+  "created_at": "2026-03-18T16:08:01",
   "test": "test_full_parser_workflow_with_real_llm_logs_all_steps",
   "rules_dir": "/Users/wwj/Desktop/self/life-classics/agent-server/app/core/parser_workflow/rules",
   "doc_metadata": {
@@ -12,6 +12,9 @@
   "node_files": [
     "01_parse_node.json",
     "02_structure_node.json",
-    "03_slice_node.json"
+    "03_slice_node.json",
+    "04_classify_node.json",
+    "05_enrich_node.json",
+    "06_transform_node.json"
   ]
 }

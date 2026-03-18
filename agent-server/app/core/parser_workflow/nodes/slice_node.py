@@ -3,12 +3,7 @@ from __future__ import annotations
 import re
 from typing import List, Tuple
 
-from app.core.parser_workflow.config import (
-    CHUNK_SOFT_MAX_DEFAULT,
-    CHUNK_HARD_MAX_DEFAULT,
-    SLICE_HEADING_LEVELS_DEFAULT,
-    get_config_value,
-)
+from app.core.config import settings
 from app.core.parser_workflow.models import RawChunk, WorkflowState
 
 
@@ -130,11 +125,10 @@ def recursive_slice(
 
 def slice_node(state: WorkflowState) -> dict:
     cfg = state.get("config", {})
-    soft_max = get_config_value(cfg, "chunk_soft_max", CHUNK_SOFT_MAX_DEFAULT)
-    hard_max = get_config_value(cfg, "chunk_hard_max", CHUNK_HARD_MAX_DEFAULT)
-    levels = get_config_value(
-        cfg, "slice_heading_levels", SLICE_HEADING_LEVELS_DEFAULT
-    )
+    soft_max = settings.CHUNK_SOFT_MAX
+    hard_max = settings.CHUNK_HARD_MAX
+    print(f"soft_max: {soft_max}, hard_max: {hard_max}")
+    levels = settings.SLICE_HEADING_LEVELS
 
     md = state["md_content"]
     errors = list(state.get("errors", []))

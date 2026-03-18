@@ -19,7 +19,7 @@ def _create_openai_client(
     """通过 from_provider 创建 Instructor 客户端。"""
     return instructor.from_provider(
         model_ref,
-        mode=instructor.Mode.JSON,
+        mode=instructor.Mode.TOOLS,
         api_key=api_key,
         base_url=base_url,
         timeout=settings.PARSER_STRUCTURED_TIMEOUT_SECONDS,
@@ -80,7 +80,7 @@ def get_structured_client(provider: str, model: str) -> Callable[..., BaseModel]
             "response_model": response_model,
             "temperature": temperature,
             "timeout": timeout or settings.PARSER_STRUCTURED_TIMEOUT_SECONDS,
-            "max_tokens": 8192,
+            # "max_tokens": 8192,
             "extra_body": extra_body,
             **kwargs,
         }

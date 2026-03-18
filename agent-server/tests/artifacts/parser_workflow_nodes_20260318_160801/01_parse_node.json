@@ -1,8 +1,9 @@
 {
   "type": "update",
-  "at": "2026-03-17T21:52:14",
+  "at": "2026-03-18T16:08:01",
   "summary": {
     "node_name": "parse_node",
+    "output_type": "dict",
     "keys": [
       "doc_metadata",
       "errors",

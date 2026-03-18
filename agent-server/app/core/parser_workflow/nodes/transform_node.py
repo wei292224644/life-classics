@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import List
 
 from app.core.parser_workflow.models import (
@@ -43,6 +44,11 @@ def _call_llm_transform(
     return resp.content
 
 
+def _strip_md_headings(text: str) -> str:
+    """去除行首 Markdown 标题前缀，如 '### 二、...' → '二、...'"""
+    return re.sub(r"^#{1,6}\s+", "", text, flags=re.MULTILINE)
+
+
 def apply_strategy(
     segments: List[TypedSegment],
     raw_chunk,
@@ -55,13 +61,20 @@ def apply_strategy(
     results: List[DocumentChunk] = []
 
     for seg in segments:
+        # 纯标题行信息已通过 section_path 携带，不生成独立 chunk
+        if seg["structure_type"] == "header":
+            continue
+
         raw_content = raw_chunk["content"]
         ref_context = seg.get("ref_context", "")
         cross_refs = seg.get("cross_refs", [])
         failed_table_refs = seg.get("failed_table_refs", [])
 
+        # 去除内容中残留的 Markdown 标题前缀（如修改单条目 "### 二、2.3 ..."）
+        content = _strip_md_headings(seg["content"])
+
         llm_text = _call_llm_transform(
-            seg["content"], seg["transform_params"], ref_context
+            content, seg["transform_params"], ref_context
         )
 
         results.append(
