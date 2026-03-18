@@ -36,9 +36,14 @@ async def write(chunks: List[DocumentChunk], doc_metadata: dict) -> None:
         metadatas=[
             {
                 "standard_no": doc_metadata["standard_no"],
-                "content_type": c["content_type"],
+                "semantic_type": c["semantic_type"],
                 "section_path": "|".join(c["section_path"]),
                 "doc_type": doc_metadata.get("doc_type", ""),
+                "raw_content": (
+                    c["raw_content"][:1997] + "...（内容已截断）"
+                    if len(c["raw_content"]) > 2000
+                    else c["raw_content"]
+                ),
             }
             for c in chunks
         ],

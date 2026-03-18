@@ -2,13 +2,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-def _make_chunk(chunk_id="c1", content="文本", content_type="scope", section_path=None):
+def _make_chunk(chunk_id="c1", content="文本", semantic_type="scope", section_path=None, raw_content="原始"):
     return {
         "chunk_id": chunk_id,
         "content": content,
-        "content_type": content_type,
+        "semantic_type": semantic_type,
         "section_path": section_path or ["1", "1.1"],
-        "raw_content": "原始",
+        "raw_content": raw_content,
         "doc_metadata": {},
         "meta": {},
     }
@@ -68,9 +68,10 @@ async def test_write_calls_upsert_with_embeddings():
     assert call_kwargs["documents"] == ["内容A", "内容B"]
     assert call_kwargs["embeddings"] == fake_embeddings
     assert call_kwargs["metadatas"][0]["standard_no"] == "GB/T-001"
-    assert call_kwargs["metadatas"][0]["content_type"] == "scope"
+    assert call_kwargs["metadatas"][0]["semantic_type"] == "scope"
     assert call_kwargs["metadatas"][0]["section_path"] == "1|1.1"
     assert call_kwargs["metadatas"][0]["doc_type"] == "additive"
+    assert call_kwargs["metadatas"][0]["raw_content"] == "原始"
 
 
 async def test_write_section_path_serialized_with_pipe():
@@ -97,3 +98,34 @@ async def test_write_empty_chunks_is_noop():
         await write([], _make_doc_metadata())
 
     mock_col.upsert.assert_not_called()
+
+
+async def test_write_raw_content_truncated_when_over_2000():
+    """raw_content 超过 2000 字符时截断为前 1997 字符并附加截断标记"""
+    mock_col = MagicMock()
+    long_raw = "x" * 2001
+    chunk = _make_chunk(raw_content=long_raw)
+
+    with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col), \
+         patch("app.core.kb.writer.chroma_writer.embed_batch", AsyncMock(return_value=[[0.1]])):
+        from app.core.kb.writer.chroma_writer import write
+        await write([chunk], _make_doc_metadata())
+
+    meta = mock_col.upsert.call_args.kwargs["metadatas"][0]
+    assert meta["raw_content"] == "x" * 1997 + "...（内容已截断）"
+    assert len(meta["raw_content"]) == 1997 + len("...（内容已截断）")
+
+
+async def test_write_raw_content_preserved_when_under_2000():
+    """raw_content 不足 2000 字符时原样写入"""
+    mock_col = MagicMock()
+    short_raw = "短内容" * 100  # 300 字符
+    chunk = _make_chunk(raw_content=short_raw)
+
+    with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col), \
+         patch("app.core.kb.writer.chroma_writer.embed_batch", AsyncMock(return_value=[[0.1]])):
+        from app.core.kb.writer.chroma_writer import write
+        await write([chunk], _make_doc_metadata())
+
+    meta = mock_col.upsert.call_args.kwargs["metadatas"][0]
+    assert meta["raw_content"] == short_raw
