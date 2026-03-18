@@ -69,9 +69,13 @@ class Settings(BaseSettings):
     NEO4J_USERNAME: str = "neo4j"
     NEO4J_PASSWORD: str = ""
 
+    # ── Reranker 配置 ────────────────────────────────────────────────────────
+    RERANKER_MODEL: str = "Qwen/Qwen3-Reranker-0.6B"
+
     # ── 存储路径 ────────────────────────────────────────────────────────────
     CHROMA_PERSIST_DIR: str = "./chroma_db"
     MARKDOWN_DB_DIR: str = "./markdown_db"
+    FTS_DB_PATH: str = "./fts_db/kb_fts.db"
 
 
 settings = Settings()

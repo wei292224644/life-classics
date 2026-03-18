@@ -7,6 +7,7 @@ import pytest
 
 from app.core.parser_workflow import parser_graph
 from app.core.parser_workflow.nodes.classify_node import classify_node
+from app.core.parser_workflow.nodes.clean_node import clean_node
 from app.core.parser_workflow.nodes.enrich_node import enrich_node
 from app.core.parser_workflow.nodes.escalate_node import escalate_node
 from app.core.parser_workflow.nodes.parse_node import parse_node
@@ -28,6 +29,7 @@ pytestmark = pytest.mark.real_llm
 
 _CACHE_NODE_ORDER = [
     "parse_node",
+    "clean_node",
     "structure_node",
     "slice_node",
     "classify_node",
@@ -104,7 +106,7 @@ def _load_cached_state_before_node(
     if resume_from not in _CACHE_NODE_ORDER and resume_from != "transform_node":
         raise ValueError(
             "WORKFLOW_RESUME_FROM 仅支持: "
-            "parse_node/structure_node/slice_node/classify_node/enrich_node/transform_node"
+            "parse_node/clean_node/structure_node/slice_node/classify_node/enrich_node/transform_node"
         )
 
     print(f"resume_from: {resume_from}")
@@ -124,6 +126,7 @@ def _load_cached_state_before_node(
 def _run_from_resume_node(state: WorkflowState, resume_from: str) -> WorkflowState:
     node_map = {
         "parse_node": parse_node,
+        "clean_node": clean_node,
         "structure_node": structure_node,
         "slice_node": slice_node,
         "classify_node": classify_node,
@@ -138,7 +141,7 @@ def _run_from_resume_node(state: WorkflowState, resume_from: str) -> WorkflowSta
     if isinstance(update, dict):
         state.update(update)
 
-    if resume_from in {"parse_node", "structure_node", "slice_node", "classify_node"}:
+    if resume_from in {"parse_node", "clean_node", "structure_node", "slice_node", "classify_node"}:
         if resume_from != "classify_node":
             update = classify_node(state)
             state.update(update)
@@ -301,8 +304,8 @@ async def test_full_parser_workflow_with_real_llm_logs_all_steps():
     initial_state = WorkflowState(
         md_content=md_content,
         doc_metadata={
-            "standard_no": "GB1886.169-2016",
-            "title": "《食品安全国家标准 食品添加剂 卡拉胶》（GB 1886.169-2016）第1号修改单",
+            "standard_no": "未知",
+            "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
         },
         config={},
         rules_dir=str(rules_dir),
@@ -375,6 +378,11 @@ async def test_full_parser_workflow_with_real_llm_logs_all_steps():
                 _write_node_file(step_no, node_name, node_output)
                 if node_name == "parse_node":
                     logger.info("parse_node result: %s", node_output)
+                elif node_name == "clean_node":
+                    logger.info(
+                        "clean_node result: md_content_len=%d",
+                        len(node_output.get("md_content", "")),
+                    )
                 elif node_name == "structure_node":
                     logger.info("structure_node result: %s", node_output)
                 elif node_name == "slice_node":

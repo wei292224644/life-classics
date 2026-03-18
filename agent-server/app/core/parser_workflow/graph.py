@@ -6,6 +6,7 @@ from langgraph.graph import END, StateGraph  # type: ignore[import]
 
 from app.core.parser_workflow.models import ParserResult, WorkflowState
 from app.core.parser_workflow.nodes.classify_node import classify_node
+from app.core.parser_workflow.nodes.clean_node import clean_node
 from app.core.parser_workflow.nodes.enrich_node import enrich_node
 from app.core.parser_workflow.nodes.escalate_node import escalate_node
 from app.core.parser_workflow.nodes.parse_node import parse_node
@@ -23,6 +24,7 @@ def _should_escalate(state: WorkflowState) -> str:
 def _build_graph():
     builder = StateGraph(WorkflowState)
     builder.add_node("parse_node", parse_node)
+    builder.add_node("clean_node", clean_node)
     builder.add_node("structure_node", structure_node)
     builder.add_node("slice_node", slice_node)
     builder.add_node("classify_node", classify_node)
@@ -31,7 +33,8 @@ def _build_graph():
     builder.add_node("transform_node", transform_node)
 
     builder.set_entry_point("parse_node")
-    builder.add_edge("parse_node", "structure_node")
+    builder.add_edge("parse_node", "clean_node")
+    builder.add_edge("clean_node", "structure_node")
     builder.add_edge("structure_node", "slice_node")
     builder.add_edge("slice_node", "classify_node")
     builder.add_conditional_edges("classify_node", _should_escalate)
