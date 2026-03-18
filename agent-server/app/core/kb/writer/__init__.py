@@ -3,64 +3,85 @@ from __future__ import annotations
 import asyncio
 from typing import List
 
-from app.core.kb.writer import chroma_writer, neo4j_writer
-from app.core.kb.writer.models import WriteResult
-from app.core.parser_workflow.models import ParserResult
+from typing_extensions import TypedDict
+
+from app.core.kb.writer import chroma_writer, fts_writer
+from app.core.parser_workflow.models import WorkflowState
+
+# 模块 import 时初始化 FTS DB（幂等，表已存在则跳过）
+fts_writer.init_db()
 
 
-async def write_to_kb(result: ParserResult) -> WriteResult:
+class StoreResult(TypedDict):
+    standard_no: str
+    chunks_written: int
+    ok: bool
+    errors: List[str]
+
+
+async def store_to_kb(state: WorkflowState) -> StoreResult:
     """
-    将 ParserResult 写入 ChromaDB 和 Neo4j。
-    先串行删除旧数据，再并行写入两侧。各侧独立捕获错误。
-    不抛异常，调用方通过 WriteResult.errors 判断是否成功。
+    将 WorkflowState 中的 final_chunks 写入 ChromaDB 和 SQLite FTS5。
 
-    chunks_written 表示写入尝试数量（len(chunks)），不代表实际成功数。
-    删除成功但写入失败时数据丢失，调用方需决定是否重试。
+    流程：
+    1. 取 state["doc_metadata"]["standard_no"]，缺失则返回 ok=False
+    2. 并行删除旧数据（ChromaDB + SQLite），任一失败则终止，不执行写入
+    3. 并行写入（ChromaDB + SQLite），各自独立捕获错误
+    4. 任一写入失败则 ok=False
+
+    注意：不传播 state["errors"]（parse 阶段警告与存储无关）
     """
-    standard_no = result["doc_metadata"].get("standard_no")
-    errors: List[str] = list(result["errors"])
+    errors: List[str] = []
 
+    standard_no = state["doc_metadata"].get("standard_no")
     if not standard_no:
         errors.append("ERROR: standard_no missing, cannot write to KB")
-        return WriteResult(
+        return StoreResult(
             standard_no="",
             chunks_written=0,
-            chroma_ok=False,
-            neo4j_ok=False,
+            ok=False,
             errors=errors,
         )
 
-    chroma_delete_ok = await chroma_writer.delete_by_standard_no(standard_no, errors)
-    neo4j_delete_ok = await neo4j_writer.delete_by_standard_no(standard_no, errors)
+    chunks = state["final_chunks"]
+    doc_metadata = state["doc_metadata"]
 
+    # 并行删除
+    chroma_del_ok, fts_del_ok = await asyncio.gather(
+        chroma_writer.delete_by_standard_no(standard_no, errors),
+        asyncio.to_thread(fts_writer.delete_by_standard_no, standard_no, errors),
+    )
+
+    if not (chroma_del_ok and fts_del_ok):
+        return StoreResult(
+            standard_no=standard_no,
+            chunks_written=0,
+            ok=False,
+            errors=errors,
+        )
+
+    # 并行写入，各自独立捕获错误
     async def do_chroma() -> bool:
         try:
-            await chroma_writer.write(result["chunks"], result["doc_metadata"])
+            await chroma_writer.write(chunks, doc_metadata)
             return True
         except Exception as e:
             errors.append(f"chroma write error: {e}")
             return False
 
-    async def do_neo4j() -> bool:
+    async def do_fts() -> bool:
         try:
-            await neo4j_writer.write(result["chunks"], result["doc_metadata"])
+            await asyncio.to_thread(fts_writer.write, chunks, doc_metadata)
             return True
         except Exception as e:
-            errors.append(f"neo4j write error: {e}")
+            errors.append(f"fts write error: {e}")
             return False
 
-    async def _false() -> bool:
-        return False
+    chroma_ok, fts_ok = await asyncio.gather(do_chroma(), do_fts())
 
-    chroma_ok, neo4j_ok = await asyncio.gather(
-        do_chroma() if chroma_delete_ok else _false(),
-        do_neo4j() if neo4j_delete_ok else _false(),
-    )
-
-    return WriteResult(
+    return StoreResult(
         standard_no=standard_no,
-        chunks_written=len(result["chunks"]),
-        chroma_ok=chroma_ok,
-        neo4j_ok=neo4j_ok,
+        chunks_written=len(chunks),
+        ok=chroma_ok and fts_ok,
         errors=errors,
     )
