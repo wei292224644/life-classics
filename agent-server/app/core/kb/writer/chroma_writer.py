@@ -8,6 +8,9 @@ from app.core.parser_workflow.models import DocumentChunk
 
 COLLECTION_NAME = "gb_standards"
 
+_TRUNCATE_SUFFIX = "...（内容已截断）"
+_MAX_RAW_LEN = 2000
+
 
 def get_collection():
     return get_chroma_client().get_or_create_collection(COLLECTION_NAME)
@@ -40,10 +43,12 @@ async def write(chunks: List[DocumentChunk], doc_metadata: dict) -> None:
                 "section_path": "|".join(c["section_path"]),
                 "doc_type": doc_metadata.get("doc_type", ""),
                 "raw_content": (
-                    c["raw_content"][:1997] + "...（内容已截断）"
-                    if len(c["raw_content"]) > 2000
-                    else c["raw_content"]
-                ),
+                    lambda raw: (
+                        raw[:_MAX_RAW_LEN - len(_TRUNCATE_SUFFIX)] + _TRUNCATE_SUFFIX
+                        if len(raw) > _MAX_RAW_LEN
+                        else raw
+                    )
+                )(c.get("raw_content") or ""),
             }
             for c in chunks
         ],
