@@ -182,3 +182,11 @@ def test_definition_prompt_outputs_verbatim_for_non_definition():
     assert "否则" in prompt and "原样输出" in prompt, (
         f"definition prompt 应有 else 分支：否则直接原样输出，不强套定义格式。实际内容：{prompt}"
     )
+
+
+def test_amendment_prompt_renders_inline_latex():
+    """amendment prompt 应包含内联 LaTeX 渲染规则，防止修改单 content 含原始 LaTeX"""
+    prompt = _prompt(_load(), "amendment")
+    assert ("LaTeX" in prompt or "$" in prompt) and ("转化" in prompt or "渲染" in prompt or "可读" in prompt), (
+        f"amendment prompt 应包含 LaTeX inline 渲染规则。实际内容：{prompt}"
+    )
