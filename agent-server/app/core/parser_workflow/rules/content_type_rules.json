@@ -73,10 +73,10 @@
     "by_semantic_type": {
       "metadata":    { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
       "scope":       { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
-      "limit":       { "strategy": "table_to_text", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
+      "limit":       { "strategy": "table_to_text", "prompt_template": "将以下技术指标内容（HTML 表格、Markdown 表格或文字描述）转化为完整陈述文本。\n\n1. 若为表格，将每一个指标行转化为一条独立陈述句，格式为\"[指标名称]的要求为[限量值或范围][单位]\"；示例：\"铅(Pb)的重金属限量要求为 ≤5.0 mg/kg。\"\n2. 若表格内容中可明确判断指标类别（如表头行含\"感官要求\"、\"理化指标\"、\"微生物指标\"等字样），在每条陈述后补充该类别标注；若无法从原文确定，仅输出指标陈述，不强制添加类别标注。\n3. 表格底部的脚注（a、b 等）和\"注\"包含重要附加条件，须以\"备注：\"开头单独输出，不得省略。\n4. 严格保留所有数值、限量符号（≤、<、≥、~、±）、单位，禁止任何改动；HTML 实体编码（&lt; &gt; &amp;）须还原为原始符号。\n5. 若内容为文字描述，直接转化为完整独立陈述句，保留所有数值和百分比。" },
       "procedure":   { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
       "material":    { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
-      "calculation": { "strategy": "formula_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
+      "calculation": { "strategy": "formula_embed", "prompt_template": "将以下计算公式及变量说明转化为可检索的混合文本。\n\n1. 若原文或其章节标题中明确给出了计算对象（如\"A.3.4 硫酸酯含量的计算\"或\"硫酸酯的质量分数 w₁，按式(A.1)计算\"），在最前面用一句话概括计算用途，须包含被测物质名称；若无法从原文确定计算对象，跳过此步，不得猜测。\n2. 保留原始 LaTeX 块公式（$$...$$）完整，不做任何修改。\n3. 将变量说明中的内联 LaTeX（如 $m_1$、$\\mathrm{SO}_4$）转化为可读符号（m₁、SO₄），保留\"——\"格式的变量说明列表。\n4. 严格禁止修改公式中的任何变量名、系数、运算符或数值。" },
       "definition":  { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" },
       "amendment":   { "strategy": "plain_embed", "prompt_template": "请将以下内容转化为规范化的陈述文本，保留所有原始信息：\n" }
     }
