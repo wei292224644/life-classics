@@ -42,7 +42,7 @@ def _get_artifact_dir() -> Path:
     default_dir = (
         Path(__file__).resolve().parents[2]
         / "artifacts"
-        / "parser_workflow_nodes_20260318_150146"
+        / "parser_workflow_nodes_20260318_220949"
     )
     return Path(os.environ.get("WORKFLOW_RESUME_ARTIFACT_DIR", str(default_dir)))
 
@@ -142,7 +142,13 @@ def _run_from_resume_node(state: WorkflowState, resume_from: str) -> WorkflowSta
     if isinstance(update, dict):
         state.update(update)
 
-    if resume_from in {"parse_node", "clean_node", "structure_node", "slice_node", "classify_node"}:
+    if resume_from in {
+        "parse_node",
+        "clean_node",
+        "structure_node",
+        "slice_node",
+        "classify_node",
+    }:
         if resume_from != "classify_node":
             update = classify_node(state)
             state.update(update)
@@ -289,12 +295,12 @@ def _summarize_node_output(node_name: str, node_output) -> dict:
                 )
             }
         )
-    elif node_name == "store_node":
+    elif node_name == "final_chunks":
         summary.update(
             {
-                "ok": (output_dict or {}).get("ok"),
-                "chunks_written": (output_dict or {}).get("chunks_written"),
-                "errors_count": len((output_dict or {}).get("errors", []) or []),
+                "final_chunks_count": len(
+                    (output_dict or {}).get("final_chunks", []) or []
+                )
             }
         )
     return summary
@@ -454,10 +460,13 @@ async def test_full_parser_workflow_with_real_llm_logs_all_steps():
     logger.info("workflow node files cached to: %s", cache_run_dir)
     logger.info("workflow structure cached to: %s", structure_cache_path)
 
+    # ── 缓存 final_chunks（transform_node 最终产出） ───────────────────────
+    step_no += 1
+    _write_node_file(step_no, "final_chunks", {"final_chunks": result_state.get("final_chunks", [])})
+    logger.info("final_chunks cached: count=%d", len(result_state.get("final_chunks", [])))
+
     # ── 写入知识库 ─────────────────────────────────────────────────────────
     store_result = await store_to_kb(result_state)
-    step_no += 1
-    _write_node_file(step_no, "store_node", dict(store_result))
     logger.info(
         "store_to_kb: ok=%s  chunks_written=%d  errors=%s",
         store_result["ok"],
@@ -514,16 +523,19 @@ async def test_resume_workflow_from_cached_artifacts():
     assert len(result_state.get("classified_chunks", [])) > 0
     assert len(result_state.get("final_chunks", [])) > 0
 
-    # ── 写入知识库 ─────────────────────────────────────────────────────────
-    store_result = await store_to_kb(result_state)
-    store_payload = {
+    # ── 缓存 final_chunks（transform_node 最终产出） ───────────────────────
+    final_chunks_payload = {
         "type": "update",
         "at": datetime.now().isoformat(timespec="seconds"),
-        "summary": _summarize_node_output("store_node", dict(store_result)),
-        "node_output": _to_jsonable(dict(store_result)),
+        "summary": _summarize_node_output("final_chunks", {"final_chunks": result_state.get("final_chunks", [])}),
+        "node_output": _to_jsonable({"final_chunks": result_state.get("final_chunks", [])}),
     }
-    with (output_dir / "02_store_node.json").open("w", encoding="utf-8") as f:
-        json.dump(store_payload, f, ensure_ascii=False, indent=2)
+    with (output_dir / "02_final_chunks.json").open("w", encoding="utf-8") as f:
+        json.dump(final_chunks_payload, f, ensure_ascii=False, indent=2)
+    logger.info("final_chunks cached: count=%d", len(result_state.get("final_chunks", [])))
+
+    # ── 写入知识库 ─────────────────────────────────────────────────────────
+    store_result = await store_to_kb(result_state)
     logger.info(
         "store_to_kb: ok=%s  chunks_written=%d  errors=%s",
         store_result["ok"],
