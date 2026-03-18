@@ -153,3 +153,53 @@ def test_section_path_mathbf_ph_normalized():
     path = result[0]["section_path"]
     assert "$" not in path[0]
     assert "pH" in path[0]
+
+
+# ── min_chunk_size buffer 合并 ─────────────────────────────────────────
+
+
+def test_small_sibling_blocks_are_merged_by_buffer():
+    """多个相邻小 sibling 块（< min_chunk_size）应合并为一个 RawChunk"""
+    # 构造 3 个 50 字节的子节，无父级 # 标题（直接以 ## 开头）
+    md = (
+        "## 9.1 灵敏度\n\n" + "文" * 40 + "\n\n"
+        "## 9.2 准确度\n\n" + "文" * 39 + "\n\n"
+        "## 9.3 精密度\n\n" + "文" * 44 + "\n"
+    )
+    errors: list = []
+    chunks = recursive_slice(
+        md, [2], [], soft_max=1500, hard_max=3000, min_chunk_size=200, errors=errors
+    )
+    assert len(chunks) == 1, f"三个小块应合并为 1 个 chunk，实际 {len(chunks)} 个"
+    assert "9.1" in chunks[0]["content"]
+    assert "9.2" in chunks[0]["content"]
+    assert "9.3" in chunks[0]["content"]
+
+
+def test_large_block_not_buffered_emitted_directly():
+    """大于 min_chunk_size 的块不应进入 buffer，直接发出"""
+    big = "## 8 分析步骤\n\n" + "文" * 300 + "\n"
+    small = "## 9.1 灵敏度\n\n" + "文" * 40 + "\n"
+    md = big + small
+    errors: list = []
+    chunks = recursive_slice(
+        md, [2], [], soft_max=1500, hard_max=3000, min_chunk_size=200, errors=errors
+    )
+    # big block 直接发出，small block 进 buffer 后 flush，共 2 个
+    assert len(chunks) == 2
+
+
+def test_buffer_flushed_before_large_block():
+    """遇到需要递归的大块前，buffer 应先 flush"""
+    small1 = "## 9.1 灵敏度\n\n" + "文" * 40 + "\n\n"
+    small2 = "## 9.2 准确度\n\n" + "文" * 40 + "\n\n"
+    # 构造一个大块（> soft_max），内含子节超过 hard_max，需要递归
+    big_sub = "### 8.1 仪器\n\n" + "文" * 3200 + "\n"
+    big = "## 8 分析步骤\n\n" + big_sub
+    md = big + small1 + small2
+    errors: list = []
+    chunks = recursive_slice(
+        md, [2, 3], [], soft_max=1500, hard_max=3000, min_chunk_size=200, errors=errors
+    )
+    # big 被递归拆出 1 个，small1+small2 合并为 1 个，共 2 个
+    assert len(chunks) == 2

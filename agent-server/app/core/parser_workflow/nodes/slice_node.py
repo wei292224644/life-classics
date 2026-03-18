@@ -72,8 +72,11 @@ def recursive_slice(
     parent_path: List[str],
     soft_max: int,
     hard_max: int,
-    errors: List[str],
+    min_chunk_size: int = 0,
+    errors: List[str] = None,
 ) -> List[RawChunk]:
+    if errors is None:
+        errors = []
     if not heading_levels:
         chunk = RawChunk(
             content=content, section_path=parent_path[:], char_count=len(content)
@@ -88,46 +91,81 @@ def recursive_slice(
     parts = _split_by_heading(content, level)
 
     if len(parts) == 1 and parts[0][0] == "":
-        return recursive_slice(content, heading_levels[1:], parent_path, soft_max, hard_max, errors)
+        return recursive_slice(
+            content, heading_levels[1:], parent_path, soft_max, hard_max, min_chunk_size, errors
+        )
 
     result: List[RawChunk] = []
+    buf_content: str = ""
+    buf_path: List[str] = []
+
+    def flush_buf() -> None:
+        nonlocal buf_content, buf_path
+        if buf_content and _has_body_content(buf_content):
+            if len(buf_content) > hard_max:
+                errors.append(
+                    f"WARN: chunk exceeds HARD_MAX ({len(buf_content)} chars) at {buf_path}"
+                )
+            result.append(
+                RawChunk(content=buf_content, section_path=buf_path, char_count=len(buf_content))
+            )
+        buf_content = ""
+        buf_path = []
+
     for title, block in parts:
         if not block.strip() and not title:
             continue
         path = parent_path + ([_clean_section_path_text(title)] if title else [])
         char_count = len(block)
+
         if char_count <= soft_max or len(heading_levels) <= 1:
-            if _has_body_content(block):
-                if len(block) > hard_max:
-                    errors.append(
-                        f"WARN: chunk exceeds HARD_MAX ({len(block)} chars) at {path}"
-                    )
-                result.append(RawChunk(content=block, section_path=path, char_count=len(block)))
+            if not _has_body_content(block):
+                continue
+            if char_count < min_chunk_size and len(buf_content) + char_count <= soft_max:
+                # 块太小，累积进 buffer
+                if not buf_content:
+                    buf_path = path
+                buf_content = (buf_content + "\n\n" + block).strip() if buf_content else block
+            else:
+                # 当前块足够大，或加入 buffer 会超 soft_max：先 flush buffer
+                flush_buf()
+                if char_count < min_chunk_size:
+                    # buffer 刚被 flush，当前块仍小，重新开始一个新 buffer
+                    buf_content = block
+                    buf_path = path
+                else:
+                    if len(block) > hard_max:
+                        errors.append(
+                            f"WARN: chunk exceeds HARD_MAX ({len(block)} chars) at {path}"
+                        )
+                    result.append(RawChunk(content=block, section_path=path, char_count=len(block)))
         else:
-            # soft_max 超限时，检查直接子节是否真的需要拆分
+            # soft_max 超限，先 flush buffer，再决定是否递归拆分
+            flush_buf()
             # 仅检查一层（heading_levels[1]），孙节超限由下层递归处理（有意设计）
             sub_parts = _split_by_heading(block, heading_levels[1])
-            # 过滤纯标题行子节，避免影响 hard_max 判断
             any_sub_exceeds_hard = any(
                 len(p[1]) > hard_max for p in sub_parts if p[1].strip()
             )
             if not any_sub_exceeds_hard and char_count <= hard_max:
-                # 所有直接子节均在 hard_max 以内，且整体也在 hard_max 以内，整体保留
-                # 注：不需要 _has_body_content 检查——block > soft_max > 1500，不可能是纯标题行
                 errors.append(f"INFO: soft_max exceeded but kept as single chunk at {path}")
                 result.append(RawChunk(content=block, section_path=path, char_count=len(block)))
             else:
                 result.extend(
-                    recursive_slice(block, heading_levels[1:], path, soft_max, hard_max, errors)
+                    recursive_slice(
+                        block, heading_levels[1:], path, soft_max, hard_max, min_chunk_size, errors
+                    )
                 )
+
+    flush_buf()
     return result
 
 
 def slice_node(state: WorkflowState) -> dict:
-    cfg = state.get("config", {})
     soft_max = settings.CHUNK_SOFT_MAX
     hard_max = settings.CHUNK_HARD_MAX
-    print(f"soft_max: {soft_max}, hard_max: {hard_max}")
+    min_chunk_size = settings.CHUNK_MIN_SIZE
+    print(f"soft_max: {soft_max}, hard_max: {hard_max}, min_chunk_size: {min_chunk_size}")
     levels = settings.SLICE_HEADING_LEVELS
 
     md = state["md_content"]
@@ -155,6 +193,6 @@ def slice_node(state: WorkflowState) -> dict:
             )
         md = md[first_match.start():]
 
-    raw_chunks.extend(recursive_slice(md, levels, [], soft_max, hard_max, errors))
+    raw_chunks.extend(recursive_slice(md, levels, [], soft_max, hard_max, min_chunk_size, errors))
     return {"raw_chunks": raw_chunks, "errors": errors}
 

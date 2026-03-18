@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     # ── Parser Workflow 参数 ────────────────────────────────────────────────
     CHUNK_SOFT_MAX: int = 1500
     CHUNK_HARD_MAX: int = 3000
+    CHUNK_MIN_SIZE: int = 200      # 小于此值的 sibling 块会被累积合并，避免碎片 chunk
     CONFIDENCE_THRESHOLD: float = 0.7
     SLICE_HEADING_LEVELS: List[int] = [2, 3, 4]
     # 规则文件目录（运行时动态追加新规则）

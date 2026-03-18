@@ -190,6 +190,8 @@ interface ChunkResponse {
 | `POST` | `/api/doc/chunks` | 新增 chunk（需指定 `doc_id`）|
 | `GET` | `/api/doc/chunks/search?doc_id=&q=&limit=&offset=` | 服务端文本搜索（支持分页）|
 
+> **重要**：chunk 的 PUT / DELETE / POST 接口必须同时操作 **ChromaDB** 和 **SQLite FTS5** 两个存储（对应 `chroma_writer` 和 `fts_writer`），保持双写一致性。单独只更新 ChromaDB 会导致全文搜索结果与分页列表不一致。
+
 ---
 
 ## 错误处理
@@ -233,9 +235,8 @@ pnpm build
 1. 搭建 Vite + React + shadcn 项目骨架，配置 FastAPI 静态托管
 2. `DocumentList` + `GET /api/doc/documents`
 3. `UploadModal` + `POST /api/doc/upload`（5 种策略）
-4. `ChunkList` + `GET /api/doc/chunks`（分页 + 类型过滤）
-5. 后端新增 4 个接口：chunk PUT / DELETE / POST + chunks/search
+4. `ChunkList` + `GET /api/doc/chunks`（分页 + 类型过滤 + 服务端文本搜索）
+5. 后端新增 4 个接口：chunk PUT / DELETE / POST + chunks/search（双写 ChromaDB + FTS5）
 6. `ChunkDrawer` 编辑 / 新增（兼容新旧数据模型）
-7. 删除文档 & 删除 chunk（均带二次确认）
-8. 服务端文本搜索（`GET /api/doc/chunks/search`）
-9. 细节完善：loading 状态、空状态、错误边界
+7. 删除文档 & 删除 chunk（均带二次确认，chunk 删除同步双写）
+8. 细节完善：loading 状态、空状态、错误边界
