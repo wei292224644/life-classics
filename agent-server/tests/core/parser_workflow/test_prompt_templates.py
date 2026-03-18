@@ -147,3 +147,19 @@ def test_metadata_prompt_handles_pure_standard_no():
     """metadata prompt 应对纯标准号或纯标题行直接原样输出"""
     prompt = _prompt(_load(), "metadata")
     assert "原样输出" in prompt
+
+
+def test_calculation_prompt_forbids_variable_description_rewrite():
+    """calculation prompt 应明确包含'逐字'或'不得改写'以约束变量说明忠实性。"""
+    prompt = _prompt(_load(), "calculation")
+    assert "逐字" in prompt or "不得改写" in prompt, (
+        f"calculation prompt 应明确禁止改写变量说明，需含'逐字'或'不得改写'。实际内容：{prompt}"
+    )
+
+
+def test_calculation_prompt_variable_desc_must_come_from_original():
+    """calculation prompt 应明确要求变量说明文字来自原文（不得自行补全空白）。"""
+    prompt = _prompt(_load(), "calculation")
+    assert "原文" in prompt and "变量说明" in prompt, (
+        f"calculation prompt 应包含'原文'和'变量说明'，禁止 LLM 补全空白变量。实际内容：{prompt}"
+    )
