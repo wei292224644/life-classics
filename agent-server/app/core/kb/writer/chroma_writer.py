@@ -16,10 +16,10 @@ def get_collection():
     return get_chroma_client().get_or_create_collection(COLLECTION_NAME)
 
 
-async def delete_by_standard_no(standard_no: str, errors: List[str]) -> bool:
-    """删除 collection 中所有 standard_no 匹配的记录。文档不存在视为成功。"""
+async def delete_by_doc_id(doc_id: str, errors: List[str]) -> bool:
+    """删除 collection 中所有 doc_id 匹配的记录。文档不存在视为成功。"""
     try:
-        get_collection().delete(where={"standard_no": {"$eq": standard_no}})
+        get_collection().delete(where={"doc_id": {"$eq": doc_id}})
         return True
     except Exception as e:
         errors.append(f"chroma delete error: {e}")
@@ -38,7 +38,8 @@ async def write(chunks: List[DocumentChunk], doc_metadata: dict) -> None:
         embeddings=embeddings,
         metadatas=[
             {
-                "standard_no": doc_metadata["standard_no"],
+                "doc_id": doc_metadata["doc_id"],
+                "standard_no": doc_metadata.get("standard_no", ""),
                 "semantic_type": c["semantic_type"],
                 "section_path": "|".join(c["section_path"]),
                 "doc_type": doc_metadata.get("doc_type", ""),

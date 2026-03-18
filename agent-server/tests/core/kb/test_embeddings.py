@@ -33,6 +33,7 @@ def test_create_embedding_model_uses_dashscope_credentials():
             model="text-embedding-v3",
             api_key="ds-key",
             base_url="https://dashscope.example.com/v1",
+            tiktoken_enabled=False,
         )
 
 
@@ -53,4 +54,25 @@ def test_create_embedding_model_fallback_to_parser_provider():
             model="text-embedding-v3",
             api_key="ds-key",
             base_url="https://dashscope.example.com/v1",
+            tiktoken_enabled=False,
+        )
+
+
+def test_create_embedding_model_uses_ollama_base_url():
+    """EMBEDDING_LLM_PROVIDER=ollama 时使用 Ollama 的 OpenAI-compatible /v1 端点"""
+    with patch("app.core.kb.embeddings.settings") as mock_settings, \
+         patch("app.core.kb.embeddings.OpenAIEmbeddings") as mock_cls:
+        mock_settings.EMBEDDING_LLM_PROVIDER = "ollama"
+        mock_settings.PARSER_LLM_PROVIDER = "openai"
+        mock_settings.EMBEDDING_MODEL = "qwen3-embedding:4b"
+        mock_settings.OLLAMA_BASE_URL = "http://localhost:11434"
+
+        from app.core.kb.embeddings import _create_embedding_model
+        _create_embedding_model()
+
+        mock_cls.assert_called_once_with(
+            model="qwen3-embedding:4b",
+            api_key="ollama",
+            base_url="http://localhost:11434/v1",
+            tiktoken_enabled=False,
         )

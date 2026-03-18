@@ -58,6 +58,7 @@ def _call_classify_llm(
         prompt=prompt,
         response_model=ClassifyOutput,
         extra_body={"enable_thinking": False},
+        max_tokens=15000,
     )
     return result.segments
 
@@ -65,6 +66,33 @@ def _call_classify_llm(
 def _escape_for_json_prompt(text: str) -> str:
     """转义文本中的 ASCII 双引号，防止 LLM 生成 JSON 时字符串值被提前截断。"""
     return text.replace('"', '\\"')
+
+
+_MERGE_SHORT_THRESHOLD = 60
+
+
+def _merge_short_segments(segments: List[TypedSegment]) -> List[TypedSegment]:
+    """将相邻且 semantic_type 相同的短 segment 合并，避免生成无独立检索价值的碎片 chunk。
+
+    左向扫描：若当前 segment 长度 < 阈值，且与前一个 segment 的 semantic_type 相同，
+    则并入前一个。单次 O(n) 扫描即可处理任意长度的连续短 segment 链。
+    """
+    result: List[TypedSegment] = []
+    for seg in segments:
+        if (
+            result
+            and result[-1]["semantic_type"] == seg["semantic_type"]
+            and len(seg["content"]) < _MERGE_SHORT_THRESHOLD
+        ):
+            result[-1] = TypedSegment(
+                **{
+                    **result[-1],
+                    "content": result[-1]["content"] + "\n\n" + seg["content"],
+                }
+            )
+        else:
+            result.append(seg)
+    return result
 
 
 def _merge_formula_with_variables(segments: List[TypedSegment]) -> List[TypedSegment]:
@@ -108,7 +136,9 @@ def classify_raw_chunk(
     structure_types = ct_rules.get("structure_types", [])
     semantic_types = ct_rules.get("semantic_types", [])
 
-    llm_output = _call_classify_llm(raw_chunk["content"], structure_types, semantic_types)
+    llm_output = _call_classify_llm(
+        raw_chunk["content"], structure_types, semantic_types
+    )
 
     segments: List[TypedSegment] = []
     has_unknown = False
@@ -146,6 +176,7 @@ def classify_raw_chunk(
         segments.append(seg)
 
     segments = _merge_formula_with_variables(segments)
+    segments = _merge_short_segments(segments)
 
     return ClassifiedChunk(
         raw_chunk=raw_chunk,

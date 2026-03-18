@@ -73,14 +73,18 @@ def apply_strategy(
         # 去除内容中残留的 Markdown 标题前缀（如修改单条目 "### 二、2.3 ..."）
         content = _strip_md_headings(seg["content"])
 
-        llm_text = _call_llm_transform(
-            content, seg["transform_params"], ref_context
-        )
+        # 极短 segment 直接使用原文，跳过 LLM 避免幻觉
+        if len(content) < 50:
+            llm_text = content
+        else:
+            llm_text = _call_llm_transform(
+                content, seg["transform_params"], ref_context
+            )
 
         results.append(
             DocumentChunk(
                 chunk_id=make_chunk_id(
-                    doc_metadata.get("standard_no", ""),
+                    doc_metadata.get("doc_id", ""),
                     raw_chunk["section_path"],
                     llm_text,
                 ),

@@ -64,7 +64,7 @@ def create_chat_model(
         kwargs.setdefault("temperature", 0.0)
         llm = ChatOllama(
             model=model,
-            base_url=settings.OLLAMA_BASE_URL or "http://localhost:11434",
+            base_url=settings.OLLAMA_BASE_URL + "/v1" or "http://localhost:11434/v1",
             **kwargs,
         )
     else:

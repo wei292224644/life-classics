@@ -6,6 +6,8 @@ from app.core.parser_workflow.nodes.classify_node import (
     classify_node,
     _escape_for_json_prompt,
     _merge_formula_with_variables,
+    _merge_short_segments,
+    _MERGE_SHORT_THRESHOLD,
 )
 from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
 
@@ -309,3 +311,91 @@ def test_merge_formula_preserves_surrounding_segments():
     assert len(result) == 3
     assert result[0]["content"] == header["content"]
     assert result[2]["content"] == footer["content"]
+
+
+# ── _merge_short_segments ──────────────────────────────────────────────────
+
+SHORT = "x" * (_MERGE_SHORT_THRESHOLD - 1)   # 刚好低于阈值
+LONG  = "x" * (_MERGE_SHORT_THRESHOLD + 10)  # 高于阈值
+
+
+def _mat_seg(content: str) -> TypedSegment:
+    return TypedSegment(
+        content=content, structure_type="list", semantic_type="material",
+        transform_params=_PLAIN_PARAMS, confidence=0.9, escalated=False,
+        cross_refs=[], ref_context="", failed_table_refs=[],
+    )
+
+
+def _proc_seg(content: str) -> TypedSegment:
+    return TypedSegment(
+        content=content, structure_type="list", semantic_type="procedure",
+        transform_params=_PLAIN_PARAMS, confidence=0.9, escalated=False,
+        cross_refs=[], ref_context="", failed_table_refs=[],
+    )
+
+
+def test_merge_short_merges_same_semantic_both_short():
+    """两个同 semantic_type 且都短的 segment 应合并为一个。"""
+    result = _merge_short_segments([_mat_seg(SHORT), _mat_seg(SHORT)])
+    assert len(result) == 1
+    assert SHORT in result[0]["content"]
+
+
+def test_merge_short_short_after_long_merges_in():
+    """短 segment 在长 segment 之后时，并入前一个长 segment。"""
+    result = _merge_short_segments([_mat_seg(LONG), _mat_seg(SHORT)])
+    assert len(result) == 1
+
+
+def test_merge_short_short_before_long_stays_separate():
+    """短 segment 在前、长 segment 在后时，短的无前驱可并入，各自独立。"""
+    result = _merge_short_segments([_mat_seg(SHORT), _mat_seg(LONG)])
+    assert len(result) == 2
+
+
+def test_merge_short_no_merge_both_long():
+    """两个都超过阈值的 segment 不合并。"""
+    result = _merge_short_segments([_mat_seg(LONG), _mat_seg(LONG)])
+    assert len(result) == 2
+
+
+def test_merge_short_no_merge_different_semantic():
+    """不同 semantic_type 即使一个很短也不合并。"""
+    result = _merge_short_segments([_mat_seg(SHORT), _proc_seg(LONG)])
+    assert len(result) == 2
+
+
+def test_merge_short_cascades_multiple_short():
+    """多个连续短 segment 应级联合并为一个。"""
+    segs = [_mat_seg(SHORT)] * 5
+    result = _merge_short_segments(segs)
+    assert len(result) == 1
+
+
+def test_merge_short_preserves_content():
+    """合并后 content 应包含所有原始内容，以换行分隔。"""
+    a, b = "4.1 甲砜霉素对照品", "4.2 乙酸乙酯"
+    result = _merge_short_segments([_mat_seg(a), _mat_seg(b)])
+    assert a in result[0]["content"]
+    assert b in result[0]["content"]
+
+
+def test_merge_short_keeps_first_segment_metadata():
+    """合并后保留第一个 segment 的 structure_type / semantic_type。"""
+    result = _merge_short_segments([_mat_seg(SHORT), _mat_seg(SHORT)])
+    assert result[0]["semantic_type"] == "material"
+    assert result[0]["structure_type"] == "list"
+
+
+def test_merge_short_long_boundary_between_short_groups():
+    """长 segment 不触发合并，但其后的短 segment 会并入长 segment。
+    [SHORT, SHORT, LONG, SHORT, SHORT] → [SHORT+SHORT, LONG+SHORT+SHORT]
+    """
+    segs = [_mat_seg(SHORT), _mat_seg(SHORT), _mat_seg(LONG), _mat_seg(SHORT), _mat_seg(SHORT)]
+    result = _merge_short_segments(segs)
+    assert len(result) == 2
+    # 前两个 SHORT 合并为第一组
+    assert SHORT in result[0]["content"]
+    # LONG 保留，后两个 SHORT 并入
+    assert LONG in result[1]["content"]

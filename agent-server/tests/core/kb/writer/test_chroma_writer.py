@@ -14,35 +14,35 @@ def _make_chunk(chunk_id="c1", content="文本", semantic_type="scope", section_
     }
 
 
-def _make_doc_metadata(standard_no="GB/T-001", doc_type="additive"):
-    return {"standard_no": standard_no, "doc_type": doc_type}
+def _make_doc_metadata(doc_id="doc-uuid-001", standard_no="GB/T-001", doc_type="additive"):
+    return {"doc_id": doc_id, "standard_no": standard_no, "doc_type": doc_type}
 
 
-# ── delete_by_standard_no ──────────────────────────────────────────────
+# ── delete_by_doc_id ──────────────────────────────────────────────
 
-async def test_delete_by_standard_no_returns_true_on_success():
+async def test_delete_by_doc_id_returns_true_on_success():
     """成功删除时返回 True，errors 不变"""
     mock_col = MagicMock()
     errors = []
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col):
-        from app.core.kb.writer.chroma_writer import delete_by_standard_no
-        result = await delete_by_standard_no("GB/T-001", errors)
+        from app.core.kb.writer.chroma_writer import delete_by_doc_id
+        result = await delete_by_doc_id("doc-uuid-001", errors)
 
     assert result is True
     assert errors == []
-    mock_col.delete.assert_called_once_with(where={"standard_no": {"$eq": "GB/T-001"}})
+    mock_col.delete.assert_called_once_with(where={"doc_id": {"$eq": "doc-uuid-001"}})
 
 
-async def test_delete_by_standard_no_returns_false_on_error():
+async def test_delete_by_doc_id_returns_false_on_error():
     """删除抛出异常时返回 False，errors 包含错误信息"""
     mock_col = MagicMock()
     mock_col.delete.side_effect = Exception("connection refused")
     errors = []
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col):
-        from app.core.kb.writer.chroma_writer import delete_by_standard_no
-        result = await delete_by_standard_no("GB/T-001", errors)
+        from app.core.kb.writer.chroma_writer import delete_by_doc_id
+        result = await delete_by_doc_id("doc-uuid-001", errors)
 
     assert result is False
     assert len(errors) == 1
@@ -67,6 +67,7 @@ async def test_write_calls_upsert_with_embeddings():
     assert call_kwargs["ids"] == ["id1", "id2"]
     assert call_kwargs["documents"] == ["内容A", "内容B"]
     assert call_kwargs["embeddings"] == fake_embeddings
+    assert call_kwargs["metadatas"][0]["doc_id"] == "doc-uuid-001"
     assert call_kwargs["metadatas"][0]["standard_no"] == "GB/T-001"
     assert call_kwargs["metadatas"][0]["semantic_type"] == "scope"
     assert call_kwargs["metadatas"][0]["section_path"] == "1|1.1"

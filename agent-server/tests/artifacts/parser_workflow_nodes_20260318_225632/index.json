@@ -1,0 +1,22 @@
+{
+  "type": "meta",
+  "created_at": "2026-03-18T22:56:32",
+  "test": "test_full_parser_workflow_with_real_llm_logs_all_steps",
+  "rules_dir": "/Users/wwj/Desktop/myself/life-classics/agent-server/app/core/parser_workflow/rules",
+  "doc_metadata": {
+    "standard_no": "未知",
+    "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法"
+  },
+  "md_content_len": 10592,
+  "md_content_preview": "# 食品安全国家标准 食品添加剂 卡拉胶\n\n2016-08-31 发布\n\n2017-01-01 实施\n\n# 前言\n\n本标准代替 GB15044—2009《食品添加剂 卡拉胶》。\n\n本标准与 GB15044—2009 相比，主要变化如下：\n\n——增加了酸不溶物、 $\\mathrm{pH}$ 、残留溶剂（异丙醇、甲醇）、菌落总数和大肠埃希氏菌的指标要求及检验方法；  \n——删除了大肠菌群的指标要求； ",
+  "node_files": [
+    "01_parse_node.json",
+    "02_clean_node.json",
+    "03_structure_node.json",
+    "04_slice_node.json",
+    "05_classify_node.json",
+    "06_enrich_node.json",
+    "07_transform_node.json",
+    "08_final_chunks.json"
+  ]
+}

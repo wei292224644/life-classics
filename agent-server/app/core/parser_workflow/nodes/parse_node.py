@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import uuid
+
 from app.core.parser_workflow.models import WorkflowState
 
 
@@ -15,9 +17,13 @@ def parse_node(state: WorkflowState) -> dict:
                 meta["title"] = line[2:].strip()
                 break
 
-    # standard_no 必须存在
+    # 若未提供 doc_id，自动生成 UUID
+    if not meta.get("doc_id"):
+        meta["doc_id"] = str(uuid.uuid4())
+
+    # standard_no 缺失时记录警告（非错误，允许无编号文档）
     if not meta.get("standard_no"):
-        errors.append("ERROR: doc_metadata missing required field 'standard_no'")
+        errors.append("WARNING: doc_metadata missing 'standard_no'")
 
     # 透传 md_content，方便后续节点继续使用
     return {"doc_metadata": meta, "errors": errors, "md_content": state["md_content"]}

@@ -1,0 +1,21 @@
+{
+  "type": "update",
+  "at": "2026-03-18T22:39:50",
+  "summary": {
+    "node_name": "structure_node",
+    "output_type": "dict",
+    "keys": [
+      "doc_metadata",
+      "errors"
+    ]
+  },
+  "node_output": {
+    "doc_metadata": {
+      "standard_no": "未知",
+      "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
+      "doc_type": "detection_method",
+      "doc_type_source": "rule"
+    },
+    "errors": []
+  }
+}

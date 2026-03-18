@@ -23,7 +23,8 @@ def init_db(db_path: Optional[str] = None) -> None:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS chunks (
                 chunk_id TEXT PRIMARY KEY,
-                standard_no TEXT NOT NULL,
+                doc_id TEXT NOT NULL,
+                standard_no TEXT,
                 semantic_type TEXT NOT NULL,
                 section_path TEXT NOT NULL,
                 tokenized_content TEXT NOT NULL
@@ -47,7 +48,8 @@ def write(chunks: List[DocumentChunk], doc_metadata: dict, db_path: Optional[str
         return
 
     path = _get_db_path(db_path)
-    standard_no = doc_metadata["standard_no"]
+    doc_id = doc_metadata["doc_id"]
+    standard_no = doc_metadata.get("standard_no") or None
 
     with sqlite3.connect(path) as conn:
         for chunk in chunks:
@@ -73,10 +75,10 @@ def write(chunks: List[DocumentChunk], doc_metadata: dict, db_path: Optional[str
             conn.execute(
                 """
                 INSERT OR REPLACE INTO chunks
-                    (chunk_id, standard_no, semantic_type, section_path, tokenized_content)
-                VALUES (?, ?, ?, ?, ?)
+                    (chunk_id, doc_id, standard_no, semantic_type, section_path, tokenized_content)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                (chunk_id, standard_no, semantic_type, section_path, tokenized_content),
+                (chunk_id, doc_id, standard_no, semantic_type, section_path, tokenized_content),
             )
 
             # 用新 rowid 插入 FTS5 索引
@@ -89,15 +91,15 @@ def write(chunks: List[DocumentChunk], doc_metadata: dict, db_path: Optional[str
         conn.commit()
 
 
-def delete_by_standard_no(standard_no: str, errors: List[str], db_path: Optional[str] = None) -> bool:
-    """删除指定 standard_no 的所有记录。文档不存在视为成功，返回 True；异常返回 False 并 append error。"""
+def delete_by_doc_id(doc_id: str, errors: List[str], db_path: Optional[str] = None) -> bool:
+    """删除指定 doc_id 的所有记录。文档不存在视为成功，返回 True；异常返回 False 并 append error。"""
     path = _get_db_path(db_path)
     try:
         with sqlite3.connect(path) as conn:
             # 先获取要删除的条目，用于同步清理 FTS 索引
             rows = conn.execute(
-                "SELECT rowid, chunk_id, tokenized_content FROM chunks WHERE standard_no = ?",
-                (standard_no,),
+                "SELECT rowid, chunk_id, tokenized_content FROM chunks WHERE doc_id = ?",
+                (doc_id,),
             ).fetchall()
 
             for rowid, chunk_id, tokenized_content in rows:
@@ -109,8 +111,8 @@ def delete_by_standard_no(standard_no: str, errors: List[str], db_path: Optional
 
             if rows:
                 conn.execute(
-                    "DELETE FROM chunks WHERE standard_no = ?",
-                    (standard_no,),
+                    "DELETE FROM chunks WHERE doc_id = ?",
+                    (doc_id,),
                 )
 
             conn.commit()

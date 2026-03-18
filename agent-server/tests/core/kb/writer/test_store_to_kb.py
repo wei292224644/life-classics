@@ -16,6 +16,7 @@ def reset_db_initialized():
 
 
 def _make_state(
+    doc_id: str | None = "test-doc-uuid-1234",
     standard_no: str | None = "GB 1234-2020",
     chunks: list | None = None,
     errors: list | None = None,
@@ -25,7 +26,7 @@ def _make_state(
         chunks = [
             DocumentChunk(
                 chunk_id="abc123",
-                doc_metadata={"standard_no": standard_no or ""},
+                doc_metadata={"doc_id": doc_id or "", "standard_no": standard_no or ""},
                 section_path=["1"],
                 structure_type="paragraph",
                 semantic_type="scope",
@@ -34,9 +35,14 @@ def _make_state(
                 meta={},
             )
         ]
+    meta: dict = {}
+    if doc_id:
+        meta["doc_id"] = doc_id
+    if standard_no:
+        meta["standard_no"] = standard_no
     return WorkflowState(
         md_content="# test",
-        doc_metadata={"standard_no": standard_no} if standard_no else {},
+        doc_metadata=meta,
         config={},
         rules_dir="",
         raw_chunks=[],
@@ -47,21 +53,21 @@ def _make_state(
 
 
 @pytest.mark.asyncio
-async def test_missing_standard_no_returns_ok_false():
-    """standard_no 缺失时返回 ok=False，chunks_written=0。"""
-    state = _make_state(standard_no=None)
+async def test_missing_doc_id_returns_ok_false():
+    """doc_id 缺失时返回 ok=False，chunks_written=0。"""
+    state = _make_state(doc_id=None)
 
     with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
-         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_doc_id", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_doc_id", MagicMock(return_value=True)), \
          patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
          patch("app.core.kb.writer.fts_writer.write", MagicMock()):
         result = await writer_module.store_to_kb(state)
 
     assert result["ok"] is False
     assert result["chunks_written"] == 0
-    assert result["standard_no"] == ""
-    assert any("standard_no missing" in e for e in result["errors"])
+    assert result["doc_id"] == ""
+    assert any("doc_id missing" in e for e in result["errors"])
 
 
 @pytest.mark.asyncio
@@ -70,14 +76,15 @@ async def test_normal_write_success():
     state = _make_state()
 
     with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
-         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_doc_id", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_doc_id", MagicMock(return_value=True)), \
          patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
          patch("app.core.kb.writer.fts_writer.write", MagicMock()):
         result = await writer_module.store_to_kb(state)
 
     assert result["ok"] is True
     assert result["chunks_written"] == len(state["final_chunks"])
+    assert result["doc_id"] == "test-doc-uuid-1234"
     assert result["standard_no"] == "GB 1234-2020"
     assert result["errors"] == []
 
@@ -90,8 +97,8 @@ async def test_chroma_delete_failure_stops_write():
     fts_write_mock = MagicMock()
 
     with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
-         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=False)), \
-         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_doc_id", AsyncMock(return_value=False)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_doc_id", MagicMock(return_value=True)), \
          patch("app.core.kb.writer.chroma_writer.write", chroma_write_mock), \
          patch("app.core.kb.writer.fts_writer.write", fts_write_mock):
         result = await writer_module.store_to_kb(state)
@@ -109,8 +116,8 @@ async def test_fts_delete_failure_stops_write():
     fts_write_mock = MagicMock()
 
     with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
-         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=False)), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_doc_id", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_doc_id", MagicMock(return_value=False)), \
          patch("app.core.kb.writer.chroma_writer.write", chroma_write_mock), \
          patch("app.core.kb.writer.fts_writer.write", fts_write_mock):
         result = await writer_module.store_to_kb(state)
@@ -127,8 +134,8 @@ async def test_store_result_errors_do_not_include_state_errors():
     state = _make_state(errors=[parse_warning])
 
     with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
-         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_doc_id", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_doc_id", MagicMock(return_value=True)), \
          patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
          patch("app.core.kb.writer.fts_writer.write", MagicMock()):
         result = await writer_module.store_to_kb(state)
@@ -142,8 +149,8 @@ async def test_chroma_write_failure_marks_ok_false():
     state = _make_state()
 
     with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
-         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_doc_id", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_doc_id", MagicMock(return_value=True)), \
          patch("app.core.kb.writer.chroma_writer.write", AsyncMock(side_effect=RuntimeError("chroma down"))), \
          patch("app.core.kb.writer.fts_writer.write", MagicMock()):
         result = await writer_module.store_to_kb(state)
@@ -158,8 +165,8 @@ async def test_fts_write_failure_marks_ok_false():
     state = _make_state()
 
     with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
-         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_doc_id", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_doc_id", MagicMock(return_value=True)), \
          patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
          patch("app.core.kb.writer.fts_writer.write", MagicMock(side_effect=RuntimeError("sqlite down"))):
         result = await writer_module.store_to_kb(state)

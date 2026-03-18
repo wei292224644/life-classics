@@ -93,7 +93,7 @@ def test_apply_strategy_returns_document_chunks():
         "char_count": 4,
     }
     seg: TypedSegment = {
-        "content": "片段内容",
+        "content": "称取试料（5 ± 0.05）g，于50 mL离心管中，加乙酸乙酯20 mL，振荡10 min，4000 r/min离心。",
         "structure_type": "paragraph",
         "semantic_type": "scope",
         "transform_params": {"strategy": "plain_embed", "prompt_template": "请转化："},
@@ -118,7 +118,7 @@ def test_apply_strategy_returns_document_chunks():
     assert chunk["structure_type"] == "paragraph"
     assert chunk["semantic_type"] == "scope"
     assert chunk["meta"]["transform_strategy"] == "plain_embed"
-    assert chunk["meta"]["segment_raw_content"] == "片段内容"
+    assert chunk["meta"]["segment_raw_content"] == "称取试料（5 ± 0.05）g，于50 mL离心管中，加乙酸乙酯20 mL，振荡10 min，4000 r/min离心。"
 
 
 # ── transform_node ───────────────────────────────────────────────────
@@ -132,7 +132,7 @@ def test_transform_node_processes_all_chunks():
         "char_count": 4,
     }
     seg: TypedSegment = {
-        "content": "片段",
+        "content": "本标准中甲砜霉素是指氯霉素类广谱抗生素，化学名为甲砜氯霉素，主要用于细菌感染治疗，牛奶中残留量需符合国家限量标准。",
         "structure_type": "paragraph",
         "semantic_type": "definition",
         "transform_params": {"strategy": "plain_embed", "prompt_template": "转化："},
@@ -225,7 +225,7 @@ def test_apply_strategy_writes_cross_refs_to_meta():
         "char_count": 4,
     }
     seg: TypedSegment = {
-        "content": "片段内容",
+        "content": "称取试料（5 ± 0.05）g，于50 mL离心管中，加乙酸乙酯20 mL，振荡10 min，4000 r/min离心。",
         "structure_type": "list",
         "semantic_type": "procedure",
         "transform_params": {"strategy": "plain_embed", "prompt_template": "请转化："},

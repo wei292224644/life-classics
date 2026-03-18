@@ -1,0 +1,80 @@
+<h2>页面布局方案</h2>
+<p class="subtitle">你希望文档列表和 Chunk 编辑如何组织在一起？</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>两级导航（主流管理后台）</h3>
+      <p>文档列表页 → 点击文档 → 进入该文档的 Chunk 列表页，顶部有面包屑导航返回</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">页面结构预览</div>
+        <div class="mockup-body" style="padding:12px;font-size:12px">
+          <div class="mock-nav" style="margin-bottom:8px">📚 知识库管理</div>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;background:var(--surface-2);border-radius:6px;padding:8px">
+              <div style="font-weight:600;margin-bottom:6px">文档列表</div>
+              <div style="background:var(--accent);color:white;border-radius:4px;padding:4px 8px;margin-bottom:4px;font-size:11px">📄 GB 2761-2017 → 42 chunks ▶</div>
+              <div style="background:var(--surface);border-radius:4px;padding:4px 8px;margin-bottom:4px;font-size:11px">📄 GB 5009-2023 → 35 chunks ▶</div>
+              <div style="background:var(--surface);border-radius:4px;padding:4px 8px;font-size:11px">📄 GB 14880-2012 → 28 chunks ▶</div>
+              <div class="mock-button" style="margin-top:8px;font-size:11px">+ 上传 MD 文件</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">↓ 点击文档后跳转到 Chunk 编辑页面</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>左右分栏（Master-Detail）</h3>
+      <p>左侧文档列表，右侧实时展示所选文档的 Chunk，始终在同一页面内操作</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">页面结构预览</div>
+        <div class="mockup-body" style="padding:12px;font-size:12px">
+          <div class="mock-nav" style="margin-bottom:8px">📚 知识库管理</div>
+          <div style="display:flex;gap:8px;height:120px">
+            <div style="width:180px;background:var(--surface-2);border-radius:6px;padding:8px;flex-shrink:0">
+              <div style="font-weight:600;margin-bottom:6px;font-size:11px">文档列表</div>
+              <div style="background:var(--accent);color:white;border-radius:4px;padding:3px 6px;margin-bottom:3px;font-size:10px">📄 GB 2761-2017</div>
+              <div style="background:var(--surface);border-radius:4px;padding:3px 6px;margin-bottom:3px;font-size:10px">📄 GB 5009-2023</div>
+              <div style="background:var(--surface);border-radius:4px;padding:3px 6px;font-size:10px">📄 GB 14880</div>
+            </div>
+            <div style="flex:1;background:var(--surface-2);border-radius:6px;padding:8px;overflow:hidden">
+              <div style="font-weight:600;margin-bottom:6px;font-size:11px">GB 2761-2017 的 Chunks（42）</div>
+              <div style="background:var(--surface);border-radius:4px;padding:4px 6px;margin-bottom:3px;font-size:10px;display:flex;justify-content:space-between"><span>scope: 本标准适用于...</span><span>✏️ 🗑️</span></div>
+              <div style="background:var(--surface);border-radius:4px;padding:4px 6px;margin-bottom:3px;font-size:10px;display:flex;justify-content:space-between"><span>definition: 真菌毒素是指...</span><span>✏️ 🗑️</span></div>
+              <div style="background:var(--surface);border-radius:4px;padding:4px 6px;font-size:10px;display:flex;justify-content:space-between"><span>specification_table: ...</span><span>✏️ 🗑️</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>单页 Tab 切换</h3>
+      <p>同一页面内 Tab 切换：「上传」/「文档列表」/「Chunk 浏览」，简洁但功能层级较浅</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">页面结构预览</div>
+        <div class="mockup-body" style="padding:12px;font-size:12px">
+          <div class="mock-nav" style="margin-bottom:8px">📚 知识库管理</div>
+          <div style="display:flex;gap:4px;margin-bottom:8px">
+            <div style="background:var(--accent);color:white;border-radius:4px;padding:4px 10px;font-size:11px">上传</div>
+            <div style="background:var(--surface-2);border-radius:4px;padding:4px 10px;font-size:11px">文档列表</div>
+            <div style="background:var(--surface-2);border-radius:4px;padding:4px 10px;font-size:11px">Chunk 浏览</div>
+          </div>
+          <div style="background:var(--surface-2);border-radius:6px;padding:12px;text-align:center">
+            <div style="font-size:24px;margin-bottom:4px">📁</div>
+            <div style="font-size:11px">拖拽 .md 文件到这里，或点击选择</div>
+            <div class="mock-button" style="margin-top:8px;font-size:11px">选择文件</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
