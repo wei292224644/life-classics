@@ -190,3 +190,14 @@ def test_amendment_prompt_renders_inline_latex():
     assert ("LaTeX" in prompt or "$" in prompt) and ("转化" in prompt or "渲染" in prompt or "可读" in prompt), (
         f"amendment prompt 应包含 LaTeX inline 渲染规则。实际内容：{prompt}"
     )
+
+
+def test_metadata_semantic_type_covers_preface_changes():
+    """metadata 的示例中应包含前言变更格式（如"——增加了"），
+    以引导 LLM 将前言变更列表归为 metadata 而非 limit/procedure。"""
+    rules = _load()
+    meta = next(t for t in rules["semantic_types"] if t["id"] == "metadata")
+    examples = " ".join(meta.get("examples", []))
+    assert "增加了" in examples or "删除了" in examples or "修改了" in examples, (
+        f"metadata examples 应包含前言变更示例（增加了/删除了/修改了）。当前: {examples}"
+    )
