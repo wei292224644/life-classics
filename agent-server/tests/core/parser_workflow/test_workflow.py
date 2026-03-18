@@ -289,6 +289,14 @@ def _summarize_node_output(node_name: str, node_output) -> dict:
                 )
             }
         )
+    elif node_name == "store_node":
+        summary.update(
+            {
+                "ok": (output_dict or {}).get("ok"),
+                "chunks_written": (output_dict or {}).get("chunks_written"),
+                "errors_count": len((output_dict or {}).get("errors", []) or []),
+            }
+        )
     return summary
 
 
@@ -423,6 +431,7 @@ async def test_full_parser_workflow_with_real_llm_logs_all_steps():
                 "classified_chunks": _to_jsonable(
                     result_state.get("classified_chunks", [])
                 ),
+                "final_chunks": _to_jsonable(result_state.get("final_chunks", [])),
                 "errors": _to_jsonable(result_state.get("errors", [])),
             },
             f,
@@ -447,6 +456,8 @@ async def test_full_parser_workflow_with_real_llm_logs_all_steps():
 
     # ── 写入知识库 ─────────────────────────────────────────────────────────
     store_result = await store_to_kb(result_state)
+    step_no += 1
+    _write_node_file(step_no, "store_node", dict(store_result))
     logger.info(
         "store_to_kb: ok=%s  chunks_written=%d  errors=%s",
         store_result["ok"],
@@ -505,6 +516,14 @@ async def test_resume_workflow_from_cached_artifacts():
 
     # ── 写入知识库 ─────────────────────────────────────────────────────────
     store_result = await store_to_kb(result_state)
+    store_payload = {
+        "type": "update",
+        "at": datetime.now().isoformat(timespec="seconds"),
+        "summary": _summarize_node_output("store_node", dict(store_result)),
+        "node_output": _to_jsonable(dict(store_result)),
+    }
+    with (output_dir / "02_store_node.json").open("w", encoding="utf-8") as f:
+        json.dump(store_payload, f, ensure_ascii=False, indent=2)
     logger.info(
         "store_to_kb: ok=%s  chunks_written=%d  errors=%s",
         store_result["ok"],
