@@ -16,6 +16,7 @@ from app.core.parser_workflow.nodes.structure_node import structure_node
 from app.core.parser_workflow.nodes.transform_node import transform_node
 from app.core.parser_workflow.models import WorkflowState
 from app.core.parser_workflow.rules import RulesStore
+from app.core.kb.writer import store_to_kb
 from pydantic import BaseModel
 from tests.core.parser_workflow.test_utils import (
     get_logger,
@@ -444,6 +445,17 @@ async def test_full_parser_workflow_with_real_llm_logs_all_steps():
     logger.info("workflow node files cached to: %s", cache_run_dir)
     logger.info("workflow structure cached to: %s", structure_cache_path)
 
+    # ── 写入知识库 ─────────────────────────────────────────────────────────
+    store_result = await store_to_kb(result_state)
+    logger.info(
+        "store_to_kb: ok=%s  chunks_written=%d  errors=%s",
+        store_result["ok"],
+        store_result["chunks_written"],
+        store_result["errors"],
+    )
+    assert store_result["ok"], f"store_to_kb 失败: {store_result['errors']}"
+    assert store_result["chunks_written"] == len(result_state.get("final_chunks", []))
+
     # assert len(result_state["classified_chunks"]) > 0
     # assert len(result_state.get("final_chunks", [])) > 0
     # non_ok_level_errors = [
@@ -454,38 +466,50 @@ async def test_full_parser_workflow_with_real_llm_logs_all_steps():
     # assert not non_ok_level_errors, f"workflow 存在非 INFO/WARN 错误: {non_ok_level_errors}"
 
 
-# def test_resume_workflow_from_cached_artifacts():
-#     """
-#     基于已缓存节点输出做断点续跑，便于按步骤验证后续节点行为。
-#     用法示例：
-#       WORKFLOW_RESUME_FROM=classify_node uv run pytest tests/core/parser_workflow/test_workflow.py -k resume -v -s
-#     """
-#     load_env_if_exists()
-#     if not os.environ.get("LLM_API_KEY"):
-#         pytest.skip("环境变量 LLM_API_KEY 未设置，跳过真实 LLM 断点续跑测试")
+@pytest.mark.asyncio
+async def test_resume_workflow_from_cached_artifacts():
+    """
+    基于已缓存节点输出做断点续跑，便于按步骤验证后续节点行为，并写入知识库。
+    用法示例：
+      WORKFLOW_RESUME_FROM=classify_node uv run pytest tests/core/parser_workflow/test_workflow.py -k resume -v -s
+    """
+    load_env_if_exists()
+    if not os.environ.get("LLM_API_KEY"):
+        pytest.skip("环境变量 LLM_API_KEY 未设置，跳过真实 LLM 断点续跑测试")
 
-#     artifact_dir = _get_artifact_dir()
-#     if not artifact_dir.exists():
-#         pytest.skip(f"缓存目录不存在：{artifact_dir}")
+    artifact_dir = _get_artifact_dir()
+    if not artifact_dir.exists():
+        pytest.skip(f"缓存目录不存在：{artifact_dir}")
 
-#     resume_from = os.environ.get("WORKFLOW_RESUME_FROM", "classify_node")
-#     state = _build_resume_initial_state(artifact_dir)
-#     state = _load_cached_state_before_node(state, artifact_dir, resume_from)
-#     input_state = _to_jsonable(state)
-#     result_state = _run_from_resume_node(state, resume_from)
-#     output_dir = _dump_resume_run_artifacts(
-#         source_artifact_dir=artifact_dir,
-#         resume_from=resume_from,
-#         input_state=input_state,
-#         output_state=result_state,
-#     )
+    resume_from = os.environ.get("WORKFLOW_RESUME_FROM", "classify_node")
+    state = _build_resume_initial_state(artifact_dir)
+    state = _load_cached_state_before_node(state, artifact_dir, resume_from)
+    input_state = _to_jsonable(state)
+    result_state = _run_from_resume_node(state, resume_from)
+    output_dir = _dump_resume_run_artifacts(
+        source_artifact_dir=artifact_dir,
+        resume_from=resume_from,
+        input_state=input_state,
+        output_state=result_state,
+    )
 
-#     logger.info("resume_from=%s", resume_from)
-#     logger.info("artifact_dir=%s", artifact_dir)
-#     logger.info("resume artifacts dumped to=%s", output_dir)
-#     logger.info("raw_chunks=%d", len(result_state.get("raw_chunks", [])))
-#     logger.info("classified_chunks=%d", len(result_state.get("classified_chunks", [])))
-#     logger.info("final_chunks=%d", len(result_state.get("final_chunks", [])))
+    logger.info("resume_from=%s", resume_from)
+    logger.info("artifact_dir=%s", artifact_dir)
+    logger.info("resume artifacts dumped to=%s", output_dir)
+    logger.info("raw_chunks=%d", len(result_state.get("raw_chunks", [])))
+    logger.info("classified_chunks=%d", len(result_state.get("classified_chunks", [])))
+    logger.info("final_chunks=%d", len(result_state.get("final_chunks", [])))
 
-#     assert len(result_state.get("classified_chunks", [])) > 0
-#     assert len(result_state.get("final_chunks", [])) > 0
+    assert len(result_state.get("classified_chunks", [])) > 0
+    assert len(result_state.get("final_chunks", [])) > 0
+
+    # ── 写入知识库 ─────────────────────────────────────────────────────────
+    store_result = await store_to_kb(result_state)
+    logger.info(
+        "store_to_kb: ok=%s  chunks_written=%d  errors=%s",
+        store_result["ok"],
+        store_result["chunks_written"],
+        store_result["errors"],
+    )
+    assert store_result["ok"], f"store_to_kb 失败: {store_result['errors']}"
+    assert store_result["chunks_written"] == len(result_state.get("final_chunks", []))
