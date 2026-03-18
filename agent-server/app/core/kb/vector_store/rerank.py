@@ -19,7 +19,7 @@ from app.core.config import settings
 _PREFIX = (
     "<|im_start|>system\n"
     "根据提供的查询（Query）和指令（Instruct），判断文档（Document）是否满足要求。"
-    "注意答案只能是"yes"或"no"。<|im_end|>\n"
+    "注意答案只能是'yes'或'no'。<|im_end|>\n"
     "<|im_start|>user\n"
 )
 _SUFFIX = "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
