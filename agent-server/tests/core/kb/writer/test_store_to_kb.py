@@ -3,7 +3,16 @@ from __future__ import annotations
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import app.core.kb.writer as writer_module
 from app.core.parser_workflow.models import DocumentChunk, WorkflowState
+
+
+@pytest.fixture(autouse=True)
+def reset_db_initialized():
+    """每个测试前重置 _db_initialized，避免懒初始化 flag 跨测试污染。"""
+    writer_module._db_initialized = False
+    yield
+    writer_module._db_initialized = False
 
 
 def _make_state(
@@ -42,18 +51,12 @@ async def test_missing_standard_no_returns_ok_false():
     """standard_no 缺失时返回 ok=False，chunks_written=0。"""
     state = _make_state(standard_no=None)
 
-    with patch("app.core.kb.writer.fts_writer.init_db"):
-        # 重新加载模块以触发 init_db mock（模块级调用）
-        import importlib
-        import app.core.kb.writer as writer_module
-        importlib.reload(writer_module)
-        store_to_kb = writer_module.store_to_kb
-
-        with patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-             patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
-             patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
-             patch("app.core.kb.writer.fts_writer.write", MagicMock()):
-            result = await store_to_kb(state)
+    with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
+         patch("app.core.kb.writer.fts_writer.write", MagicMock()):
+        result = await writer_module.store_to_kb(state)
 
     assert result["ok"] is False
     assert result["chunks_written"] == 0
@@ -66,17 +69,12 @@ async def test_normal_write_success():
     """正常流程：chunks_written == len(final_chunks)，ok=True。"""
     state = _make_state()
 
-    with patch("app.core.kb.writer.fts_writer.init_db"):
-        import importlib
-        import app.core.kb.writer as writer_module
-        importlib.reload(writer_module)
-        store_to_kb = writer_module.store_to_kb
-
-        with patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-             patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
-             patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
-             patch("app.core.kb.writer.fts_writer.write", MagicMock()):
-            result = await store_to_kb(state)
+    with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
+         patch("app.core.kb.writer.fts_writer.write", MagicMock()):
+        result = await writer_module.store_to_kb(state)
 
     assert result["ok"] is True
     assert result["chunks_written"] == len(state["final_chunks"])
@@ -91,17 +89,12 @@ async def test_chroma_delete_failure_stops_write():
     chroma_write_mock = AsyncMock()
     fts_write_mock = MagicMock()
 
-    with patch("app.core.kb.writer.fts_writer.init_db"):
-        import importlib
-        import app.core.kb.writer as writer_module
-        importlib.reload(writer_module)
-        store_to_kb = writer_module.store_to_kb
-
-        with patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=False)), \
-             patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
-             patch("app.core.kb.writer.chroma_writer.write", chroma_write_mock), \
-             patch("app.core.kb.writer.fts_writer.write", fts_write_mock):
-            result = await store_to_kb(state)
+    with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=False)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.write", chroma_write_mock), \
+         patch("app.core.kb.writer.fts_writer.write", fts_write_mock):
+        result = await writer_module.store_to_kb(state)
 
     assert result["ok"] is False
     chroma_write_mock.assert_not_called()
@@ -115,17 +108,12 @@ async def test_fts_delete_failure_stops_write():
     chroma_write_mock = AsyncMock()
     fts_write_mock = MagicMock()
 
-    with patch("app.core.kb.writer.fts_writer.init_db"):
-        import importlib
-        import app.core.kb.writer as writer_module
-        importlib.reload(writer_module)
-        store_to_kb = writer_module.store_to_kb
-
-        with patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-             patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=False)), \
-             patch("app.core.kb.writer.chroma_writer.write", chroma_write_mock), \
-             patch("app.core.kb.writer.fts_writer.write", fts_write_mock):
-            result = await store_to_kb(state)
+    with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=False)), \
+         patch("app.core.kb.writer.chroma_writer.write", chroma_write_mock), \
+         patch("app.core.kb.writer.fts_writer.write", fts_write_mock):
+        result = await writer_module.store_to_kb(state)
 
     assert result["ok"] is False
     chroma_write_mock.assert_not_called()
@@ -138,17 +126,12 @@ async def test_store_result_errors_do_not_include_state_errors():
     parse_warning = "parse warning: something minor"
     state = _make_state(errors=[parse_warning])
 
-    with patch("app.core.kb.writer.fts_writer.init_db"):
-        import importlib
-        import app.core.kb.writer as writer_module
-        importlib.reload(writer_module)
-        store_to_kb = writer_module.store_to_kb
-
-        with patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-             patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
-             patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
-             patch("app.core.kb.writer.fts_writer.write", MagicMock()):
-            result = await store_to_kb(state)
+    with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
+         patch("app.core.kb.writer.fts_writer.write", MagicMock()):
+        result = await writer_module.store_to_kb(state)
 
     assert parse_warning not in result["errors"]
 
@@ -158,17 +141,12 @@ async def test_chroma_write_failure_marks_ok_false():
     """ChromaDB 写入失败时 ok=False，且 errors 中包含 chroma 错误。"""
     state = _make_state()
 
-    with patch("app.core.kb.writer.fts_writer.init_db"):
-        import importlib
-        import app.core.kb.writer as writer_module
-        importlib.reload(writer_module)
-        store_to_kb = writer_module.store_to_kb
-
-        with patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-             patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
-             patch("app.core.kb.writer.chroma_writer.write", AsyncMock(side_effect=RuntimeError("chroma down"))), \
-             patch("app.core.kb.writer.fts_writer.write", MagicMock()):
-            result = await store_to_kb(state)
+    with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.write", AsyncMock(side_effect=RuntimeError("chroma down"))), \
+         patch("app.core.kb.writer.fts_writer.write", MagicMock()):
+        result = await writer_module.store_to_kb(state)
 
     assert result["ok"] is False
     assert any("chroma write error" in e for e in result["errors"])
@@ -179,17 +157,12 @@ async def test_fts_write_failure_marks_ok_false():
     """FTS 写入失败时 ok=False，且 errors 中包含 fts 错误。"""
     state = _make_state()
 
-    with patch("app.core.kb.writer.fts_writer.init_db"):
-        import importlib
-        import app.core.kb.writer as writer_module
-        importlib.reload(writer_module)
-        store_to_kb = writer_module.store_to_kb
-
-        with patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
-             patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
-             patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
-             patch("app.core.kb.writer.fts_writer.write", MagicMock(side_effect=RuntimeError("sqlite down"))):
-            result = await store_to_kb(state)
+    with patch("app.core.kb.writer.fts_writer.init_db", MagicMock()), \
+         patch("app.core.kb.writer.chroma_writer.delete_by_standard_no", AsyncMock(return_value=True)), \
+         patch("app.core.kb.writer.fts_writer.delete_by_standard_no", MagicMock(return_value=True)), \
+         patch("app.core.kb.writer.chroma_writer.write", AsyncMock()), \
+         patch("app.core.kb.writer.fts_writer.write", MagicMock(side_effect=RuntimeError("sqlite down"))):
+        result = await writer_module.store_to_kb(state)
 
     assert result["ok"] is False
     assert any("fts write error" in e for e in result["errors"])

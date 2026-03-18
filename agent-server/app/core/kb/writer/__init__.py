@@ -8,8 +8,7 @@ from typing_extensions import TypedDict
 from app.core.kb.writer import chroma_writer, fts_writer
 from app.core.parser_workflow.models import WorkflowState
 
-# 模块 import 时初始化 FTS DB（幂等，表已存在则跳过）
-fts_writer.init_db()
+_db_initialized = False
 
 
 class StoreResult(TypedDict):
@@ -31,6 +30,11 @@ async def store_to_kb(state: WorkflowState) -> StoreResult:
 
     注意：不传播 state["errors"]（parse 阶段警告与存储无关）
     """
+    global _db_initialized
+    if not _db_initialized:
+        fts_writer.init_db()
+        _db_initialized = True
+
     errors: List[str] = []
 
     standard_no = state["doc_metadata"].get("standard_no")
