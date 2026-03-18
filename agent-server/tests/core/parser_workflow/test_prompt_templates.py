@@ -43,8 +43,9 @@ def test_all_prompts_are_non_placeholder():
     rules = _load()
     placeholder = "请将以下内容转化为规范化的陈述文本，保留所有原始信息："
     for stype, params in rules["transform"]["by_semantic_type"].items():
-        assert params["prompt_template"].strip() != placeholder, (
-            f"{stype} 的 prompt_template 仍是占位符"
+        prompt = params["prompt_template"].strip()
+        assert prompt != placeholder, (
+            f"{stype} 的 prompt_template 仍是占位符。实际内容：{prompt[:100]}"
         )
 
 
@@ -60,7 +61,7 @@ def test_limit_prompt_category_label_only_when_explicit():
     """limit prompt 中类别标注规则应包含 fallback（无法确定时不强制添加）"""
     prompt = _prompt(_load(), "limit")
     assert "无法" in prompt or "若无法" in prompt, (
-        "类别标注应有 fallback 条件，防止 LLM 猜测指标类别"
+        f"类别标注应有 fallback 条件，防止 LLM 猜测指标类别。实际内容：{prompt[:100]}"
     )
 
 
@@ -76,7 +77,7 @@ def test_calculation_prompt_usage_description_has_fallback():
     """calculation prompt 的用途描述规则应有 fallback（无法确定时跳过）"""
     prompt = _prompt(_load(), "calculation")
     assert "无法从原文确定" in prompt or "跳过" in prompt, (
-        "用途概括应有 fallback，防止 LLM 猜测被测物质名称"
+        f"用途概括应有 fallback，防止 LLM 猜测被测物质名称。实际内容：{prompt[:100]}"
     )
 
 
@@ -92,7 +93,7 @@ def test_scope_prompt_prohibits_standard_no_guessing():
     """scope prompt 的标准号替换规则应禁止猜测"""
     prompt = _prompt(_load(), "scope")
     assert "不得猜测" in prompt or "猜测或补全" in prompt, (
-        "应禁止 LLM 猜测标准号"
+        f"应禁止 LLM 猜测标准号。实际内容：{prompt[:100]}"
     )
 
 
