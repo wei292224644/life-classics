@@ -163,3 +163,22 @@ def test_calculation_prompt_variable_desc_must_come_from_original():
     assert "原文" in prompt and "变量说明" in prompt, (
         f"calculation prompt 应包含'原文'和'变量说明'，禁止 LLM 补全空白变量。实际内容：{prompt}"
     )
+
+
+def test_definition_semantic_type_must_contain_exclusion_clause():
+    """definition 的语义描述必须含有明确排除词（'不包括'或'排除'），
+    防止 LLM 将检测特征、光谱特性等错误匹配为术语定义。"""
+    rules = _load()
+    defn = next(t for t in rules["semantic_types"] if t["id"] == "definition")
+    desc = defn["description"]
+    assert "不包括" in desc or "排除" in desc, (
+        f"definition 描述必须含排除词（'不包括'或'排除'），当前描述：{desc}"
+    )
+
+
+def test_definition_prompt_outputs_verbatim_for_non_definition():
+    """definition prompt 对无明确"X是指Y"格式的内容应原样输出（不强套模板）。"""
+    prompt = _prompt(_load(), "definition")
+    assert "否则" in prompt and "原样输出" in prompt, (
+        f"definition prompt 应有 else 分支：否则直接原样输出，不强套定义格式。实际内容：{prompt}"
+    )
