@@ -12,6 +12,27 @@ from app.core.parser_workflow.config import (
 from app.core.parser_workflow.models import RawChunk, WorkflowState
 
 
+def _clean_section_path_text(title: str) -> str:
+    """
+    将 heading 标题中常见的 LaTeX inline 语法转化为可读 Unicode，
+    避免 section_path 中出现原始 LaTeX 字符串。
+    仅处理 GB 标准文档中实际出现的模式，不追求完整覆盖。
+    """
+    # $\mathrm{X_Y}$ / $\mathrm{XY}$ → XY（下标转数字，花括号内下标）
+    title = re.sub(r'\$\\mathrm\{([^}]+)\}\$', lambda m: m.group(1).replace('_', ''), title)
+    # $\mathrm{X}_{Y}$ / $\mathrm{X}_Y$ → XY（下标在花括号外）
+    title = re.sub(r'\$\\mathrm\{([^}]+)\}_\{?([^$}\s]+)\}?\$', lambda m: m.group(1) + m.group(2), title)
+    # $\mathbf{X}$ → X
+    title = re.sub(r'\$\\mathbf\{([^}]+)\}\$', r'\1', title)
+    # $\lambda$ → λ
+    title = title.replace(r'$\lambda$', 'λ').replace(r'$\\lambda$', 'λ')
+    # 兜底：去除残余 $...$ inline LaTeX
+    title = re.sub(r'\$[^$\n]{1,60}\$', '', title)
+    # 清理多余空格
+    title = re.sub(r' {2,}', ' ', title).strip()
+    return title
+
+
 def _heading_pattern(level: int) -> re.Pattern:
     prefix = "#" * level
     return re.compile(rf"^{re.escape(prefix)} (.+)$", re.MULTILINE)
@@ -78,7 +99,7 @@ def recursive_slice(
     for title, block in parts:
         if not block.strip() and not title:
             continue
-        path = parent_path + ([title] if title else [])
+        path = parent_path + ([_clean_section_path_text(title)] if title else [])
         char_count = len(block)
         if char_count <= soft_max or len(heading_levels) <= 1:
             if _has_body_content(block):

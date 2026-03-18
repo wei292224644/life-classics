@@ -134,3 +134,22 @@ def test_block_exceeding_hard_max_is_split_even_if_no_single_sub_exceeds():
     assert len(chunks) > 1, (
         f"整体超 hard_max 时应被拆分，实际生成 {len(chunks)} 个 chunk"
     )
+
+
+def test_section_path_latex_is_normalized():
+    """heading 中的 LaTeX 符号在 section_path 中应被渲染为 Unicode"""
+    md = "## A.3 硫酸酯（以 $\\mathrm{SO}_4$ 计）的测定\n\n正文内容。"
+    result = recursive_slice(md, [2], [], soft_max=5000, hard_max=10000, errors=[])
+    assert len(result) == 1
+    path = result[0]["section_path"]
+    assert "$" not in path[0], f"section_path 中不应含 LaTeX: {path}"
+    assert "SO₄" in path[0] or "SO4" in path[0], f"应含渲染后的化学式: {path}"
+
+
+def test_section_path_mathbf_ph_normalized():
+    """$\\mathbf{pH}$ 应在 section_path 中渲染为 pH"""
+    md = "## A.8 $\\mathbf{pH}$ 的测定\n\n正文内容。"
+    result = recursive_slice(md, [2], [], soft_max=5000, hard_max=10000, errors=[])
+    path = result[0]["section_path"]
+    assert "$" not in path[0]
+    assert "pH" in path[0]
