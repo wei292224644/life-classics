@@ -93,7 +93,7 @@ def load_sample_markdown() -> Tuple[str, Path]:
         .resolve()
         .parents[2]
         / "assets"
-        / "9 牛奶中甲砜霉素残留检测.reorganized.md"
+        / "《食品安全国家标准 食品添加剂 卡拉胶》（GB 1886.169-2016）第1号修改单.md"
     )
     md_content = asset_path.read_text(encoding="utf-8")
     return md_content, asset_path

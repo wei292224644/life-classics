@@ -49,7 +49,7 @@ def _call_classify_llm(
 1. 保守切分：只在相邻内容属于明显不同语义单元时才切分；同一逻辑章节保持整体。
 2. 对每个片段独立推断两个维度，互不干扰：先判断呈现形式（structure_type），再判断用途（semantic_type）。
 3. confidence 反映你对两个判断综合的把握程度（0-1）。
-4. 公式识别（强制规则）：文本中出现 $$...$$ 块级公式时，该部分及其紧邻的变量说明（"式中：m1——..."格式）必须作为独立 segment，structure_type=formula，semantic_type=calculation。不得因上下文中存在大量列表或段落而将含公式的内容归为 plain_text。
+4. 公式识别（强制规则）：文本中出现 $$...$$ 块级公式时，公式及其前导引导句（如"按下式计算："）、变量说明（"式中：X——..."格式）、注释（"注："格式）必须合并为同一个 segment，structure_type=formula，semantic_type=calculation。不得将公式内容拆分为 procedure、calculation、limit 三个独立 segment。
 
 文本内容：
 {_escape_for_json_prompt(chunk_content)}

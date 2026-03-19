@@ -1,6 +1,6 @@
 {
   "type": "update",
-  "at": "2026-03-19T16:29:33",
+  "at": "2026-03-19T16:56:08",
   "summary": {
     "node_name": "classify_node",
     "output_type": "dict",
@@ -21,20 +21,10 @@
         },
         "segments": [
           {
-            "content": "# 食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
+            "content": "# 食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法\n\nDetermination of Thiamphenicol residues in milk by High Performance\n\nLiquid Chromatographic method\n\n2013-09-16 发布\n\n2014-01-01 实施\n\n# 1 范围",
             "structure_type": "header",
             "semantic_type": "metadata",
             "confidence": 0.95,
-            "escalated": false,
-            "cross_refs": [],
-            "ref_context": "",
-            "failed_table_refs": []
-          },
-          {
-            "content": "Determination of Thiamphenicol residues in milk by High Performance\n\nLiquid Chromatographic method\n\n2013-09-16 发布\n\n2014-01-01 实施\n\n# 1 范围",
-            "structure_type": "paragraph",
-            "semantic_type": "metadata",
-            "confidence": 0.9,
             "escalated": false,
             "cross_refs": [],
             "ref_context": "",
@@ -468,30 +458,10 @@
             "failed_table_refs": []
           },
           {
-            "content": "试料中甲砜霉素的残留量（ $μ \\mathrm{g} / \\mathrm{kg}$ ）：按下式计算：",
-            "structure_type": "paragraph",
-            "semantic_type": "procedure",
-            "confidence": 0.9,
-            "escalated": false,
-            "cross_refs": [],
-            "ref_context": "",
-            "failed_table_refs": []
-          },
-          {
-            "content": "$$\nX = \\frac {C \\times V}{m}\n$$\n\n式中：\n\nX - - - - - 供试试料中甲砜霉素的残留量，$μ \\mathrm{g} / \\mathrm{kg}$ ;\n\nC - - - - 试样溶液中甲砜霉素的浓度，ng/mL;\n\nV - - - - - 溶解残余物流动相体积，mL；\n\nm- - 供试试料质量，g。",
+            "content": "试料中甲砜霉素的残留量（ $\\mu \\mathrm{g} / \\mathrm{kg}$ ）：按下式计算：\n\n$$\nX = \\frac {C \\times V}{m}\n$$\n\n式中：\n\nX - - - - - 供试试料中甲砜霉素的残留量，$\\mu \\mathrm{g} / \\mathrm{kg}$ ;\n\nC - - - - 试样溶液中甲砜霉素的浓度，ng/mL;\n\nV - - - - - 溶解残余物流动相体积，mL；\n\nm- - 供试试料质量，g。\n\n注：计算结果需扣除空白值，测定结果用平行测定的算术平均值表示，保留三位有效数字。",
             "structure_type": "formula",
             "semantic_type": "calculation",
-            "confidence": 1.0,
-            "escalated": false,
-            "cross_refs": [],
-            "ref_context": "",
-            "failed_table_refs": []
-          },
-          {
-            "content": "注：计算结果需扣除空白值，测定结果用平行测定的算术平均值表示，保留三位有效数字。",
-            "structure_type": "paragraph",
-            "semantic_type": "limit",
-            "confidence": 0.85,
+            "confidence": 0.98,
             "escalated": false,
             "cross_refs": [],
             "ref_context": "",
@@ -510,7 +480,7 @@
         },
         "segments": [
           {
-            "content": "# 9 检测方法灵敏度、准确度、精密度\n\n## 9.1 灵敏度",
+            "content": "# 9 检测方法灵敏度、准确度、精密度",
             "structure_type": "header",
             "semantic_type": "metadata",
             "confidence": 0.95,
@@ -520,7 +490,7 @@
             "failed_table_refs": []
           },
           {
-            "content": "本方法的检测限为 $10~\\mu \\mathrm{g / kg}$ ，定量限为 $10~\\mu \\mathrm{g / kg}$",
+            "content": "## 9.1 灵敏度\n\n本方法的检测限为 $10~\\mu \\mathrm{g / kg}$ ，定量限为 $10~\\mu \\mathrm{g / kg}$",
             "structure_type": "paragraph",
             "semantic_type": "definition",
             "confidence": 0.92,
@@ -530,40 +500,20 @@
             "failed_table_refs": []
           },
           {
-            "content": "## 9.2 准确度",
-            "structure_type": "header",
-            "semantic_type": "metadata",
-            "confidence": 0.95,
-            "escalated": false,
-            "cross_refs": [],
-            "ref_context": "",
-            "failed_table_refs": []
-          },
-          {
-            "content": "本方法在 $10\\sim 100~\\mu \\mathrm{g / kg}$ 添加浓度水平上的回收率为 $70\\% \\sim 110\\%$",
+            "content": "## 9.2 准确度\n\n本方法在 $10\\sim 100~\\mu \\mathrm{g / kg}$ 添加浓度水平上的回收率为 $70\\% \\sim 110\\%$",
             "structure_type": "paragraph",
             "semantic_type": "definition",
-            "confidence": 0.9,
+            "confidence": 0.92,
             "escalated": false,
             "cross_refs": [],
             "ref_context": "",
             "failed_table_refs": []
           },
           {
-            "content": "## 9.3 精密度",
-            "structure_type": "header",
-            "semantic_type": "metadata",
-            "confidence": 0.95,
-            "escalated": false,
-            "cross_refs": [],
-            "ref_context": "",
-            "failed_table_refs": []
-          },
-          {
-            "content": "本方法的批内相对标准偏差 $\\leqslant 15\\%$ ，批间相对标准偏差 $\\leqslant 15\\%$ 。",
+            "content": "## 9.3 精密度\n\n本方法的批内相对标准偏差 $\\leqslant 15\\%$ ，批间相对标准偏差 $\\leqslant 15\\%$ 。",
             "structure_type": "paragraph",
             "semantic_type": "definition",
-            "confidence": 0.9,
+            "confidence": 0.92,
             "escalated": false,
             "cross_refs": [],
             "ref_context": "",
