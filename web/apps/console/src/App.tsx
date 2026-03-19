@@ -1,4 +1,4 @@
-// agent-server/admin/src/App.tsx
+// web/apps/console/src/App.tsx
 import { useEffect, useState } from 'react'
 import { DocList } from './components/DocList'
 import { ChunkList } from './components/ChunkList'
