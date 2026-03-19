@@ -9,6 +9,7 @@ from app.core.parser_workflow.nodes.classify_node import classify_node
 from app.core.parser_workflow.nodes.clean_node import clean_node
 from app.core.parser_workflow.nodes.enrich_node import enrich_node
 from app.core.parser_workflow.nodes.escalate_node import escalate_node
+from app.core.parser_workflow.nodes.merge_node import merge_node
 from app.core.parser_workflow.nodes.parse_node import parse_node
 from app.core.parser_workflow.nodes.slice_node import slice_node
 from app.core.parser_workflow.nodes.structure_node import structure_node
@@ -31,6 +32,7 @@ def _build_graph():
     builder.add_node("escalate_node", escalate_node)
     builder.add_node("enrich_node", enrich_node)
     builder.add_node("transform_node", transform_node)
+    builder.add_node("merge_node", merge_node)
 
     builder.set_entry_point("parse_node")
     builder.add_edge("parse_node", "clean_node")
@@ -40,7 +42,8 @@ def _build_graph():
     builder.add_conditional_edges("classify_node", _should_escalate)
     builder.add_edge("escalate_node", "enrich_node")
     builder.add_edge("enrich_node", "transform_node")
-    builder.add_edge("transform_node", END)
+    builder.add_edge("transform_node", "merge_node")
+    builder.add_edge("merge_node", END)
     return builder.compile()
 
 
