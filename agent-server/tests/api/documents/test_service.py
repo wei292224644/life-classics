@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
+from fastapi import HTTPException
+
 
 def _make_meta(doc_id="d1", standard_no="GB 2762-2022", doc_type="food_safety", semantic_type="scope", section_path="1|1.1"):
     return {
@@ -57,3 +60,12 @@ def test_delete_document_calls_chroma_and_fts():
     mock_col.delete.assert_called_once_with(where={"doc_id": {"$eq": "d1"}})
     mock_fts.delete_by_doc_id.assert_called_once()
     assert result["doc_id"] == "d1"
+
+
+async def test_upload_document_returns_501():
+    """上传文档返回 501 Not Implemented"""
+    from app.api.documents.service import DocumentsService
+    with pytest.raises(HTTPException) as exc_info:
+        await DocumentsService.upload_document(b"content", "test.md", "text")
+    assert exc_info.value.status_code == 501
+    assert "文档上传功能尚未实现" in exc_info.value.detail

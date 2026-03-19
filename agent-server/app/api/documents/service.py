@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import os
-import tempfile
-from pathlib import Path
 from typing import Any
+
+from fastapi import HTTPException
 
 from app.core.kb.clients import get_chroma_client
 from app.core.kb.writer import fts_writer
@@ -49,31 +48,4 @@ class DocumentsService:
         chunk_size: int | None = None,
         chunk_overlap: int | None = None,
     ) -> dict[str, Any]:
-        from app.core.kb import import_file_step
-
-        file_ext = Path(filename).suffix.lower()
-        temp_path = None
-        try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as f:
-                f.write(file_content)
-                temp_path = f.name
-
-            documents = import_file_step(
-                file_path=temp_path,
-                strategy=strategy,
-                original_filename=filename,
-                chunk_size=chunk_size,
-                chunk_overlap=chunk_overlap,
-            )
-            doc_id = documents[0].doc_id if documents else None
-            return {
-                "success": bool(documents),
-                "message": f"成功导入 {len(documents)} 个 chunks" if documents else "未能提取内容",
-                "doc_id": doc_id,
-                "chunks_count": len(documents),
-                "file_name": filename,
-                "strategy": strategy,
-            }
-        finally:
-            if temp_path and os.path.exists(temp_path):
-                os.unlink(temp_path)
+        raise HTTPException(status_code=501, detail="文档上传功能尚未实现，请通过 parser_workflow 直接写入知识库")
