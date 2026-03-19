@@ -68,8 +68,10 @@ class DocumentsService:
         doc_ids = {m.get("doc_id") for m in metadatas if m.get("doc_id")}
         total_chunks = len(all_results.get("ids") or [])
 
-        # 清空 ChromaDB
-        collection.delete(where={})
+        # 清空 ChromaDB（用 ids 批量删除，避免 where={} 不被支持）
+        all_ids = all_results.get("ids") or []
+        if all_ids:
+            collection.delete(ids=all_ids)
 
         # 清空 FTS
         fts_writer.clear_all()
