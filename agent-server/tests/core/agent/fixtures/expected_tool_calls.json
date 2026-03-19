@@ -1,0 +1,19 @@
+{
+  "q1": {
+    "should_call": ["knowledge_base"],
+    "should_not_call": ["web_search"]
+  },
+  "q2": {
+    "should_call": ["web_search"],
+    "should_not_call": ["knowledge_base"]
+  },
+  "q3": {
+    "should_call": ["knowledge_base"],
+    "should_not_call": []
+  },
+  "q4": {
+    "should_call": ["knowledge_base"],
+    "should_not_call": ["web_search"],
+    "fallback_expected": true
+  }
+}

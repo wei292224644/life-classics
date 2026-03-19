@@ -1,0 +1,27 @@
+[
+  {
+    "id": "q1",
+    "question": "苯甲酸钠安全吗？",
+    "intent": "general_info",
+    "expected_tools": ["knowledge_base"]
+  },
+  {
+    "id": "q2",
+    "question": "XX 品牌最近有没有食品安全召回事件？",
+    "intent": "company_news",
+    "expected_tools": ["web_search"]
+  },
+  {
+    "id": "q3",
+    "question": "苯甲酸钠的国标用量是多少，有没有健康风险？",
+    "intent": "general_info",
+    "expected_tools": ["knowledge_base"]
+  },
+  {
+    "id": "q4",
+    "question": "查询一个根本不存在的神秘添加剂XYZ999",
+    "intent": "general_info",
+    "expected_tools": ["knowledge_base"],
+    "expected_fallback": true
+  }
+]
