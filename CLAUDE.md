@@ -5,7 +5,7 @@
 ## 项目概览
 
 本仓库为 monorepo，包含：
-- `agent-server/` — Python FastAPI 后端：基于 RAG 的多工具 Agent，用于查询中国食品安全国家标准（GB 标准）
+- `server/` — Python FastAPI 后端：基于 RAG 的多工具 Agent，用于查询中国食品安全国家标准（GB 标准）
 - `web/apps/console/` — React/Vite 管理界面（知识库 Chunk 浏览与编辑）
 - `web/` — Next.js/React 前端（Turbo monorepo）
 
@@ -16,7 +16,7 @@
 ```bash
 # 正确：在项目根目录执行
 git status
-git add agent-server/some_file.py
+git add server/some_file.py
 git commit -m "..."
 
 # 错误：不要 cd 进子目录再执行 git
@@ -24,7 +24,7 @@ git commit -m "..."
 ```
 
 ### Python 执行环境
-`agent-server/` 使用 **uv** 管理 Python 虚拟环境（依赖定义在 `pyproject.toml`）。所有 Python 相关命令在 `agent-server/` 目录下执行，且必须通过 `uv run` 调用：
+`server/` 使用 **uv** 管理 Python 虚拟环境（依赖定义在 `pyproject.toml`）。所有 Python 相关命令在 `server/` 目录下执行，且必须通过 `uv run` 调用：
 
 ```bash
 # 所有 Python 命令格式：uv run python3 ...
@@ -38,7 +38,7 @@ uv run pytest tests/core/parser_workflow/test_workflow.py -v
 
 ## agent-server 常用命令
 
-所有命令在 `agent-server/` 目录下执行。
+所有命令在 `server/` 目录下执行。
 
 **安装依赖：**
 ```bash
@@ -166,11 +166,11 @@ Agent 技能以 Markdown 形式定义在 `app/skills/`。
 
 ### 规划文档
 
-`agent-server/docs/plans/` 包含详细的分阶段实现计划（基于 TDD）。实现新功能前请先阅读——系统针对 GB 标准制定了特定的切分和分类规则。
+`server/docs/plans/` 包含详细的分阶段实现计划（基于 TDD）。实现新功能前请先阅读——系统针对 GB 标准制定了特定的切分和分类规则。
 
 ### 测试
 
-测试位于 `agent-server/tests/`，按模块组织：
+测试位于 `server/tests/`，按模块组织：
 - `tests/api/` — API 层服务测试（documents / chunks / kb）
 - `tests/core/parser_workflow/` — 流水线节点测试（最大的测试目录）
 - `tests/core/kb/` — 检索与写入测试
