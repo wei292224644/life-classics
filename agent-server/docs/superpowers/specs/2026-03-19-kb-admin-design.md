@@ -74,15 +74,15 @@ agent-server/
 
 ```
 # 文档资源
-GET    /api/documents                  列出所有文档（支持 title/standard_no 模糊搜索）
-POST   /api/documents                  上传新文档（含策略参数）
-DELETE /api/documents/{doc_id}         删除文档及其所有 chunks
+GET    /api/documents                  列出所有文档（聚合自 ChromaDB metadata，返回 doc_id/standard_no/doc_type/chunks_count）
+POST   /api/documents                  上传新文档（multipart/form-data：file, strategy, chunk_size?, chunk_overlap?）
+DELETE /api/documents/{doc_id}         删除文档及其所有 chunks（API 提供，Admin UI 本期不暴露入口）
 
 # Chunk 资源
 GET    /api/chunks                     列出 chunks（过滤：doc_id, semantic_type, section_path，支持分页）
 GET    /api/chunks/{chunk_id}          获取单条 chunk
 PUT    /api/chunks/{chunk_id}          更新 chunk（触发 re-embed + ChromaDB upsert）
-DELETE /api/chunks/{chunk_id}          删除单条 chunk
+DELETE /api/chunks/{chunk_id}          删除单条 chunk（API 提供，Admin UI 本期不暴露入口）
 
 # 知识库操作
 GET    /api/kb/stats                   统计信息（总 chunk 数、文档数、各 semantic_type 分布）
@@ -99,10 +99,25 @@ GET    /api/chat/stream/{session_id}   SSE 流式回复
 
 更新字段：`content`、`semantic_type`、`section_path`
 
+`semantic_type` 在数据库中是字符串字段，API 层不做枚举校验（直接存储传入值）。前端下拉选项作为唯一约束，选项为：
+`metadata`、`scope`、`limit`、`procedure`、`material`、`calculation`、`definition`、`amendment`
+
 保存流程：
 1. 更新 ChromaDB 中的 document 文本和 metadata
 2. 对新 content 重新生成向量嵌入（re-embed）
 3. upsert 回 ChromaDB（chunk_id 不变）
+
+### POST /api/documents 上传格式
+
+使用 `multipart/form-data`，参数：`file`（文件）、`strategy`（string）、`chunk_size`（int，可选）、`chunk_overlap`（int，可选）。
+
+### GET /api/chunks 过滤参数
+
+`section_path` 过滤值使用 `/` 分隔（如 `3/3.1`），API 层负责转换为 ChromaDB 存储格式（`|` 分隔）。
+
+### /api/agent/ 路由处理
+
+现有 `app/api/agent/` 路由（`/api/agent/chat` 等）**保持不变**，不在本次重建范围内。本次只废弃 `app/api/document/`，新增 `app/api/documents/`、`app/api/chunks/`、`app/api/kb/`、`app/api/search/`。
 
 ---
 
@@ -147,7 +162,13 @@ GET    /api/chat/stream/{session_id}   SSE 流式回复
 
 ### 文档搜索逻辑
 
-启动时一次性请求 `GET /api/documents` 缓存到内存，输入框对 `doc_title` / `standard_no` 做前端模糊匹配，匹配结果点击后以 `doc_id` 过滤右侧 chunk 列表。
+启动时一次性请求 `GET /api/documents` 全量加载并缓存到内存（文档数量有限，通常 < 100），输入框在客户端对 `doc_title` 和 `standard_no` 做模糊匹配（无额外 HTTP 请求）。`GET /api/documents` 不需要后端搜索参数。
+
+**`GET /api/documents` 响应字段：** `doc_id`、`standard_no`、`doc_type`、`chunks_count`。
+
+注意：ChromaDB metadata 中不存储 `doc_title` 字段，文档列表通过扫描所有 chunks 的 metadata 聚合而来。左侧文档列表每条显示：`standard_no`（主标题，如 "GB 2762-2022"，若为空则显示 `doc_id`）+ `doc_type`（副标题，如 "food_safety_standard"）+ `chunks_count`。
+
+匹配结果点击后以 `doc_id` 为参数请求右侧 chunk 列表。
 
 ### 内联编辑
 
