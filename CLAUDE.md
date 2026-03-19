@@ -6,8 +6,8 @@
 
 本仓库为 monorepo，包含：
 - `agent-server/` — Python FastAPI 后端：基于 RAG 的多工具 Agent，用于查询中国食品安全国家标准（GB 标准）
-- `agent-server/admin/` — React/Vite 管理界面（知识库 Chunk 浏览与编辑）
-- `client/` — Next.js/React 前端（Turbo monorepo）
+- `web/apps/console/` — React/Vite 管理界面（知识库 Chunk 浏览与编辑）
+- `web/` — Next.js/React 前端（Turbo monorepo）
 
 ## 执行环境说明
 
