@@ -72,7 +72,7 @@ RERANKER_PROVIDER=ollama
 RERANKER_MODEL=dengcao/Qwen3-Reranker-8B:Q4_K_M
 
 # ChromaDB 配置
-CHROMA_PERSIST_DIR=./chroma_db
+CHROMA_PERSIST_DIR=./db
 CHROMA_COLLECTION_NAME=knowledge_base
 
 # MinerU 服务（PDF 转 Markdown，本地 Docker 等）
@@ -154,7 +154,7 @@ agent-server/
 │   │   └── postgres-query/SKILL.md
 │   └── web/                    # Web 界面
 ├── docs/plans/                 # 设计文档与实施计划（见 2026-03-02-full-refactor-implementation-plan.md）
-├── chroma_db/
+├── db/
 ├── files/
 ├── markdown_cache/
 ├── pyproject.toml

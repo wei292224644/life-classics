@@ -38,11 +38,7 @@ ENV/
 .env.local
 
 # ChromaDB
-chroma_db/
-
-# FTS
-fts_db/
-
+db/
 *.db
 *.sqlite
 
@@ -52,15 +48,6 @@ uploads/
 *.docx
 *.pptx
 
-
-
 # Logs
 *.log
 logs/
-
-# OS
-.DS_Store
-Thumbs.db
-
-
-/markdown_cache/

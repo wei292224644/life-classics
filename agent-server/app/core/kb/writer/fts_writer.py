@@ -8,7 +8,7 @@ import jieba
 
 from app.core.parser_workflow.models import DocumentChunk
 
-FTS_DB_PATH = "fts_db/kb_fts.db"
+FTS_DB_PATH = "db/knowledge_base_fts.db"
 
 
 def _get_db_path(db_path: Optional[str]) -> str:

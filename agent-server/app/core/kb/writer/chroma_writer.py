@@ -6,7 +6,7 @@ from app.core.kb.clients import get_chroma_client
 from app.core.kb.embeddings import embed_batch
 from app.core.parser_workflow.models import DocumentChunk
 
-COLLECTION_NAME = "gb_standards"
+COLLECTION_NAME = "knowledge_base"
 
 _TRUNCATE_SUFFIX = "...（内容已截断）"
 _MAX_RAW_LEN = 2000

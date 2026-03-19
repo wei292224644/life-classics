@@ -399,3 +399,39 @@ def test_merge_short_long_boundary_between_short_groups():
     assert SHORT in result[0]["content"]
     # LONG 保留，后两个 SHORT 并入
     assert LONG in result[1]["content"]
+
+
+def test_classify_node_applies_all_hooks(tmp_path):
+    """classify_node 应通过 POST_CLASSIFY_HOOKS 注册表应用所有 hook。
+
+    回归测试：确保重构后 hook 仍被执行（以 merge_formula_with_variables 为例）。
+    公式 segment 后紧跟"式中..."时，最终应合并为一个 segment。
+    """
+    formula_content = "$$\nX = C \\times V / m\n$$"
+    var_content = "式中：\n\nX——残留量；\nC——浓度；\nV——体积；\nm——质量。"
+
+    mock_output = ClassifyOutput(segments=[
+        SegmentItem(
+            content=formula_content,
+            structure_type="formula",
+            semantic_type="calculation",
+            confidence=0.99,
+        ),
+        SegmentItem(
+            content=var_content,
+            structure_type="list",
+            semantic_type="calculation",
+            confidence=0.98,
+        ),
+    ])
+
+    with patch(
+        "app.core.parser_workflow.nodes.classify_node.invoke_structured",
+        return_value=mock_output,
+    ):
+        state = _make_state(formula_content + "\n\n" + var_content, tmp_path)
+        result = classify_node(state)
+
+    segments = result["classified_chunks"][0]["segments"]
+    assert len(segments) == 1, "公式与变量说明应已合并为一个 segment"
+    assert segments[0]["structure_type"] == "formula"

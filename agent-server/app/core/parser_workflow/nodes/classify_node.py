@@ -8,6 +8,7 @@ from app.core.parser_workflow.models import (
     TypedSegment,
     WorkflowState,
 )
+from app.core.parser_workflow.post_classify_hooks import POST_CLASSIFY_HOOKS
 from app.core.parser_workflow.rules import RulesStore
 from app.core.config import settings
 from app.core.parser_workflow.structured_llm import invoke_structured
@@ -68,65 +69,6 @@ def _escape_for_json_prompt(text: str) -> str:
     return text.replace('"', '\\"')
 
 
-_MERGE_SHORT_THRESHOLD = 60
-
-
-def _merge_short_segments(segments: List[TypedSegment]) -> List[TypedSegment]:
-    """将相邻且 semantic_type 相同的短 segment 合并，避免生成无独立检索价值的碎片 chunk。
-
-    左向扫描：若当前 segment 长度 < 阈值，且与前一个 segment 的 semantic_type 相同，
-    则并入前一个。单次 O(n) 扫描即可处理任意长度的连续短 segment 链。
-    """
-    result: List[TypedSegment] = []
-    for seg in segments:
-        if (
-            result
-            and result[-1]["semantic_type"] == seg["semantic_type"]
-            and len(seg["content"]) < _MERGE_SHORT_THRESHOLD
-        ):
-            result[-1] = TypedSegment(
-                **{
-                    **result[-1],
-                    "content": result[-1]["content"] + "\n\n" + seg["content"],
-                }
-            )
-        else:
-            result.append(seg)
-    return result
-
-
-def _merge_formula_with_variables(segments: List[TypedSegment]) -> List[TypedSegment]:
-    """将 formula segment 与其后紧邻的变量说明 segment 合并为一个。
-
-    GB 标准中公式块（$$...$$）和变量说明（式中：...）是同一语义单元，
-    但 LLM 有时会将两者切分为相邻的两个 segment。此函数在分类后做确定性修正。
-    """
-    merged = []
-    i = 0
-    while i < len(segments):
-        seg = segments[i]
-        if (
-            seg["structure_type"] == "formula"
-            and i + 1 < len(segments)
-            and segments[i + 1]["semantic_type"] == "calculation"
-            and segments[i + 1]["content"].lstrip().startswith("式中")
-        ):
-            next_seg = segments[i + 1]
-            merged.append(
-                TypedSegment(
-                    **{
-                        **seg,
-                        "content": seg["content"] + "\n\n" + next_seg["content"],
-                    }
-                )
-            )
-            i += 2
-        else:
-            merged.append(seg)
-            i += 1
-    return merged
-
-
 def classify_raw_chunk(
     raw_chunk: RawChunk,
     store: RulesStore,
@@ -175,8 +117,8 @@ def classify_raw_chunk(
             )
         segments.append(seg)
 
-    segments = _merge_formula_with_variables(segments)
-    segments = _merge_short_segments(segments)
+    for hook in POST_CLASSIFY_HOOKS:
+        segments = hook(segments)
 
     return ClassifiedChunk(
         raw_chunk=raw_chunk,

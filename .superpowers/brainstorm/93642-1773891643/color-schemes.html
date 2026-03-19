@@ -1,0 +1,155 @@
+<h2>色系选择</h2>
+<p class="subtitle">选择你偏好的风格</p>
+
+<div class="cards" style="margin-top:20px">
+
+  <!-- Option A: Light clean -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0">
+      <div style="background:#ffffff;padding:8px 12px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between">
+        <span style="color:#1e293b;font-weight:700;font-size:12px">⚡ KB Admin</span>
+        <span style="color:#64748b;font-size:10px">chunks: 342 · docs: 12</span>
+      </div>
+      <div style="display:flex;min-height:160px">
+        <div style="width:140px;background:#f1f5f9;border-right:1px solid #e2e8f0;padding:8px">
+          <div style="background:#ffffff;border-radius:4px;padding:4px 6px;margin-bottom:4px;border:1px solid #e2e8f0">
+            <div style="color:#94a3b8;font-size:9px">🔍 搜索文档...</div>
+          </div>
+          <div style="background:#eff6ff;border-left:3px solid #3b82f6;border-radius:3px;padding:5px 7px;margin-bottom:3px">
+            <div style="color:#1d4ed8;font-size:9px;font-weight:600">GB 2762-2022</div>
+            <div style="color:#64748b;font-size:8px">食品污染物限量</div>
+          </div>
+          <div style="padding:5px 7px;margin-bottom:3px">
+            <div style="color:#334155;font-size:9px">GB 5009.3-2016</div>
+            <div style="color:#94a3b8;font-size:8px">水分测定</div>
+          </div>
+          <div style="padding:5px 7px">
+            <div style="color:#334155;font-size:9px">GB 2760-2024</div>
+            <div style="color:#94a3b8;font-size:8px">食品添加剂</div>
+          </div>
+        </div>
+        <div style="flex:1;padding:8px;display:flex;flex-direction:column;gap:5px">
+          <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:5px;padding:7px">
+            <div style="display:flex;gap:4px;margin-bottom:4px">
+              <span style="background:#eff6ff;color:#3b82f6;border-radius:3px;padding:1px 5px;font-size:8px">scope</span>
+              <span style="color:#94a3b8;font-size:8px">1/1.1</span>
+            </div>
+            <div style="color:#334155;font-size:9px;line-height:1.4">本标准规定了食品中污染物的限量指标...</div>
+          </div>
+          <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:5px;padding:7px">
+            <div style="display:flex;gap:4px;margin-bottom:4px">
+              <span style="background:#f0fdf4;color:#16a34a;border-radius:3px;padding:1px 5px;font-size:8px">definition</span>
+              <span style="color:#94a3b8;font-size:8px">3/3.1</span>
+            </div>
+            <div style="color:#334155;font-size:9px;line-height:1.4">污染物（contaminant）：食品在生产过程中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · 亮色简洁</h3>
+      <p>白底灰边框，蓝色高亮选中态，适合长时间使用</p>
+    </div>
+  </div>
+
+  <!-- Option B: Indigo/Purple -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1e1b4b;border-radius:8px;overflow:hidden">
+      <div style="background:#312e81;padding:8px 12px;border-bottom:1px solid #4338ca;display:flex;justify-content:space-between">
+        <span style="color:#e0e7ff;font-weight:700;font-size:12px">⚡ KB Admin</span>
+        <span style="color:#818cf8;font-size:10px">chunks: 342 · docs: 12</span>
+      </div>
+      <div style="display:flex;min-height:160px">
+        <div style="width:140px;background:#1e1b4b;border-right:1px solid #312e81;padding:8px">
+          <div style="background:#312e81;border-radius:4px;padding:4px 6px;margin-bottom:4px">
+            <div style="color:#818cf8;font-size:9px">🔍 搜索文档...</div>
+          </div>
+          <div style="background:#312e81;border-left:3px solid #818cf8;border-radius:3px;padding:5px 7px;margin-bottom:3px">
+            <div style="color:#c7d2fe;font-size:9px;font-weight:600">GB 2762-2022</div>
+            <div style="color:#818cf8;font-size:8px">食品污染物限量</div>
+          </div>
+          <div style="padding:5px 7px;margin-bottom:3px">
+            <div style="color:#e0e7ff;font-size:9px">GB 5009.3-2016</div>
+            <div style="color:#6366f1;font-size:8px">水分测定</div>
+          </div>
+          <div style="padding:5px 7px">
+            <div style="color:#e0e7ff;font-size:9px">GB 2760-2024</div>
+            <div style="color:#6366f1;font-size:8px">食品添加剂</div>
+          </div>
+        </div>
+        <div style="flex:1;padding:8px;display:flex;flex-direction:column;gap:5px">
+          <div style="background:#312e81;border:1px solid #4338ca;border-radius:5px;padding:7px">
+            <div style="display:flex;gap:4px;margin-bottom:4px">
+              <span style="background:#4338ca;color:#a5b4fc;border-radius:3px;padding:1px 5px;font-size:8px">scope</span>
+              <span style="color:#818cf8;font-size:8px">1/1.1</span>
+            </div>
+            <div style="color:#e0e7ff;font-size:9px;line-height:1.4">本标准规定了食品中污染物的限量指标...</div>
+          </div>
+          <div style="background:#312e81;border:1px solid #4338ca;border-radius:5px;padding:7px">
+            <div style="display:flex;gap:4px;margin-bottom:4px">
+              <span style="background:#1e3a5f;color:#67e8f9;border-radius:3px;padding:1px 5px;font-size:8px">definition</span>
+              <span style="color:#818cf8;font-size:8px">3/3.1</span>
+            </div>
+            <div style="color:#e0e7ff;font-size:9px;line-height:1.4">污染物（contaminant）：食品在生产过程中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · 深紫/靛蓝</h3>
+      <p>深色但色调更暖，紫蓝渐变，视觉层次丰富</p>
+    </div>
+  </div>
+
+  <!-- Option C: Neutral dark with color accents -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#111827;border-radius:8px;overflow:hidden">
+      <div style="background:#1f2937;padding:8px 12px;border-bottom:1px solid #374151;display:flex;justify-content:space-between">
+        <span style="color:#f9fafb;font-weight:700;font-size:12px">⚡ KB Admin</span>
+        <span style="color:#9ca3af;font-size:10px">chunks: 342 · docs: 12</span>
+      </div>
+      <div style="display:flex;min-height:160px">
+        <div style="width:140px;background:#111827;border-right:1px solid #1f2937;padding:8px">
+          <div style="background:#1f2937;border-radius:4px;padding:4px 6px;margin-bottom:4px">
+            <div style="color:#6b7280;font-size:9px">🔍 搜索文档...</div>
+          </div>
+          <div style="background:#1f2937;border-left:3px solid #10b981;border-radius:3px;padding:5px 7px;margin-bottom:3px">
+            <div style="color:#d1fae5;font-size:9px;font-weight:600">GB 2762-2022</div>
+            <div style="color:#6b7280;font-size:8px">食品污染物限量</div>
+          </div>
+          <div style="padding:5px 7px;margin-bottom:3px">
+            <div style="color:#e5e7eb;font-size:9px">GB 5009.3-2016</div>
+            <div style="color:#6b7280;font-size:8px">水分测定</div>
+          </div>
+          <div style="padding:5px 7px">
+            <div style="color:#e5e7eb;font-size:9px">GB 2760-2024</div>
+            <div style="color:#6b7280;font-size:8px">食品添加剂</div>
+          </div>
+        </div>
+        <div style="flex:1;padding:8px;display:flex;flex-direction:column;gap:5px">
+          <div style="background:#1f2937;border:1px solid #374151;border-radius:5px;padding:7px">
+            <div style="display:flex;gap:4px;margin-bottom:4px">
+              <span style="background:#064e3b;color:#6ee7b7;border-radius:3px;padding:1px 5px;font-size:8px">scope</span>
+              <span style="color:#6b7280;font-size:8px">1/1.1</span>
+            </div>
+            <div style="color:#e5e7eb;font-size:9px;line-height:1.4">本标准规定了食品中污染物的限量指标...</div>
+          </div>
+          <div style="background:#1f2937;border:1px solid #374151;border-radius:5px;padding:7px">
+            <div style="display:flex;gap:4px;margin-bottom:4px">
+              <span style="background:#134e4a;color:#5eead4;border-radius:3px;padding:1px 5px;font-size:8px">definition</span>
+              <span style="color:#6b7280;font-size:8px">3/3.1</span>
+            </div>
+            <div style="color:#e5e7eb;font-size:9px;line-height:1.4">污染物（contaminant）：食品在生产过程中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · 深灰 + 绿色点缀</h3>
+      <p>中性深色背景，翠绿色强调色，专业感强</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;text-align:center">点击选择，或告诉我想要其他风格</p>

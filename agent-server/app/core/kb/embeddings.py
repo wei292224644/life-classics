@@ -19,7 +19,7 @@ def _create_embedding_model() -> OpenAIEmbeddings:
     if provider == "ollama":
         return OllamaEmbeddings(
             model=settings.EMBEDDING_MODEL,
-            base_url=settings.OLLAMA_BASE_URL or "http://localhost:11434/v1",
+            base_url=settings.OLLAMA_BASE_URL or "http://localhost:11434",
         )
 
 

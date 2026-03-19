@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # ── LLM 通用连接 ────────────────────────────────────────────────────────
     LLM_API_KEY: str = ""
-    LLM_BASE_URL: str = ""          # OpenAI-compatible endpoint，空则用 SDK 默认
+    LLM_BASE_URL: str = ""  # OpenAI-compatible endpoint，空则用 SDK 默认
 
     # ── DashScope 专用凭证 ────────────────────────────────────────────────────
     DASHSCOPE_API_KEY: str = ""
@@ -30,11 +30,11 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
 
     # ── Parser Workflow Provider 选择 ─────────────────────────────────────────
-    PARSER_LLM_PROVIDER: str = "openai"    # 全局默认，可选 openai / dashscope / ollama
-    CLASSIFY_LLM_PROVIDER: str = ""        # 节点级覆盖，空则使用全局默认
+    PARSER_LLM_PROVIDER: str = "openai"  # 全局默认，可选 openai / dashscope / ollama
+    CLASSIFY_LLM_PROVIDER: str = ""  # 节点级覆盖，空则使用全局默认
     ESCALATE_LLM_PROVIDER: str = ""
     TRANSFORM_LLM_PROVIDER: str = ""
-    DOC_TYPE_LLM_PROVIDER: str = ""        # 对应 structure_node.py
+    DOC_TYPE_LLM_PROVIDER: str = ""  # 对应 structure_node.py
 
     # ── 各用途模型 ──────────────────────────────────────────────────────────
     # parser workflow：classify_node（小模型，追求速度）
@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     # ── Parser Workflow 参数 ────────────────────────────────────────────────
     CHUNK_SOFT_MAX: int = 1500
     CHUNK_HARD_MAX: int = 3000
-    CHUNK_MIN_SIZE: int = 200      # 小于此值的 sibling 块会被累积合并，避免碎片 chunk
+    CHUNK_MIN_SIZE: int = 200  # 小于此值的 sibling 块会被累积合并，避免碎片 chunk
     CONFIDENCE_THRESHOLD: float = 0.7
     SLICE_HEADING_LEVELS: List[int] = [2, 3, 4]
     # 规则文件目录（运行时动态追加新规则）
@@ -63,7 +63,9 @@ class Settings(BaseSettings):
 
     # ── Embedding 配置 ────────────────────────────────────────────────────────
     EMBEDDING_MODEL: str = "text-embedding-v3"
-    EMBEDDING_LLM_PROVIDER: str = ""   # 空则使用 PARSER_LLM_PROVIDER，支持 openai/dashscope/ollama
+    EMBEDDING_LLM_PROVIDER: str = (
+        ""  # 空则使用 PARSER_LLM_PROVIDER，支持 openai/dashscope/ollama
+    )
 
     # ── Neo4j 连接 ────────────────────────────────────────────────────────────
     NEO4J_URI: str = "bolt://localhost:7687"
@@ -74,9 +76,8 @@ class Settings(BaseSettings):
     RERANKER_MODEL: str = "Qwen/Qwen3-Reranker-0.6B"
 
     # ── 存储路径 ────────────────────────────────────────────────────────────
-    CHROMA_PERSIST_DIR: str = "./chroma_db"
-    MARKDOWN_DB_DIR: str = "./markdown_db"
-    FTS_DB_PATH: str = "./fts_db/kb_fts.db"
+    CHROMA_PERSIST_DIR: str = "./db"
+    FTS_DB_PATH: str = "./db/knowledge_base_fts.db"
 
 
 settings = Settings()

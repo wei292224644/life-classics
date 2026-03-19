@@ -42,7 +42,7 @@ def _get_artifact_dir() -> Path:
     default_dir = (
         Path(__file__).resolve().parents[2]
         / "artifacts"
-        / "parser_workflow_nodes_20260318_220949"
+        / "parser_workflow_nodes_20260319_110608"
     )
     return Path(os.environ.get("WORKFLOW_RESUME_ARTIFACT_DIR", str(default_dir)))
 
@@ -104,10 +104,13 @@ def _load_cached_state_before_node(
     artifact_dir: Path,
     resume_from: str,
 ) -> WorkflowState:
-    if resume_from not in _CACHE_NODE_ORDER and resume_from != "transform_node":
+    if resume_from not in _CACHE_NODE_ORDER and resume_from not in {
+        "transform_node",
+        "final_chunks",
+    }:
         raise ValueError(
             "WORKFLOW_RESUME_FROM 仅支持: "
-            "parse_node/clean_node/structure_node/slice_node/classify_node/enrich_node/transform_node"
+            "parse_node/clean_node/structure_node/slice_node/classify_node/enrich_node/transform_node/final_chunks"
         )
 
     print(f"resume_from: {resume_from}")
@@ -121,6 +124,10 @@ def _load_cached_state_before_node(
         state["classified_chunks"] = _rehydrate_transform_params(
             state["classified_chunks"], state["rules_dir"]
         )
+
+    if resume_from == "final_chunks":
+        cached_output = _load_artifact_node_output(artifact_dir, "final_chunks")
+        state.update(cached_output)
     return state
 
 
@@ -134,6 +141,11 @@ def _run_from_resume_node(state: WorkflowState, resume_from: str) -> WorkflowSta
         "enrich_node": enrich_node,
         "transform_node": transform_node,
     }
+    if resume_from == "final_chunks":
+        if not state.get("final_chunks"):
+            raise ValueError("resume_from=final_chunks 但 state 中不存在 final_chunks")
+        return state
+
     if resume_from not in node_map:
         raise ValueError(f"不支持的 resume 节点: {resume_from}")
 
@@ -492,6 +504,7 @@ async def test_resume_workflow_from_cached_artifacts():
     基于已缓存节点输出做断点续跑，便于按步骤验证后续节点行为，并写入知识库。
     用法示例：
       WORKFLOW_RESUME_FROM=classify_node uv run pytest tests/core/parser_workflow/test_workflow.py -k resume -v -s
+      WORKFLOW_RESUME_FROM=final_chunks uv run pytest tests/core/parser_workflow/test_workflow.py -k resume -v -s
     """
     load_env_if_exists()
     if not os.environ.get("LLM_API_KEY"):
@@ -519,6 +532,8 @@ async def test_resume_workflow_from_cached_artifacts():
     logger.info("raw_chunks=%d", len(result_state.get("raw_chunks", [])))
     logger.info("classified_chunks=%d", len(result_state.get("classified_chunks", [])))
     logger.info("final_chunks=%d", len(result_state.get("final_chunks", [])))
+    if resume_from == "final_chunks":
+        logger.info("resume_from=final_chunks，跳过流程节点执行，直接进入知识库写入")
 
     assert len(result_state.get("classified_chunks", [])) > 0
     assert len(result_state.get("final_chunks", [])) > 0

@@ -1,0 +1,120 @@
+<h2>KB Admin — 页面布局设计</h2>
+<p class="subtitle">浏览 chunk 列表，支持文档搜索、类型筛选和内联编辑</p>
+
+<div class="mockup" style="margin-top:24px">
+  <div class="mockup-header">KB Admin · localhost:9999/admin</div>
+  <div class="mockup-body" style="padding:0;overflow:hidden">
+
+    <!-- Top bar -->
+    <div style="background:#1e1e2e;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #313244">
+      <span style="color:#cdd6f4;font-weight:700;font-size:15px;letter-spacing:.5px">⚡ KB Admin</span>
+      <div style="display:flex;gap:20px;font-size:12px;color:#6c7086">
+        <span>总 chunks：<strong style="color:#89b4fa">342</strong></span>
+        <span>文档数：<strong style="color:#89b4fa">12</strong></span>
+        <span>semantic types：<strong style="color:#89b4fa">8</strong></span>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div style="background:#181825;padding:12px 20px;display:flex;gap:10px;align-items:center;border-bottom:1px solid #313244">
+      <div style="flex:1;background:#313244;border-radius:6px;padding:7px 12px;display:flex;align-items:center;gap:8px">
+        <span style="color:#6c7086;font-size:13px">🔍</span>
+        <span style="color:#6c7086;font-size:13px">搜索文档（模糊匹配 doc_title / standard_no）</span>
+      </div>
+      <select style="background:#313244;border:none;color:#cdd6f4;border-radius:6px;padding:7px 10px;font-size:13px">
+        <option>semantic_type: 全部</option>
+        <option>scope</option>
+        <option>definition</option>
+        <option>limit</option>
+      </select>
+      <button style="background:#313244;border:none;color:#6c7086;border-radius:6px;padding:7px 12px;font-size:13px;cursor:pointer">清除筛选</button>
+    </div>
+
+    <!-- Chunk list -->
+    <div style="background:#1e1e2e;padding:12px 20px;display:flex;flex-direction:column;gap:8px">
+
+      <!-- Chunk card — normal -->
+      <div style="background:#181825;border:1px solid #313244;border-radius:8px;padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+            <span style="background:#1e3a5f;color:#89b4fa;border-radius:4px;padding:2px 8px;font-size:11px">GB 2762-2022</span>
+            <span style="background:#2d2b3e;color:#cba6f7;border-radius:4px;padding:2px 8px;font-size:11px">scope</span>
+            <span style="background:#2d2b3e;color:#6c7086;border-radius:4px;padding:2px 8px;font-size:11px">1 / 1.1</span>
+          </div>
+          <button style="background:#313244;border:none;color:#89b4fa;border-radius:5px;padding:4px 12px;font-size:12px;cursor:pointer">编辑</button>
+        </div>
+        <p style="color:#cdd6f4;font-size:13px;margin:0;line-height:1.6">本标准规定了食品中污染物的限量指标，适用于各类食品（包括饮料、乳制品及其制品）中铅、镉、汞、砷等重金属的最高残留限量。</p>
+      </div>
+
+      <!-- Chunk card — edit mode -->
+      <div style="background:#181825;border:1.5px solid #89b4fa;border-radius:8px;padding:14px 16px;box-shadow:0 0 0 3px rgba(137,180,250,0.08)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="background:#1e3a5f;color:#89b4fa;border-radius:4px;padding:2px 8px;font-size:11px">GB 2762-2022</span>
+            <span style="background:#2d1f3e;color:#cba6f7;border-radius:4px;padding:2px 8px;font-size:11px">✏️ 编辑中</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button style="background:#a6e3a1;border:none;color:#1e1e2e;border-radius:5px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600">保存</button>
+            <button style="background:#313244;border:none;color:#6c7086;border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer">取消</button>
+          </div>
+        </div>
+
+        <!-- Edit fields -->
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div style="color:#6c7086;font-size:11px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">content</div>
+            <textarea style="width:100%;background:#313244;border:1px solid #45475a;border-radius:6px;color:#cdd6f4;font-size:13px;padding:8px;resize:vertical;min-height:80px;box-sizing:border-box">本标准规定了食品中污染物的限量指标，适用于各类食品（包括饮料、乳制品及其制品）中铅、镉、汞、砷等重金属的最高残留限量。</textarea>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1">
+              <div style="color:#6c7086;font-size:11px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">semantic_type</div>
+              <select style="width:100%;background:#313244;border:1px solid #45475a;color:#cdd6f4;border-radius:6px;padding:7px 10px;font-size:13px">
+                <option selected>scope</option>
+                <option>definition</option>
+                <option>limit</option>
+                <option>procedure</option>
+                <option>material</option>
+                <option>calculation</option>
+                <option>amendment</option>
+              </select>
+            </div>
+            <div style="flex:1">
+              <div style="color:#6c7086;font-size:11px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">section_path（/ 分隔）</div>
+              <input style="width:100%;background:#313244;border:1px solid #45475a;color:#cdd6f4;border-radius:6px;padding:7px 10px;font-size:13px;box-sizing:border-box" value="1/1.1" />
+            </div>
+          </div>
+          <div style="font-size:11px;color:#f38ba8;background:#2d1b1b;border-radius:4px;padding:5px 10px">⚡ 保存后将自动重新生成向量嵌入</div>
+        </div>
+      </div>
+
+      <!-- Chunk card — normal 2 -->
+      <div style="background:#181825;border:1px solid #313244;border-radius:8px;padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+            <span style="background:#1e3a5f;color:#89b4fa;border-radius:4px;padding:2px 8px;font-size:11px">GB 2762-2022</span>
+            <span style="background:#2d2b3e;color:#cba6f7;border-radius:4px;padding:2px 8px;font-size:11px">definition</span>
+            <span style="background:#2d2b3e;color:#6c7086;border-radius:4px;padding:2px 8px;font-size:11px">3 / 3.1</span>
+          </div>
+          <button style="background:#313244;border:none;color:#89b4fa;border-radius:5px;padding:4px 12px;font-size:12px;cursor:pointer">编辑</button>
+        </div>
+        <p style="color:#cdd6f4;font-size:13px;margin:0;line-height:1.6">污染物（contaminant）：食品在生产（包括农作物种植、动物饲养和兽医用药）、加工、包装、贮存、运输、销售直至食用等过程中产生的或由环境污染带入的、非有意加入的化学性危害物质。</p>
+      </div>
+
+    </div>
+
+    <!-- Pagination -->
+    <div style="background:#181825;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #313244">
+      <span style="color:#6c7086;font-size:12px">共 342 条，显示 1-20</span>
+      <div style="display:flex;gap:4px">
+        <button style="background:#313244;border:none;color:#6c7086;border-radius:4px;padding:4px 10px;font-size:12px">←</button>
+        <button style="background:#89b4fa;border:none;color:#1e1e2e;border-radius:4px;padding:4px 10px;font-size:12px;font-weight:600">1</button>
+        <button style="background:#313244;border:none;color:#6c7086;border-radius:4px;padding:4px 10px;font-size:12px">2</button>
+        <button style="background:#313244;border:none;color:#6c7086;border-radius:4px;padding:4px 10px;font-size:12px">3</button>
+        <button style="background:#313244;border:none;color:#6c7086;border-radius:4px;padding:4px 10px;font-size:12px">→</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:16px;text-align:center">第二张卡片展示了内联编辑模式（点击「编辑」后展开），包含 content 文本框、semantic_type 下拉和 section_path 输入。</p>
