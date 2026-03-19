@@ -49,3 +49,33 @@ class DocumentsService:
         chunk_overlap: int | None = None,
     ) -> dict[str, Any]:
         raise HTTPException(status_code=501, detail="文档上传功能尚未实现，请通过 parser_workflow 直接写入知识库")
+
+    @staticmethod
+    def clear_all() -> dict[str, Any]:
+        """
+        清空所有文档和 chunks（ChromaDB + FTS）。
+        Returns:
+            {
+                "status": "success",
+                "deleted_documents": int,
+                "deleted_chunks": int,
+            }
+        """
+        # 获取删除前的统计
+        collection = get_collection()
+        all_results = collection.get(include=["metadatas"])
+        metadatas = all_results.get("metadatas") or []
+        doc_ids = {m.get("doc_id") for m in metadatas if m.get("doc_id")}
+        total_chunks = len(all_results.get("ids") or [])
+
+        # 清空 ChromaDB
+        collection.delete(where={})
+
+        # 清空 FTS
+        fts_writer.clear_all()
+
+        return {
+            "status": "success",
+            "deleted_documents": len(doc_ids),
+            "deleted_chunks": total_chunks,
+        }

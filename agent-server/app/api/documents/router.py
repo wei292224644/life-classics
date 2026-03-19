@@ -38,6 +38,14 @@ async def upload_document(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.delete("/clear")
+def clear_all_documents():
+    try:
+        return DocumentsService.clear_all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.delete("/{doc_id}")
 def delete_document(doc_id: str):
     try:
