@@ -99,8 +99,10 @@ GET    /api/chat/stream/{session_id}   SSE 流式回复
 
 更新字段：`content`、`semantic_type`、`section_path`
 
-`semantic_type` 在数据库中是字符串字段，API 层不做枚举校验（直接存储传入值）。前端下拉选项作为唯一约束，选项为：
-`metadata`、`scope`、`limit`、`procedure`、`material`、`calculation`、`definition`、`amendment`
+`semantic_type` 在数据库中是字符串字段，API 层不做枚举校验（直接存储传入值）。前端下拉选项为：
+`metadata`、`scope`、`limit`、`procedure`、`material`、`calculation`、`definition`、`amendment`、`unknown`
+
+注：ChromaDB 中可能已存在 `unknown` 或其他值的 chunk，前端展示时若值不在枚举列表中，以 badge 原样显示（不阻止保存）。
 
 保存流程：
 1. 更新 ChromaDB 中的 document 文本和 metadata
@@ -111,13 +113,32 @@ GET    /api/chat/stream/{session_id}   SSE 流式回复
 
 使用 `multipart/form-data`，参数：`file`（文件）、`strategy`（string）、`chunk_size`（int，可选）、`chunk_overlap`（int，可选）。
 
-### GET /api/chunks 过滤参数
+### GET /api/chunks 参数 & 响应
 
-`section_path` 过滤值使用 `/` 分隔（如 `3/3.1`），API 层负责转换为 ChromaDB 存储格式（`|` 分隔）。
+**查询参数：**
+- `doc_id`（string，可选）：精确匹配
+- `semantic_type`（string，可选）：精确匹配
+- `section_path`（string，可选）：精确匹配，使用 `/` 分隔（如 `3/3.1`），API 层转换为 ChromaDB 存储格式（`|` 分隔）
+- `limit`（int，默认 20，最大 100）：每页数量
+- `offset`（int，默认 0）：跳过条数
+
+**响应体：**
+```json
+{
+  "chunks": [...],
+  "total": 38,
+  "limit": 20,
+  "offset": 0
+}
+```
+
+`total` 为过滤后的总条数，供前端渲染"共 N 条"及分页组件。
 
 ### /api/agent/ 路由处理
 
-现有 `app/api/agent/` 路由（`/api/agent/chat` 等）**保持不变**，不在本次重建范围内。本次只废弃 `app/api/document/`，新增 `app/api/documents/`、`app/api/chunks/`、`app/api/kb/`、`app/api/search/`。
+现有 `app/api/agent/` 路由（`/api/agent/chat` 等）**保持不变**，不在本次重建范围内。
+
+本次重建范围：**仅废弃 `app/api/document/`**（包含其下所有路由：上传、chunks、documents、markdown、reprocess、search、chat），新建 `app/api/documents/`、`app/api/chunks/`、`app/api/kb/`、`app/api/search/` 四个模块。markdown 相关路由随旧 `document/` 一并废弃，不迁移到新架构。
 
 ---
 
