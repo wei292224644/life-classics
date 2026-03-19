@@ -5,9 +5,9 @@
 ## 项目概览
 
 本仓库为 monorepo，包含：
-- `agent-server/` — Python FastAPI 后端：基于 RAG 的多工具 Agent，用于查询中国食品安全国家标准（GB 标准）
-- `agent-server/admin/` — React/Vite 管理界面（知识库 Chunk 浏览与编辑）
-- `client/` — Next.js/React 前端（Turbo monorepo）
+- `server/` — Python FastAPI 后端：基于 RAG 的多工具 Agent，用于查询中国食品安全国家标准（GB 标准）
+- `web/apps/console/` — React/Vite 管理界面（知识库 Chunk 浏览与编辑）
+- `web/` — Next.js/React 前端（Turbo monorepo）
 
 ## 执行环境说明
 
@@ -16,7 +16,7 @@
 ```bash
 # 正确：在项目根目录执行
 git status
-git add agent-server/some_file.py
+git add server/some_file.py
 git commit -m "..."
 
 # 错误：不要 cd 进子目录再执行 git
@@ -24,11 +24,11 @@ git commit -m "..."
 ```
 
 ### Python 执行环境
-`agent-server/` 使用 **uv** 管理 Python 虚拟环境（依赖定义在 `pyproject.toml`）。所有 Python 相关命令在 `agent-server/` 目录下执行，且必须通过 `uv run` 调用：
+`server/` 使用 **uv** 管理 Python 虚拟环境（依赖定义在 `pyproject.toml`）。所有 Python 相关命令在 `server/` 目录下执行，且必须通过 `uv run` 调用：
 
 ```bash
 # 所有 Python 命令格式：uv run python3 ...
-cd agent-server
+cd server
 uv run python3 some_script.py
 
 # 测试也通过 uv run 执行
@@ -36,9 +36,9 @@ uv run pytest tests/ -v
 uv run pytest tests/core/parser_workflow/test_workflow.py -v
 ```
 
-## agent-server 常用命令
+## server 常用命令
 
-所有命令在 `agent-server/` 目录下执行。
+所有命令在 `server/` 目录下执行。
 
 **安装依赖：**
 ```bash
@@ -48,7 +48,7 @@ uv sync
 **启动服务：**
 ```bash
 uv run python3 run.py
-# 或：uv run uvicorn app.main:app --host 0.0.0.0 --port 9999 --reload
+# 或：uv run uvicorn api.main:app --host 0.0.0.0 --port 9999 --reload
 ```
 服务地址：http://localhost:9999 | Swagger 文档：http://localhost:9999/swagger
 
@@ -67,7 +67,7 @@ uv run pytest tests/core/parser_workflow/test_workflow.py -v
 
 ### 核心数据结构
 
-`app/core/parser_workflow/models.py` 定义了贯穿处理流水线的核心数据模型：
+`server/parser/models.py` 定义了贯穿处理流水线的核心数据模型：
 - `DocumentChunk`（TypedDict）— 最终输出的 chunk，包含 `chunk_id`、`structure_type`、`semantic_type`、`content`、`raw_content`、`section_path`、`doc_metadata`、`meta`
 - `TypedSegment` — 分类后的文本段，使用双维度分类体系：
   - `structure_type`：结构维度（`paragraph` / `list` / `table` / `formula` / `header`）
@@ -76,13 +76,13 @@ uv run pytest tests/core/parser_workflow/test_workflow.py -v
 
 ### 文档处理流水线（Parser Workflow）
 
-基于 LangGraph 构建的 9 节点有向图（`app/core/parser_workflow/graph.py`）：
+基于 LangGraph 构建的 9 节点有向图（`server/parser/graph.py`）：
 
 ```
 Markdown → parse → clean → structure → slice → classify → [escalate] → enrich → transform → merge → DocumentChunk[]
 ```
 
-各节点职责（`app/core/parser_workflow/nodes/`）：
+各节点职责（`server/parser/nodes/`）：
 1. **parse_node** — 解析 Markdown 为原始 chunk（按标题切分）
 2. **clean_node** — 清洗内容（去噪、格式规范化）
 3. **structure_node** — LLM 推断结构类型
@@ -93,10 +93,10 @@ Markdown → parse → clean → structure → slice → classify → [escalate]
 8. **transform_node** — 内容转换（表格→自然语言等）
 9. **merge_node** — 合并相邻同类 chunk
 
-规则配置文件位于 `app/core/parser_workflow/rules/`。
-结构化 LLM 输出（Instructor）封装于 `app/core/parser_workflow/structured_llm/`。
+规则配置文件位于 `server/parser/rules/`。
+结构化 LLM 输出（Instructor）封装于 `server/parser/structured_llm/`。
 
-### 存储层（`app/core/kb/`）
+### 存储层（`server/kb/`）
 
 - **写入**（`writer/`）：`chroma_writer` 写入 ChromaDB 向量库，`fts_writer` 写入全文索引
 - **检索**（`retriever/`）：`vector_retriever`（向量检索）+ `fts_retriever`（BM25 全文检索）→ `rrf`（RRF 融合排序）→ `rerank`（Qwen3-Reranker 重排序）
@@ -105,9 +105,9 @@ Markdown → parse → clean → structure → slice → classify → [escalate]
 
 ### Agent
 
-`app/core/agent/` 提供两种 Agent：
+`server/agent/` 提供两种 Agent：
 
-1. **国标 RAG Agent**（`factory.py`）— 基于 Deep Agents + LangGraph 构建，注册 `app/core/tools/` 中的工具：
+1. **国标 RAG Agent**（`factory.py`）— 基于 Deep Agents + LangGraph 构建，注册 `server/agent/tools/` 中的工具：
    - `knowledge_base` — 混合检索（向量 + BM25 + Reranker）
    - `web_search` — DuckDuckGo 搜索
    - `neo4j_query` — 图数据库查询
@@ -115,20 +115,20 @@ Markdown → parse → clean → structure → slice → classify → [escalate]
 
 2. **食品安全助手**（`food_safety_agent.py`）— 基于 Agno 框架，通过 `agent_type="food_safety"` 路由
 
-Agent 技能以 Markdown 形式定义在 `app/skills/`。
+Agent 技能以 Markdown 形式定义在 `server/agent/skills/`。
 
 ### LLM 提供商
 
-通过 `app/core/config.py`（Pydantic Settings，读取 `.env`）配置：
+通过 `server/config.py`（Pydantic Settings，读取 `.env`）配置：
 - **DashScope**（阿里通义千问）— 主要提供商，设置 `DASHSCOPE_API_KEY`
 - **Ollama** — 本地模型，设置 `OLLAMA_BASE_URL`
 - **OpenRouter** — 多模型代理
 
-提供商和模型选择可通过环境变量在运行时完全配置。Provider 适配器见 `app/core/llm/`。
+提供商和模型选择可通过环境变量在运行时完全配置。Provider 适配器见 `server/llm/`。
 
 ### API 端点
 
-5 个模块化路由（`app/api/`）：
+5 个模块化路由（`server/api/`）：
 
 **Documents** (`/api/documents`)：
 - `GET /api/documents` — 列出所有文档
@@ -154,7 +154,7 @@ Agent 技能以 Markdown 形式定义在 `app/skills/`。
 **Agent** (`/api/agent`)：
 - `POST /api/agent/chat` — 多工具 Agent 对话（支持 `agent_type` 路由）
 
-### 关键配置（`app/core/config.py`）
+### 关键配置（`server/config.py`）
 
 所有配置项均支持环境变量覆盖。关键变量：
 - `LLM_PROVIDER`、`CHAT_MODEL`、`EMBEDDING_MODEL`
@@ -166,11 +166,11 @@ Agent 技能以 Markdown 形式定义在 `app/skills/`。
 
 ### 规划文档
 
-`agent-server/docs/plans/` 包含详细的分阶段实现计划（基于 TDD）。实现新功能前请先阅读——系统针对 GB 标准制定了特定的切分和分类规则。
+`server/docs/plans/` 包含详细的分阶段实现计划（基于 TDD）。实现新功能前请先阅读——系统针对 GB 标准制定了特定的切分和分类规则。
 
 ### 测试
 
-测试位于 `agent-server/tests/`，按模块组织：
+测试位于 `server/tests/`，按模块组织：
 - `tests/api/` — API 层服务测试（documents / chunks / kb）
 - `tests/core/parser_workflow/` — 流水线节点测试（最大的测试目录）
 - `tests/core/kb/` — 检索与写入测试
