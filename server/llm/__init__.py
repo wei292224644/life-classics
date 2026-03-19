@@ -7,7 +7,7 @@ from typing import List, Optional, Dict, Any, AsyncIterator
 from langchain_core.messages import BaseMessage
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
-from api.config import settings
+from config import settings
 from llm.dashscope import (
     create_chat as create_chat_dashscope,
     create_embedding as create_embedding_dashscope,

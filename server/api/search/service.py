@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-from api.config import settings
+from config import settings
 from kb.clients import get_chroma_client
 from kb.embeddings import embed_batch
 from llm import chat as llm_chat, chat_stream
