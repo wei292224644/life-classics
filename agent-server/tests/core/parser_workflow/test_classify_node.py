@@ -79,3 +79,12 @@ def test_get_transform_params_calculation_uses_formula_embed(store):
 def test_get_transform_params_limit_uses_table_to_text(store):
     params = store.get_transform_params("limit")
     assert params["strategy"] == "table_to_text"
+
+
+def test_limit_description_excludes_method_performance_metrics(store):
+    rules = store.get_content_type_rules()
+    limit = next(t for t in rules["semantic_types"] if t["id"] == "limit")
+    desc = limit["description"]
+    assert "不包括" in desc or "排除" in desc, (
+        f"limit 描述必须含排除词，当前描述：{desc}"
+    )

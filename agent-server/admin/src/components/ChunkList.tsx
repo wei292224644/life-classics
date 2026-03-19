@@ -6,13 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChunkCard } from './ChunkCard'
+import { ChunkEditDrawer } from './ChunkEditDrawer'
 import { api } from '@/api/client'
 import type { Chunk } from '@/api/types'
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 
 const SEMANTIC_TYPES = [
   'scope', 'definition', 'limit', 'procedure',
@@ -30,8 +26,7 @@ export function ChunkList({ docId }: Props) {
   const [offset, setOffset] = useState(0)
   const [semanticFilter, setSemanticFilter] = useState<string>('all')
   const [loading, setLoading] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [pendingEditId, setPendingEditId] = useState<string | null>(null)
+  const [editingChunk, setEditingChunk] = useState<Chunk | null>(null)
 
   const load = useCallback(async () => {
     if (!docId) { setChunks([]); setTotal(0); return }
@@ -54,14 +49,6 @@ export function ChunkList({ docId }: Props) {
 
   useEffect(() => { setOffset(0) }, [docId, semanticFilter])
   useEffect(() => { load() }, [load])
-
-  function handleEditStart(id: string) {
-    if (editingId && editingId !== id) {
-      setPendingEditId(id)
-    } else {
-      setEditingId(id)
-    }
-  }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1
@@ -111,12 +98,7 @@ export function ChunkList({ docId }: Props) {
               <ChunkCard
                 key={chunk.id}
                 chunk={chunk}
-                isEditing={editingId === chunk.id}
-                onEditStart={() => handleEditStart(chunk.id)}
-                onEditEnd={() => setEditingId(null)}
-                onSaved={updated => {
-                  setChunks(prev => prev.map(c => c.id === updated.id ? updated : c))
-                }}
+                onEdit={() => setEditingChunk(chunk)}
               />
             ))}
           </div>
@@ -151,22 +133,15 @@ export function ChunkList({ docId }: Props) {
         </div>
       )}
 
-      {/* Unsaved changes dialog */}
-      <AlertDialog open={!!pendingEditId} onOpenChange={() => setPendingEditId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>放弃当前修改？</AlertDialogTitle>
-            <AlertDialogDescription>当前 chunk 有未保存的改动，切换后将丢失。</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              setEditingId(pendingEditId)
-              setPendingEditId(null)
-            }}>放弃并切换</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Edit drawer */}
+      <ChunkEditDrawer
+        chunk={editingChunk}
+        open={editingChunk !== null}
+        onClose={() => setEditingChunk(null)}
+        onSaved={updated => {
+          setChunks(prev => prev.map(c => c.id === updated.id ? updated : c))
+        }}
+      />
     </div>
   )
 }

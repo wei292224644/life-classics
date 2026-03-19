@@ -206,6 +206,43 @@ def test_amendment_prompt_renders_inline_latex():
     )
 
 
+def test_calculation_prompt_preserves_variable_name_before_dash():
+    """formula_embed prompt 必须明确保留变量名字母/符号（X、C、m 等）在——之前"""
+    prompt = _prompt(_load(), "calculation")
+    assert "变量名" in prompt and "严禁丢弃" in prompt, (
+        f"calculation prompt 应含'变量名'和'严禁丢弃'，当前内容：{prompt}"
+    )
+
+
+def test_calculation_prompt_handles_multiline_dash_format():
+    """formula_embed prompt 应提到多短横线格式（LaTeX 渲染产物 X - - - - -）"""
+    prompt = _prompt(_load(), "calculation")
+    assert "短横线" in prompt, (
+        f"calculation prompt 应提及多短横线格式，当前内容：{prompt}"
+    )
+
+
+def test_limit_semantic_type_excludes_method_performance():
+    rules = _load()
+    limit = next(t for t in rules["semantic_types"] if t["id"] == "limit")
+    desc = limit["description"]
+    assert ("不包括" in desc or "排除" in desc), (
+        f"limit 描述必须含排除词，当前描述：{desc}"
+    )
+    assert "检测限" in desc or "灵敏度" in desc, (
+        f"limit 描述排除词必须点名检测限/灵敏度，当前描述：{desc}"
+    )
+
+
+def test_definition_semantic_type_includes_method_performance():
+    rules = _load()
+    defn = next(t for t in rules["semantic_types"] if t["id"] == "definition")
+    all_text = defn["description"] + " ".join(defn.get("examples", []))
+    assert "检测限" in all_text or "灵敏度" in all_text or "定量限" in all_text, (
+        f"definition 语义描述或示例中应包含检测限/定量限/灵敏度，当前：{all_text}"
+    )
+
+
 def test_metadata_semantic_type_covers_preface_changes():
     """metadata 的示例中应包含前言变更格式（如"——增加了"），
     以引导 LLM 将前言变更列表归为 metadata 而非 limit/procedure。"""
