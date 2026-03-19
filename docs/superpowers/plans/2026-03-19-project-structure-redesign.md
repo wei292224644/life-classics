@@ -233,9 +233,14 @@ git commit -m "feat(server): create uv workspace structure with api, agent, kb, 
 - Move: `server/app/core/agent/` → `server/agent/`
 - Move: `server/app/api/` → `server/api/`
 - Move: `server/app/skills/` → `server/agent/` (Agent skills)
-- Move: `server/app/core/` → `server/api/` (config.py, llm/ 等共享代码)
+- Move: `server/app/core/` → `server/api/` (llm/ 等共享代码)
 - Move: `server/app/web/` → `server/api/` (web 路由)
 - Move: `server/app/main.py` → `server/api/main.py`
+- Move: `server/app/core/config.py` → `server/parser/config.py` (避免循环依赖)
+
+**注意**: `config.py` 放在 `parser/` 而不是 `api/`，因为：
+- `parser` 是依赖链的根节点（其他包都依赖它）
+- 避免 `agent` 和 `kb` 需要从 `api` 导入 config 造成的循环依赖
 
 - [ ] **Step 1: 创建目录结构**
 
@@ -264,11 +269,18 @@ mv server/app/core/agent/* server/agent/
 rm -rf server/app/core/agent
 ```
 
-- [ ] **Step 5: 移动 shared(core) → api**
+- [ ] **Step 5: 移动 config.py → parser/config.py**
 
 ```bash
-# 移动 config.py, llm/ 等共享代码
-mv server/app/core/* server/api/
+# config.py 需要放在 parser/，避免循环依赖
+mv server/app/core/config.py server/parser/config.py
+```
+
+- [ ] **Step 6: 移动其他共享代码 (llm/, api/, web/, main.py)**
+
+```bash
+# 移动 llm/ 等共享代码
+mv server/app/core/llm server/api/
 # 移动 api 路由
 mv server/app/api/* server/api/
 # 移动 web 路由
@@ -279,13 +291,13 @@ mv server/app/main.py server/api/main.py
 mv server/app/skills/* server/agent/ 2>/dev/null || true
 ```
 
-- [ ] **Step 6: 清理空目录**
+- [ ] **Step 7: 清理空目录**
 
 ```bash
 rmdir server/app/core server/app/api server/app/web server/app/skills server/app 2>/dev/null || true
 ```
 
-- [ ] **Step 7: 提交**
+- [ ] **Step 8: 提交**
 
 ```bash
 git add -A
@@ -316,7 +328,7 @@ grep -r "import app\." server/ --include="*.py" | head -50
 
 ```python
 # 原来: from app.core.config import settings
-# 现在: from api.config import settings
+# 现在: from parser.config import settings
 
 # 原来: from app.core.agent import ...
 # 现在: from agent import ...
@@ -358,7 +370,7 @@ grep -r "import app\." server/ --include="*.py" | head -50
 # 现在: from api.main import app
 ```
 
-- [ ] **Step 7: 提交**
+- [ ] **Step 8: 提交**
 
 ```bash
 git add -A
@@ -408,12 +420,65 @@ git commit -m "chore(server): verify uv workspace setup"
 
 ---
 
+### Task 3.5: 更新测试文件中的导入路径
+
+**Files:**
+- Modify: `server/tests/` 下的所有测试文件
+
+- [ ] **Step 1: 查找所有需要更新的测试导入**
+
+```bash
+cd server
+grep -r "from app\." tests/ --include="*.py" | sort -u
+grep -r "import app\." tests/ --include="*.py" | sort -u
+```
+
+预期输出类似:
+```
+tests/api/chunks/test_service.py:from app.core.parser_workflow.models import DocumentChunk
+tests/api/documents/test_service.py:from app.api.documents.service import ...
+tests/core/agent/test_food_safety_agent.py:from app.core.agent.session_store import ...
+tests/core/kb/retriever/test_vector_retriever.py:from app.core.kb.embeddings import ...
+```
+
+- [ ] **Step 2: 使用 sed 批量替换**
+
+```bash
+cd server
+find tests/ -name "*.py" -exec sed -i '' \
+    -e 's/from app\.core\.parser_workflow\./from parser./g' \
+    -e 's/from app\.core\.kb\./from kb./g' \
+    -e 's/from app\.core\.agent\./from agent./g' \
+    -e 's/from app\.api\./from api./g' \
+    -e 's/from app\.skills/from agent.skills/g' \
+    -e 's/from app\.main/from api.main/g' \
+    {} \;
+```
+
+- [ ] **Step 3: 验证无遗漏**
+
+```bash
+cd server
+grep -r "from app\." tests/ --include="*.py" | wc -l
+# 预期: 0
+```
+
+- [ ] **Step 4: 提交**
+
+```bash
+git add -A
+git commit -m "refactor(server): update test import paths"
+```
+
+---
+
 ## Phase 4: 文档更新
 
-### Task 4.1: 更新 CLAUDE.md
+### Task 4.1: 更新 CLAUDE.md 和 README.md
 
 **Files:**
 - Modify: `CLAUDE.md`
+- Modify: `README.md`
 
 - [ ] **Step 1: 更新项目概览**
 
@@ -451,11 +516,19 @@ uv run pytest tests/ -v
 所有 `app/core/agent/` → `server/agent/`
 所有 `app/api/` → `server/api/`
 
-- [ ] **Step 4: 提交**
+- [ ] **Step 4: 更新 README.md**
+
+```bash
+# 更新 README.md 中的路径引用
+# - agent-server/ → server/
+# - app/core/ → 新的包路径
+```
+
+- [ ] **Step 5: 提交**
 
 ```bash
 git add -A
-git commit -m "docs: update CLAUDE.md for new project structure"
+git commit -m "docs: update CLAUDE.md and README.md for new project structure"
 ```
 
 ---
