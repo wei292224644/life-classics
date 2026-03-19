@@ -18,6 +18,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   documents: {
     list: () => request<{ documents: DocumentInfo[]; total: number }>('/documents'),
+    clearAll: () =>
+      request<{
+        status: string
+        deleted_documents: number
+        deleted_chunks: number
+      }>('/documents/clear', { method: 'DELETE' }),
   },
   chunks: {
     list: (params: {
