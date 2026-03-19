@@ -13,7 +13,7 @@ from llm.utils import get_cache, get_cache_key, set_cache
 
 
 def create_chat(model: str, **kwargs) -> Tongyi:
-    from api.config import settings
+    from config import settings
 
     cache_key = get_cache_key(f"dashscope_{model}", kwargs)
     cached_instance = get_cache(cache_key)
@@ -36,7 +36,7 @@ def create_chat(model: str, **kwargs) -> Tongyi:
 
 
 def create_embedding(model: str, **kwargs) -> DashScopeEmbeddings:
-    from api.config import settings
+    from config import settings
 
     cache_key = get_cache_key(f"dashscope_embedding_{model}", kwargs)
     cached_instance = get_cache(cache_key)

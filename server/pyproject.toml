@@ -44,7 +44,19 @@ dependencies = [
     "jieba>=0.42.1",
     "agno>=2.5.10",
     "cachetools>=7.0.5",
+    "api",
+    "kb",
+    "parser",
+    "agent",
+    "llm",
 ]
+
+[tool.uv.sources]
+api = { workspace = true }
+kb = { workspace = true }
+parser = { workspace = true }
+agent = { workspace = true }
+llm = { workspace = true }
 
 [tool.uv.workspace]
 members = [
@@ -53,6 +65,14 @@ members = [
     "agent",
     "kb",
     "parser",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "strict"
+addopts = "--import-mode=importlib"
+markers = [
+    "real_llm: tests requiring real LLM/service calls",
 ]
 
 [dependency-groups]

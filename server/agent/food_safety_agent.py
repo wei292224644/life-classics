@@ -8,7 +8,7 @@ from agno.agent import Agent
 from agno.models.openai.like import OpenAILike
 
 from agent.skill_loader import load_skills
-from api.config import settings
+from config import settings
 
 logger = logging.getLogger(__name__)
 

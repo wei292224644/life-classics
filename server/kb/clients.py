@@ -5,7 +5,7 @@ from typing import Any
 import chromadb
 from neo4j import AsyncDriver, AsyncGraphDatabase
 
-from api.config import settings
+from config import settings
 
 _chroma_client: Any = None  # chromadb.api.ClientAPI，PersistentClient 是工厂函数非类
 _neo4j_driver: AsyncDriver | None = None

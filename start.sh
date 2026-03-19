@@ -1,18 +1,47 @@
 #!/bin/bash
-# 同时启动后端和前端服务
+# 同时启动所有 dev 服务（server + web）
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
-echo "启动后端服务 (http://localhost:9999)..."
-cd "$ROOT/agent-server"
-uv run uvicorn app.main:app --host 0.0.0.0 --port 9999 --reload &
-BACKEND_PID=$!
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+BOLD='\033[1m'
+NC='\033[0m'
 
-echo "启动 admin 前端服务 (http://localhost:5173)..."
-cd "$ROOT/agent-server/admin"
-pnpm dev &
-FRONTEND_PID=$!
+for cmd in uv pnpm; do
+  if ! command -v "$cmd" &>/dev/null; then
+    echo -e "${RED}错误：未找到 $cmd，请先安装${NC}"
+    exit 1
+  fi
+done
 
-trap "echo '正在关闭服务...'; kill $BACKEND_PID $FRONTEND_PID; exit 0" INT TERM
+PIDS=()
 
-wait $BACKEND_PID $FRONTEND_PID
+cleanup() {
+  echo ""
+  echo -e "${BOLD}正在关闭服务...${NC}"
+  for pid in "${PIDS[@]}"; do
+    kill "$pid" 2>/dev/null
+  done
+  wait "${PIDS[@]}" 2>/dev/null
+  echo -e "${BOLD}已关闭${NC}"
+  exit 0
+}
+
+trap cleanup INT TERM
+
+echo -e "${BOLD}🚀 启动 dev 服务...${NC}"
+echo -e "  ${BLUE}[server]${NC}  http://localhost:9999"
+echo -e "  ${GREEN}[web]${NC}     turbo dev (nextjs + console + packages)"
+echo ""
+
+cd "$ROOT/server"
+uv run python3 run.py 2>&1 | sed "s/^/$(printf "${BLUE}[server]${NC} ")/" &
+PIDS+=($!)
+
+cd "$ROOT/web"
+pnpm dev 2>&1 | sed "s/^/$(printf "${GREEN}[web]${NC}    ")/" &
+PIDS+=($!)
+
+wait "${PIDS[@]}"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from langchain_openai import ChatOpenAI
 
-from api.config import settings
+from config import settings
 
 
 def resolve_provider(node_provider: str | None) -> str:

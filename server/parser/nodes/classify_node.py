@@ -10,7 +10,7 @@ from parser.models import (
 )
 from parser.post_classify_hooks import POST_CLASSIFY_HOOKS
 from parser.rules import RulesStore
-from api.config import settings
+from config import settings
 from parser.structured_llm import invoke_structured
 from parser.nodes.output import ClassifyOutput, SegmentItem
 

@@ -7,7 +7,7 @@ from typing import Any, Callable
 import instructor
 from pydantic import BaseModel
 
-from api.config import settings
+from config import settings
 
 
 def _create_openai_client(

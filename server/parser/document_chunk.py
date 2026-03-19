@@ -6,7 +6,7 @@ from enum import Enum
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from api.config import settings
+from config import settings
 from llm import chat
 
 

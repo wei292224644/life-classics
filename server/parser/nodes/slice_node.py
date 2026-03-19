@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import List, Tuple
 
-from api.config import settings
+from config import settings
 from parser.models import RawChunk, WorkflowState
 
 

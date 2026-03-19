@@ -2,7 +2,7 @@
 创建国家标准 RAG Agent（Deep Agents + Tools）。
 """
 
-from api.config import settings
+from config import settings
 from agent.llm_adapter import get_langchain_chat_model
 from agent.tools import (
     get_web_search_tool,

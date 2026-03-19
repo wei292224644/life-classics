@@ -1,0 +1,22 @@
+{
+  "type": "meta",
+  "created_at": "2026-03-19T22:39:52",
+  "test": "test_full_parser_workflow_with_real_llm_logs_all_steps",
+  "rules_dir": "/Users/wwj/Desktop/myself/life-classics/server/app/core/parser_workflow/rules",
+  "doc_metadata": {
+    "standard_no": "未知"
+  },
+  "md_content_len": 5457,
+  "md_content_preview": "# 食品安全国家标准 鸡肌肉组织中氯羟吡啶残留量的测定 气相色谱 - 质谱法\n\nDetermination of C lopidol residues in chicken muscle by\n\nGas Chromatography-mass Spectrometric method\n\n(电子版本仅供参考，以标准正式出版物为准)\n\n2013-09-16 发布\n\n2014-01-01 实施\n\n## ",
+  "node_files": [
+    "01_parse_node.json",
+    "02_clean_node.json",
+    "03_structure_node.json",
+    "04_slice_node.json",
+    "05_classify_node.json",
+    "06_enrich_node.json",
+    "07_transform_node.json",
+    "08_merge_node.json",
+    "09_final_chunks.json"
+  ]
+}

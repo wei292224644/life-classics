@@ -13,7 +13,7 @@ from typing import List
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from api.config import settings
+from config import settings
 
 # Qwen3-Reranker 固定 prompt 格式
 _PREFIX = (

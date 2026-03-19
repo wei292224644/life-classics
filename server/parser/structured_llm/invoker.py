@@ -7,7 +7,7 @@ from typing import Any, TypeVar
 from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 
-from api.config import settings
+from config import settings
 from parser.structured_llm.client_factory import get_structured_client
 from parser.structured_llm.errors import StructuredOutputError
 

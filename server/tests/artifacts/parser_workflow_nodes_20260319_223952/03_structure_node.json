@@ -1,0 +1,22 @@
+{
+  "type": "update",
+  "at": "2026-03-19T22:39:52",
+  "summary": {
+    "node_name": "structure_node",
+    "output_type": "dict",
+    "keys": [
+      "doc_metadata",
+      "errors"
+    ]
+  },
+  "node_output": {
+    "doc_metadata": {
+      "standard_no": "未知",
+      "title": "食品安全国家标准 鸡肌肉组织中氯羟吡啶残留量的测定 气相色谱 - 质谱法",
+      "doc_id": "54de0ca5-6049-47f3-9080-59a2cfa4e769",
+      "doc_type": "detection_method",
+      "doc_type_source": "rule"
+    },
+    "errors": []
+  }
+}
