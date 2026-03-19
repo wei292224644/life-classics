@@ -11,7 +11,9 @@ class AgentRequest(BaseModel):
     """Agent 对话请求"""
     message: str
     conversation_history: Optional[List[Dict[str, str]]] = None
-    thread_id: Optional[str] = None
+    thread_id: Optional[str] = None          # 现有字段，保留（LangGraph agent 使用）
+    agent_type: Optional[str] = None         # 新增：路由到哪个 agent（"food_safety" 或 None）
+    session_id: Optional[str] = None         # 新增：Agno session ID（多轮对话）
     config: Optional[Dict[str, Any]] = None
 
 
