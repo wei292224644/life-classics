@@ -4,16 +4,16 @@ from typing import Any
 
 from langgraph.graph import END, StateGraph  # type: ignore[import]
 
-from app.core.parser_workflow.models import ParserResult, WorkflowState
-from app.core.parser_workflow.nodes.classify_node import classify_node
-from app.core.parser_workflow.nodes.clean_node import clean_node
-from app.core.parser_workflow.nodes.enrich_node import enrich_node
-from app.core.parser_workflow.nodes.escalate_node import escalate_node
-from app.core.parser_workflow.nodes.merge_node import merge_node
-from app.core.parser_workflow.nodes.parse_node import parse_node
-from app.core.parser_workflow.nodes.slice_node import slice_node
-from app.core.parser_workflow.nodes.structure_node import structure_node
-from app.core.parser_workflow.nodes.transform_node import transform_node
+from parser.models import ParserResult, WorkflowState
+from parser.nodes.classify_node import classify_node
+from parser.nodes.clean_node import clean_node
+from parser.nodes.enrich_node import enrich_node
+from parser.nodes.escalate_node import escalate_node
+from parser.nodes.merge_node import merge_node
+from parser.nodes.parse_node import parse_node
+from parser.nodes.slice_node import slice_node
+from parser.nodes.structure_node import structure_node
+from parser.nodes.transform_node import transform_node
 
 
 def _should_escalate(state: WorkflowState) -> str:

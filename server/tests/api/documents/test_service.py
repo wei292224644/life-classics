@@ -27,7 +27,7 @@ def test_get_all_documents_aggregates_by_doc_id():
     }
 
     with patch("app.api.documents.service.get_collection", return_value=mock_col):
-        from app.api.documents.service import DocumentsService
+        from api.documents.service import DocumentsService
         docs = DocumentsService.get_all_documents()
 
     assert len(docs) == 2
@@ -42,7 +42,7 @@ def test_get_all_documents_returns_empty_list_when_no_chunks():
     mock_col.get.return_value = {"ids": [], "metadatas": []}
 
     with patch("app.api.documents.service.get_collection", return_value=mock_col):
-        from app.api.documents.service import DocumentsService
+        from api.documents.service import DocumentsService
         docs = DocumentsService.get_all_documents()
 
     assert docs == []
@@ -54,7 +54,7 @@ def test_delete_document_calls_chroma_and_fts():
 
     with patch("app.api.documents.service.get_collection", return_value=mock_col), \
          patch("app.api.documents.service.fts_writer") as mock_fts:
-        from app.api.documents.service import DocumentsService
+        from api.documents.service import DocumentsService
         result = DocumentsService.delete_document("d1")
 
     mock_col.delete.assert_called_once_with(where={"doc_id": {"$eq": "d1"}})
@@ -64,7 +64,7 @@ def test_delete_document_calls_chroma_and_fts():
 
 async def test_upload_document_returns_501():
     """上传文档返回 501 Not Implemented"""
-    from app.api.documents.service import DocumentsService
+    from api.documents.service import DocumentsService
     with pytest.raises(HTTPException) as exc_info:
         await DocumentsService.upload_document(b"content", "test.md", "text")
     assert exc_info.value.status_code == 501

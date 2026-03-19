@@ -9,7 +9,7 @@ from pathlib import Path
 
 RULES_PATH = (
     Path(__file__).parent.parent.parent.parent
-    / "app/core/parser_workflow/rules/content_type_rules.json"
+    / "parser/rules/content_type_rules.json"
 )
 
 

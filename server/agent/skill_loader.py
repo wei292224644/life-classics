@@ -3,7 +3,7 @@ SkillLoader：从目录读取 Markdown 技能文件并按文件名排序拼接�
 """
 import os
 
-DEFAULT_SKILLS_DIR = "app/skills/food-safety"
+DEFAULT_SKILLS_DIR = "agent/skills/food-safety"
 
 
 def load_skills(skills_dir: str = DEFAULT_SKILLS_DIR) -> str:

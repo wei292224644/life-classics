@@ -4,7 +4,7 @@
 
 from langchain_core.tools import tool
 
-from app.core.kb.retriever import search
+from kb.retriever import search
 
 
 @tool

@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import jieba
 
-from app.core.parser_workflow.models import DocumentChunk
+from parser.models import DocumentChunk
 
 FTS_DB_PATH = "db/knowledge_base_fts.db"
 

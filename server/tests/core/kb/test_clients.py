@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock
-import app.core.kb.clients as clients_module
+import kb.clients as clients_module
 
 
 def test_get_chroma_client_returns_persistent_client():

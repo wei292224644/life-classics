@@ -26,7 +26,7 @@ async def test_delete_by_doc_id_returns_true_on_success():
     errors = []
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col):
-        from app.core.kb.writer.chroma_writer import delete_by_doc_id
+        from kb.writer.chroma_writer import delete_by_doc_id
         result = await delete_by_doc_id("doc-uuid-001", errors)
 
     assert result is True
@@ -41,7 +41,7 @@ async def test_delete_by_doc_id_returns_false_on_error():
     errors = []
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col):
-        from app.core.kb.writer.chroma_writer import delete_by_doc_id
+        from kb.writer.chroma_writer import delete_by_doc_id
         result = await delete_by_doc_id("doc-uuid-001", errors)
 
     assert result is False
@@ -60,7 +60,7 @@ async def test_write_calls_upsert_with_embeddings():
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col), \
          patch("app.core.kb.writer.chroma_writer.embed_batch", AsyncMock(return_value=fake_embeddings)):
-        from app.core.kb.writer.chroma_writer import write
+        from kb.writer.chroma_writer import write
         await write(chunks, doc_metadata)
 
     call_kwargs = mock_col.upsert.call_args.kwargs
@@ -82,7 +82,7 @@ async def test_write_section_path_serialized_with_pipe():
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col), \
          patch("app.core.kb.writer.chroma_writer.embed_batch", AsyncMock(return_value=[[0.1]])):
-        from app.core.kb.writer.chroma_writer import write
+        from kb.writer.chroma_writer import write
         await write([chunk], _make_doc_metadata())
 
     meta = mock_col.upsert.call_args.kwargs["metadatas"][0]
@@ -95,7 +95,7 @@ async def test_write_empty_chunks_is_noop():
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col), \
          patch("app.core.kb.writer.chroma_writer.embed_batch", AsyncMock(return_value=[])):
-        from app.core.kb.writer.chroma_writer import write
+        from kb.writer.chroma_writer import write
         await write([], _make_doc_metadata())
 
     mock_col.upsert.assert_not_called()
@@ -109,7 +109,7 @@ async def test_write_raw_content_truncated_when_over_2000():
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col), \
          patch("app.core.kb.writer.chroma_writer.embed_batch", AsyncMock(return_value=[[0.1]])):
-        from app.core.kb.writer.chroma_writer import write
+        from kb.writer.chroma_writer import write
         await write([chunk], _make_doc_metadata())
 
     meta = mock_col.upsert.call_args.kwargs["metadatas"][0]
@@ -126,7 +126,7 @@ async def test_write_raw_content_exactly_2000_not_truncated():
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col), \
          patch("app.core.kb.writer.chroma_writer.embed_batch", AsyncMock(return_value=[[0.1]])):
-        from app.core.kb.writer.chroma_writer import write
+        from kb.writer.chroma_writer import write
         await write([chunk], _make_doc_metadata())
 
     meta = mock_col.upsert.call_args.kwargs["metadatas"][0]
@@ -142,7 +142,7 @@ async def test_write_raw_content_preserved_when_under_2000():
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col), \
          patch("app.core.kb.writer.chroma_writer.embed_batch", AsyncMock(return_value=[[0.1]])):
-        from app.core.kb.writer.chroma_writer import write
+        from kb.writer.chroma_writer import write
         await write([chunk], _make_doc_metadata())
 
     meta = mock_col.upsert.call_args.kwargs["metadatas"][0]

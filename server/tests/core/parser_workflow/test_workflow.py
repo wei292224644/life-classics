@@ -5,18 +5,18 @@ from pathlib import Path
 
 import pytest
 
-from app.core.parser_workflow import parser_graph
-from app.core.parser_workflow.nodes.classify_node import classify_node
-from app.core.parser_workflow.nodes.clean_node import clean_node
-from app.core.parser_workflow.nodes.enrich_node import enrich_node
-from app.core.parser_workflow.nodes.escalate_node import escalate_node
-from app.core.parser_workflow.nodes.parse_node import parse_node
-from app.core.parser_workflow.nodes.slice_node import slice_node
-from app.core.parser_workflow.nodes.structure_node import structure_node
-from app.core.parser_workflow.nodes.transform_node import transform_node
-from app.core.parser_workflow.models import WorkflowState
-from app.core.parser_workflow.rules import RulesStore
-from app.core.kb.writer import store_to_kb
+from parser import parser_graph
+from parser.nodes.classify_node import classify_node
+from parser.nodes.clean_node import clean_node
+from parser.nodes.enrich_node import enrich_node
+from parser.nodes.escalate_node import escalate_node
+from parser.nodes.parse_node import parse_node
+from parser.nodes.slice_node import slice_node
+from parser.nodes.structure_node import structure_node
+from parser.nodes.transform_node import transform_node
+from parser.models import WorkflowState
+from parser.rules import RulesStore
+from kb.writer import store_to_kb
 from pydantic import BaseModel
 from tests.core.parser_workflow.test_utils import (
     get_logger,

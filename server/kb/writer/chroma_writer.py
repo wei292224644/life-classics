@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import List
 
-from app.core.kb.clients import get_chroma_client
-from app.core.kb.embeddings import embed_batch
-from app.core.parser_workflow.models import DocumentChunk
+from kb.clients import get_chroma_client
+from kb.embeddings import embed_batch
+from parser.models import DocumentChunk
 
 COLLECTION_NAME = "knowledge_base"
 

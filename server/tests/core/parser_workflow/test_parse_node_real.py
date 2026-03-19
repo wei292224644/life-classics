@@ -1,5 +1,5 @@
-# from app.core.parser_workflow.models import WorkflowState
-# from app.core.parser_workflow.nodes.parse_node import parse_node
+# from parser.models import WorkflowState
+# from parser.nodes.parse_node import parse_node
 # from .test_utils import get_logger, load_sample_markdown
 
 

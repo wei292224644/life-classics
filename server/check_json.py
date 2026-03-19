@@ -1,6 +1,6 @@
 import json
 
-with open('app/core/parser_workflow/rules/content_type_rules.json', encoding='utf-8') as f:
+with open('parser/rules/content_type_rules.json', encoding='utf-8') as f:
     content = f.read()
 
 try:

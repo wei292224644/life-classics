@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.core.kb.clients import get_chroma_client
-from app.core.kb.embeddings import embed_batch
-from app.core.kb.writer import fts_writer
+from kb.clients import get_chroma_client
+from kb.embeddings import embed_batch
+from kb.writer import fts_writer
 
 
 def get_collection():

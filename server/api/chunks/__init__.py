@@ -1,1 +1,1 @@
-from app.api.chunks.router import router
+from api.chunks.router import router

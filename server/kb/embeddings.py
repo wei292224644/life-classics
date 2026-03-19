@@ -5,7 +5,7 @@ from typing import List
 from langchain_openai import OpenAIEmbeddings
 from langchain_ollama import OllamaEmbeddings
 
-from app.core.config import settings
+from api.config import settings
 
 
 def _create_embedding_model() -> OpenAIEmbeddings:

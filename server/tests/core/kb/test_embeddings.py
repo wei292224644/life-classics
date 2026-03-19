@@ -8,7 +8,7 @@ async def test_embed_batch_returns_vectors():
     mock_model.aembed_documents = AsyncMock(return_value=[[0.1, 0.2], [0.3, 0.4]])
 
     with patch("app.core.kb.embeddings._create_embedding_model", return_value=mock_model):
-        from app.core.kb.embeddings import embed_batch
+        from kb.embeddings import embed_batch
         result = await embed_batch(["文本一", "文本二"])
 
     assert len(result) == 2
@@ -26,7 +26,7 @@ def test_create_embedding_model_uses_dashscope_credentials():
         mock_settings.DASHSCOPE_API_KEY = "ds-key"
         mock_settings.DASHSCOPE_BASE_URL = "https://dashscope.example.com/v1"
 
-        from app.core.kb.embeddings import _create_embedding_model
+        from kb.embeddings import _create_embedding_model
         _create_embedding_model()
 
         mock_cls.assert_called_once_with(
@@ -47,7 +47,7 @@ def test_create_embedding_model_fallback_to_parser_provider():
         mock_settings.DASHSCOPE_API_KEY = "ds-key"
         mock_settings.DASHSCOPE_BASE_URL = "https://dashscope.example.com/v1"
 
-        from app.core.kb.embeddings import _create_embedding_model
+        from kb.embeddings import _create_embedding_model
         _create_embedding_model()
 
         mock_cls.assert_called_once_with(
@@ -67,7 +67,7 @@ def test_create_embedding_model_uses_ollama_base_url():
         mock_settings.EMBEDDING_MODEL = "qwen3-embedding:4b"
         mock_settings.OLLAMA_BASE_URL = "http://localhost:11434"
 
-        from app.core.kb.embeddings import _create_embedding_model
+        from kb.embeddings import _create_embedding_model
         _create_embedding_model()
 
         mock_cls.assert_called_once_with(

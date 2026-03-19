@@ -4,7 +4,7 @@
 
 from typing import List, Optional
 from langchain_core.tools import tool
-from app.core.config import settings
+from api.config import settings
 import requests
 import json
 

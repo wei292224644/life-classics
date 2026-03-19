@@ -7,12 +7,12 @@ from typing import List, Optional, Dict, Any, AsyncIterator
 from langchain_core.messages import BaseMessage
 from langchain_core.language_models import BaseChatModel
 from langchain_core.embeddings import Embeddings
-from app.core.config import settings
-from app.core.llm.dashscope import (
+from api.config import settings
+from llm.dashscope import (
     create_chat as create_chat_dashscope,
     create_embedding as create_embedding_dashscope,
 )
-from app.core.llm.ollama import (
+from llm.ollama import (
     create_chat as create_chat_ollama,
     create_embedding as create_embedding_ollama,
 )
@@ -69,7 +69,7 @@ def get_multimodal(provider_name: str, model: str, **kwargs) -> Any:
 
     # 创建新实例（create_multimodal 内部已处理缓存）
     if provider_name == "dashscope":
-        from app.core.llm.dashscope import create_multimodal
+        from llm.dashscope import create_multimodal
 
         return create_multimodal(model=model, **kwargs)
     else:

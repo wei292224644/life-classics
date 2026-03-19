@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from app.core.kb.writer import fts_writer
-from app.core.kb.retriever import fts_retriever
+from kb.writer import fts_writer
+from kb.retriever import fts_retriever
 
 
 # ── helpers ────────────────────────────────────────────────────────────────

@@ -4,8 +4,8 @@ from typing import Any
 
 from fastapi import HTTPException
 
-from app.core.kb.clients import get_chroma_client
-from app.core.kb.writer import fts_writer
+from kb.clients import get_chroma_client
+from kb.writer import fts_writer
 
 
 def get_collection():

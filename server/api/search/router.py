@@ -3,11 +3,11 @@ import json
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
-from app.api.search.models import (
+from api.search.models import (
     ChatRequest, ChatResponse,
     SearchRequest, SearchResponse, SearchResult,
 )
-from app.api.search.service import ChatService, SearchService
+from api.search.service import ChatService, SearchService
 
 router = APIRouter()
 

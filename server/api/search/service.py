@@ -8,11 +8,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-from app.core.config import settings
-from app.core.kb.clients import get_chroma_client
-from app.core.kb.embeddings import embed_batch
-from app.core.llm import chat as llm_chat, chat_stream
-from app.api.search.models import ChatRequest, SearchResult
+from api.config import settings
+from kb.clients import get_chroma_client
+from kb.embeddings import embed_batch
+from llm import chat as llm_chat, chat_stream
+from api.search.models import ChatRequest, SearchResult
 
 _chat_sessions: Dict[str, Dict[str, Any]] = {}
 

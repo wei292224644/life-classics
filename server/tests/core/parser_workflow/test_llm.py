@@ -3,7 +3,7 @@
 # import pytest
 # from unittest.mock import MagicMock, patch
 
-# from app.core.parser_workflow.llm import create_chat_model, resolve_provider
+# from parser.llm import create_chat_model, resolve_provider
 
 
 # # ── resolve_provider ────────────────────────────────────────────────────────

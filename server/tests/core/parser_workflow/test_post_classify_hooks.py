@@ -1,6 +1,6 @@
 import pytest
-from app.core.parser_workflow.models import TypedSegment
-from app.core.parser_workflow.post_classify_hooks import (
+from parser.models import TypedSegment
+from parser.post_classify_hooks import (
     merge_formula_preamble,
     merge_procedure_list,
     POST_CLASSIFY_HOOKS,
@@ -148,7 +148,7 @@ def test_hooks_chain_preamble_formula_variables():
     hook 1 (merge_formula_preamble) 先将导言+公式合并为 formula segment，
     hook 2 (merge_formula_with_variables) 再将合并结果与变量说明合并。
     """
-    from app.core.parser_workflow.post_classify_hooks import (
+    from parser.post_classify_hooks import (
         merge_formula_with_variables,
         POST_CLASSIFY_HOOKS,
     )
@@ -183,7 +183,7 @@ def test_post_classify_hooks_is_list_of_callables():
 
 def test_post_classify_hooks_contains_all_four():
     """注册表应包含全部 4 个 hook（顺序不限）。"""
-    from app.core.parser_workflow.post_classify_hooks import (
+    from parser.post_classify_hooks import (
         merge_formula_preamble,
         merge_formula_with_variables,
         merge_procedure_list,

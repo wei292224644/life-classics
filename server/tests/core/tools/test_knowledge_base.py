@@ -8,7 +8,7 @@ import importlib
 import pytest
 from unittest.mock import AsyncMock, patch
 
-import app.core.tools.knowledge_base  # 确保模块已导入，使 patch 可以解析路径
+import agent.tools.knowledge_base  # 确保模块已导入，使 patch 可以解析路径
 
 
 @pytest.mark.asyncio
@@ -26,7 +26,7 @@ async def test_knowledge_base_formats_results():
         }
     ]
     with patch("app.core.tools.knowledge_base.search", AsyncMock(return_value=mock_results)):
-        from app.core.tools.knowledge_base import knowledge_base
+        from agent.tools.knowledge_base import knowledge_base
 
         result = await knowledge_base.ainvoke({"query": "农药残留", "top_k": 5})
 
@@ -59,7 +59,7 @@ async def test_knowledge_base_multiple_results():
         },
     ]
     with patch("app.core.tools.knowledge_base.search", AsyncMock(return_value=mock_results)):
-        from app.core.tools.knowledge_base import knowledge_base
+        from agent.tools.knowledge_base import knowledge_base
 
         result = await knowledge_base.ainvoke({"query": "铅限量", "top_k": 5})
 
@@ -75,7 +75,7 @@ async def test_knowledge_base_multiple_results():
 async def test_knowledge_base_empty_results():
     """验证空结果时返回 '未检索到相关文档'。"""
     with patch("app.core.tools.knowledge_base.search", AsyncMock(return_value=[])):
-        from app.core.tools.knowledge_base import knowledge_base
+        from agent.tools.knowledge_base import knowledge_base
 
         result = await knowledge_base.ainvoke({"query": "不存在的内容", "top_k": 5})
 
@@ -89,7 +89,7 @@ async def test_knowledge_base_exception_handling():
         "app.core.tools.knowledge_base.search",
         AsyncMock(side_effect=RuntimeError("连接失败")),
     ):
-        from app.core.tools.knowledge_base import knowledge_base
+        from agent.tools.knowledge_base import knowledge_base
 
         result = await knowledge_base.ainvoke({"query": "测试查询", "top_k": 5})
 

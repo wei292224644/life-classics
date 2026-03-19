@@ -3,14 +3,14 @@
 
 # import pytest
 
-# from app.core.parser_workflow.models import (
+# from parser.models import (
 #     ClassifiedChunk,
 #     RawChunk,
 #     TypedSegment,
 #     WorkflowState,
 # )
-# from app.core.parser_workflow.nodes.transform_node import transform_node
-# from app.core.parser_workflow.rules import RulesStore
+# from parser.nodes.transform_node import transform_node
+# from parser.rules import RulesStore
 # from .test_utils import (
 #     ensure_llm_api_key,
 #     get_logger,

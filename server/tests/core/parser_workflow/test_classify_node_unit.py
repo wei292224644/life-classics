@@ -1,15 +1,15 @@
 from unittest.mock import patch
 
-from app.core.parser_workflow.models import RawChunk, WorkflowState
-from app.core.parser_workflow.nodes.classify_node import (
+from parser.models import RawChunk, WorkflowState
+from parser.nodes.classify_node import (
     classify_node,
     _escape_for_json_prompt,
 )
-from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
+from parser.nodes.output import ClassifyOutput, SegmentItem
 
 
 def _make_state(content: str, tmp_path) -> WorkflowState:
-    from app.core.parser_workflow.rules import RulesStore
+    from parser.rules import RulesStore
     store = RulesStore(str(tmp_path))
     return WorkflowState(
         md_content=content,

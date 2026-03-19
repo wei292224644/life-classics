@@ -4,11 +4,11 @@ API路由模块
 
 from fastapi import APIRouter
 
-from app.api.documents.router import router as documents_router
-from app.api.chunks.router import router as chunks_router
-from app.api.kb.router import router as kb_router
-from app.api.search.router import router as search_router
-from app.api.agent import router as agent_router
+from api.documents.router import router as documents_router
+from api.chunks.router import router as chunks_router
+from api.kb.router import router as kb_router
+from api.search.router import router as search_router
+from api.agent import router as agent_router
 
 router = APIRouter()
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from app.core.parser_workflow.models import WorkflowState
+from parser.models import WorkflowState
 
 # ── 清洗规则列表 ────────────────────────────────────────────────────────────────
 # 每条规则为 (pattern, replacement)，按顺序依次应用。

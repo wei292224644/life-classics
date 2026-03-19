@@ -3,14 +3,14 @@ from __future__ import annotations
 import re
 from typing import List
 
-from app.core.parser_workflow.models import (
+from parser.models import (
     DocumentChunk,
     TypedSegment,
     WorkflowState,
     make_chunk_id,
 )
-from app.core.parser_workflow.structured_llm import invoke_structured
-from app.core.parser_workflow.nodes.output import TransformOutput
+from parser.structured_llm import invoke_structured
+from parser.nodes.output import TransformOutput
 
 
 def _call_llm_transform(

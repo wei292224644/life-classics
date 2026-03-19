@@ -2,17 +2,17 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from app.core.parser_workflow.models import (
+from parser.models import (
     ClassifiedChunk,
     RawChunk,
     TypedSegment,
     WorkflowState,
 )
-from app.core.parser_workflow.post_classify_hooks import POST_CLASSIFY_HOOKS
-from app.core.parser_workflow.rules import RulesStore
-from app.core.config import settings
-from app.core.parser_workflow.structured_llm import invoke_structured
-from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
+from parser.post_classify_hooks import POST_CLASSIFY_HOOKS
+from parser.rules import RulesStore
+from api.config import settings
+from parser.structured_llm import invoke_structured
+from parser.nodes.output import ClassifyOutput, SegmentItem
 
 
 def _build_type_desc(types: List[Dict]) -> str:

@@ -4,7 +4,7 @@ import sqlite3
 
 import pytest
 
-from app.core.kb.writer.fts_writer import delete_by_doc_id, init_db, write
+from kb.writer.fts_writer import delete_by_doc_id, init_db, write
 
 
 def _make_chunk(

@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.core.agent.food_safety_agent import create_food_safety_agent
+from agent.food_safety_agent import create_food_safety_agent
 
 
 @patch("app.core.agent.food_safety_agent.Agent")

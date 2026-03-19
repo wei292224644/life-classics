@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from app.core.parser_workflow.models import WorkflowState
+from parser.models import WorkflowState
 
 
 def parse_node(state: WorkflowState) -> dict:

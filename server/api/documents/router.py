@@ -2,8 +2,8 @@ from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
-from app.api.documents.models import DocumentsListResponse, DocumentInfo, UploadDocumentResponse
-from app.api.documents.service import DocumentsService
+from api.documents.models import DocumentsListResponse, DocumentInfo, UploadDocumentResponse
+from api.documents.service import DocumentsService
 
 router = APIRouter()
 

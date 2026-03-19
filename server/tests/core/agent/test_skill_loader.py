@@ -6,7 +6,7 @@ import tempfile
 
 import pytest
 
-from app.core.agent.skill_loader import load_skills
+from agent.skill_loader import load_skills
 
 
 def test_load_skills_returns_concatenated_content(tmp_path):
@@ -44,6 +44,6 @@ def test_load_skills_empty_dir_returns_empty_string(tmp_path):
 
 def test_load_skills_default_dir_exists():
     """DEFAULT_SKILLS_DIR 常量存在且包含 food-safety"""
-    from app.core.agent.skill_loader import DEFAULT_SKILLS_DIR
+    from agent.skill_loader import DEFAULT_SKILLS_DIR
     assert isinstance(DEFAULT_SKILLS_DIR, str)
     assert "food-safety" in DEFAULT_SKILLS_DIR

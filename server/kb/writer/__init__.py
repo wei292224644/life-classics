@@ -5,8 +5,8 @@ from typing import List
 
 from typing_extensions import TypedDict
 
-from app.core.kb.writer import chroma_writer, fts_writer
-from app.core.parser_workflow.models import WorkflowState
+from kb.writer import chroma_writer, fts_writer
+from parser.models import WorkflowState
 
 _db_initialized = False
 

@@ -1,5 +1,5 @@
 import pytest
-from app.core.parser_workflow.rules import RulesStore
+from parser.rules import RulesStore
 
 
 @pytest.fixture

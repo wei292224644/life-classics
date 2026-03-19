@@ -5,10 +5,10 @@ from unittest.mock import patch
 
 import pytest
 
-from app.core.parser_workflow.nodes.classify_node import _call_classify_llm, classify_raw_chunk
-from app.core.parser_workflow.models import RawChunk
-from app.core.parser_workflow.nodes.output import ClassifyOutput, SegmentItem
-from app.core.parser_workflow.structured_llm import StructuredOutputError
+from parser.nodes.classify_node import _call_classify_llm, classify_raw_chunk
+from parser.models import RawChunk
+from parser.nodes.output import ClassifyOutput, SegmentItem
+from parser.structured_llm import StructuredOutputError
 
 
 def test_invoke_structured_fails_raises_structured_output_error():

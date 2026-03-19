@@ -6,8 +6,8 @@ from enum import Enum
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from app.core.config import settings
-from app.core.llm import chat
+from api.config import settings
+from llm import chat
 
 
 # DEPRECATED: 此枚举属于旧版 kb/strategy 流水线，不再用于 parser_workflow。

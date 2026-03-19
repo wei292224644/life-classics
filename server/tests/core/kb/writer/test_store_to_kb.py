@@ -3,8 +3,8 @@ from __future__ import annotations
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import app.core.kb.writer as writer_module
-from app.core.parser_workflow.models import DocumentChunk, WorkflowState
+import kb.writer as writer_module
+from parser.models import DocumentChunk, WorkflowState
 
 
 @pytest.fixture(autouse=True)

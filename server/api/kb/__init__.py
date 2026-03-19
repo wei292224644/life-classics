@@ -1,1 +1,1 @@
-from app.api.kb.router import router
+from api.kb.router import router

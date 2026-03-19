@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.core.parser_workflow.nodes.slice_node import (
+from parser.nodes.slice_node import (
     _has_body_content,
     recursive_slice,
 )

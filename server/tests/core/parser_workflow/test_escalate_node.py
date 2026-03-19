@@ -4,18 +4,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.core.parser_workflow.models import (
+from parser.models import (
     ClassifiedChunk,
     RawChunk,
     TypedSegment,
     WorkflowState,
 )
-from app.core.parser_workflow.nodes.escalate_node import (
+from parser.nodes.escalate_node import (
     _call_escalate_llm,
     escalate_node,
 )
-from app.core.parser_workflow.nodes.output import EscalateOutput, TransformParams
-from app.core.parser_workflow.structured_llm import StructuredOutputError
+from parser.nodes.output import EscalateOutput, TransformParams
+from parser.structured_llm import StructuredOutputError
 
 
 # ── _call_escalate_llm ───────────────────────────────────────────────────

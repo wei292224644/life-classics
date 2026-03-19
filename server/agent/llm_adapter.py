@@ -2,7 +2,7 @@
 将现有 LLM（DashScope/Ollama）适配为 LangChain BaseChatModel，供 Deep Agents 使用。
 """
 
-from app.core.config import settings
+from api.config import settings
 
 
 def get_langchain_chat_model():

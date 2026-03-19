@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from app.core.parser_workflow.models import DocumentChunk, WorkflowState
-from app.core.parser_workflow.nodes.merge_node import (
+from parser.models import DocumentChunk, WorkflowState
+from parser.nodes.merge_node import (
     _chunks_from_same_raw,
     _merge_two,
     _same_classification,

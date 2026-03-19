@@ -3,8 +3,8 @@ from __future__ import annotations
 import re
 from typing import List, Tuple
 
-from app.core.config import settings
-from app.core.parser_workflow.models import RawChunk, WorkflowState
+from api.config import settings
+from parser.models import RawChunk, WorkflowState
 
 
 def _clean_section_path_text(title: str) -> str:

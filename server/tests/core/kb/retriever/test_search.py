@@ -94,7 +94,7 @@ async def test_search_normal():
         patch("app.core.kb.retriever.get_collection", mocks["get_collection"]),
         patch("app.core.kb.retriever.get_reranker", mocks["get_reranker"]),
     ):
-        from app.core.kb.retriever import search
+        from kb.retriever import search
         results = await search("查询文本", top_k=2)
 
     assert len(results) == 2
@@ -123,7 +123,7 @@ async def test_search_filters_passed_to_retrievers():
         patch("app.core.kb.retriever.get_collection", mocks["get_collection"]),
         patch("app.core.kb.retriever.get_reranker", mocks["get_reranker"]),
     ):
-        from app.core.kb.retriever import search
+        from kb.retriever import search
         await search("查询文本", filters=filters, top_k=2)
 
     # vector_retriever.query 收到了 filters
@@ -145,7 +145,7 @@ async def test_search_top_k_controls_result_count():
         patch("app.core.kb.retriever.get_collection", mocks["get_collection"]),
         patch("app.core.kb.retriever.get_reranker", mocks["get_reranker"]),
     ):
-        from app.core.kb.retriever import search
+        from kb.retriever import search
         results = await search("查询文本", top_k=1)
 
     assert len(results) == 1
@@ -167,7 +167,7 @@ async def test_search_empty_when_rrf_returns_nothing():
         patch("app.core.kb.retriever.get_collection", mocks["get_collection"]),
         patch("app.core.kb.retriever.get_reranker", mocks["get_reranker"]),
     ):
-        from app.core.kb.retriever import search
+        from kb.retriever import search
         results = await search("查询文本", top_k=5)
 
     assert results == []
@@ -192,7 +192,7 @@ async def test_search_empty_when_both_retrievers_return_nothing():
         patch("app.core.kb.retriever.get_collection", mocks["get_collection"]),
         patch("app.core.kb.retriever.get_reranker", mocks["get_reranker"]),
     ):
-        from app.core.kb.retriever import search
+        from kb.retriever import search
         results = await search("无效查询", top_k=5)
 
     assert results == []
@@ -226,7 +226,7 @@ async def test_search_skips_missing_chroma_ids():
         patch("app.core.kb.retriever.get_collection", mocks["get_collection"]),
         patch("app.core.kb.retriever.get_reranker", mocks["get_reranker"]),
     ):
-        from app.core.kb.retriever import search
+        from kb.retriever import search
         results = await search("查询文本", top_k=5)
 
     assert len(results) == 1
@@ -251,7 +251,7 @@ async def test_search_empty_when_all_chroma_ids_missing():
         patch("app.core.kb.retriever.get_collection", mocks["get_collection"]),
         patch("app.core.kb.retriever.get_reranker", mocks["get_reranker"]),
     ):
-        from app.core.kb.retriever import search
+        from kb.retriever import search
         results = await search("查询文本", top_k=5)
 
     assert results == []
@@ -271,7 +271,7 @@ async def test_search_no_filters_passes_none():
         patch("app.core.kb.retriever.get_collection", mocks["get_collection"]),
         patch("app.core.kb.retriever.get_reranker", mocks["get_reranker"]),
     ):
-        from app.core.kb.retriever import search
+        from kb.retriever import search
         await search("查询文本")
 
     mocks["vector_query"].assert_called_once_with("查询文本", top_k=20, filters=None)

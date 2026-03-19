@@ -1,5 +1,5 @@
 import pytest
-from app.core.kb.retriever.rrf import merge
+from kb.retriever.rrf import merge
 
 
 class TestMergeBasic:

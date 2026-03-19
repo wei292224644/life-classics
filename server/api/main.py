@@ -5,8 +5,8 @@ FastAPI主应用入口
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
-from app.api import router as api_router
-from app.core.config import settings
+from api import router as api_router
+from api.config import settings
 
 app = FastAPI(
     title="个人知识库系统",

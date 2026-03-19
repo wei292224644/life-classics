@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import jieba
 
-from app.core.kb.writer.fts_writer import FTS_DB_PATH
+from kb.writer.fts_writer import FTS_DB_PATH
 
 
 def _get_db_path(db_path: Optional[str]) -> str:

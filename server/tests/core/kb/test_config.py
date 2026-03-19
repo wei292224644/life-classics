@@ -1,4 +1,4 @@
-from app.core.config import Settings
+from api.config import Settings
 
 
 def test_embedding_config_defaults():

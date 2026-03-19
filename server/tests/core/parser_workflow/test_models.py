@@ -1,4 +1,4 @@
-from app.core.parser_workflow.models import TypedSegment, DocumentChunk
+from parser.models import TypedSegment, DocumentChunk
 
 
 def test_typed_segment_has_dual_type_fields():

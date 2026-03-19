@@ -5,7 +5,7 @@ import asyncio
 
 import pytest
 
-from app.core.agent.session_store import SessionStore
+from agent.session_store import SessionStore
 
 
 @pytest.fixture

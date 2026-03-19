@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Any, Dict, List
 import json
 
-from app.core.parser_workflow.models import ClassifiedChunk, TypedSegment, WorkflowState
-from app.core.parser_workflow.rules import RulesStore
-from app.core.parser_workflow.nodes.output import EscalateOutput
-from app.core.parser_workflow.structured_llm import invoke_structured
+from parser.models import ClassifiedChunk, TypedSegment, WorkflowState
+from parser.rules import RulesStore
+from parser.nodes.output import EscalateOutput
+from parser.structured_llm import invoke_structured
 
 
 def _call_escalate_llm(

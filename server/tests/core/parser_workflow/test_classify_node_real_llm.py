@@ -4,14 +4,14 @@
 
 # import pytest
 
-# from app.core.parser_workflow.models import ClassifiedChunk, RawChunk, WorkflowState
-# from app.core.parser_workflow.nodes.classify_node import classify_node, classify_raw_chunk
-# from app.core.parser_workflow.nodes.parse_node import parse_node
-# from app.core.parser_workflow.nodes.output import ClassifyOutput
-# from app.core.parser_workflow.nodes.slice_node import slice_node
-# from app.core.parser_workflow.structured_llm import invoke_structured
-# from app.core.parser_workflow.structured_llm.errors import StructuredOutputError
-# from app.core.parser_workflow.rules import RulesStore
+# from parser.models import ClassifiedChunk, RawChunk, WorkflowState
+# from parser.nodes.classify_node import classify_node, classify_raw_chunk
+# from parser.nodes.parse_node import parse_node
+# from parser.nodes.output import ClassifyOutput
+# from parser.nodes.slice_node import slice_node
+# from parser.structured_llm import invoke_structured
+# from parser.structured_llm.errors import StructuredOutputError
+# from parser.rules import RulesStore
 # from .test_utils import (
 #     ensure_llm_api_key,
 #     get_logger,

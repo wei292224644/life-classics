@@ -4,8 +4,8 @@ Ollama 提供者实现
 
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 
-from app.core.config import settings
-from app.core.llm.utils import get_cache, get_cache_key, set_cache
+from api.config import settings
+from llm.utils import get_cache, get_cache_key, set_cache
 
 
 base_url = settings.OLLAMA_BASE_URL

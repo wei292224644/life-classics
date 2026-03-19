@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Dict, List
 
-from app.core.parser_workflow.models import (
+from parser.models import (
     ClassifiedChunk,
     RawChunk,
     TypedSegment,

@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     CONFIDENCE_THRESHOLD: float = 0.7
     SLICE_HEADING_LEVELS: List[int] = [2, 3, 4]
     # 规则文件目录（运行时动态追加新规则）
-    RULES_DIR: str = "app/core/parser_workflow/rules"
+    RULES_DIR: str = "parser/rules"
 
     # ── Embedding 配置 ────────────────────────────────────────────────────────
     EMBEDDING_MODEL: str = "text-embedding-v3"

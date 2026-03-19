@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 from typing import List
 
-from app.core.kb.embeddings import embed_batch
-from app.core.kb.writer.chroma_writer import get_collection
+from kb.embeddings import embed_batch
+from kb.writer.chroma_writer import get_collection
 
 
 def _to_chroma_where(filters: dict) -> dict:

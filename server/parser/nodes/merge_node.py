@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from app.core.parser_workflow.models import (
+from parser.models import (
     DocumentChunk,
     WorkflowState,
     make_chunk_id,

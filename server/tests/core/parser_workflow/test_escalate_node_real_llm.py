@@ -2,13 +2,13 @@
 
 # import pytest
 
-# from app.core.parser_workflow.models import (
+# from parser.models import (
 #     ClassifiedChunk,
 #     RawChunk,
 #     TypedSegment,
 #     WorkflowState,
 # )
-# from app.core.parser_workflow.nodes.escalate_node import escalate_node
+# from parser.nodes.escalate_node import escalate_node
 # from .test_utils import ensure_llm_api_key, get_logger, get_rules_dir, load_sample_markdown
 
 # logger = get_logger("escalate_node_real_llm")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 from typing import Dict
-from app.core.parser_workflow.nodes.enrich_node import (
+from parser.nodes.enrich_node import (
     build_table_label_index,
     extract_table_refs,
     extract_other_refs,
@@ -10,8 +10,8 @@ from app.core.parser_workflow.nodes.enrich_node import (
     resolve_table_ref,
     enrich_node,
 )
-from app.core.parser_workflow.models import ClassifiedChunk, RawChunk, TypedSegment
-from app.core.parser_workflow.graph import _build_graph, _should_escalate
+from parser.models import ClassifiedChunk, RawChunk, TypedSegment
+from parser.graph import _build_graph, _should_escalate
 
 
 # ── build_table_label_index ──────────────────────────────────────────
@@ -617,7 +617,7 @@ def test_enrich_node_non_amendment_segment_no_amendment_refs():
 
 def test_enrich_node_gb_style_multiple_refs():
     """GB 风格段落含多种新前缀时，三个表格均应被内联到 ref_context"""
-    from app.core.parser_workflow.models import ClassifiedChunk, RawChunk, TypedSegment
+    from parser.models import ClassifiedChunk, RawChunk, TypedSegment
 
     ref_text = "感官要求应符合表1的规定。理化指标符合表2的规定。微生物指标按照表3执行。"
 

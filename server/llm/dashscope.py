@@ -9,8 +9,8 @@ import dashscope
 from langchain_community.llms import Tongyi
 from langchain_community.embeddings import DashScopeEmbeddings
 
-from app.core.config import settings
-from app.core.llm.utils import get_cache, get_cache_key, set_cache
+from api.config import settings
+from llm.utils import get_cache, get_cache_key, set_cache
 
 
 api_key = settings.DASHSCOPE_API_KEY

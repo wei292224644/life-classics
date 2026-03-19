@@ -4,13 +4,13 @@ from unittest.mock import patch
 
 import pytest
 
-from app.core.parser_workflow.structured_llm import StructuredOutputError
-from app.core.parser_workflow.nodes.transform_node import (
+from parser.structured_llm import StructuredOutputError
+from parser.nodes.transform_node import (
     _call_llm_transform,
     apply_strategy,
     transform_node,
 )
-from app.core.parser_workflow.models import (
+from parser.models import (
     ClassifiedChunk,
     DocumentChunk,
     RawChunk,
@@ -24,7 +24,7 @@ from app.core.parser_workflow.models import (
 
 def test_call_llm_transform_returns_content():
     """_call_llm_transform 调用 invoke_structured 后返回 content 字段"""
-    from app.core.parser_workflow.nodes.output import TransformOutput
+    from parser.nodes.output import TransformOutput
 
     mock_resp = TransformOutput(content="转化后的文本")
 
@@ -43,7 +43,7 @@ def test_call_llm_transform_returns_content():
 
 def test_call_llm_transform_uses_invoke_structured():
     """_call_llm_transform 通过 invoke_structured 调用 LLM"""
-    from app.core.parser_workflow.nodes.output import TransformOutput
+    from parser.nodes.output import TransformOutput
 
     mock_resp = TransformOutput(content="output")
 
@@ -171,7 +171,7 @@ def test_transform_node_processes_all_chunks():
 
 def test_call_llm_transform_appends_ref_context_to_prompt():
     """ref_context 非空时，prompt 应包含表格内容"""
-    from app.core.parser_workflow.nodes.output import TransformOutput
+    from parser.nodes.output import TransformOutput
 
     mock_resp = TransformOutput(content="转化后的文本")
     captured_prompt = {}
@@ -196,7 +196,7 @@ def test_call_llm_transform_appends_ref_context_to_prompt():
 
 def test_call_llm_transform_no_ref_context_unchanged():
     """ref_context 为空时，prompt 不包含额外表格内容"""
-    from app.core.parser_workflow.nodes.output import TransformOutput
+    from parser.nodes.output import TransformOutput
 
     mock_resp = TransformOutput(content="转化后的文本")
     captured_prompt = {}

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Callable, List
 
-from app.core.parser_workflow.models import TypedSegment
+from parser.models import TypedSegment
 
 PostClassifyHook = Callable[[List[TypedSegment]], List[TypedSegment]]
 

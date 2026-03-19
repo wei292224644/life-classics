@@ -8,14 +8,14 @@
 # from pydantic import BaseModel
 # from pydantic import ValidationError as PydanticValidationError
 
-# from app.core.config import Settings, settings
-# from app.core.parser_workflow.structured_llm import (
+# from api.config import Settings, settings
+# from parser.structured_llm import (
 #     StructuredOutputError,
 #     invoke_structured,
 #     resolve_model_for_node,
 #     resolve_provider_for_node,
 # )
-# from app.core.parser_workflow.structured_llm.client_factory import get_structured_client
+# from parser.structured_llm.client_factory import get_structured_client
 
 
 # # ── 配置默认值 ────────────────────────────────────────────────────────────────

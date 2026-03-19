@@ -9,9 +9,9 @@ from __future__ import annotations
 import asyncio
 from typing import List, TypedDict
 
-from app.core.kb.retriever import fts_retriever, rrf, vector_retriever
-from app.core.kb.writer.chroma_writer import get_collection
-from app.core.kb.retriever.rerank import get_reranker
+from kb.retriever import fts_retriever, rrf, vector_retriever
+from kb.writer.chroma_writer import get_collection
+from kb.retriever.rerank import get_reranker
 
 
 class SearchResult(TypedDict):

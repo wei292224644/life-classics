@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.kb.service import KBService
+from api.kb.service import KBService
 
 router = APIRouter()
 

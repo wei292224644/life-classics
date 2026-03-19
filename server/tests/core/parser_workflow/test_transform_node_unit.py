@@ -1,10 +1,10 @@
 from unittest.mock import patch
 
-from app.core.parser_workflow.models import (
+from parser.models import (
     ClassifiedChunk, RawChunk, TypedSegment, WorkflowState,
 )
-from app.core.parser_workflow.nodes.output import TransformOutput
-from app.core.parser_workflow.nodes.transform_node import transform_node
+from parser.nodes.output import TransformOutput
+from parser.nodes.transform_node import transform_node
 
 
 def _make_state(structure_type: str, semantic_type: str) -> WorkflowState:

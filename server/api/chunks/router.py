@@ -2,8 +2,8 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app.api.chunks.models import ChunksListResponse, ChunkResponse, UpdateChunkRequest
-from app.api.chunks.service import ChunksService
+from api.chunks.models import ChunksListResponse, ChunkResponse, UpdateChunkRequest
+from api.chunks.service import ChunksService
 
 router = APIRouter()
 

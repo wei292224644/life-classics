@@ -1,1 +1,1 @@
-from app.api.documents.router import router
+from api.documents.router import router

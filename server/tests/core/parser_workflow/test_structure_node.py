@@ -4,13 +4,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.core.parser_workflow.structured_llm import StructuredOutputError
-from app.core.parser_workflow.nodes.structure_node import (
+from parser.structured_llm import StructuredOutputError
+from parser.nodes.structure_node import (
     _infer_doc_type_with_llm,
     match_doc_type_by_rules,
     structure_node,
 )
-from app.core.parser_workflow.models import WorkflowState
+from parser.models import WorkflowState
 
 
 # ── _infer_doc_type_with_llm ─────────────────────────────────────────
@@ -18,7 +18,7 @@ from app.core.parser_workflow.models import WorkflowState
 
 def test_infer_doc_type_with_llm_calls_invoke_structured():
     """验证 invoke_structured 被正确调用并返回 DocTypeOutput"""
-    from app.core.parser_workflow.nodes.output import DocTypeOutput
+    from parser.nodes.output import DocTypeOutput
 
     mock_output = DocTypeOutput(
         id="additive_standard",

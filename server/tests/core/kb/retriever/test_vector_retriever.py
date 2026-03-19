@@ -25,7 +25,7 @@ async def test_query_returns_top_k_results():
 
     with patch("app.core.kb.retriever.vector_retriever.get_collection", return_value=mock_col), \
          patch("app.core.kb.retriever.vector_retriever.embed_batch", AsyncMock(return_value=[fake_embedding])):
-        from app.core.kb.retriever.vector_retriever import query
+        from kb.retriever.vector_retriever import query
         results = await query("查询文本", top_k=5)
 
     assert len(results) == 5
@@ -41,7 +41,7 @@ async def test_query_calls_embed_batch_with_query_text():
 
     with patch("app.core.kb.retriever.vector_retriever.get_collection", return_value=mock_col), \
          patch("app.core.kb.retriever.vector_retriever.embed_batch", fake_embed):
-        from app.core.kb.retriever.vector_retriever import query
+        from kb.retriever.vector_retriever import query
         await query("测试查询")
 
     fake_embed.assert_called_once_with(["测试查询"])
@@ -55,7 +55,7 @@ async def test_query_passes_embedding_to_collection():
 
     with patch("app.core.kb.retriever.vector_retriever.get_collection", return_value=mock_col), \
          patch("app.core.kb.retriever.vector_retriever.embed_batch", AsyncMock(return_value=[expected_embedding])):
-        from app.core.kb.retriever.vector_retriever import query
+        from kb.retriever.vector_retriever import query
         await query("文本", top_k=10)
 
     call_kwargs = mock_col.query.call_args.kwargs
@@ -72,7 +72,7 @@ async def test_query_no_filters_no_where_param():
 
     with patch("app.core.kb.retriever.vector_retriever.get_collection", return_value=mock_col), \
          patch("app.core.kb.retriever.vector_retriever.embed_batch", AsyncMock(return_value=[[0.1]])):
-        from app.core.kb.retriever.vector_retriever import query
+        from kb.retriever.vector_retriever import query
         await query("文本")
 
     call_kwargs = mock_col.query.call_args.kwargs
@@ -86,7 +86,7 @@ async def test_query_single_filter_converted_to_chroma_format():
 
     with patch("app.core.kb.retriever.vector_retriever.get_collection", return_value=mock_col), \
          patch("app.core.kb.retriever.vector_retriever.embed_batch", AsyncMock(return_value=[[0.1]])):
-        from app.core.kb.retriever.vector_retriever import query
+        from kb.retriever.vector_retriever import query
         results = await query("文本", filters={"standard_no": "GB 2762-2022"})
 
     call_kwargs = mock_col.query.call_args.kwargs
@@ -101,7 +101,7 @@ async def test_query_multi_filter_uses_and_operator():
 
     with patch("app.core.kb.retriever.vector_retriever.get_collection", return_value=mock_col), \
          patch("app.core.kb.retriever.vector_retriever.embed_batch", AsyncMock(return_value=[[0.1]])):
-        from app.core.kb.retriever.vector_retriever import query
+        from kb.retriever.vector_retriever import query
         await query("文本", filters={"standard_no": "GB 2762-2022", "doc_type": "additive"})
 
     call_kwargs = mock_col.query.call_args.kwargs
@@ -118,7 +118,7 @@ async def test_query_filters_none_no_where_param():
 
     with patch("app.core.kb.retriever.vector_retriever.get_collection", return_value=mock_col), \
          patch("app.core.kb.retriever.vector_retriever.embed_batch", AsyncMock(return_value=[[0.1]])):
-        from app.core.kb.retriever.vector_retriever import query
+        from kb.retriever.vector_retriever import query
         await query("文本", filters=None)
 
     call_kwargs = mock_col.query.call_args.kwargs
@@ -134,7 +134,7 @@ async def test_query_empty_collection_returns_empty_list():
 
     with patch("app.core.kb.retriever.vector_retriever.get_collection", return_value=mock_col), \
          patch("app.core.kb.retriever.vector_retriever.embed_batch", AsyncMock(return_value=[[0.1]])):
-        from app.core.kb.retriever.vector_retriever import query
+        from kb.retriever.vector_retriever import query
         results = await query("文本", top_k=20)
 
     assert results == []
@@ -147,7 +147,7 @@ async def test_query_fewer_results_than_top_k():
 
     with patch("app.core.kb.retriever.vector_retriever.get_collection", return_value=mock_col), \
          patch("app.core.kb.retriever.vector_retriever.embed_batch", AsyncMock(return_value=[[0.1]])):
-        from app.core.kb.retriever.vector_retriever import query
+        from kb.retriever.vector_retriever import query
         results = await query("文本", top_k=20)
 
     assert len(results) == 2
@@ -157,14 +157,14 @@ async def test_query_fewer_results_than_top_k():
 
 def test_to_chroma_where_single_field():
     """单字段直接返回 {key: {"$eq": value}}"""
-    from app.core.kb.retriever.vector_retriever import _to_chroma_where
+    from kb.retriever.vector_retriever import _to_chroma_where
     result = _to_chroma_where({"standard_no": "GB 2762"})
     assert result == {"standard_no": {"$eq": "GB 2762"}}
 
 
 def test_to_chroma_where_multiple_fields():
     """多字段返回 {"$and": [...]}"""
-    from app.core.kb.retriever.vector_retriever import _to_chroma_where
+    from kb.retriever.vector_retriever import _to_chroma_where
     result = _to_chroma_where({"standard_no": "GB 2762", "doc_type": "additive"})
     assert result == {
         "$and": [

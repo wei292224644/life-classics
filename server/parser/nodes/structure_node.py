@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import re
 
-from app.core.parser_workflow.models import WorkflowState
-from app.core.parser_workflow.rules import RulesStore
-from app.core.parser_workflow.nodes.output import DocTypeOutput
-from app.core.parser_workflow.structured_llm import invoke_structured
+from parser.models import WorkflowState
+from parser.rules import RulesStore
+from parser.nodes.output import DocTypeOutput
+from parser.structured_llm import invoke_structured
 
 
 def _extract_headings(md: str) -> list[str]:

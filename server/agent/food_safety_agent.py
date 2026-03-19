@@ -7,8 +7,8 @@ from typing import Optional
 from agno.agent import Agent
 from agno.models.openai.like import OpenAILike
 
-from app.core.agent.skill_loader import load_skills
-from app.core.config import settings
+from agent.skill_loader import load_skills
+from api.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ _agent: Optional[Agent] = None
 
 def _make_web_search_tool():
     """获取 web_search 工具函数（同步）。"""
-    from app.core.tools.web_search import web_search_tool_function
+    from agent.tools.web_search import web_search_tool_function
 
     def web_search(query: str, num_results: int = 5) -> str:
         """
@@ -43,7 +43,7 @@ def create_food_safety_agent() -> Agent:
     Returns:
         配置好的 Agno Agent 实例
     """
-    from app.core.tools.knowledge_base import knowledge_base
+    from agent.tools.knowledge_base import knowledge_base
 
     instructions = load_skills()
 

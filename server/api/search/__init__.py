@@ -1,1 +1,1 @@
-from app.api.search.router import router
+from api.search.router import router

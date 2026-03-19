@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, HTTPException
 
-from app.api.agent.models import AgentRequest, AgentResponse, SearchResult
+from api.agent.models import AgentRequest, AgentResponse, SearchResult
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ _agent = None
 def _get_agent():
     global _agent
     if _agent is None:
-        from app.core.agent.factory import create_national_standard_agent
+        from agent.factory import create_national_standard_agent
 
         _agent = create_national_standard_agent()
     return _agent
@@ -31,7 +31,7 @@ _food_safety_agent = None
 def _get_food_safety_agent():
     global _food_safety_agent
     if _food_safety_agent is None:
-        from app.core.agent.food_safety_agent import create_food_safety_agent
+        from agent.food_safety_agent import create_food_safety_agent
 
         _food_safety_agent = create_food_safety_agent()
     return _food_safety_agent
@@ -108,7 +108,7 @@ async def _handle_national_standard_chat(request: AgentRequest) -> AgentResponse
 
 async def _handle_food_safety_chat(request: AgentRequest) -> AgentResponse:
     """食品安全助手（Agno）处理逻辑"""
-    from app.core.agent.session_store import get_session_store
+    from agent.session_store import get_session_store
 
     store = get_session_store()
     session = await store.get_or_create(request.session_id)
