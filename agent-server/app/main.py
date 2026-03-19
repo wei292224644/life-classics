@@ -28,6 +28,13 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api")
 app.include_router(web_router, tags=["Web界面"])
 
+# 挂载 admin 静态文件（build 后才存在）
+import os
+_admin_dist = os.path.join(os.path.dirname(__file__), "..", "admin", "dist")
+if os.path.isdir(_admin_dist):
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/admin", StaticFiles(directory=_admin_dist, html=True), name="admin")
+
 
 @app.get("/swagger")
 async def custom_swagger_ui():
