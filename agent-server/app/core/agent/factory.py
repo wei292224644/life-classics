@@ -9,7 +9,6 @@ from app.core.tools import (
     knowledge_base,
     neo4j_query,
     postgres_query,
-    document_type,
 )
 
 
@@ -36,13 +35,12 @@ def create_national_standard_agent(
         tools = [
             knowledge_base,
             get_web_search_tool(),
-            document_type,
             neo4j_query,
             postgres_query,
         ]
     system_prompt = kwargs.pop(
         "system_prompt",
-        "你是基于国家标准的智能助手。优先使用 knowledge_base 工具检索已入库文档；当用户问「这份文档是什么类型」或需要按文档类型选择策略时，使用 document_type 工具；需要最新或外部信息时使用 web_search；需要图关系时使用 neo4j_query；需要结构化数据时使用 postgres_query。回答请基于检索结果，并注明来源。",
+        "你是基于国家标准的智能助手。优先使用 knowledge_base 工具检索已入库文档；需要最新或外部信息时使用 web_search；需要图关系时使用 neo4j_query；需要结构化数据时使用 postgres_query。回答请基于检索结果，并注明来源。",
     )
     skills_path = skills_path or getattr(settings, "AGENT_SKILLS_PATH", "app/skills")
     # skills 需通过 Deep Agents 的 backend 提供文件，此处仅传默认路径供后续扩展

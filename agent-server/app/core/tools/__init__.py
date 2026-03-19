@@ -6,15 +6,9 @@ from app.core.tools.knowledge_base import knowledge_base
 from app.core.tools.neo4j_query import neo4j_query
 from app.core.tools.postgres_query import postgres_query
 
-try:
-    from app.core.tools.document_type import document_type
-except ImportError:
-    document_type = None  # type: ignore[assignment]
-
 __all__ = [
     "get_web_search_tool",
     "knowledge_base",
     "neo4j_query",
     "postgres_query",
-    "document_type",
 ]

@@ -1,22 +1,21 @@
 {
   "type": "update",
-  "at": "2026-03-19T15:20:19",
+  "at": "2026-03-19T16:29:56",
   "summary": {
-    "node_name": "final_chunks",
+    "node_name": "merge_node",
     "output_type": "dict",
     "keys": [
       "final_chunks"
-    ],
-    "final_chunks_count": 24
+    ]
   },
   "node_output": {
     "final_chunks": [
       {
-        "chunk_id": "3880621543b59477",
+        "chunk_id": "36e5afb8f0bd15dd",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -36,11 +35,11 @@
         }
       },
       {
-        "chunk_id": "4d6b9e3b7cd3160f",
+        "chunk_id": "e72fcbaa71699d8d",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -60,11 +59,11 @@
         }
       },
       {
-        "chunk_id": "8454564e748d39f2",
+        "chunk_id": "890c93acfbe5935d",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -73,46 +72,22 @@
         ],
         "structure_type": "paragraph",
         "semantic_type": "metadata",
-        "content": "下列文件中的条款通过本标准的引用而成为本标准的条款。凡是注日期的引用文件，其随后所有的修改单（不包括勘误的内容) 或修订版均不适用于本标准。然而，鼓励根据本标准达成协议的各方研究是否可使用这些文件的最新版本。凡是不注日期的引用文件，其最新版本适用于本标准。",
-        "raw_content": "# 2 规范性引用文件\n\n下列文件中的条款通过本标准的引用而成为本标准的条款。凡是注日期的引用文件，其随后所有的修改单（不包括勘误的内容) 或修订版均不适用于本标准。然而，鼓励根据本标准达成协议的各方研究是否可使用这些文件的最新版本。凡是不注日期的引用文件，其最新版本适用于本标准。\n\nGB/T 1.1-2000 标准化工作导则 第 1 部分：标准的结构和编写规则\n\nGB/T6682 分析实验室用水规格和试验方法\n\n",
+        "content": "下列文件中的条款通过本标准的引用而成为本标准的条款。凡是注日期的引用文件，其随后所有的修改单（不包括勘误的内容) 或修订版均不适用于本标准。然而，鼓励根据本标准达成协议的各方研究是否可使用这些文件的最新版本。凡是不注日期的引用文件，其最新版本适用于本标准。\n\nGB/T 1.1-2000 标准化工作导则 第 1 部分：标准的结构和编写规则\n\nGB/T6682 分析实验室用水规格和试验方法",
+        "raw_content": "# 2 规范性引用文件\n\n下列文件中的条款通过本标准的引用而成为本标准的条款。凡是注日期的引用文件，其随后所有的修改单（不包括勘误的内容) 或修订版均不适用于本标准。然而，鼓励根据本标准达成协议的各方研究是否可使用这些文件的最新版本。凡是不注日期的引用文件，其最新版本适用于本标准。\n\nGB/T 1.1-2000 标准化工作导则 第 1 部分：标准的结构和编写规则\n\nGB/T6682 分析实验室用水规格和试验方法\n\n\n\n# 2 规范性引用文件\n\n下列文件中的条款通过本标准的引用而成为本标准的条款。凡是注日期的引用文件，其随后所有的修改单（不包括勘误的内容) 或修订版均不适用于本标准。然而，鼓励根据本标准达成协议的各方研究是否可使用这些文件的最新版本。凡是不注日期的引用文件，其最新版本适用于本标准。\n\nGB/T 1.1-2000 标准化工作导则 第 1 部分：标准的结构和编写规则\n\nGB/T6682 分析实验室用水规格和试验方法\n\n",
         "meta": {
           "transform_strategy": "plain_embed",
-          "segment_raw_content": "下列文件中的条款通过本标准的引用而成为本标准的条款。凡是注日期的引用文件，其随后所有的修改单（不包括勘误的内容) 或修订版均不适用于本标准。然而，鼓励根据本标准达成协议的各方研究是否可使用这些文件的最新版本。凡是不注日期的引用文件，其最新版本适用于本标准。",
+          "segment_raw_content": "下列文件中的条款通过本标准的引用而成为本标准的条款。凡是注日期的引用文件，其随后所有的修改单（不包括勘误的内容) 或修订版均不适用于本标准。然而，鼓励根据本标准达成协议的各方研究是否可使用这些文件的最新版本。凡是不注日期的引用文件，其最新版本适用于本标准。\n\nGB/T 1.1-2000 标准化工作导则 第 1 部分：标准的结构和编写规则\n\nGB/T6682 分析实验室用水规格和试验方法",
           "cross_refs": [],
           "non_table_refs": [],
           "failed_table_refs": []
         }
       },
       {
-        "chunk_id": "04aca87cc6876e90",
+        "chunk_id": "cbb808bbaf30a12e",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
-          "doc_type": "detection_method",
-          "doc_type_source": "rule"
-        },
-        "section_path": [
-          "2 规范性引用文件"
-        ],
-        "structure_type": "list",
-        "semantic_type": "metadata",
-        "content": "GB/T 1.1-2000 标准化工作导则 第 1 部分：标准的结构和编写规则\n\nGB/T6682 分析实验室用水规格和试验方法",
-        "raw_content": "# 2 规范性引用文件\n\n下列文件中的条款通过本标准的引用而成为本标准的条款。凡是注日期的引用文件，其随后所有的修改单（不包括勘误的内容) 或修订版均不适用于本标准。然而，鼓励根据本标准达成协议的各方研究是否可使用这些文件的最新版本。凡是不注日期的引用文件，其最新版本适用于本标准。\n\nGB/T 1.1-2000 标准化工作导则 第 1 部分：标准的结构和编写规则\n\nGB/T6682 分析实验室用水规格和试验方法\n\n",
-        "meta": {
-          "transform_strategy": "plain_embed",
-          "segment_raw_content": "GB/T 1.1-2000 标准化工作导则 第 1 部分：标准的结构和编写规则\n\nGB/T6682 分析实验室用水规格和试验方法",
-          "cross_refs": [],
-          "non_table_refs": [],
-          "failed_table_refs": []
-        }
-      },
-      {
-        "chunk_id": "44a18a9ee2056b31",
-        "doc_metadata": {
-          "standard_no": "未知",
-          "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -132,11 +107,11 @@
         }
       },
       {
-        "chunk_id": "def0db1ac254b216",
+        "chunk_id": "a303eda44da465f9",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -145,22 +120,22 @@
         ],
         "structure_type": "paragraph",
         "semantic_type": "material",
-        "content": "以下所用的试剂，除特别注明外均为分析纯，水为符合 GB/T6682 规定的一级水。\n\n4.1 甲砜霉素对照品：含量 ≥ 99.0%\n\n4.2 乙酸乙酯\n\n4.3 正己烷\n\n4.4 乙腈：色谱纯。\n\n4.5 C18 固相萃取柱：200mg / 3mL，或相当者。",
-        "raw_content": "# 4 试剂和材料\n\n以下所用的试剂，除特别注明外均为分析纯，水为符合 GB/T6682 规定的一级水。\n\n4.1 甲砜霉素对照品：含量 $\\geqslant 99.0\\%$   \n4.2 乙酸乙酯  \n4.3 正己烷  \n4.4 乙腈：色谱纯。  \n4.5 $\\mathrm{C_{18}}$ 固相萃取柱： $200\\mathrm{mg / 3mL}$ ，或相当者。  \n4.6 $1 \\mathrm{mg} / \\mathrm{mL}$ 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 $10 \\mathrm{mg}$ ，于 $10 \\mathrm{~mL}$ 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 $1 \\mathrm{mg} / \\mathrm{mL}$ 的标准贮备液。 $2 \\sim 8^{\\circ} \\mathrm{C}$ 保存，有效期 1 个月。  \n4.7 $10\\mu \\mathrm{g / mL}$ 甲砜霉素标准工作液：精密量取 $1\\mathrm{mg / mL}$ 甲砜霉素标准贮备液 $1.0~\\mathrm{mL}$ ，于 $100~\\mathrm{mL}$ 量瓶\n\n中，用流动相稀释，配制成浓度为 $10\\mu \\mathrm{g / mL}$ 的甲砜霉素标准工作液。现配现用。\n\n",
+        "content": "以下所用的试剂，除特别注明外均为分析纯，水为符合 GB/T6682 规定的一级水。\n\n4.1 甲砜霉素对照品：含量 ≥ 99.0%\n\n4.2 乙酸乙酯\n\n4.3 正己烷\n\n4.4 乙腈：色谱纯。\n\n4.5 C18 固相萃取柱：200 mg / 3 mL，或相当者。\n\n4.6 1 mg / mL 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 10 mg，于 10 mL 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 1 mg / mL 的标准贮备液。2 ~ 8°C 保存，有效期 1 个月。",
+        "raw_content": "# 4 试剂和材料\n\n以下所用的试剂，除特别注明外均为分析纯，水为符合 GB/T6682 规定的一级水。\n\n4.1 甲砜霉素对照品：含量 $\\geqslant 99.0\\%$   \n4.2 乙酸乙酯  \n4.3 正己烷  \n4.4 乙腈：色谱纯。  \n4.5 $\\mathrm{C_{18}}$ 固相萃取柱： $200\\mathrm{mg / 3mL}$ ，或相当者。  \n4.6 $1 \\mathrm{mg} / \\mathrm{mL}$ 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 $10 \\mathrm{mg}$ ，于 $10 \\mathrm{~mL}$ 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 $1 \\mathrm{mg} / \\mathrm{mL}$ 的标准贮备液。 $2 \\sim 8^{\\circ} \\mathrm{C}$ 保存，有效期 1 个月。  \n4.7 $10\\mu \\mathrm{g / mL}$ 甲砜霉素标准工作液：精密量取 $1\\mathrm{mg / mL}$ 甲砜霉素标准贮备液 $1.0~\\mathrm{mL}$ ，于 $100~\\mathrm{mL}$ 量瓶\n\n中，用流动相稀释，配制成浓度为 $10\\mu \\mathrm{g / mL}$ 的甲砜霉素标准工作液。现配现用。\n\n\n\n# 4 试剂和材料\n\n以下所用的试剂，除特别注明外均为分析纯，水为符合 GB/T6682 规定的一级水。\n\n4.1 甲砜霉素对照品：含量 $\\geqslant 99.0\\%$   \n4.2 乙酸乙酯  \n4.3 正己烷  \n4.4 乙腈：色谱纯。  \n4.5 $\\mathrm{C_{18}}$ 固相萃取柱： $200\\mathrm{mg / 3mL}$ ，或相当者。  \n4.6 $1 \\mathrm{mg} / \\mathrm{mL}$ 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 $10 \\mathrm{mg}$ ，于 $10 \\mathrm{~mL}$ 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 $1 \\mathrm{mg} / \\mathrm{mL}$ 的标准贮备液。 $2 \\sim 8^{\\circ} \\mathrm{C}$ 保存，有效期 1 个月。  \n4.7 $10\\mu \\mathrm{g / mL}$ 甲砜霉素标准工作液：精密量取 $1\\mathrm{mg / mL}$ 甲砜霉素标准贮备液 $1.0~\\mathrm{mL}$ ，于 $100~\\mathrm{mL}$ 量瓶\n\n中，用流动相稀释，配制成浓度为 $10\\mu \\mathrm{g / mL}$ 的甲砜霉素标准工作液。现配现用。\n\n",
         "meta": {
           "transform_strategy": "list_to_text",
-          "segment_raw_content": "以下所用的试剂，除特别注明外均为分析纯，水为符合 GB/T6682 规定的一级水。\n\n4.1 甲砜霉素对照品：含量 ≥ 99.0%\n\n4.2 乙酸乙酯\n\n4.3 正己烷\n\n4.4 乙腈：色谱纯。\n\n4.5 C18 固相萃取柱：200mg / 3mL，或相当者。",
+          "segment_raw_content": "以下所用的试剂，除特别注明外均为分析纯，水为符合 GB/T6682 规定的一级水。\n\n4.1 甲砜霉素对照品：含量 ≥ 99.0%\n\n4.2 乙酸乙酯\n\n4.3 正己烷\n\n4.4 乙腈：色谱纯。\n\n4.5 C18 固相萃取柱：200mg / 3mL，或相当者。\n\n4.6 1 mg / mL 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 10 mg，于 10 mL 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 1 mg / mL 的标准贮备液。2 ~ 8°C 保存，有效期 1 个月。",
           "cross_refs": [],
           "non_table_refs": [],
           "failed_table_refs": []
         }
       },
       {
-        "chunk_id": "ff148eb284c68079",
+        "chunk_id": "43ec3c9a5f191c1c",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -169,46 +144,22 @@
         ],
         "structure_type": "list",
         "semantic_type": "material",
-        "content": "4.6 1 mg/mL 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 10 mg，于 10 mL 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 1 mg/mL 的标准贮备液。2 ~ 8°C 保存，有效期 1 个月。",
+        "content": "4.7 10μg / mL 甲砜霉素标准工作液：精密量取 1mg / mL 甲砜霉素标准贮备液 1.0 mL，于 100 mL 量瓶中，用流动相稀释，配制成浓度为 10μg / mL 的甲砜霉素标准工作液。现配现用。",
         "raw_content": "# 4 试剂和材料\n\n以下所用的试剂，除特别注明外均为分析纯，水为符合 GB/T6682 规定的一级水。\n\n4.1 甲砜霉素对照品：含量 $\\geqslant 99.0\\%$   \n4.2 乙酸乙酯  \n4.3 正己烷  \n4.4 乙腈：色谱纯。  \n4.5 $\\mathrm{C_{18}}$ 固相萃取柱： $200\\mathrm{mg / 3mL}$ ，或相当者。  \n4.6 $1 \\mathrm{mg} / \\mathrm{mL}$ 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 $10 \\mathrm{mg}$ ，于 $10 \\mathrm{~mL}$ 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 $1 \\mathrm{mg} / \\mathrm{mL}$ 的标准贮备液。 $2 \\sim 8^{\\circ} \\mathrm{C}$ 保存，有效期 1 个月。  \n4.7 $10\\mu \\mathrm{g / mL}$ 甲砜霉素标准工作液：精密量取 $1\\mathrm{mg / mL}$ 甲砜霉素标准贮备液 $1.0~\\mathrm{mL}$ ，于 $100~\\mathrm{mL}$ 量瓶\n\n中，用流动相稀释，配制成浓度为 $10\\mu \\mathrm{g / mL}$ 的甲砜霉素标准工作液。现配现用。\n\n",
         "meta": {
           "transform_strategy": "list_to_text",
-          "segment_raw_content": "4.6 1 mg/mL 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 10 mg，于 10 mL 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 1 mg/mL 的标准贮备液。2 ~ 8°C 保存，有效期 1 个月。",
+          "segment_raw_content": "4.7 10μg / mL 甲砜霉素标准工作液：精密量取 1mg / mL 甲砜霉素标准贮备液 1.0 mL，于 100 mL 量瓶中，用流动相稀释，配制成浓度为 10μg / mL 的甲砜霉素标准工作液。现配现用。",
           "cross_refs": [],
           "non_table_refs": [],
           "failed_table_refs": []
         }
       },
       {
-        "chunk_id": "87807ba325170d3e",
+        "chunk_id": "3b3988d52218ee3d",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
-          "doc_type": "detection_method",
-          "doc_type_source": "rule"
-        },
-        "section_path": [
-          "4 试剂和材料"
-        ],
-        "structure_type": "list",
-        "semantic_type": "material",
-        "content": "4.7 10 μg/mL 甲砜霉素标准工作液：精密量取 1 mg/mL 甲砜霉素标准贮备液 1.0 mL，于 100 mL 量瓶中，用流动相稀释，配制成浓度为 10 μg/mL 的甲砜霉素标准工作液。现配现用。",
-        "raw_content": "# 4 试剂和材料\n\n以下所用的试剂，除特别注明外均为分析纯，水为符合 GB/T6682 规定的一级水。\n\n4.1 甲砜霉素对照品：含量 $\\geqslant 99.0\\%$   \n4.2 乙酸乙酯  \n4.3 正己烷  \n4.4 乙腈：色谱纯。  \n4.5 $\\mathrm{C_{18}}$ 固相萃取柱： $200\\mathrm{mg / 3mL}$ ，或相当者。  \n4.6 $1 \\mathrm{mg} / \\mathrm{mL}$ 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 $10 \\mathrm{mg}$ ，于 $10 \\mathrm{~mL}$ 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 $1 \\mathrm{mg} / \\mathrm{mL}$ 的标准贮备液。 $2 \\sim 8^{\\circ} \\mathrm{C}$ 保存，有效期 1 个月。  \n4.7 $10\\mu \\mathrm{g / mL}$ 甲砜霉素标准工作液：精密量取 $1\\mathrm{mg / mL}$ 甲砜霉素标准贮备液 $1.0~\\mathrm{mL}$ ，于 $100~\\mathrm{mL}$ 量瓶\n\n中，用流动相稀释，配制成浓度为 $10\\mu \\mathrm{g / mL}$ 的甲砜霉素标准工作液。现配现用。\n\n",
-        "meta": {
-          "transform_strategy": "list_to_text",
-          "segment_raw_content": "4.7 10μg/mL 甲砜霉素标准工作液：精密量取 1mg/mL 甲砜霉素标准贮备液 1.0 mL，于 100 mL 量瓶中，用流动相稀释，配制成浓度为 10μg/mL 的甲砜霉素标准工作液。现配现用。",
-          "cross_refs": [],
-          "non_table_refs": [],
-          "failed_table_refs": []
-        }
-      },
-      {
-        "chunk_id": "beef538c3c500647",
-        "doc_metadata": {
-          "standard_no": "未知",
-          "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -228,11 +179,11 @@
         }
       },
       {
-        "chunk_id": "3c2ff7eb733f0f07",
+        "chunk_id": "cfcba2df18382024",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -241,46 +192,22 @@
         ],
         "structure_type": "list",
         "semantic_type": "procedure",
-        "content": "取适量新鲜或冷藏的空白或供试牛奶，混合均匀。\n\n——取均质后的供试样品，作为供试试料。\n——取均质后的空白样品，作为空白试料。\n——取均质后的空白样品，添加适宜浓度的标准溶液，作为空白添加试料。",
-        "raw_content": "# 6 试料的制备与保存\n\n## 6.1 试料的制备\n\n取适量新鲜或冷藏的空白或供试牛奶，混合均匀。\n\n——取均质后的供试样品，作为供试试料。  \n——取均质后的空白样品，作为空白试料。  \n——取均质后的空白样品，添加适宜浓度的标准溶液，作为空白添加试料。\n\n## 6.2 试料的保存\n\n-20°C 以下保存。\n\n",
+        "content": "取适量新鲜或冷藏的空白或供试牛奶，混合均匀。\n\n——取均质后的供试样品，作为供试试料。\n——取均质后的空白样品，作为空白试料。\n——取均质后的空白样品，添加适宜浓度的标准溶液，作为空白添加试料。\n\n-20°C 以下保存。",
+        "raw_content": "# 6 试料的制备与保存\n\n## 6.1 试料的制备\n\n取适量新鲜或冷藏的空白或供试牛奶，混合均匀。\n\n——取均质后的供试样品，作为供试试料。  \n——取均质后的空白样品，作为空白试料。  \n——取均质后的空白样品，添加适宜浓度的标准溶液，作为空白添加试料。\n\n## 6.2 试料的保存\n\n-20°C 以下保存。\n\n\n\n# 6 试料的制备与保存\n\n## 6.1 试料的制备\n\n取适量新鲜或冷藏的空白或供试牛奶，混合均匀。\n\n——取均质后的供试样品，作为供试试料。  \n——取均质后的空白样品，作为空白试料。  \n——取均质后的空白样品，添加适宜浓度的标准溶液，作为空白添加试料。\n\n## 6.2 试料的保存\n\n-20°C 以下保存。\n\n",
         "meta": {
           "transform_strategy": "list_to_text",
-          "segment_raw_content": "取适量新鲜或冷藏的空白或供试牛奶，混合均匀。\n\n——取均质后的供试样品，作为供试试料。\n——取均质后的空白样品，作为空白试料。\n——取均质后的空白样品，添加适宜浓度的标准溶液，作为空白添加试料。",
+          "segment_raw_content": "取适量新鲜或冷藏的空白或供试牛奶，混合均匀。\n\n——取均质后的供试样品，作为供试试料。\n——取均质后的空白样品，作为空白试料。\n——取均质后的空白样品，添加适宜浓度的标准溶液，作为空白添加试料。\n\n-20°C 以下保存。",
           "cross_refs": [],
           "non_table_refs": [],
           "failed_table_refs": []
         }
       },
       {
-        "chunk_id": "469b9058044ea2bc",
+        "chunk_id": "99f8dcf144a99320",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
-          "doc_type": "detection_method",
-          "doc_type_source": "rule"
-        },
-        "section_path": [
-          "6 试料的制备与保存"
-        ],
-        "structure_type": "paragraph",
-        "semantic_type": "limit",
-        "content": "-20°C 以下保存。",
-        "raw_content": "# 6 试料的制备与保存\n\n## 6.1 试料的制备\n\n取适量新鲜或冷藏的空白或供试牛奶，混合均匀。\n\n——取均质后的供试样品，作为供试试料。  \n——取均质后的空白样品，作为空白试料。  \n——取均质后的空白样品，添加适宜浓度的标准溶液，作为空白添加试料。\n\n## 6.2 试料的保存\n\n-20°C 以下保存。\n\n",
-        "meta": {
-          "transform_strategy": "table_to_text",
-          "segment_raw_content": "-20°C 以下保存。",
-          "cross_refs": [],
-          "non_table_refs": [],
-          "failed_table_refs": []
-        }
-      },
-      {
-        "chunk_id": "29495ac58caf8bdc",
-        "doc_metadata": {
-          "standard_no": "未知",
-          "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -301,11 +228,11 @@
         }
       },
       {
-        "chunk_id": "4b26fb64ee1453c5",
+        "chunk_id": "e061c74b5383ad0e",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -326,11 +253,11 @@
         }
       },
       {
-        "chunk_id": "134968ec8535fbc0",
+        "chunk_id": "2f0f3e3692ccdf30",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -351,11 +278,11 @@
         }
       },
       {
-        "chunk_id": "3f9f0d747ce8f9a8",
+        "chunk_id": "25386a34a23f7a71",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -376,11 +303,11 @@
         }
       },
       {
-        "chunk_id": "fef227c730ae8131",
+        "chunk_id": "74647c42e8e601c8",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -405,11 +332,11 @@
         }
       },
       {
-        "chunk_id": "55045b5ee5258a0b",
+        "chunk_id": "d87dd5f9acaf57bd",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -430,11 +357,11 @@
         }
       },
       {
-        "chunk_id": "fe0e5d1583a23230",
+        "chunk_id": "21fccb77f1084cd5",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -454,11 +381,11 @@
         }
       },
       {
-        "chunk_id": "913a8fd8c7920d2d",
+        "chunk_id": "00f74a65fdf2e580",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -478,11 +405,11 @@
         }
       },
       {
-        "chunk_id": "355d92b30d77a033",
+        "chunk_id": "160bcb0b8975df83",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -502,11 +429,11 @@
         }
       },
       {
-        "chunk_id": "29e3ac3a2706cbad",
+        "chunk_id": "5647b2e7251836cf",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -515,46 +442,22 @@
         ],
         "structure_type": "paragraph",
         "semantic_type": "definition",
-        "content": "本方法的检测限为 10 μg/kg，定量限为 10 μg/kg",
-        "raw_content": "# 9 检测方法灵敏度、准确度、精密度\n\n## 9.1 灵敏度\n\n本方法的检测限为 $10~\\mu \\mathrm{g / kg}$ ，定量限为 $10~\\mu \\mathrm{g / kg}$\n\n## 9.2 准确度\n\n本方法在 $10\\sim 100~\\mu \\mathrm{g / kg}$ 添加浓度水平上的回收率为 $70\\% \\sim 110\\%$\n\n## 9.3 精密度\n\n本方法的批内相对标准偏差 $\\leqslant 15\\%$ ，批间相对标准偏差 $\\leqslant 15\\%$ 。\n\n",
+        "content": "本方法的检测限为 10 μg/kg，定量限为 10 μg/kg\n\n本方法在 10~100 μg/kg 添加浓度水平上的回收率为 70% ~ 110%",
+        "raw_content": "# 9 检测方法灵敏度、准确度、精密度\n\n## 9.1 灵敏度\n\n本方法的检测限为 $10~\\mu \\mathrm{g / kg}$ ，定量限为 $10~\\mu \\mathrm{g / kg}$\n\n## 9.2 准确度\n\n本方法在 $10\\sim 100~\\mu \\mathrm{g / kg}$ 添加浓度水平上的回收率为 $70\\% \\sim 110\\%$\n\n## 9.3 精密度\n\n本方法的批内相对标准偏差 $\\leqslant 15\\%$ ，批间相对标准偏差 $\\leqslant 15\\%$ 。\n\n\n\n# 9 检测方法灵敏度、准确度、精密度\n\n## 9.1 灵敏度\n\n本方法的检测限为 $10~\\mu \\mathrm{g / kg}$ ，定量限为 $10~\\mu \\mathrm{g / kg}$\n\n## 9.2 准确度\n\n本方法在 $10\\sim 100~\\mu \\mathrm{g / kg}$ 添加浓度水平上的回收率为 $70\\% \\sim 110\\%$\n\n## 9.3 精密度\n\n本方法的批内相对标准偏差 $\\leqslant 15\\%$ ，批间相对标准偏差 $\\leqslant 15\\%$ 。\n\n",
         "meta": {
           "transform_strategy": "plain_embed",
-          "segment_raw_content": "本方法的检测限为 $10~\\mu \\mathrm{g / kg}$ ，定量限为 $10~\\mu \\mathrm{g / kg}$",
+          "segment_raw_content": "本方法的检测限为 $10~\\mu \\mathrm{g / kg}$ ，定量限为 $10~\\mu \\mathrm{g / kg}$\n\n本方法在 $10\\sim 100~\\mu \\mathrm{g / kg}$ 添加浓度水平上的回收率为 $70\\% \\sim 110\\%$",
           "cross_refs": [],
           "non_table_refs": [],
           "failed_table_refs": []
         }
       },
       {
-        "chunk_id": "f3d6b232f2345db3",
+        "chunk_id": "27fa47779ff76801",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
-          "doc_type": "detection_method",
-          "doc_type_source": "rule"
-        },
-        "section_path": [
-          "9 检测方法灵敏度、准确度、精密度"
-        ],
-        "structure_type": "paragraph",
-        "semantic_type": "definition",
-        "content": "本方法在 10~100 μg/kg 添加浓度水平上的回收率为 70% ~ 110%",
-        "raw_content": "# 9 检测方法灵敏度、准确度、精密度\n\n## 9.1 灵敏度\n\n本方法的检测限为 $10~\\mu \\mathrm{g / kg}$ ，定量限为 $10~\\mu \\mathrm{g / kg}$\n\n## 9.2 准确度\n\n本方法在 $10\\sim 100~\\mu \\mathrm{g / kg}$ 添加浓度水平上的回收率为 $70\\% \\sim 110\\%$\n\n## 9.3 精密度\n\n本方法的批内相对标准偏差 $\\leqslant 15\\%$ ，批间相对标准偏差 $\\leqslant 15\\%$ 。\n\n",
-        "meta": {
-          "transform_strategy": "plain_embed",
-          "segment_raw_content": "本方法在 $10\\sim 100~\\mu \\mathrm{g / kg}$ 添加浓度水平上的回收率为 $70\\% \\sim 110\\%$",
-          "cross_refs": [],
-          "non_table_refs": [],
-          "failed_table_refs": []
-        }
-      },
-      {
-        "chunk_id": "530e2643377f6378",
-        "doc_metadata": {
-          "standard_no": "未知",
-          "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },
@@ -574,11 +477,11 @@
         }
       },
       {
-        "chunk_id": "5e5bf77d2e07256b",
+        "chunk_id": "1175e19d255da8d2",
         "doc_metadata": {
           "standard_no": "未知",
           "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
-          "doc_id": "b6ec4860-b12f-47bd-ac4f-4be3a3483a7f",
+          "doc_id": "ad04d52f-f156-4002-a652-fb1949291ba3",
           "doc_type": "detection_method",
           "doc_type_source": "rule"
         },

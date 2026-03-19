@@ -1,6 +1,6 @@
 {
   "type": "update",
-  "at": "2026-03-19T15:19:57",
+  "at": "2026-03-19T16:29:33",
   "summary": {
     "node_name": "classify_node",
     "output_type": "dict",
@@ -157,7 +157,7 @@
             "failed_table_refs": []
           },
           {
-            "content": "4.6 1 mg/mL 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 10 mg，于 10 mL 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 1 mg/mL 的标准贮备液。2 ~ 8°C 保存，有效期 1 个月。",
+            "content": "4.6 1 mg / mL 甲砜霉素标准贮备液：精密称取甲砜霉素对照品 10 mg，于 10 mL 量瓶中，用乙腈溶解并稀释至刻度，配制成浓度为 1 mg / mL 的标准贮备液。2 ~ 8°C 保存，有效期 1 个月。",
             "structure_type": "list",
             "semantic_type": "material",
             "confidence": 0.9,
@@ -167,7 +167,7 @@
             "failed_table_refs": []
           },
           {
-            "content": "4.7 10μg/mL 甲砜霉素标准工作液：精密量取 1mg/mL 甲砜霉素标准贮备液 1.0 mL，于 100 mL 量瓶中，用流动相稀释，配制成浓度为 10μg/mL 的甲砜霉素标准工作液。现配现用。",
+            "content": "4.7 10μg / mL 甲砜霉素标准工作液：精密量取 1mg / mL 甲砜霉素标准贮备液 1.0 mL，于 100 mL 量瓶中，用流动相稀释，配制成浓度为 10μg / mL 的甲砜霉素标准工作液。现配现用。",
             "structure_type": "list",
             "semantic_type": "material",
             "confidence": 0.9,
@@ -253,7 +253,7 @@
           {
             "content": "-20°C 以下保存。",
             "structure_type": "paragraph",
-            "semantic_type": "limit",
+            "semantic_type": "procedure",
             "confidence": 0.85,
             "escalated": false,
             "cross_refs": [],
@@ -543,7 +543,7 @@
             "content": "本方法在 $10\\sim 100~\\mu \\mathrm{g / kg}$ 添加浓度水平上的回收率为 $70\\% \\sim 110\\%$",
             "structure_type": "paragraph",
             "semantic_type": "definition",
-            "confidence": 0.92,
+            "confidence": 0.9,
             "escalated": false,
             "cross_refs": [],
             "ref_context": "",
@@ -563,7 +563,7 @@
             "content": "本方法的批内相对标准偏差 $\\leqslant 15\\%$ ，批间相对标准偏差 $\\leqslant 15\\%$ 。",
             "structure_type": "paragraph",
             "semantic_type": "definition",
-            "confidence": 0.92,
+            "confidence": 0.9,
             "escalated": false,
             "cross_refs": [],
             "ref_context": "",
