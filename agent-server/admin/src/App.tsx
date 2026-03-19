@@ -5,6 +5,19 @@ import { ChunkList } from './components/ChunkList'
 import { Toaster } from '@/components/ui/toaster'
 import { api } from './api/client'
 import type { DocumentInfo, KBStats } from './api/types'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { buttonVariants } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 
 export default function App() {
   const [documents, setDocuments] = useState<DocumentInfo[]>([])
@@ -19,6 +32,10 @@ export default function App() {
     api.kb.stats().then(setStats).catch(() => {})
   }, [])
 
+  const [clearOpen, setClearOpen] = useState(false)
+  const [clearing, setClearing] = useState(false)
+  const { toast } = useToast()
+
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
       {/* Top bar */}
@@ -30,6 +47,50 @@ export default function App() {
             <span>docs <strong className="text-foreground">{stats.total_documents}</strong></span>
           </div>
         )}
+        <AlertDialog open={clearOpen} onOpenChange={setClearOpen}>
+          <AlertDialogTrigger asChild>
+            <button
+              className={buttonVariants({ variant: 'destructive' })}
+              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+            >
+              清空
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>清空知识库</AlertDialogTitle>
+              <AlertDialogDescription>
+                此操作将删除所有文档和 Chunks，且不可恢复。是否继续？
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setClearOpen(false)}>取消</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  setClearing(true)
+                  try {
+                    const result = await api.documents.clearAll()
+                    toast({
+                      description: `已清空 ${result.deleted_documents} 个文档，${result.deleted_chunks} 个 chunks`,
+                    })
+                    setDocuments([])
+                    setSelectedDocId(null)
+                    setDocsLoading(false)
+                    api.kb.stats().then(setStats).catch(() => {})
+                  } catch (err) {
+                    toast({ description: `清空失败: ${(err as Error).message}`, variant: 'destructive' })
+                  } finally {
+                    setClearing(false)
+                    setClearOpen(false)
+                  }
+                }}
+                disabled={clearing}
+              >
+                {clearing ? '清空中...' : '确认清空'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </header>
 
       {/* Main layout */}
