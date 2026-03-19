@@ -45,11 +45,17 @@ def _call_classify_llm(
 【语义类型（semantic_type）】——描述内容对读者的用途：
 {semantic_desc}
 
-分类规则：
-1. 保守切分：只在相邻内容属于明显不同语义单元时才切分；同一逻辑章节保持整体。
-2. 对每个片段独立推断两个维度，互不干扰：先判断呈现形式（structure_type），再判断用途（semantic_type）。
-3. confidence 反映你对两个判断综合的把握程度（0-1）。
-4. 公式识别（强制规则）：文本中出现 $$...$$ 块级公式时，公式及其前导引导句（如"按下式计算："）、变量说明（"式中：X——..."格式）、注释（"注："格式）必须合并为同一个 segment，structure_type=formula，semantic_type=calculation。不得将公式内容拆分为 procedure、calculation、limit 三个独立 segment。
+分类规则（按优先级从高到低）：
+
+【强制规则，这些情况下必须合并且不得拆分】
+1. 公式块：文本中出现 $$...$$ 公式时，公式及其前导引导句（如"按下式计算："）、变量说明（"式中：X——..."格式）、注释（"注："格式）必须合并为同一个 segment，structure_type=formula，semantic_type=calculation。
+2. 步骤链：编号呈递进的相邻步骤（如 A.2.2.1 → A.2.2.2，或 3.1 → 3.2），且后一步引用前一步产物（如"取上一步溶液"、"将前述沉淀..."、"按 A.X.X.1 方法..."），必须合并为单一 procedure segment。
+3. 标题行不得单独成段：章节标题（如 ## A.2、### A.2.2）必须与其后的首个内容片段合并；纯标题无内容时则保留。
+
+【切分原则】
+4. 极保守切分：只有在以下情况才切分——相邻内容属于截然不同的 semantic_type（如 limit → procedure，或 material → procedure），且各自内容足够独立。满足以下任一条件时禁止切分：同一检测方法的 试剂/步骤/仪器/结果计算、连续步骤之间存在数据或引用传递、"见第X条"等内部引用。
+5. 双维度先推断结构再推断用途：structure_type 决定内容呈现形式，semantic_type 决定读者用途，两者非独立——formula 必然是 calculation，header 仅用于 metadata，procedure 可包含 limit 注释（如"注：..."）。
+6. confidence 反映综合把握程度（0-1），低于阈值（0.7）的 segment 会进入人工审核。
 
 文本内容：
 {_escape_for_json_prompt(chunk_content)}

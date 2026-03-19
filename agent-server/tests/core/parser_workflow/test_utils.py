@@ -93,7 +93,7 @@ def load_sample_markdown() -> Tuple[str, Path]:
         .resolve()
         .parents[2]
         / "assets"
-        / "《食品安全国家标准 食品添加剂 卡拉胶》（GB 1886.169-2016）第1号修改单.md"
+        / "19 鸡肉组织中氯羟吡啶残留量的测定 气相色谱法-质谱法.reorganized.md"
     )
     md_content = asset_path.read_text(encoding="utf-8")
     return md_content, asset_path

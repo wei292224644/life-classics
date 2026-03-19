@@ -332,7 +332,7 @@ async def test_full_parser_workflow_with_real_llm_logs_all_steps():
         md_content=md_content,
         doc_metadata={
             "standard_no": "未知",
-            "title": "食品安全国家标准 牛奶中甲砜霉素残留量的测定 高效液相色谱法",
+            # title 由 parse_node 从 md_content 首行标题自动提取，不在此硬编码
         },
         config={},
         rules_dir=str(rules_dir),
