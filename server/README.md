@@ -45,7 +45,7 @@ uv sync
 
 ### 配置环境变量
 
-创建 `.env` 文件（可选，也可直接在 `app/core/config.py` 中配置）：
+创建 `.env` 文件（可选，也可直接在 `server/config.py` 中配置）：
 
 ```env
 # LLM 提供者配置
@@ -88,7 +88,7 @@ NEO4J_DATABASE=neo4j
 # Agent（Deep Agents）
 CHAT_PROVIDER=dashscope
 CHAT_MODEL=qwen3-max-2026-01-23
-AGENT_SKILLS_PATH=app/skills
+AGENT_SKILLS_PATH=server/agent/skills
 AGENT_MAX_ITERATIONS=10
 ```
 
@@ -101,7 +101,7 @@ python run.py
 或使用 uvicorn 直接启动：
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 9999 --reload
+uvicorn api.main:app --host 0.0.0.0 --port 9999 --reload
 ```
 
 服务启动后，访问：
@@ -111,54 +111,55 @@ uvicorn app.main:app --host 0.0.0.0 --port 9999 --reload
 ## 项目结构
 
 ```
-agent-server/
-├── app/
-│   ├── main.py                 # FastAPI 应用入口
-│   ├── api/                    # API 路由
-│   │   ├── __init__.py
-│   │   ├── document/           # 知识库：文档上传、检索、纯 RAG 对话
-│   │   │   ├── document.py
-│   │   │   ├── models.py
-│   │   │   └── services/
-│   │   └── agent/             # Agent：多工具编排（RAG / 网络 / Neo4j / PostgreSQL）
-│   │       ├── __init__.py
-│   │       ├── router.py
-│   │       └── models.py
-│   ├── core/                   # 核心模块
-│   │   ├── config.py
-│   │   ├── document_chunk.py
-│   │   ├── llm/                # LLM 调用
-│   │   ├── kb/                 # 知识库：导入、切分、向量存储
-│   │   │   ├── imports/
-│   │   │   ├── pre_parse/
-│   │   │   ├── strategy/
-│   │   │   └── vector_store/
-│   │   ├── kg/                 # 知识图谱（Neo4j）
-│   │   │   ├── __init__.py
-│   │   │   └── neo4j_store.py
-│   │   ├── pdf/                # PDF 解析（MinerU 适配）
-│   │   │   ├── __init__.py
-│   │   │   └── mineru_adapter.py
-│   │   ├── agent/              # Agent 编排（Deep Agents）
-│   │   │   ├── __init__.py
-│   │   │   ├── factory.py
-│   │   │   └── llm_adapter.py
-│   │   ├── markdown_db/
-│   │   └── tools/              # Agent 工具
-│   │       ├── web_search.py
-│   │       └── ...
-│   ├── skills/                 # Agent Skills（Markdown）
-│   │   ├── national-standard-rag/SKILL.md
-│   │   ├── web-search/SKILL.md
-│   │   ├── neo4j-graph/SKILL.md
-│   │   └── postgres-query/SKILL.md
-│   └── web/                    # Web 界面
-├── docs/plans/                 # 设计文档与实施计划（见 2026-03-02-full-refactor-implementation-plan.md）
-├── db/
-├── files/
-├── markdown_cache/
+server/                          # Python FastAPI 后端（uv workspace）
+├── api/                         # FastAPI 入口和路由
+│   ├── main.py                  # FastAPI 应用入口
+│   ├── config.py                # API 层配置
+│   ├── documents/               # 文档管理 API
+│   ├── chunks/                  # Chunk 管理 API
+│   ├── search/                  # 检索 API
+│   ├── kb/                      # 知识库 API
+│   └── agent/                   # Agent API
+├── agent/                       # Agent 核心
+│   ├── factory.py               # Agent 工厂
+│   ├── food_safety_agent.py     # 食品安全助手
+│   ├── skill_loader.py          # 技能加载器
+│   ├── session_store.py         # 会话存储
+│   ├── llm_adapter.py           # LLM 适配器
+│   ├── tools/                   # Agent 工具
+│   │   ├── knowledge_base.py    # 知识库检索
+│   │   ├── web_search.py        # 网络搜索
+│   │   ├── neo4j_query.py       # 图数据库查询
+│   │   └── postgres_query.py    # SQL 查询
+│   └── skills/                  # Agent Skills（Markdown）
+│       ├── national-standard-rag/SKILL.md
+│       ├── web-search/SKILL.md
+│       ├── neo4j-graph/SKILL.md
+│       └── postgres-query/SKILL.md
+├── kb/                          # 知识库
+│   ├── writer/                  # 写入（ChromaDB + 全文索引）
+│   ├── retriever/              # 检索（向量 + BM25 + Reranker）
+│   ├── embeddings.py            # 嵌入模型封装
+│   └── clients.py               # ChromaDB 连接管理
+├── parser/                      # 文档处理流水线
+│   ├── models.py                # 核心数据模型
+│   ├── graph.py                 # LangGraph 有向图
+│   ├── nodes/                   # 各处理节点
+│   │   ├── parse_node.py
+│   │   ├── clean_node.py
+│   │   ├── structure_node.py
+│   │   ├── slice_node.py
+│   │   ├── classify_node.py
+│   │   ├── escalate_node.py
+│   │   ├── enrich_node.py
+│   │   ├── transform_node.py
+│   │   └── merge_node.py
+│   ├── rules/                   # 规则配置
+│   └── structured_llm/          # 结构化 LLM 输出
+├── llm/                         # LLM 提供商适配器
+├── config.py                    # 全局配置
+├── run.py                       # 启动脚本
 ├── pyproject.toml
-├── run.py
 └── README.md
 ```
 
@@ -218,7 +219,7 @@ agent-server/
 
 ## 配置说明
 
-主要配置项位于 `app/core/config.py`，支持通过环境变量或 `.env` 文件配置：
+主要配置项位于 `server/config.py`，支持通过环境变量或 `.env` 文件配置：
 
 - **模型提供者**：可选择 DashScope、Ollama 或 OpenRouter
 - **向量数据库**：ChromaDB 持久化目录和集合名称
@@ -227,7 +228,7 @@ agent-server/
 - **OCR 配置**：OCR 语言、最小文本长度等
 - **文本切分**：chunk_size、chunk_overlap 等参数
 
-详细配置说明请参考 `app/core/config.py` 文件。
+详细配置说明请参考 `server/config.py` 文件。
 
 ## 开发
 
@@ -241,10 +242,10 @@ python run.py
 
 ### 代码结构说明
 
-- `app/core/kb/`：知识库核心模块，包含导入、预处理、切分、向量存储等功能
-- `app/core/providers/`：LLM 提供者抽象和实现，支持多种模型服务
-- `app/api/`：RESTful API 接口
-- `app/web/`：Web 界面和模板
+- `server/kb/`：知识库核心模块，包含导入、预处理、切分、向量存储等功能
+- `server/llm/`：LLM 提供者抽象和实现，支持多种模型服务
+- `server/api/`：RESTful API 接口
+- `server/agent/`：Agent 核心模块
 
 ## 许可证
 
