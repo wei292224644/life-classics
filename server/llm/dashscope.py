@@ -9,23 +9,21 @@ import dashscope
 from langchain_community.llms import Tongyi
 from langchain_community.embeddings import DashScopeEmbeddings
 
-from api.config import settings
 from llm.utils import get_cache, get_cache_key, set_cache
 
 
-api_key = settings.DASHSCOPE_API_KEY
-
-# 设置环境变量和 dashscope.api_key
-if api_key:
-    os.environ["DASHSCOPE_API_KEY"] = api_key
-    dashscope.api_key = api_key
-
-
 def create_chat(model: str, **kwargs) -> Tongyi:
+    from api.config import settings
+
     cache_key = get_cache_key(f"dashscope_{model}", kwargs)
     cached_instance = get_cache(cache_key)
     if cached_instance is not None:
         return cached_instance
+
+    api_key = settings.DASHSCOPE_API_KEY
+    if api_key:
+        os.environ["DASHSCOPE_API_KEY"] = api_key
+        dashscope.api_key = api_key
 
     instance = Tongyi(
         model_name=model,
@@ -38,11 +36,14 @@ def create_chat(model: str, **kwargs) -> Tongyi:
 
 
 def create_embedding(model: str, **kwargs) -> DashScopeEmbeddings:
+    from api.config import settings
+
     cache_key = get_cache_key(f"dashscope_embedding_{model}", kwargs)
     cached_instance = get_cache(cache_key)
     if cached_instance is not None:
         return cached_instance
 
+    api_key = settings.DASHSCOPE_API_KEY
     instance = DashScopeEmbeddings(
         model=model,
         dashscope_api_key=api_key,

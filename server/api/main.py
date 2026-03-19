@@ -28,7 +28,7 @@ app.include_router(api_router, prefix="/api")
 
 # 挂载 admin 静态文件（build 后才存在）
 import os
-_admin_dist = os.path.join(os.path.dirname(__file__), "..", "admin", "dist")
+_admin_dist = os.path.join(os.path.dirname(__file__), "..", "..", "web", "apps", "console", "dist")
 if os.path.isdir(_admin_dist):
     from fastapi.staticfiles import StaticFiles
     app.mount("/admin", StaticFiles(directory=_admin_dist, html=True), name="admin")
