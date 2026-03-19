@@ -51,3 +51,7 @@ uploads/
 # Logs
 *.log
 logs/
+
+# Admin frontend
+admin/dist/
+admin/node_modules/
