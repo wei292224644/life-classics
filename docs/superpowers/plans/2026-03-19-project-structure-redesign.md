@@ -269,16 +269,18 @@ git commit -m "feat(server): create uv workspace structure with llm, api, agent,
 - Move: `server/app/core/config.py` → `server/api/config.py` (API 层配置)
 - Move: `server/app/core/document_chunk.py` → `server/parser/document_chunk.py`
 - Move: `server/app/api/` → `server/api/`
-- Move: `server/app/skills/` → `server/agent/` (Agent skills)
+- Move: `server/app/skills/` → `server/agent/skills/` (Agent skills，保留子目录结构)
 - Move: `server/app/web/` → `server/api/` (web 路由)
 - Move: `server/app/main.py` → `server/api/main.py`
 
-**注意**: `llm/` 放在独立包避免循环依赖，因为 `llm/` 被 `api/`, `agent/`, `kb/`, `parser/` 共同依赖
+**注意**:
+- `llm/` 放在独立包避免循环依赖，因为 `llm/` 被 `api/`, `agent/`, `kb/`, `parser/` 共同依赖
+- `skills/` 移动到 `server/agent/skills/` 保持原有的子目录结构（如 `food-safety/`, `document-type/`）
 
 - [ ] **Step 1: 创建目录结构**
 
 ```bash
-mkdir -p server/api server/agent server/kb server/parser server/llm
+mkdir -p server/api server/agent server/kb server/parser server/llm server/agent/skills
 ```
 
 - [ ] **Step 2: 移动 parser-workflow → parser**
@@ -335,14 +337,15 @@ mv server/app/api/* server/api/
 mv server/app/web/* server/api/ 2>/dev/null || true
 # 移动 main.py
 mv server/app/main.py server/api/main.py
-# 移动 skills
-mv server/app/skills/* server/agent/ 2>/dev/null || true
+# 移动 skills 到 agent/skills/ (保留子目录结构)
+mv server/app/skills/* server/agent/skills/
+rmdir server/app/skills
 ```
 
 - [ ] **Step 9: 清理空目录**
 
 ```bash
-rm -rf server/app/core server/app/api server/app/web server/app/skills server/app
+rm -rf server/app/core server/app/api server/app/web server/app
 ```
 
 - [ ] **Step 10: 提交**
@@ -449,11 +452,40 @@ grep -r "import app\." server/ --include="*.py" | head -50
 # 现在: from api.main import app
 ```
 
-- [ ] **Step 9: 提交**
+- [ ] **Step 9: 更新硬编码的字符串路径**
+
+除了 Python import 语句，还有一些硬编码的字符串路径需要更新：
+
+```bash
+cd server
+# 更新 skill_loader.py 中的路径
+grep -r "app/skills" --include="*.py" -l
+# 预期: skill_loader.py
+
+# 更新 config.py 中的 rules 路径
+grep -r "app/core/parser_workflow/rules" --include="*.py" -l
+# 预期: config.py
+
+# 更新 check_json.py 中的路径
+grep -r "app/core/parser_workflow" --include="*.py" -l
+# 预期: check_json.py
+
+# 批量替换字符串路径
+find server/ -name "*.py" -exec sed -i '' \
+    -e 's|app/skills|agent/skills|g' \
+    -e 's|app/core/parser_workflow/rules|parser/rules|g' \
+    -e 's|app/core|agent/core|g' \
+    -e 's|app/api|api|g' \
+    {} \;
+```
+
+**注意**: `agent/core` 不存在，这只是一个占位符表示 `app/core/` 下的文件现在分布到了不同包。
+
+- [ ] **Step 10: 提交**
 
 ```bash
 git add -A
-git commit -m "refactor(server): update import paths to workspace packages"
+git commit -m "refactor(server): update import paths and string literals"
 ```
 
 ---
