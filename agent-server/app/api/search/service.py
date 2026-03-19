@@ -114,7 +114,8 @@ class ChatService:
     @staticmethod
     async def chat(request: ChatRequest) -> Tuple[str, List[SearchResult]]:
         messages, sources = await ChatService._prepare_context(request)
-        response = llm_chat(
+        response = await asyncio.to_thread(
+            llm_chat,
             messages=messages,
             provider_name=settings.CHAT_PROVIDER,
             model=settings.CHAT_MODEL,
