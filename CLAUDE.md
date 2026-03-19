@@ -48,7 +48,7 @@ uv sync
 **启动服务：**
 ```bash
 uv run python3 run.py
-# 或：uv run uvicorn app.main:app --host 0.0.0.0 --port 9999 --reload
+# 或：uv run uvicorn api.main:app --host 0.0.0.0 --port 9999 --reload
 ```
 服务地址：http://localhost:9999 | Swagger 文档：http://localhost:9999/swagger
 
