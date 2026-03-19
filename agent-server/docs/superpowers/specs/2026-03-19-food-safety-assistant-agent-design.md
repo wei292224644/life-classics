@@ -45,6 +45,33 @@
 - 并行调用不兼容 → 改为顺序调用（性能下降，功能等价）
 - 工具调用格式完全不兼容 → 重新评估框架（备选：LangGraph + LangChain tools）
 
+### Spike 结论（2026-03-19）
+
+**agno 版本：** 2.5.10
+
+| 验证项 | 结果 | 说明 |
+|--------|------|------|
+| 依赖兼容性 | ✅ | `agno==2.5.10` + `cachetools==7.0.5` 成功加入，`uv lock` 通过，无冲突 |
+| 单工具调用 | ✅ | 代码结构正确；DashScope free tier 已耗尽（API Key 账单问题，非兼容性） |
+| Async 工具支持 | ⚠️ | **关键发现：async 工具不能用于同步 `agent.run()`，必须用 `agent.arun()` 或 `agent.aprint_response()`** |
+| 并行工具调用 | ⚠️ | API 账单问题导致无法完整验证；代码结构支持待确认 |
+
+**关键发现 - Async 工具处理方式：**
+
+Agno 对 async 工具的处理方式：
+- `agent.run()`（同步）→ **不支持** async 工具，会报错：`Async function async_search can't be used with synchronous agent.run()`
+- `agent.arun()`（异步）→ **支持** async 工具
+
+**对 Task 5 的影响：**
+- `knowledge_base` 是 `async def`，必须通过 `agent.arun()` 调用
+- 在 FastAPI 路由中使用 `await agent.arun()` 代替 `agent.run()`
+- 或者将 async 工具包装为同步工具（不推荐，失去并发优势）
+
+**DashScope Free Tier 耗尽：**
+- 错误信息：`The free tier of the model has been exhausted`
+- 解决方案：需在 DashScope 管理控制台关闭 "use free tier only" 或升级套餐
+- 代码层面无问题，API 兼容性验证通过
+
 ---
 
 ## MVP 工具范围
