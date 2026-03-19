@@ -120,3 +120,27 @@ def delete_by_doc_id(doc_id: str, errors: List[str], db_path: Optional[str] = No
     except Exception as e:
         errors.append(f"fts delete error: {e}")
         return False
+
+
+def clear_all(db_path: Optional[str] = None) -> int:
+    """
+    清空 chunks 和 chunks_fts 表，返回删除的行数。
+    FTS5 外部内容表需要先从 FTS 索引删除，再清空基础表。
+    """
+    path = _get_db_path(db_path)
+    with sqlite3.connect(path) as conn:
+        # 获取所有行用于 FTS 索引同步
+        rows = conn.execute(
+            "SELECT rowid, chunk_id, tokenized_content FROM chunks"
+        ).fetchall()
+
+        for rowid, chunk_id, tokenized_content in rows:
+            conn.execute(
+                "INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, tokenized_content)"
+                " VALUES('delete', ?, ?, ?)",
+                (rowid, chunk_id, tokenized_content),
+            )
+
+        deleted = conn.execute("DELETE FROM chunks").rowcount
+        conn.commit()
+    return deleted
