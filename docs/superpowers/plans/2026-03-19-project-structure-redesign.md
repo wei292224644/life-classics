@@ -8,10 +8,18 @@
 - 前端：Turborepo monorepo (`web/`)
   - `web/apps/console/` — 管理后台（原 admin）
 - 后端：uv workspace monorepo (`server/`)
+  - `server/llm/` — LLM 适配器（被 api, agent, kb, parser 共同依赖）
   - `server/api/` — FastAPI 入口和路由
   - `server/agent/` — Agent 核心
   - `server/kb/` — 知识库
   - `server/parser/` — 文档处理流水线
+
+**依赖关系避免循环：**
+- `llm/` 放在最底层，不依赖任何 workspace 包
+- `parser/` 不依赖其他 workspace 包
+- `kb/` 只依赖 `parser/`
+- `agent/` 依赖 `llm/`, `kb/`, `parser/`
+- `api/` 依赖 `llm/`, `agent/`, `kb/`, `parser/`
 
 **Tech Stack:** uv workspace, Turborepo, pnpm workspaces
 
@@ -122,6 +130,7 @@ git commit -m "refactor: rename agent-server/ to server/"
 
 **Files:**
 - Create: `server/pyproject.toml` (workspace root)
+- Create: `server/llm/pyproject.toml`
 - Create: `server/api/pyproject.toml`
 - Create: `server/agent/pyproject.toml`
 - Create: `server/kb/pyproject.toml`
@@ -139,6 +148,7 @@ requires-python = ">=3.12"
 
 [tool.uv.workspace]
 members = [
+    "llm",
     "api",
     "agent",
     "kb",
@@ -152,7 +162,24 @@ dev = [
 ]
 ```
 
-- [ ] **Step 2: 创建 api/pyproject.toml**
+- [ ] **Step 2: 创建 llm/pyproject.toml**
+
+```toml
+# server/llm/pyproject.toml
+[project]
+name = "llm"
+version = "0.1.0"
+dependencies = [
+    "dashscope>=1.17.0",
+    "ollama>=0.6.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+```
+
+- [ ] **Step 3: 创建 api/pyproject.toml**
 
 ```toml
 # server/api/pyproject.toml
@@ -160,6 +187,7 @@ dev = [
 name = "api"
 version = "0.1.0"
 dependencies = [
+    "llm = { path = "../llm" }",
     "agent = { path = "../agent" }",
     "kb = { path = "../kb" }",
     "parser = { path = "../parser" }",
@@ -170,7 +198,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 ```
 
-- [ ] **Step 3: 创建 agent/pyproject.toml**
+- [ ] **Step 4: 创建 agent/pyproject.toml**
 
 ```toml
 # server/agent/pyproject.toml
@@ -178,6 +206,7 @@ build-backend = "hatchling.build"
 name = "agent"
 version = "0.1.0"
 dependencies = [
+    "llm = { path = "../llm" }",
     "kb = { path = "../kb" }",
     "parser = { path = "../parser" }",
 ]
@@ -187,7 +216,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 ```
 
-- [ ] **Step 4: 创建 kb/pyproject.toml**
+- [ ] **Step 5: 创建 kb/pyproject.toml**
 
 ```toml
 # server/kb/pyproject.toml
@@ -195,6 +224,7 @@ build-backend = "hatchling.build"
 name = "kb"
 version = "0.1.0"
 dependencies = [
+    "llm = { path = "../llm" }",
     "parser = { path = "../parser" }",
 ]
 
@@ -203,24 +233,27 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 ```
 
-- [ ] **Step 5: 创建 parser/pyproject.toml**
+- [ ] **Step 6: 创建 parser/pyproject.toml**
 
 ```toml
 # server/parser/pyproject.toml
 [project]
 name = "parser"
 version = "0.1.0"
+dependencies = [
+    "llm = { path = "../llm" }",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 ```
 
-- [ ] **Step 6: 提交**
+- [ ] **Step 7: 提交**
 
 ```bash
 git add -A
-git commit -m "feat(server): create uv workspace structure with api, agent, kb, parser packages"
+git commit -m "feat(server): create uv workspace structure with llm, api, agent, kb, parser packages"
 ```
 
 ---
@@ -231,21 +264,21 @@ git commit -m "feat(server): create uv workspace structure with api, agent, kb, 
 - Move: `server/app/core/parser_workflow/` → `server/parser/`
 - Move: `server/app/core/kb/` → `server/kb/`
 - Move: `server/app/core/agent/` → `server/agent/`
+- Move: `server/app/core/tools/` → `server/agent/tools/` (Agent 专用工具)
+- Move: `server/app/core/llm/` → `server/llm/` (LLM 适配器)
+- Move: `server/app/core/config.py` → `server/api/config.py` (API 层配置)
+- Move: `server/app/core/document_chunk.py` → `server/parser/document_chunk.py`
 - Move: `server/app/api/` → `server/api/`
 - Move: `server/app/skills/` → `server/agent/` (Agent skills)
-- Move: `server/app/core/` → `server/api/` (llm/ 等共享代码)
 - Move: `server/app/web/` → `server/api/` (web 路由)
 - Move: `server/app/main.py` → `server/api/main.py`
-- Move: `server/app/core/config.py` → `server/parser/config.py` (避免循环依赖)
 
-**注意**: `config.py` 放在 `parser/` 而不是 `api/`，因为：
-- `parser` 是依赖链的根节点（其他包都依赖它）
-- 避免 `agent` 和 `kb` 需要从 `api` 导入 config 造成的循环依赖
+**注意**: `llm/` 放在独立包避免循环依赖，因为 `llm/` 被 `api/`, `agent/`, `kb/`, `parser/` 共同依赖
 
 - [ ] **Step 1: 创建目录结构**
 
 ```bash
-mkdir -p server/api server/agent server/kb server/parser
+mkdir -p server/api server/agent server/kb server/parser server/llm
 ```
 
 - [ ] **Step 2: 移动 parser-workflow → parser**
@@ -269,18 +302,33 @@ mv server/app/core/agent/* server/agent/
 rm -rf server/app/core/agent
 ```
 
-- [ ] **Step 5: 移动 config.py → parser/config.py**
+- [ ] **Step 5: 移动 tools → agent/tools**
 
 ```bash
-# config.py 需要放在 parser/，避免循环依赖
-mv server/app/core/config.py server/parser/config.py
+# tools 是 agent 专用的，放在 agent 包内
+mv server/app/core/tools/* server/agent/tools/
+rm -rf server/app/core/tools
 ```
 
-- [ ] **Step 6: 移动其他共享代码 (llm/, api/, web/, main.py)**
+- [ ] **Step 6: 移动 llm → llm/ (独立包)**
 
 ```bash
-# 移动 llm/ 等共享代码
-mv server/app/core/llm server/api/
+mv server/app/core/llm/* server/llm/
+rm -rf server/app/core/llm
+```
+
+- [ ] **Step 7: 移动 config.py 和 document_chunk.py**
+
+```bash
+# config.py 移到 api/
+mv server/app/core/config.py server/api/config.py
+# document_chunk.py 移到 parser/
+mv server/app/core/document_chunk.py server/parser/document_chunk.py
+```
+
+- [ ] **Step 8: 移动其他共享代码 (api/, web/, main.py)**
+
+```bash
 # 移动 api 路由
 mv server/app/api/* server/api/
 # 移动 web 路由
@@ -291,13 +339,13 @@ mv server/app/main.py server/api/main.py
 mv server/app/skills/* server/agent/ 2>/dev/null || true
 ```
 
-- [ ] **Step 7: 清理空目录**
+- [ ] **Step 9: 清理空目录**
 
 ```bash
-rmdir server/app/core server/app/api server/app/web server/app/skills server/app 2>/dev/null || true
+rm -rf server/app/core server/app/api server/app/web server/app/skills server/app
 ```
 
-- [ ] **Step 8: 提交**
+- [ ] **Step 10: 提交**
 
 ```bash
 git add -A
@@ -309,11 +357,12 @@ git commit -m "refactor(server): move app/ contents to workspace packages"
 ### Task 3.3: 更新导入路径
 
 **Files:**
-- Modify: `server/api/main.py` — `from app.core` → `from agent` / `from kb` / `from parser`
-- Modify: `server/agent/factory.py` — 更新导入
+- Modify: `server/api/main.py` — `from app.core` → `from llm` / `from agent` / `from kb` / `from parser`
+- Modify: `server/agent/factory.py` — 更新导入 (`from app.core.tools` → `from agent.tools`)
 - Modify: `server/agent/food_safety_agent.py` — 更新导入
 - Modify: `server/kb/` — 更新导入
-- Modify: `server/parser/` — 更新导入
+- Modify: `server/parser/` — 更新导入 (`from app.core.document_chunk` → `from parser.document_chunk`)
+- Modify: `server/llm/` — 更新内部导入
 - Modify: `server/run.py` — 更新导入
 
 - [ ] **Step 1: 列出所有需要更新的导入**
@@ -328,7 +377,7 @@ grep -r "import app\." server/ --include="*.py" | head -50
 
 ```python
 # 原来: from app.core.config import settings
-# 现在: from parser.config import settings
+# 现在: from api.config import settings
 
 # 原来: from app.core.agent import ...
 # 现在: from agent import ...
@@ -338,11 +387,17 @@ grep -r "import app\." server/ --include="*.py" | head -50
 
 # 原来: from app.core.parser_workflow import ...
 # 现在: from parser import ...
+
+# 原来: from app.core.llm import ...
+# 现在: from llm import ...
 ```
 
 - [ ] **Step 3: 更新 agent/factory.py**
 
 ```python
+# 原来: from app.core.tools import ...
+# 现在: from agent.tools import ...
+
 # 原来: from app.core.agent.food_safety_agent import FoodSafetyAgent
 # 现在: from agent.food_safety_agent import FoodSafetyAgent
 
@@ -350,27 +405,51 @@ grep -r "import app\." server/ --include="*.py" | head -50
 # 现在: from agent.skills import ...
 ```
 
-- [ ] **Step 4: 更新 kb/ 中的导入**
+- [ ] **Step 4: 更新 agent/food_safety_agent.py**
+
+```python
+# 原来: from app.core.tools.web_search import web_search_tool_function
+# 现在: from agent.tools.web_search import web_search_tool_function
+
+# 原来: from app.core.tools.knowledge_base import knowledge_base
+# 现在: from agent.tools.knowledge_base import knowledge_base
+```
+
+- [ ] **Step 5: 更新 kb/ 中的导入**
 
 ```python
 # 原来: from app.core.parser_workflow.models import DocumentChunk
 # 现在: from parser.models import DocumentChunk
+
+# 原来: from app.core.llm import ...
+# 现在: from llm import ...
 ```
 
-- [ ] **Step 5: 更新 parser/ 中的导入**
+- [ ] **Step 6: 更新 parser/ 中的导入**
 
 ```python
-# parser 内部导入一般不需要改，因为都在 parser/ 目录内
+# 原来: from app.core.document_chunk import ...
+# 现在: from parser.document_chunk import ...
+
+# 原来: from app.core.llm import ...
+# 现在: from llm import ...
 ```
 
-- [ ] **Step 6: 更新 run.py**
+- [ ] **Step 7: 更新 llm/ 中的导入**
+
+```python
+# llm 内部导入（如 from app.core.llm.utils）需要更新为相对导入
+# 保持 llm/ 内部结构不变
+```
+
+- [ ] **Step 8: 更新 run.py**
 
 ```python
 # 原来: from app.main import app
 # 现在: from api.main import app
 ```
 
-- [ ] **Step 8: 提交**
+- [ ] **Step 9: 提交**
 
 ```bash
 git add -A
@@ -449,6 +528,10 @@ find tests/ -name "*.py" -exec sed -i '' \
     -e 's/from app\.core\.parser_workflow\./from parser./g' \
     -e 's/from app\.core\.kb\./from kb./g' \
     -e 's/from app\.core\.agent\./from agent./g' \
+    -e 's/from app\.core\.tools\./from agent.tools./g' \
+    -e 's/from app\.core\.llm\./from llm./g' \
+    -e 's/from app\.core\.config/from api.config/g' \
+    -e 's/from app\.core\.document_chunk/from parser.document_chunk/g' \
     -e 's/from app\.api\./from api./g' \
     -e 's/from app\.skills/from agent.skills/g' \
     -e 's/from app\.main/from api.main/g' \
