@@ -1,0 +1,11 @@
+[project]
+name = "kb"
+version = "0.1.0"
+dependencies = [
+    "llm = { path = "../llm" }",
+    "parser = { path = "../parser" }",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
