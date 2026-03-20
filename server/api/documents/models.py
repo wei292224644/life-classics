@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic import BaseModel
 
 
@@ -14,10 +13,3 @@ class DocumentsListResponse(BaseModel):
     total: int
 
 
-class UploadDocumentResponse(BaseModel):
-    success: bool
-    message: str
-    doc_id: Optional[str] = None
-    chunks_count: int = 0
-    file_name: str
-    strategy: str

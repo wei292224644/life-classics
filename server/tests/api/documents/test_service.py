@@ -2,7 +2,6 @@ import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import HTTPException
 
 
 def _make_meta(doc_id="d1", standard_no="GB 2762-2022", doc_type="food_safety", semantic_type="scope", section_path="1|1.1"):

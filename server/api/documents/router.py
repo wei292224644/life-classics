@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
 from api.documents.models import DocumentsListResponse, DocumentInfo
@@ -19,7 +19,6 @@ def list_documents():
 @router.post("")
 async def upload_document(
     file: UploadFile = File(...),
-    strategy: str = Form("text"),
 ):
     content = await file.read()
     return StreamingResponse(
