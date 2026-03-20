@@ -48,10 +48,16 @@ export interface UploadDocumentResponse {
   strategy: string
 }
 
+export interface ConversationMessage {
+  role: string
+  content: string
+}
+
 export interface AgentChatRequest {
   message: string
-  conversation_history: { role: string; content: string }[]
-  thread_id: string
+  conversation_history?: ConversationMessage[]
+  thread_id?: string
+  agent_type?: string
 }
 
 export interface SearchResult {
