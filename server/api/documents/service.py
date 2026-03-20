@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import os
+from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import Any
 
@@ -8,7 +10,7 @@ from fastapi import HTTPException
 
 from kb.clients import get_chroma_client
 from kb.writer import chroma_writer, fts_writer
-from parser.graph import run_parser_workflow
+from parser.graph import run_parser_workflow, run_parser_workflow_stream
 
 
 def get_collection():
@@ -84,6 +86,44 @@ class DocumentsService:
             "file_name": filename,
             "strategy": strategy,
         }
+
+    @staticmethod
+    async def upload_document_stream(
+        file_content: bytes,
+        filename: str,
+    ) -> AsyncGenerator[str, None]:
+        """流式上传文档，yield SSE 格式字符串（每条：data: <json>\n\n）。"""
+        try:
+            md_content = file_content.decode("utf-8")
+        except UnicodeDecodeError:
+            yield f"data: {json.dumps({'type': 'error', 'message': '文件编码错误，请确保文件为 UTF-8 编码'})}\n\n"
+            return
+
+        doc_id = os.path.splitext(filename)[0]
+        doc_metadata = {
+            "doc_id": doc_id,
+            "standard_no": doc_id,
+            "doc_type": "standard",
+        }
+        rules_dir = str(Path(__file__).parent.parent.parent / "parser" / "rules")
+
+        try:
+            async for event in run_parser_workflow_stream(
+                md_content=md_content,
+                doc_metadata=doc_metadata,
+                rules_dir=rules_dir,
+            ):
+                if event["type"] == "workflow_done":
+                    chunks = event["chunks"]
+                    if chunks:
+                        await chroma_writer.write(chunks, doc_metadata)
+                        fts_writer.write(chunks, doc_metadata)
+                    yield f"data: {json.dumps({'type': 'done', 'chunks_count': len(chunks)})}\n\n"
+                else:
+                    yield f"data: {json.dumps(event)}\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
     @staticmethod
     def clear_all() -> dict[str, Any]:
