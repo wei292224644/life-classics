@@ -252,18 +252,5 @@ export interface AgentResponse {
 | `src/api/types.ts` | 新增 `UploadDocumentResponse`、`AgentChatRequest`、`AgentResponse`、`SearchResult` 类型 |
 | `package.json` | 新增 `react-router-dom@^7`、`react-markdown@^9` |
 
----
 
-## 后续迭代 TODO
-
-以下问题已识别，当前版本暂不处理，后续版本迭代：
-
-| # | 问题 | 优先级 |
-|---|---|---|
-| 1 | AI 回复等待时缺少 typing indicator（消息列表末尾骨架屏） | 高 |
-| 2 | 消息列表缺少自动滚动（新消息出现时滚动到底部，用户上翻时不强制） | 高 |
-| 3 | Chat API 失败时无消息级错误展示（目前只有 toast，应插入红色错误气泡） | 中 |
-| 4 | `react-markdown` 缺少代码高亮（需 `rehype-highlight` 或 `react-syntax-highlighter`） | 中 |
-| 5 | 上传成功后文件输入未重置（用户需手动取消才能选新文件） | 中 |
-| 6 | 拖拽区域缺少 hover 视觉反馈（文件悬浮时边框/背景变色） | 低 |
-| 7 | `thread_id` 固定导致后端线程记忆无法清空（清空前端对话不清后端上下文） | 低 |
+> 待迭代项见 `docs/todos/console-upload-chat.md`
