@@ -1,7 +1,7 @@
 # Neo4j GB2760 知识图谱集成设计
 
 **日期：** 2026-03-20
-**状态：** 已确认
+**状态：** 已确认（v3 — 修复 7 个审查问题）
 **范围：** 仅实现查询层（不含数据导入）
 
 ---
@@ -9,188 +9,259 @@
 ## 背景
 
 `server/agent/tools/neo4j_query.py` 目前是占位符，调用后直接返回 "not implemented"。
-`pdf_test` 项目已将 GB2760_2024 食品添加剂国标数据完整导入 Neo4j（节点、关系、向量索引均就绪）。
-本次集成目标：补全查询工具，让 Agent 能通过自然语言查询 GB2760_2024 知识图谱。
+`pdf_test` 项目已将 GB2760_2024 食品添加剂国标数据完整导入 Neo4j，节点均带有 `embedding` 属性（Ollama `qwen3-embedding:4b`）且已建向量索引。
+
+本次集成目标：补全查询工具，让 Agent 能通过两阶段流程准确回答 GB2760 相关问题：
+1. **实体解析** — 用向量语义匹配将用户口语化表达（如"菜罐头"）解析为图谱中的精确节点
+2. **结构化查询** — 用精确 code/id 拼 Cypher，执行只读查询取得限量、功能等信息
+
+---
+
+## 前置条件
+
+实施前需确认 Neo4j 中实际存在以下向量索引（执行 `SHOW VECTOR INDEXES`）：
+索引名规则为 `{label.lower()}_embedding`，已在 `pdf_test/create_vector_indexes.py` 中验证：
+
+| 索引名 | 对应节点 |
+|--------|---------|
+| `chemical_embedding` | Chemical |
+| `function_embedding` | Function |
+| `foodcategory_embedding` | FoodCategory |
+| `flavoring_embedding` | Flavoring |
+| `processingaid_embedding` | ProcessingAid |
+| `enzyme_embedding` | Enzyme |
+| `organism_embedding` | Organism |
 
 ---
 
 ## 架构
 
-### 文件变更（仅 3 处）
+### 文件变更（共 6 处）
 
 ```
 server/
 ├── agent/
 │   ├── tools/
-│   │   └── neo4j_query.py                  ← 补全实现
-│   └── skills/
-│       └── neo4j-graph/
-│           └── SKILL.md                    ← 更新现有占位符
-└── config.py                               ← 新增 NEO4J_DATABASE 字段
+│   │   ├── __init__.py                 ← 新增 neo4j_vector_search 导出
+│   │   ├── neo4j_client.py             ← 新建（共享 driver 单例）
+│   │   ├── neo4j_query.py              ← 补全实现
+│   │   └── neo4j_vector_search.py      ← 新建
+│   ├── skills/
+│   │   └── neo4j-graph/
+│   │       └── SKILL.md               ← 更新
+│   └── factory.py                     ← 新增 neo4j_vector_search 注册
+└── config.py                          ← 新增 NEO4J_DATABASE 字段
 ```
 
-`factory.py` 无需修改——`neo4j_query` 已注册在默认工具列表，skill 注入机制已存在。
+另需在 `pyproject.toml` 的 `[tool.pytest.ini_options] markers` 中注册 `integration` marker。
 
-### 数据流
+### 两阶段数据流
 
 ```
-用户问题
-  → Agent 读取 neo4j_gb2760.md（system prompt 中的 skill）
-  → Agent 根据 schema 速查表和模板构建 Cypher
-  → 调用 neo4j_query(cypher)
-  → neo4j driver 在只读事务中执行（连接 gb2760_2024 database）
-  → 返回 JSON 结果（最多 50 条）
-  → Agent 组织自然语言回答
+用户问题（如"菜罐头能用哪些防腐剂？"）
+  ↓
+【阶段一：实体解析】
+  Agent 识别实体：食品名="菜罐头"，功能="防腐剂"
+  → neo4j_vector_search("菜罐头", "FoodCategory")
+    → 返回 [{"code":"06.03.02","name":"蔬菜罐头","score":0.92}, ...]
+  → neo4j_vector_search("防腐剂", "Function")
+    → 返回 [{"name":"防腐剂","score":0.98}]
+  若 top-1 score < 0.7，向用户列出候选项请求确认
+  ↓
+【阶段二：结构化查询】
+  Agent 用确定的 code/name 拼 Cypher：
+  → neo4j_query("MATCH (c:Chemical)-[:HAS_FUNCTION]->(:Function {name:'防腐剂'})
+                 WITH c MATCH (c)-[r:PERMITTED_IN]->(f:FoodCategory {code:'06.03.02'})
+                 RETURN c.name_zh, r.max_usage, r.unit LIMIT 50")
+  → 返回 JSON 结果
+  ↓
+Agent 组织自然语言回答，明确引用限量值和食品分类名称
 ```
 
 ---
 
 ## 组件设计
 
-### 1. `neo4j_query.py`
+### 1. `neo4j_client.py`（共享 driver 单例）
+
+从 `config.py` 读取 `NEO4J_URI`、`NEO4J_USERNAME`、`NEO4J_PASSWORD`、`NEO4J_DATABASE`，提供懒初始化的模块级 driver 单例。
+
+driver 初始化时设连接级超时（`connection_timeout=30`，单位秒），以兜住网络挂起场景。`GraphDatabase.driver` 本身线程安全，无需加锁；连接失败由调用方错误处理兜底。
+
+暴露两个函数：
+- `get_driver() -> neo4j.Driver` — 返回单例 driver（含连接超时配置）
+- `get_database() -> str` — 返回数据库名
+
+---
+
+### 2. `neo4j_query.py`（补全实现）
 
 **函数签名：**
 ```python
 @tool
-def neo4j_query(cypher: str) -> str:
+def neo4j_query(query: str) -> str:
     """对 GB2760_2024 知识图谱执行只读 Cypher 查询，返回 JSON 结果"""
 ```
 
 **约束：**
-- **只读事务**：使用 `session.execute_read()`，从驱动层拒绝写操作
-- **结果截断**：若 Cypher 中未包含 `LIMIT`（大小写不敏感，使用正则 `re.search(r'\bLIMIT\b', cypher, re.IGNORECASE)` 检测），在字符串末尾追加 `LIMIT 50`
-- **超时**：通过 `neo4j.Query(text=cypher, timeout=10)` 在执行时传入，而非 driver 初始化时配置
-- **连接复用**：driver 实例使用模块级懒初始化单例；`neo4j.GraphDatabase.driver` 本身线程安全，无需加锁；连接失败由错误处理兜底（不实现主动重连）
+- 只读事务：`session.execute_read(tx_fn)`，从驱动层强制只读，tx_fn 内调用 `tx.run(query)`
+- LIMIT 注入：`re.search(r'\bLIMIT\b', query, re.IGNORECASE)` 检测，无则末尾追加 `LIMIT 50`
+- 超时：通过 `neo4j_client.get_driver()`（`connection_timeout=30`）在连接层控制，不使用 `neo4j.Query(timeout)` ——后者与 `execute_read()` 不兼容
+- driver 从 `neo4j_client.get_driver()` 获取，替换整个函数含 docstring
 
-**返回格式（JSON 字符串）：**
+**返回格式：**
+```json
+{"columns": ["name_zh", "max_usage", "unit"], "rows": [["山梨酸", "1.0", "g/kg"]], "count": 1}
+```
+
+**错误处理：** 连接失败和语法错误均返回可读字符串（不抛异常）
+
+---
+
+### 3. `neo4j_vector_search.py`（新建）
+
+**函数签名：**
+```python
+@tool
+def neo4j_vector_search(text: str, node_label: str, top_k: int = 5) -> str:
+    """
+    语义搜索 GB2760_2024 图谱节点，将用户模糊表达解析为精确实体。
+
+    Args:
+        text: 搜索文本（如"菜罐头"、"防腐剂"）
+        node_label: 节点类型，支持 Chemical/FoodCategory/Function/Flavoring/ProcessingAid/Enzyme/Organism
+        top_k: 返回最相似节点数，默认 5
+    """
+```
+
+**Ollama 调用规格：**
+- 端点：`{settings.OLLAMA_BASE_URL}/api/embed`（POST）
+- 请求体：`{"model": "qwen3-embedding:4b", "input": text}`
+- 响应取值：`response.json()["embeddings"][0]`
+- 超时：30 秒（与数据导入时一致）
+- HTTP 库：`requests`（已在 pyproject.toml 中）
+
+**向量索引映射：**
+```python
+INDEX_MAP = {
+    "Chemical":      "chemical_embedding",
+    "Function":      "function_embedding",
+    "FoodCategory":  "foodcategory_embedding",
+    "Flavoring":     "flavoring_embedding",
+    "ProcessingAid": "processingaid_embedding",
+    "Enzyme":        "enzyme_embedding",
+    "Organism":      "organism_embedding",
+}
+```
+
+**向量查询 Cypher（完整语法）：**
+```cypher
+CALL db.index.vector.queryNodes($index_name, $top_k, $embedding)
+YIELD node, score
+RETURN node, score
+```
+
+**各节点类型返回字段：**
+
+| node_label | 返回字段 |
+|-----------|---------|
+| Chemical | `id`, `name_zh`, `name_en` |
+| FoodCategory | `code`, `name` |
+| Function | `name` |
+| Flavoring | `code`, `name_zh`, `name_en` |
+| ProcessingAid | `code`, `name_zh` |
+| Enzyme | `code`, `name_zh` |
+| Organism | `name_zh`, `name_en` |
+
+**返回格式：**
 ```json
 {
-  "columns": ["name_zh", "max_usage", "unit"],
-  "rows": [["山梨酸", "1.0", "g/kg"]],
+  "node_label": "FoodCategory",
+  "results": [{"code": "06.03.02", "name": "蔬菜罐头", "score": 0.92}],
   "count": 1
 }
 ```
 
 **错误处理：**
-- 连接失败 → 返回可读错误字符串（不抛异常，让 Agent 能理解并告知用户）
-- Cypher 语法错误 → 将 Neo4j 原始报错返回给 Agent，让其自行修正并重试
+- 不支持的 `node_label` → 返回支持的类型列表字符串
+- Ollama 不可用 → 返回可读错误字符串
+- Neo4j 错误 → 返回原始报错字符串
 
-### 2. `neo4j-graph/SKILL.md` 更新
+---
 
-文件遵循 Anthropic agent SDK 标准格式：**frontmatter + Markdown 正文**，总长控制在 150 行以内。
+### 4. `neo4j-graph/SKILL.md` 更新
 
-**Frontmatter（保持现有字段，更新 description）：**
+**Frontmatter：**
 ```yaml
 ---
 name: neo4j-graph
-description: 用于查询 GB2760_2024 知识图谱中的食品添加剂限量、功能分类、食品分类层级、香料许可、加工助剂、酶制剂等信息。当用户询问某添加剂在某食品中是否允许使用、最大使用量是多少、具有哪些功能时使用。
-allowed-tools: neo4j_query
+description: 用于查询 GB2760_2024 知识图谱中的食品添加剂限量、功能分类、食品分类层级、香料、加工助剂、酶制剂等信息。当用户询问某添加剂在某食品中是否允许使用、最大使用量、具有哪些功能时使用。
+allowed-tools: neo4j_query, neo4j_vector_search
 ---
 ```
 
-**正文分 4 节：**
+**正文分 5 节（总长 ≤ 200 行）：**
+1. 概述：两阶段流程说明
+2. 使用步骤：识别实体 → 向量解析（score < 0.7 则询问用户）→ Cypher 查询 → 自然语言回答
+3. 可搜索节点类型（6 种 + 标识属性）
+4. Schema 速查：节点表 + 关系表（含关系属性：`PERMITTED_IN` 上有 `max_usage`/`unit`/`note`；`PERMITTED_IN_GROUP` 上有 `max_usage`/`exclude_group`）
+5. 查询模板（5 个，使用精确 code/name）
 
-**节 1：概述**
-说明本 skill 查询的是 GB2760_2024 知识图谱，Agent 负责将用户问题转换为 Cypher 语句后调用 `neo4j_query` 工具。
+---
 
-**节 2：使用步骤**（沿用现有 skill 的三步结构）
-1. 判断用户意图是否涉及 GB2760 图谱数据
-2. 根据下方 schema 和模板构建 Cypher，调用 `neo4j_query`
-3. 将结果转化为自然语言回答，明确引用限量值和单位
+### 5. 其他文件变更
 
-**节 3：Schema 速查**
-
-节点（10 种）：
-- `Chemical`：`id`, `name_zh`, `name_en`
-- `AdditiveCode`：`code`, `code_type`（CNS/INS）
-- `Function`：`name`
-- `FoodCategory`：`code`, `name`, `level`
-- `FoodCategoryGroup`：`code`, `name`, `description`
-- `Flavoring`：`code`, `name_zh`, `name_en`, `flavoring_type`
-- `ProcessingAid`：`code`, `name_zh`, `type`, `function`, `usage_scope`
-- `Enzyme`：`code`, `name_zh`, `name_en`
-- `EnzymeSource`：`enzyme_code`, `source_organism`, `donor_organism`
-- `Organism`：`name_zh`, `name_en`
-
-关系（8 种）：
-
-| 关系 | 方向 | 关键属性 |
-|------|------|---------|
-| `REFERS_TO` | AdditiveCode → Chemical | — |
-| `HAS_FUNCTION` | Chemical → Function | — |
-| `PERMITTED_IN` | Chemical/Flavoring → FoodCategory | `max_usage`, `unit`, `note` |
-| `PERMITTED_IN_GROUP` | Chemical → FoodCategoryGroup | `max_usage`, `exclude_group` |
-| `CONTAINS` | FoodCategoryGroup → FoodCategory | — |
-| `HAS_SUBCATEGORY` | FoodCategory → FoodCategory | — |
-| `HAS_SOURCE` | Enzyme → EnzymeSource | — |
-| `FROM_ORGANISM` / `USES_DONOR` | EnzymeSource → Organism | — |
-
-**节 4：查询模板（5 个，含参考 Cypher）**
-
-1. 查某添加剂在某食品分类下的限量：
-```cypher
-MATCH (c:Chemical {name_zh: "山梨酸"})-[r:PERMITTED_IN]->(f:FoodCategory {code: "01.01"})
-RETURN c.name_zh, f.name, r.max_usage, r.unit, r.note
-```
-
-2. 查某添加剂的所有功能：
-```cypher
-MATCH (c:Chemical {name_zh: "山梨酸"})-[:HAS_FUNCTION]->(fn:Function)
-RETURN fn.name
-```
-
-3. 查某食品分类下允许使用的所有添加剂（带限量）：
-```cypher
-MATCH (c:Chemical)-[r:PERMITTED_IN]->(f:FoodCategory {code: "01.01"})
-RETURN c.name_zh, r.max_usage, r.unit
-ORDER BY c.name_zh
-LIMIT 50
-```
-
-4. 查某香料是否允许用于某食品分类：
-```cypher
-MATCH (fl:Flavoring {name_zh: "香兰素"})-[r:PERMITTED_IN]->(f:FoodCategory {code: "05.01"})
-RETURN fl.name_zh, f.name, r.max_usage, r.note
-```
-
-5. 查食品分类的直接子分类：
-```cypher
-MATCH (parent:FoodCategory {code: "01"})-[:HAS_SUBCATEGORY]->(child:FoodCategory)
-RETURN child.code, child.name
-ORDER BY child.code
-```
-
-### 3. `config.py` 变更
-
-新增字段：
+**`config.py`** 新增：
 ```python
 NEO4J_DATABASE: str = "gb2760_2024"
 ```
 
-### 4. 依赖
-
-`pyproject.toml` 新增：
+**`factory.py`** 新增导入和工具注册：
+```python
+from agent.tools import neo4j_vector_search  # 新增
+tools = [knowledge_base, get_web_search_tool(), neo4j_query, neo4j_vector_search, postgres_query]
 ```
-neo4j>=5.0,<6.0
+
+**`agent/tools/__init__.py`** 新增导出：
+```python
+from agent.tools.neo4j_vector_search import neo4j_vector_search
+# __all__ 中同步新增 "neo4j_vector_search"
+```
+
+**`pyproject.toml`** 注册新 marker：
+```toml
+markers = [
+    "real_llm: tests requiring real LLM/service calls",
+    "integration: tests requiring real external services (Neo4j, Ollama)",
+]
 ```
 
 ---
 
 ## 测试策略
 
-文件：`server/tests/core/test_neo4j_query.py`
+### `tests/core/tools/test_neo4j_query.py`（单元测试，mock driver）
 
-**单元测试（mock driver，无需真实 Neo4j）：**
-- `test_readonly_transaction`：验证使用 `execute_read` 而非 `execute_write`
-- `test_limit_injection_when_missing`：无 LIMIT 时自动在末尾追加 `LIMIT 50`
-- `test_limit_injection_skipped_when_present`：有 LIMIT（包括小写）时不覆盖
-- `test_connection_error_returns_string`：连接失败返回字符串而非抛异常
+- `test_readonly_transaction`：验证使用 `execute_read`
+- `test_limit_injection_when_missing`：无 LIMIT 时末尾追加 `LIMIT 50`
+- `test_limit_injection_case_insensitive`：`limit 10` 小写时不覆盖
+- `test_connection_error_returns_string`：连接失败返回字符串
 - `test_cypher_error_returns_string`：语法错误返回原始报错字符串
-- `test_result_json_format`：验证返回 JSON 含 `columns`、`rows`、`count` 三个字段
+- `test_result_json_format`：返回 JSON 含 `columns`、`rows`、`count`
 
-**集成测试（标记 `@pytest.mark.integration`，默认跳过）：**
-- `test_connectivity`：连接 `gb2760_2024` database 并执行 `MATCH (n) RETURN count(n)`，验证返回非负整数（作为前置检查）
-- `test_end_to_end_query`：执行一条真实查询，验证返回结果格式正确
+### `tests/core/tools/test_neo4j_vector_search.py`（单元测试，mock requests + driver）
+
+- `test_embedding_request_format`：验证 POST body 含正确 model 和 input 字段
+- `test_unsupported_label_returns_error`：不支持的 node_label 返回错误字符串（含支持列表）
+- `test_result_json_format`：返回 JSON 含 `node_label`、`results`、`count`
+- `test_ollama_error_returns_string`：requests 异常时返回字符串
+- `test_top_k_passed_to_query`：验证 top_k 参数传入向量查询
+
+### 集成测试（`@pytest.mark.integration`，默认跳过）
+
+- `test_neo4j_connectivity`：连接 `gb2760_2024` 验证非空
+- `test_vector_search_food_category`：搜索"蔬菜罐头"，top-1 应含 code `06.03.02`
+- `test_end_to_end_two_phase`：完整两阶段：向量解析 → Cypher 查询
 
 ---
 
@@ -198,5 +269,4 @@ neo4j>=5.0,<6.0
 
 - 数据导入（由 `pdf_test` 手动执行）
 - 多数据库支持（gb2760_2014 等）
-- Text→Cypher 自动转换工具
-- Neo4j 向量相似度查询
+- Text→Cypher 自动转换
