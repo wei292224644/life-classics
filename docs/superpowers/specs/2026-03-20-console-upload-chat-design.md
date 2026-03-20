@@ -16,7 +16,10 @@
 
 ## 技术栈变更
 
-- 引入 `react-router-dom`，将应用从单页状态驱动改为路由驱动
+| 包 | 用途 | 版本策略 |
+|---|---|---|
+| `react-router-dom` | 路由 | 直接写版本号 `^7`，不走 monorepo catalog |
+| `react-markdown` | AI 回复 Markdown 渲染 | 直接写版本号 `^9`，不走 monorepo catalog |
 
 ---
 
@@ -35,17 +38,16 @@
 
 ```
 App（BrowserRouter）
-├── Layout
+├── Layout（flex flex-col h-screen，继承全屏高度约束）
 │   ├── Header（保持不变：⚡ KB Admin + KBStats + 清空按钮）
 │   ├── TabNav（新增：Chunks · 上传 · 对话）
-│   └── <Outlet>（路由内容区域）
+│   └── <Outlet>（flex-1，overflow-hidden）
 └── Toaster
 ```
 
-**TabNav 实现：**
-- 使用 `<NavLink>` 实现，自动处理 active 样式
-- active 标签：`color: foreground + border-bottom: 2px solid purple`
-- 非 active 标签：`color: muted`
+**TabNav 实现：** 使用 `<NavLink end>`（每个链接均加 `end` 属性，避免前缀误匹配），通过 `isActive` 控制 active 样式（`color: foreground + border-bottom: 2px solid purple`），非 active 为 `color: muted`。
+
+**KBStats 刷新：** stats 状态保留在 Layout 层。Layout 挂载时调用一次 `api.kb.stats()` 初始化数据，此后仅在 `refreshStats()` 被调用时更新。`refreshStats` 回调通过 props 传递给 UploadPage，上传成功后由 UploadPage 调用。
 
 ---
 
@@ -54,50 +56,62 @@ App（BrowserRouter）
 ### 布局：左右分栏
 
 ```
-UploadPage
-├── 左栏（上传区）
-│   ├── 拖拽 / 点击选择 .md 文件区域
-│   ├── 已选文件名展示
-│   └── "上传并入库"按钮（上传中禁用 + loading）
-└── 右栏（上传记录）
-    └── 历史记录列表（最近上传的文档，含 chunks_count 和时间）
+UploadPage（flex，gap-6，padding）
+├── 左栏（flex-1）— 上传区
+│   ├── 拖拽 / 点击选择 .md 文件区域（dashed border）
+│   ├── 已选文件名 + 大小展示
+│   └── "上传并入库"按钮
+└── 右栏（flex-1）— 上传记录
+    └── 历史记录列表
 ```
+
+### 文件校验（前端）
+
+- 仅接受 `.md` 扩展名，其他格式在选择/拖入时提示"仅支持 Markdown 文件"并拒绝
+- 文件大小上限 **5MB**，超出时提示"文件过大，请上传 5MB 以内的文件"
+- 重复上传同名文件允许（后端会生成新 doc_id），历史记录不去重
 
 ### 交互流程
 
-1. 用户拖拽或点击选择 `.md` 文件
-2. 显示文件名与大小
-3. 点击"上传并入库" → 按钮禁用，显示 loading spinner
-4. 成功：右栏历史记录新增一条（`✓ 文件名 · N chunks · 刚刚`）
-5. 失败：toast 错误提示 + 按钮恢复可用
+1. 拖拽或点击选择 `.md` 文件（前端校验通过后显示文件名与大小）
+2. 点击"上传并入库" → 按钮禁用 + loading spinner（同一时间只允许一个上传任务）
+3. 成功：右栏历史新增一条，调用 `refreshStats()` 更新 Header
+4. 失败：toast 错误提示，按钮恢复可用
 
 ### 上传记录
 
-- 仅存于前端内存（不持久化，刷新重置）
-- 展示字段：文件名、chunks_count、上传时间（相对时间）
-- 最多保留最近 20 条
+- 仅存于前端内存（刷新重置）
+- 每条展示：文件名、chunks_count、相对时间（如"刚刚"、"2分钟前"）
+- 成功条目绿色，失败条目红色（附错误摘要）
+- 最多保留 20 条，超出时淘汰最旧的
 
-### API 调用
+### API 调用细节
 
-```
-POST /api/documents
-Content-Type: multipart/form-data
-
-file: <File>
-strategy: "text"  （固定，不暴露给用户）
-```
-
-响应字段（`UploadDocumentResponse`）：
-- `success: bool`
-- `message: str`
-- `doc_id: string | null`
-- `chunks_count: int`
-- `file_name: str`
-
-### API 客户端新增
+上传接口**不能使用**通用 `request()` 函数（其强制设置 `Content-Type: application/json` 会破坏 multipart boundary）。需直接使用 `fetch` + `FormData`：
 
 ```typescript
-api.documents.upload(file: File): Promise<UploadDocumentResponse>
+// api/client.ts 中单独实现
+async upload(file: File): Promise<UploadDocumentResponse> {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('strategy', 'text')
+  const res = await fetch(`${BASE_URL}/documents`, { method: 'POST', body: formData })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+```
+
+### 类型定义（新增至 types.ts）
+
+```typescript
+export interface UploadDocumentResponse {
+  success: boolean
+  message: string
+  doc_id: string | null
+  chunks_count: number
+  file_name: string
+  strategy: string
+}
 ```
 
 ---
@@ -107,81 +121,93 @@ api.documents.upload(file: File): Promise<UploadDocumentResponse>
 ### 布局：全宽对话流
 
 ```
-ChatPage（flex-col，全高）
-├── 消息列表区域（flex-1，可滚动，滚动到底部）
-│   ├── 空状态（无消息时：居中引导语）
+ChatPage（flex flex-col，h-full）
+├── 消息列表区域（flex-1，overflow-y-auto）
+│   ├── 空状态（初始）
 │   ├── 用户消息（右对齐，紫色气泡）
 │   └── AI 消息（左对齐）
-│       ├── 内容区（Markdown 渲染）
-│       └── 来源折叠区（sources 不为空时显示）
-└── 输入区（底部，border-top）
-    ├── 多行文本框（Enter 发送，Shift+Enter 换行）
-    └── 发送按钮（发送中禁用 + loading）
+│       ├── Markdown 内容
+│       └── 来源折叠区（预留，当前隐藏）
+└── 输入区（border-top，shrink-0）
+    ├── 多行文本框
+    └── 发送按钮
 ```
 
-### 来源展示（折叠）
+### 空状态
 
-AI 消息下方附带一个可折叠的来源区域：
+消息列表为空时居中显示：
+
+```
+💬
+开始与知识库对话
+提问关于 GB 标准的任何问题
+```
+
+### 消息样式
+
+- **用户消息**：右对齐，紫色气泡（`bg-purple-700 text-white`），圆角 `12px 12px 2px 12px`
+- **AI 消息**：左对齐，深色背景卡片（`bg-muted border`），内容使用 `react-markdown` 渲染
+
+### 来源展示（预留）
+
+> **注意：** 当前后端 `_handle_national_standard_chat` 固定返回 `sources: null`，来源区域 UI 预留但不渲染。待后端填充 sources 字段后自动生效。
+
+UI 结构（当 `sources` 不为 null 且长度 > 0 时渲染）：
 
 ```
 📚 召回来源 · N 个 chunk  ▶
-  （展开后显示：）
+  （展开后：）
   · doc_id / section_path · 相关度 0.94
-  · doc_id / section_path · 相关度 0.87
 ```
 
-默认折叠，点击展开/收起。
+### 输入区边界行为
+
+- 空消息（纯空格）不允许发送，按钮禁用
+- 发送中（loading）：输入框和发送按钮均禁用
+- `Enter` 发送，`Shift+Enter` 换行
 
 ### 多轮对话
 
-- 前端维护 `messages: { role: 'user' | 'assistant', content: string }[]`
-- 每次发送将完整历史作为 `conversation_history` 传给后端
+- 前端维护 `messages: { role: 'user' | 'assistant', content: string, sources?: SearchResult[] }[]`
+- 发送时将 `messages` 中 role/content 映射为 `conversation_history` 传给后端
 - `thread_id` 固定为 `"console-test"`
 
-### 顶部操作
+### 清空对话
 
-- "清空对话"按钮（TabNav 右侧）：重置 messages 状态，无需确认弹窗
+TabNav 右侧"清空对话"按钮（仅在 `/chat` 路由下显示），点击后重置 messages 状态，无需确认弹窗。
 
-### Markdown 渲染
+### API 调用细节
 
-引入 `react-markdown` 渲染 AI 回复内容。
-
-### API 调用
-
-```
-POST /api/agent/chat
-Content-Type: application/json
-
-{
-  "message": "用户输入",
-  "conversation_history": [...],
-  "thread_id": "console-test"
+```typescript
+// api/client.ts 中新增
+async chat(payload: AgentChatRequest): Promise<AgentResponse> {
+  return request('/agent/chat', { method: 'POST', body: JSON.stringify(payload) })
 }
 ```
 
-### API 客户端新增
+### 类型定义（新增至 types.ts）
 
 ```typescript
-api.agent.chat(payload: {
+export interface AgentChatRequest {
   message: string
   conversation_history: { role: string; content: string }[]
   thread_id: string
-}): Promise<AgentResponse>
+}
+
+export interface SearchResult {
+  id: string
+  content: string
+  metadata?: Record<string, unknown>
+  relevance_score?: number
+  relevance_reason?: string
+}
+
+export interface AgentResponse {
+  content: string
+  sources: SearchResult[] | null
+  tool_calls: Record<string, unknown>[] | null
+}
 ```
-
-响应字段（`AgentResponse`）：
-- `content: string`（Markdown 格式）
-- `sources: SearchResult[] | null`
-- `tool_calls: object[] | null`
-
----
-
-## 新增依赖
-
-| 包 | 用途 |
-|---|---|
-| `react-router-dom` | 路由 |
-| `react-markdown` | AI 回复 Markdown 渲染 |
 
 ---
 
@@ -191,16 +217,16 @@ api.agent.chat(payload: {
 
 | 文件 | 说明 |
 |---|---|
-| `src/pages/UploadPage.tsx` | 上传页面 |
-| `src/pages/ChatPage.tsx` | 对话页面 |
-| `src/components/TabNav.tsx` | 标签导航组件 |
-| `src/components/Layout.tsx` | 包含 Header + TabNav + Outlet 的布局组件 |
+| `src/pages/UploadPage.tsx` | 上传页面（左右分栏） |
+| `src/pages/ChatPage.tsx` | 对话页面（全宽对话流） |
+| `src/components/TabNav.tsx` | 标签导航，使用 NavLink |
+| `src/components/Layout.tsx` | 全局布局（Header + TabNav + Outlet），管理 kbStats 状态 |
 
 ### 修改文件
 
 | 文件 | 改动 |
 |---|---|
-| `src/App.tsx` | 引入 BrowserRouter，配置路由，移除原有布局逻辑 |
-| `src/api/client.ts` | 新增 `documents.upload` 和 `agent.chat` 方法 |
-| `src/api/types.ts` | 新增 `UploadDocumentResponse`、`AgentChatRequest`、`AgentResponse` 类型 |
-| `package.json` | 新增 react-router-dom、react-markdown 依赖 |
+| `src/App.tsx` | 引入 BrowserRouter，配置路由（`/` 重定向、三个子路由），移除原有布局逻辑 |
+| `src/api/client.ts` | 新增 `documents.upload`（直接 fetch + FormData）和 `agent.chat` 方法 |
+| `src/api/types.ts` | 新增 `UploadDocumentResponse`、`AgentChatRequest`、`AgentResponse`、`SearchResult` 类型 |
+| `package.json` | 新增 `react-router-dom@^7`、`react-markdown@^9` |
