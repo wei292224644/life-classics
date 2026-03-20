@@ -159,6 +159,18 @@ export function UploadPage() {
     const timeoutId = setTimeout(() => {
       finishStages(false)
       setIsUploading(false)
+      // persist timeout failure
+      const timeoutUpload: LastUpload = {
+        fileName: selectedFile.name,
+        stages: PIPELINE_STAGES.map((s, i) => ({
+          ...s,
+          status: (i < stageIndexRef.current ? 'done' : i === stageIndexRef.current ? 'error' : 'pending') as StageStatus,
+        })),
+        error: '上传超时',
+        completedAt: new Date().toISOString(),
+      }
+      setLastUpload(timeoutUpload)
+      saveLastUpload(timeoutUpload)
       toast({ description: '上传超时（180秒），请检查服务状态', variant: 'destructive' })
     }, 180_000)
 
@@ -183,10 +195,14 @@ export function UploadPage() {
       clearTimeout(timeoutId)
       finishStages(false)
       const message = (err as Error).message
-      const currentStages = stages
+      // Use stageIndexRef to reconstruct stage state at time of failure
+      const failedStages: StageState[] = PIPELINE_STAGES.map((s, i) => ({
+        ...s,
+        status: (i < stageIndexRef.current ? 'done' : i === stageIndexRef.current ? 'error' : 'pending') as StageStatus,
+      }))
       const upload: LastUpload = {
         fileName: selectedFile.name,
-        stages: currentStages,
+        stages: failedStages,
         error: message,
         completedAt: new Date().toISOString(),
       }
