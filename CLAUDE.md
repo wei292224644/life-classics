@@ -36,6 +36,24 @@ uv run pytest tests/ -v
 uv run pytest tests/core/parser_workflow/test_workflow.py -v
 ```
 
+**安装第三方库必须用 uv，禁止用 pip：**
+```bash
+cd server
+uv add <package>       # 安装
+uv remove <package>    # 卸载
+```
+
+### Node 执行环境
+`web/` 使用 **pnpm** 管理 Node 依赖（Turbo monorepo）。所有 Node 相关命令在 `web/` 目录下执行：
+
+**安装第三方库必须用 pnpm，禁止用 npm 或 yarn：**
+```bash
+cd web
+pnpm add <package>                          # 安装到 workspace 根
+pnpm add <package> --filter @acme/console  # 安装到指定子包
+pnpm remove <package>                       # 卸载
+```
+
 ## server 常用命令
 
 所有命令在 `server/` 目录下执行。

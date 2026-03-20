@@ -66,7 +66,6 @@ export function UploadPage() {
 
   const validateFile = (file: File): string | null => {
     if (!file.name.endsWith('.md')) return '仅支持 Markdown 文件（.md）'
-    if (file.size > 5 * 1024 * 1024) return '文件过大，请上传 5MB 以内的文件'
     return null
   }
 
@@ -135,7 +134,7 @@ export function UploadPage() {
         >
           <div className="text-3xl mb-2">📄</div>
           <p className="text-sm text-foreground mb-1">拖拽 .md 文件到此处</p>
-          <p className="text-xs text-muted-foreground mb-4">或点击选择文件 · 最大 5MB</p>
+          <p className="text-xs text-muted-foreground mb-4">或点击选择文件</p>
           <span className="bg-purple-700 text-white text-xs px-4 py-1.5 rounded-md">选择文件</span>
           <input
             ref={inputRef}

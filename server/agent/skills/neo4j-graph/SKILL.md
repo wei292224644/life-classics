@@ -1,7 +1,7 @@
 ---
 name: neo4j-graph
 description: 用于查询 GB2760_2024 知识图谱中的食品添加剂限量、功能分类、食品分类层级、香料、加工助剂、酶制剂等信息。当用户询问某添加剂在某食品中是否允许使用、最大使用量、具有哪些功能时使用。
-allowed-tools: neo4j_query, neo4j_vector_search
+allowed-tools: ["neo4j_query", "neo4j_vector_search"]
 ---
 
 # Neo4j 图谱查询

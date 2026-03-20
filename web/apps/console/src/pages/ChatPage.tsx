@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { api } from '@/api/client'
 import type { SearchResult } from '@/api/types'
 import { useToast } from '@/hooks/use-toast'
@@ -122,7 +123,7 @@ export function ChatPage() {
                 ) : (
                   <div className="max-w-[85%] flex flex-col gap-2">
                     <div className="bg-muted border border-border rounded-xl rounded-tl-sm px-4 py-3 text-sm prose prose-invert prose-sm max-w-none">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                     </div>
                     {msg.sources && msg.sources.length > 0 && (
                       <SourcesPanel sources={msg.sources} />

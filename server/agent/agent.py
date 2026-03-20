@@ -2,6 +2,7 @@
 统一 Agno Agent：国家标准 RAG + 食品安全助手。
 """
 
+import logging
 from pathlib import Path
 from typing import Optional
 
@@ -17,6 +18,12 @@ from agent.tools.knowledge_base import knowledge_base
 from agent.tools.neo4j_query import neo4j_query
 from agent.tools.neo4j_vector_search import neo4j_vector_search
 from config import settings
+
+# Agno debug logging
+logging.getLogger("agno").setLevel(logging.DEBUG)
+logging.getLogger("agno.agent").setLevel(logging.DEBUG)
+logging.getLogger("agno.tools").setLevel(logging.DEBUG)
+logging.getLogger("agno.skills").setLevel(logging.DEBUG)
 
 _agent: Optional[Agent] = None
 
@@ -68,6 +75,20 @@ def create_agent() -> Agent:
         model=model,
         tools=tools,
         skills=skills,
+        debug_mode=True,
+        stream_events=True,
+        expected_output="""回答风格：
+- 像朋友聊天一样亲切，但保持专业
+- 可以用"咱们"、"咱们来看看"这样的口语化表达
+- 不要写"根据查询结果"、"通过XX获取"等生硬的过渡句
+- 不要展示 Cypher 代码或技术过程
+- 数据用表格呈现，表格外不要加说明文字
+- 结论先行，简短有力
+
+输出结构（如果有相关内容才加，没有就不加）：
+1. 直接回答问题
+2. 表格（如有数据）
+3. 💡 小贴士：放容易被忽略的注意事项或温馨提示""",
     )
 
 

@@ -43,6 +43,15 @@ def get_llm(provider_name: str, model: str, **kwargs) -> BaseChatModel:
         return create_chat_dashscope(model=model, **kwargs)
     elif provider_name == "ollama":
         return create_chat_ollama(model=model, **kwargs)
+    elif provider_name == "openai":
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(
+            base_url=settings.LLM_BASE_URL or None,
+            api_key=settings.LLM_API_KEY,
+            model=model,
+            **kwargs,
+        )
     else:
         raise ValueError(f"不支持的 LLM 提供者: {provider_name}")
 

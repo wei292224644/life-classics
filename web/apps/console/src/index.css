@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 :root {
   --background: hsl(222 47% 7%);
@@ -57,5 +58,18 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* Markdown hr spacing */
+  .prose hr {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  /* 表格行间距收紧 */
+  .prose table td,
+  .prose table th {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
   }
 }
