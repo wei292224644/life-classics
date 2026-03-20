@@ -1,7 +1,7 @@
 """
-Agent 模块：基于 Deep Agents 的智能编排（知识库 / 网络 / Neo4j / PostgreSQL）。
+Agent 模块：基于 Agno 的统一智能助手（知识库 / 网络 / Neo4j / PostgreSQL）。
 """
 
-from agent.factory import create_national_standard_agent
+from agent.agent import create_agent, get_agent
 
-__all__ = ["create_national_standard_agent"]
+__all__ = ["create_agent", "get_agent"]
