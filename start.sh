@@ -32,7 +32,7 @@ echo -e "  ${GREEN}[web]${NC}     turbo dev (nextjs + console + packages)"
 echo ""
 
 # 创建后台 session（左 pane = server）
-tmux new-session -d -s "$SESSION" -x "$(tput cols)" -y "$(tput lines)"
+tmux new-session -d -s "$SESSION"
 
 # 向右分裂出右半区
 tmux split-window -h -t "$SESSION"
