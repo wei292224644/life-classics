@@ -1,8 +1,7 @@
-from typing import Optional
-
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
 
-from api.documents.models import DocumentsListResponse, DocumentInfo, UploadDocumentResponse
+from api.documents.models import DocumentsListResponse, DocumentInfo
 from api.documents.service import DocumentsService
 
 router = APIRouter()
@@ -17,25 +16,24 @@ def list_documents():
     )
 
 
-@router.post("", response_model=UploadDocumentResponse)
+@router.post("")
 async def upload_document(
     file: UploadFile = File(...),
     strategy: str = Form("text"),
-    chunk_size: Optional[int] = Form(None),
-    chunk_overlap: Optional[int] = Form(None),
 ):
-    try:
-        content = await file.read()
-        result = await DocumentsService.upload_document(
+    content = await file.read()
+    return StreamingResponse(
+        DocumentsService.upload_document_stream(
             file_content=content,
             filename=file.filename or "unknown",
-            strategy=strategy,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-        )
-        return UploadDocumentResponse(**result)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        ),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.delete("/clear")
