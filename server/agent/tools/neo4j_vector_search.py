@@ -2,6 +2,7 @@
 Neo4j 向量搜索工具：对 GB2760_2024 图谱节点进行语义搜索，将模糊表达解析为精确实体。
 """
 
+import asyncio
 import json
 
 import requests
@@ -43,8 +44,8 @@ def _get_embedding(text: str) -> list[float]:
     Returns:
         float 列表
 
-    Raises:
-        RuntimeError: 请求失败时抛出
+    Note:
+        请求失败时抛出 RuntimeError，由调用方负责捕获处理。
     """
     url = f"{settings.OLLAMA_BASE_URL}/api/embed"
     try:
@@ -74,31 +75,32 @@ async def neo4j_vector_search(text: str, node_label: str, top_k: int = 5) -> str
         supported = "、".join(INDEX_MAP.keys())
         return f"不支持的节点类型：{node_label}。支持的节点类型为：{supported}"
 
-    # 2. 获取嵌入向量
+    # 2. 获取嵌入向量（_get_embedding 是同步阻塞调用，用 to_thread 包装）
     try:
-        embedding = _get_embedding(text)
+        embedding = await asyncio.to_thread(_get_embedding, text)
     except RuntimeError as e:
         return str(e)
 
-    # 3. 执行向量查询
+    # 3. 执行向量查询（同步 neo4j session，用 to_thread 包装）
     try:
         index_name = INDEX_MAP[node_label]
         fields = RETURN_FIELDS[node_label]
 
-        driver = get_driver()
-        with driver.session(database=get_database()) as session:
-            def _query(tx):
-                result = tx.run(
-                    "CALL db.index.vector.queryNodes($index_name, $top_k, $embedding) "
-                    "YIELD node, score "
-                    "RETURN node, score",
-                    index_name=index_name,
-                    top_k=top_k,
-                    embedding=embedding,
+        def _run_vector_query(driver, database, index_name, top_k, embedding):
+            with driver.session(database=database) as session:
+                return session.execute_read(
+                    lambda tx: list(tx.run(
+                        "CALL db.index.vector.queryNodes($index_name, $top_k, $embedding) "
+                        "YIELD node, score "
+                        "RETURN node, score",
+                        index_name=index_name,
+                        top_k=top_k,
+                        embedding=embedding,
+                    ))
                 )
-                return list(result)
 
-            records = session.execute_read(_query)
+        driver = get_driver()
+        records = await asyncio.to_thread(_run_vector_query, driver, get_database(), index_name, top_k, embedding)
 
         # 4. 提取字段，组装结果列表
         results = []

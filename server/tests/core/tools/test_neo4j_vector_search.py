@@ -7,7 +7,17 @@ tests/core/tools/test_neo4j_vector_search.py
 import json
 import pytest
 import requests as requests_lib
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch, AsyncMock
+
+
+def make_to_thread_passthrough():
+    """
+    返回一个替代 asyncio.to_thread 的 async 函数，
+    直接在当前线程同步调用传入的函数，使 mock patch 对被调函数仍然生效。
+    """
+    async def _passthrough(fn, *args, **kwargs):
+        return fn(*args, **kwargs)
+    return _passthrough
 
 
 @pytest.mark.asyncio
@@ -34,7 +44,8 @@ async def test_embedding_request_format():
     mock_driver.session.return_value = mock_session
 
     with patch("agent.tools.neo4j_vector_search.requests.post", return_value=mock_embed_response) as mock_post, \
-         patch("agent.tools.neo4j_vector_search.get_driver", return_value=mock_driver):
+         patch("agent.tools.neo4j_vector_search.get_driver", return_value=mock_driver), \
+         patch("agent.tools.neo4j_vector_search.asyncio.to_thread", new=make_to_thread_passthrough()):
         from agent.tools.neo4j_vector_search import neo4j_vector_search
 
         await neo4j_vector_search(search_text, "FoodCategory")
@@ -93,7 +104,8 @@ async def test_result_json_format():
     mock_driver.session.return_value = mock_session
 
     with patch("agent.tools.neo4j_vector_search.requests.post", return_value=mock_embed_response), \
-         patch("agent.tools.neo4j_vector_search.get_driver", return_value=mock_driver):
+         patch("agent.tools.neo4j_vector_search.get_driver", return_value=mock_driver), \
+         patch("agent.tools.neo4j_vector_search.asyncio.to_thread", new=make_to_thread_passthrough()):
         from agent.tools.neo4j_vector_search import neo4j_vector_search
 
         result = await neo4j_vector_search("蔬菜罐头", "FoodCategory")
@@ -109,7 +121,8 @@ async def test_result_json_format():
 async def test_ollama_error_returns_string():
     """requests.post 抛异常时返回字符串，不 raise。"""
     with patch("agent.tools.neo4j_vector_search.requests.post",
-               side_effect=requests_lib.exceptions.ConnectionError("连接失败")):
+               side_effect=requests_lib.exceptions.ConnectionError("连接失败")), \
+         patch("agent.tools.neo4j_vector_search.asyncio.to_thread", new=make_to_thread_passthrough()):
         from agent.tools.neo4j_vector_search import neo4j_vector_search
 
         result = await neo4j_vector_search("test", "Chemical")
@@ -119,7 +132,7 @@ async def test_ollama_error_returns_string():
 
 @pytest.mark.asyncio
 async def test_top_k_passed_to_query():
-    """top_k 参数正确传入向量查询（Cypher 参数或语句中含 3）。"""
+    """top_k 参数正确传入向量查询（Cypher 参数中含 top_k=3）。"""
     mock_embed_response = MagicMock()
     mock_embed_response.json.return_value = {"embeddings": [[0.1, 0.2, 0.3]]}
     mock_embed_response.raise_for_status = MagicMock()
@@ -147,13 +160,12 @@ async def test_top_k_passed_to_query():
     mock_driver.session.return_value = mock_session
 
     with patch("agent.tools.neo4j_vector_search.requests.post", return_value=mock_embed_response), \
-         patch("agent.tools.neo4j_vector_search.get_driver", return_value=mock_driver):
+         patch("agent.tools.neo4j_vector_search.get_driver", return_value=mock_driver), \
+         patch("agent.tools.neo4j_vector_search.asyncio.to_thread", new=make_to_thread_passthrough()):
         from agent.tools.neo4j_vector_search import neo4j_vector_search
 
         await neo4j_vector_search("test", "Chemical", top_k=3)
 
-    # top_k=3 应体现在 Cypher 参数中或查询语句里
-    has_top_k_param = captured_params.get("top_k") == 3
-    has_top_k_in_query = "3" in captured_params.get("_query", "")
-    assert has_top_k_param or has_top_k_in_query, \
-        f"top_k=3 应传入查询，捕获到的参数: {captured_params}"
+    # top_k=3 应体现在 Cypher 参数中
+    assert captured_params.get("top_k") == 3, \
+        f"top_k=3 应传入查询参数，捕获到的参数: {captured_params}"
