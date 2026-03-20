@@ -89,7 +89,7 @@ export function Layout() {
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <Outlet context={{ refreshStats, clearChatRef } satisfies LayoutContext} />
       </div>
+      <Toaster />
     </div>
-    <Toaster />
   )
 }
