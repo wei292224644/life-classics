@@ -56,13 +56,13 @@ App（BrowserRouter）
 ### 布局：左右分栏
 
 ```
-UploadPage（flex，gap-6，padding）
+UploadPage（flex，gap-5，padding）
 ├── 左栏（flex-1）— 上传区
 │   ├── 拖拽 / 点击选择 .md 文件区域（dashed border）
 │   ├── 已选文件名 + 大小展示
 │   └── "上传并入库"按钮
-└── 右栏（flex-1）— 上传记录
-    └── 历史记录列表
+└── 右栏（flex-1）— 流水线进度面板
+    └── 最近一次上传的阶段状态（上传前为空）
 ```
 
 ### 文件校验（前端）
@@ -74,16 +74,36 @@ UploadPage（flex，gap-6，padding）
 ### 交互流程
 
 1. 拖拽或点击选择 `.md` 文件（前端校验通过后显示文件名与大小）
-2. 点击"上传并入库" → 按钮禁用 + loading spinner（同一时间只允许一个上传任务）
-3. 成功：右栏历史新增一条，调用 `refreshStats()` 更新 Header
-4. 失败：toast 错误提示，按钮恢复可用
+2. 点击"上传并入库" → 按钮禁用，左栏显示流水线进度面板（见下方）
+3. 成功：进度面板所有阶段标记完成，调用 `refreshStats()` 更新 Header 统计
+4. 失败：进度面板标记失败阶段，toast 错误提示，按钮恢复可用
 
-### 上传记录
+### 上传进度面板
 
-- 仅存于前端内存（刷新重置）
-- 每条展示：文件名、chunks_count、相对时间（如"刚刚"、"2分钟前"）
-- 成功条目绿色，失败条目红色（附错误摘要）
-- 最多保留 20 条，超出时淘汰最旧的
+由于后端 `POST /api/documents` 是单一阻塞请求（无实时进度事件），采用**基于计时器的阶段模拟**方案：在请求发出后，按固定间隔（约 3 秒）依次点亮 Parser 流水线的各个阶段，直到请求返回后强制完成所有阶段。
+
+流水线阶段列表（来自 `server/parser/graph.py`，共 9 个节点）：
+
+| 阶段 | 说明 |
+|---|---|
+| 1. 解析 Markdown | 按标题切分为原始 chunk |
+| 2. 清洗内容 | 去噪、格式规范化 |
+| 3. 识别结构类型 | LLM 推断 paragraph / list / table 等 |
+| 4. 切片 | 按粒度进一步细分 |
+| 5. 分类语义类型 | LLM 分类 limit / procedure / definition 等 |
+| 6. 处理低置信度 | 二次 LLM 判断 |
+| 7. 交叉引用富化 | 解析表格引用等 |
+| 8. 内容转换 | 表格→自然语言 |
+| 9. 合并相邻 Chunk | 合并同类 chunk |
+
+**UI 形态：** 垂直步骤列表，每个阶段有三种状态：
+- `pending`：灰色圆点 + 阶段名
+- `active`：紫色 spinner + 阶段名（加粗）
+- `done`：绿色 ✓ + 阶段名
+
+**超时保护：** 请求超过 **180 秒**未返回，标记当前阶段为失败并展示超时错误。
+
+**状态持久化：** 最近一次上传的阶段状态（文件名、各阶段结果、最终 chunks_count）使用 `localStorage`（key: `kb-last-upload`）持久化，刷新后右栏仍展示上次结果。新的上传开始时覆盖旧状态。
 
 ### API 调用细节
 
@@ -169,6 +189,7 @@ UI 结构（当 `sources` 不为 null 且长度 > 0 时渲染）：
 ### 多轮对话
 
 - 前端维护 `messages: { role: 'user' | 'assistant', content: string, sources?: SearchResult[] }[]`
+- 使用 `localStorage`（key: `kb-chat-messages`）持久化，刷新和切换标签后恢复
 - 发送时将 `messages` 中 role/content 映射为 `conversation_history` 传给后端
 - `thread_id` 固定为 `"console-test"`
 
@@ -217,7 +238,7 @@ export interface AgentResponse {
 
 | 文件 | 说明 |
 |---|---|
-| `src/pages/UploadPage.tsx` | 上传页面（左右分栏） |
+| `src/pages/UploadPage.tsx` | 上传页面（居中单栏，含流水线进度面板） |
 | `src/pages/ChatPage.tsx` | 对话页面（全宽对话流） |
 | `src/components/TabNav.tsx` | 标签导航，使用 NavLink |
 | `src/components/Layout.tsx` | 全局布局（Header + TabNav + Outlet），管理 kbStats 状态 |
@@ -230,3 +251,19 @@ export interface AgentResponse {
 | `src/api/client.ts` | 新增 `documents.upload`（直接 fetch + FormData）和 `agent.chat` 方法 |
 | `src/api/types.ts` | 新增 `UploadDocumentResponse`、`AgentChatRequest`、`AgentResponse`、`SearchResult` 类型 |
 | `package.json` | 新增 `react-router-dom@^7`、`react-markdown@^9` |
+
+---
+
+## 后续迭代 TODO
+
+以下问题已识别，当前版本暂不处理，后续版本迭代：
+
+| # | 问题 | 优先级 |
+|---|---|---|
+| 1 | AI 回复等待时缺少 typing indicator（消息列表末尾骨架屏） | 高 |
+| 2 | 消息列表缺少自动滚动（新消息出现时滚动到底部，用户上翻时不强制） | 高 |
+| 3 | Chat API 失败时无消息级错误展示（目前只有 toast，应插入红色错误气泡） | 中 |
+| 4 | `react-markdown` 缺少代码高亮（需 `rehype-highlight` 或 `react-syntax-highlighter`） | 中 |
+| 5 | 上传成功后文件输入未重置（用户需手动取消才能选新文件） | 中 |
+| 6 | 拖拽区域缺少 hover 视觉反馈（文件悬浮时边框/背景变色） | 低 |
+| 7 | `thread_id` 固定导致后端线程记忆无法清空（清空前端对话不清后端上下文） | 低 |
