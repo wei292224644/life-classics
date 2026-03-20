@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { api } from '@/api/client'
 import { useToast } from '@/hooks/use-toast'
@@ -22,29 +22,6 @@ interface StageState {
   id: string
   label: string
   status: StageStatus
-}
-
-interface LastUpload {
-  fileName: string
-  stages: StageState[]
-  chunksCount?: number
-  error?: string
-  completedAt?: string
-}
-
-const LS_KEY = 'kb-last-upload'
-
-function loadLastUpload(): LastUpload | null {
-  try {
-    const raw = localStorage.getItem(LS_KEY)
-    return raw ? (JSON.parse(raw) as LastUpload) : null
-  } catch {
-    return null
-  }
-}
-
-function saveLastUpload(data: LastUpload) {
-  localStorage.setItem(LS_KEY, JSON.stringify(data))
 }
 
 function StageIcon({ status }: { status: StageStatus }) {
@@ -72,6 +49,9 @@ function StageIcon({ status }: { status: StageStatus }) {
   return <div className="w-5 h-5 rounded-full bg-muted border border-border shrink-0" />
 }
 
+const initialStages = (): StageState[] =>
+  PIPELINE_STAGES.map(s => ({ ...s, status: 'pending' as StageStatus }))
+
 export function UploadPage() {
   const { refreshStats } = useOutletContext<LayoutContext>()
   const { toast } = useToast()
@@ -79,30 +59,10 @@ export function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-  const [lastUpload, setLastUpload] = useState<LastUpload | null>(loadLastUpload)
-  const [stages, setStages] = useState<StageState[]>(
-    PIPELINE_STAGES.map(s => ({ ...s, status: 'pending' as StageStatus }))
-  )
+  const [stages, setStages] = useState<StageState[]>(initialStages)
+  const [hasResult, setHasResult] = useState(false)
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const uploadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const stageIndexRef = useRef(0)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  // Restore last upload stage state on mount
-  useEffect(() => {
-    if (lastUpload) {
-      setStages(lastUpload.stages)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-      if (uploadTimeoutRef.current) clearTimeout(uploadTimeoutRef.current)
-    }
-  }, [])
 
   const validateFile = (file: File): string | null => {
     if (!file.name.endsWith('.md')) return '仅支持 Markdown 文件（.md）'
@@ -124,105 +84,38 @@ export function UploadPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const startStageTimer = () => {
-    stageIndexRef.current = 0
-    const initialStages = PIPELINE_STAGES.map((s, i) => ({
-      ...s,
-      status: (i === 0 ? 'active' : 'pending') as StageStatus,
-    }))
-    setStages(initialStages)
-
-    timerRef.current = setInterval(() => {
-      stageIndexRef.current += 1
-      const idx = stageIndexRef.current
-      if (idx >= PIPELINE_STAGES.length) {
-        if (timerRef.current) clearInterval(timerRef.current)
-        return
-      }
-      setStages(prev =>
-        prev.map((s, i) => ({
-          ...s,
-          status: i < idx ? 'done' : i === idx ? 'active' : 'pending',
-        }))
-      )
-    }, 3000)
-  }
-
-  const finishStages = (success: boolean) => {
-    if (timerRef.current) clearInterval(timerRef.current)
-    setStages(prev =>
-      prev.map((s) => {
-        if (s.status === 'done') return s
-        if (s.status === 'active') return { ...s, status: success ? 'done' : 'error' as StageStatus }
-        return { ...s, status: success ? 'done' : 'pending' as StageStatus }
-      })
-    )
-  }
-
   const handleUpload = async () => {
     if (!selectedFile || isUploading) return
     setIsUploading(true)
-    startStageTimer()
-
-    uploadTimeoutRef.current = setTimeout(() => {
-      finishStages(false)
-      setIsUploading(false)
-      // persist timeout failure
-      const timeoutUpload: LastUpload = {
-        fileName: selectedFile.name,
-        stages: PIPELINE_STAGES.map((s, i) => ({
-          ...s,
-          status: (i < stageIndexRef.current ? 'done' : i === stageIndexRef.current ? 'error' : 'pending') as StageStatus,
-        })),
-        error: '上传超时',
-        completedAt: new Date().toISOString(),
-      }
-      setLastUpload(timeoutUpload)
-      saveLastUpload(timeoutUpload)
-      toast({ description: '上传超时（180秒），请检查服务状态', variant: 'destructive' })
-    }, 180_000)
+    setHasResult(true)
+    setStages(initialStages())
 
     try {
-      const result = await api.documents.upload(selectedFile)
-      if (uploadTimeoutRef.current) { clearTimeout(uploadTimeoutRef.current); uploadTimeoutRef.current = null }
-      finishStages(true)
-
-      const upload: LastUpload = {
-        fileName: result.file_name,
-        stages: PIPELINE_STAGES.map(s => ({ ...s, status: 'done' as StageStatus })),
-        chunksCount: result.chunks_count,
-        completedAt: new Date().toISOString(),
-      }
-      setLastUpload(upload)
-      saveLastUpload(upload)
+      const result = await api.documents.upload(selectedFile, (stage, status) => {
+        setStages(prev =>
+          prev.map(s => s.id === stage ? { ...s, status } : s)
+        )
+      })
+      // 将仍为 pending/active 的阶段标为 done（escalate 可能被跳过）
+      setStages(prev =>
+        prev.map(s =>
+          s.status === 'pending' || s.status === 'active' ? { ...s, status: 'done' } : s
+        )
+      )
       setSelectedFile(null)
       if (inputRef.current) inputRef.current.value = ''
       refreshStats()
       toast({ description: `入库成功，共生成 ${result.chunks_count} 个 chunk` })
     } catch (err) {
-      if (uploadTimeoutRef.current) { clearTimeout(uploadTimeoutRef.current); uploadTimeoutRef.current = null }
-      finishStages(false)
       const message = (err as Error).message
-      // Use stageIndexRef to reconstruct stage state at time of failure
-      const failedStages: StageState[] = PIPELINE_STAGES.map((s, i) => ({
-        ...s,
-        status: (i < stageIndexRef.current ? 'done' : i === stageIndexRef.current ? 'error' : 'pending') as StageStatus,
-      }))
-      const upload: LastUpload = {
-        fileName: selectedFile.name,
-        stages: failedStages,
-        error: message,
-        completedAt: new Date().toISOString(),
-      }
-      setLastUpload(upload)
-      saveLastUpload(upload)
+      setStages(prev =>
+        prev.map(s => s.status === 'active' ? { ...s, status: 'error' } : s)
+      )
       toast({ description: `上传失败: ${message}`, variant: 'destructive' })
     } finally {
       setIsUploading(false)
     }
   }
-
-  const currentStages = isUploading ? stages : (lastUpload?.stages ?? null)
 
   return (
     <div className="flex gap-6 p-6 flex-1 min-h-0 overflow-hidden">
@@ -280,16 +173,9 @@ export function UploadPage() {
       <div className="flex-1 flex flex-col gap-3">
         <p className="text-xs text-muted-foreground uppercase tracking-widest">处理进度</p>
 
-        {currentStages ? (
+        {hasResult ? (
           <div className="bg-muted/50 border border-border rounded-xl p-5 flex flex-col gap-3">
-            {(lastUpload && !isUploading) && (
-              <div className="text-xs text-muted-foreground mb-1">
-                {lastUpload.fileName}
-                {lastUpload.chunksCount != null && ` · ${lastUpload.chunksCount} chunks`}
-                {lastUpload.error && <span className="text-red-400 ml-1">· 失败</span>}
-              </div>
-            )}
-            {currentStages.map(stage => (
+            {stages.map(stage => (
               <div key={stage.id} className="flex items-center gap-3">
                 <StageIcon status={stage.status} />
                 <span className={`text-sm ${
