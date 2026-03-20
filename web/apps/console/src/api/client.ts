@@ -37,7 +37,7 @@ export const api = {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('strategy', 'text')
-      const res = await fetch('/api/documents', { method: 'POST', body: formData })
+      const res = await fetch(`${BASE}/documents`, { method: 'POST', body: formData })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }))
         throw new Error(err.detail ?? `HTTP ${res.status}`)
@@ -70,6 +70,6 @@ export const api = {
   },
   agent: {
     chat: (payload: AgentChatRequest): Promise<AgentResponse> =>
-      request('/agent/chat', { method: 'POST', body: JSON.stringify(payload) }),
+      request<AgentResponse>('/agent/chat', { method: 'POST', body: JSON.stringify(payload) }),
   },
 }
