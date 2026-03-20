@@ -13,12 +13,26 @@ import neo4j.exceptions
 
 @pytest.mark.asyncio
 async def test_readonly_transaction():
-    """确保使用 execute_read 而非 execute_write。"""
+    """确保使用 execute_read 而非 execute_write，且 lambda 真正被执行。"""
+    called = {"execute_read": False, "execute_write": False}
+    executed_queries = []
+
+    def fake_execute_read(fn):
+        called["execute_read"] = True
+        mock_tx = MagicMock()
+        mock_tx.run.return_value = iter([])
+        fn(mock_tx)
+        executed_queries.append(mock_tx.run.call_args[0][0])
+        return []
+
+    def fake_execute_write(fn):
+        called["execute_write"] = True
+
     mock_session = MagicMock()
     mock_session.__enter__ = MagicMock(return_value=mock_session)
     mock_session.__exit__ = MagicMock(return_value=False)
-    mock_session.execute_read = MagicMock(return_value=[])
-    mock_session.execute_write = MagicMock()
+    mock_session.execute_read = fake_execute_read
+    mock_session.execute_write = fake_execute_write
 
     mock_driver = MagicMock()
     mock_driver.session.return_value = mock_session
@@ -28,8 +42,9 @@ async def test_readonly_transaction():
 
         await neo4j_query("MATCH (n) RETURN n LIMIT 10")
 
-    mock_session.execute_read.assert_called_once()
-    mock_session.execute_write.assert_not_called()
+    assert called["execute_read"] is True, "execute_read 应被调用"
+    assert called["execute_write"] is False, "execute_write 不应被调用"
+    assert len(executed_queries) == 1, "lambda 应真正执行并调用 tx.run"
 
 
 @pytest.mark.asyncio
