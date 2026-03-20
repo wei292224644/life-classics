@@ -85,6 +85,7 @@ export function UploadPage() {
   )
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const uploadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const stageIndexRef = useRef(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -94,6 +95,13 @@ export function UploadPage() {
       setStages(lastUpload.stages)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+      if (uploadTimeoutRef.current) clearTimeout(uploadTimeoutRef.current)
+    }
   }, [])
 
   const validateFile = (file: File): string | null => {
@@ -156,7 +164,7 @@ export function UploadPage() {
     setIsUploading(true)
     startStageTimer()
 
-    const timeoutId = setTimeout(() => {
+    uploadTimeoutRef.current = setTimeout(() => {
       finishStages(false)
       setIsUploading(false)
       // persist timeout failure
@@ -176,7 +184,7 @@ export function UploadPage() {
 
     try {
       const result = await api.documents.upload(selectedFile)
-      clearTimeout(timeoutId)
+      if (uploadTimeoutRef.current) { clearTimeout(uploadTimeoutRef.current); uploadTimeoutRef.current = null }
       finishStages(true)
 
       const upload: LastUpload = {
@@ -192,7 +200,7 @@ export function UploadPage() {
       refreshStats()
       toast({ description: `入库成功，共生成 ${result.chunks_count} 个 chunk` })
     } catch (err) {
-      clearTimeout(timeoutId)
+      if (uploadTimeoutRef.current) { clearTimeout(uploadTimeoutRef.current); uploadTimeoutRef.current = null }
       finishStages(false)
       const message = (err as Error).message
       // Use stageIndexRef to reconstruct stage state at time of failure
