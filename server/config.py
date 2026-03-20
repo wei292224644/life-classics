@@ -80,5 +80,19 @@ class Settings(BaseSettings):
     CHROMA_PERSIST_DIR: str = "./db"
     FTS_DB_PATH: str = "./db/knowledge_base_fts.db"
 
+    # ── 对话Agent配置 ────────────────────────────────────────────────────────────
+    CHAT_PROVIDER: str = "openai"
+    CHAT_MODEL: str = "qwen3-max-2026-01-23"
+    AGENT_SKILLS_PATH: str = "agent/skills"   # 相对于 server/ 目录
+    AGENT_MAX_ITERATIONS: int = 10
+    CHAT_TEMPERATURE: float = 0.4
+
+    # ── PostgreSQL 连接 ────────────────────────────────────────────────────────
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str = ""
+    POSTGRES_PASSWORD: str = ""
+    POSTGRES_DB: str = ""
+
 
 settings = Settings()
