@@ -57,9 +57,9 @@ def neo4j_query(cypher: str) -> str:
 
 **约束：**
 - **只读事务**：使用 `session.execute_read()`，从驱动层拒绝写操作
-- **结果截断**：若 Cypher 中未包含 `LIMIT`，自动追加 `LIMIT 50`
-- **超时**：driver 层设置 10 秒 query timeout
-- **连接复用**：driver 实例使用模块级懒初始化单例，避免每次调用重建连接
+- **结果截断**：若 Cypher 中未包含 `LIMIT`（大小写不敏感，使用正则 `re.search(r'\bLIMIT\b', cypher, re.IGNORECASE)` 检测），在字符串末尾追加 `LIMIT 50`
+- **超时**：通过 `neo4j.Query(text=cypher, timeout=10)` 在执行时传入，而非 driver 初始化时配置
+- **连接复用**：driver 实例使用模块级懒初始化单例；`neo4j.GraphDatabase.driver` 本身线程安全，无需加锁；连接失败由错误处理兜底（不实现主动重连）
 
 **返回格式（JSON 字符串）：**
 ```json
@@ -82,7 +82,7 @@ def neo4j_query(cypher: str) -> str:
 声明在查询食品添加剂限量、功能分类、食品分类层级、香料许可、加工助剂、酶制剂时调用此工具。
 
 **块 2：节点速查表**
-列出全部 9 种节点类型及其关键属性（紧凑格式）：
+列出全部 10 种节点类型及其关键属性（紧凑格式）：
 - `Chemical`：`id`, `name_zh`, `name_en`
 - `AdditiveCode`：`code`, `code_type`（CNS/INS）
 - `Function`：`name`
@@ -91,6 +91,7 @@ def neo4j_query(cypher: str) -> str:
 - `Flavoring`：`code`, `name_zh`, `name_en`, `flavoring_type`
 - `ProcessingAid`：`code`, `name_zh`, `type`, `function`, `usage_scope`
 - `Enzyme`：`code`, `name_zh`, `name_en`
+- `EnzymeSource`：`enzyme_code`, `source_organism`, `donor_organism`
 - `Organism`：`name_zh`, `name_en`
 
 **块 3：关系速查表**
@@ -106,12 +107,40 @@ def neo4j_query(cypher: str) -> str:
 | `HAS_SOURCE` | Enzyme → EnzymeSource | — |
 | `FROM_ORGANISM` / `USES_DONOR` | EnzymeSource → Organism | — |
 
-**块 4：查询模板（5 个）**
-1. 查某添加剂在某食品分类下的限量
-2. 查某添加剂的所有功能
-3. 查某食品分类下允许使用的所有添加剂（带限量）
-4. 查某香料是否允许用于某食品
-5. 查食品分类的层级结构（父子关系）
+**块 4：查询模板（5 个，含参考 Cypher）**
+
+1. 查某添加剂在某食品分类下的限量：
+```cypher
+MATCH (c:Chemical {name_zh: $name_zh})-[r:PERMITTED_IN]->(f:FoodCategory {code: $code})
+RETURN c.name_zh, f.name, r.max_usage, r.unit, r.note
+```
+
+2. 查某添加剂的所有功能：
+```cypher
+MATCH (c:Chemical {name_zh: $name_zh})-[:HAS_FUNCTION]->(fn:Function)
+RETURN fn.name
+```
+
+3. 查某食品分类下允许使用的所有添加剂（带限量）：
+```cypher
+MATCH (c:Chemical)-[r:PERMITTED_IN]->(f:FoodCategory {code: $code})
+RETURN c.name_zh, r.max_usage, r.unit
+ORDER BY c.name_zh
+LIMIT 50
+```
+
+4. 查某香料是否允许用于某食品分类：
+```cypher
+MATCH (fl:Flavoring {name_zh: $name_zh})-[r:PERMITTED_IN]->(f:FoodCategory {code: $code})
+RETURN fl.name_zh, f.name, r.max_usage, r.note
+```
+
+5. 查食品分类的直接子分类：
+```cypher
+MATCH (parent:FoodCategory {code: $code})-[:HAS_SUBCATEGORY]->(child:FoodCategory)
+RETURN child.code, child.name
+ORDER BY child.code
+```
 
 ### 3. `config.py` 变更
 
@@ -124,7 +153,7 @@ NEO4J_DATABASE: str = "gb2760_2024"
 
 `pyproject.toml` 新增：
 ```
-neo4j>=5.0
+neo4j>=5.0,<6.0
 ```
 
 ---
@@ -135,13 +164,15 @@ neo4j>=5.0
 
 **单元测试（mock driver，无需真实 Neo4j）：**
 - `test_readonly_transaction`：验证使用 `execute_read` 而非 `execute_write`
-- `test_limit_injection`：无 LIMIT 时自动追加，有 LIMIT 时不覆盖
+- `test_limit_injection_when_missing`：无 LIMIT 时自动在末尾追加 `LIMIT 50`
+- `test_limit_injection_skipped_when_present`：有 LIMIT（包括小写）时不覆盖
 - `test_connection_error_returns_string`：连接失败返回字符串而非抛异常
 - `test_cypher_error_returns_string`：语法错误返回原始报错字符串
-- `test_result_json_format`：验证返回 JSON 格式正确
+- `test_result_json_format`：验证返回 JSON 含 `columns`、`rows`、`count` 三个字段
 
 **集成测试（标记 `@pytest.mark.integration`，默认跳过）：**
-- 需要真实 Neo4j 实例，验证端到端查询 gb2760_2024 database
+- `test_connectivity`：连接 `gb2760_2024` database 并执行 `MATCH (n) RETURN count(n)`，验证返回非负整数（作为前置检查）
+- `test_end_to_end_query`：执行一条真实查询，验证返回结果格式正确
 
 ---
 
