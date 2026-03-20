@@ -72,6 +72,7 @@ class Settings(BaseSettings):
     NEO4J_URI: str = "bolt://localhost:7687"
     NEO4J_USERNAME: str = "neo4j"
     NEO4J_PASSWORD: str = ""
+    NEO4J_DATABASE: str = "gb2760_2024"
 
     # ── Reranker 配置 ────────────────────────────────────────────────────────
     RERANKER_MODEL: str = "Qwen/Qwen3-Reranker-0.6B"
@@ -83,6 +84,8 @@ class Settings(BaseSettings):
     # ── 对话Agent配置 ────────────────────────────────────────────────────────────
     CHAT_PROVIDER: str = "openai"
     CHAT_MODEL: str = "qwen3-max-2026-01-23"
+    CHAT_BASE_URL: str = ""
+    CHAT_API_KEY: str = ""
     AGENT_SKILLS_PATH: str = "agent/skills"   # 相对于 server/ 目录
     AGENT_MAX_ITERATIONS: int = 10
     CHAT_TEMPERATURE: float = 0.4

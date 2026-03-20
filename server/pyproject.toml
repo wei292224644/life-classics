@@ -74,6 +74,7 @@ asyncio_mode = "strict"
 addopts = "--import-mode=importlib"
 markers = [
     "real_llm: tests requiring real LLM/service calls",
+    "integration: tests requiring real external services (Neo4j, Ollama)",
 ]
 
 [dependency-groups]
