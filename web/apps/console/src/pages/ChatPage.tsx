@@ -101,37 +101,39 @@ export function ChatPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Message List */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
+      <div className="flex-1 overflow-y-auto relative">
         {messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground gap-2">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground gap-2">
             <span className="text-4xl">💬</span>
             <p className="text-base font-medium">开始与知识库对话</p>
             <p className="text-sm">提问关于 GB 标准的任何问题</p>
           </div>
         ) : (
-          messages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {msg.role === 'user' ? (
-                <div
-                  className="max-w-[70%] bg-purple-700 text-white text-sm px-4 py-2.5"
-                  style={{ borderRadius: '12px 12px 2px 12px' }}
-                >
-                  {msg.content}
-                </div>
-              ) : (
-                <div className="max-w-[85%] flex flex-col gap-2">
-                  <div className="bg-muted border border-border rounded-xl rounded-tl-sm px-4 py-3 text-sm prose prose-invert prose-sm max-w-none">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+          <div className="px-6 py-4 flex flex-col gap-4">
+            {messages.map((msg) => (
+              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {msg.role === 'user' ? (
+                  <div
+                    className="max-w-[70%] bg-purple-700 text-white text-sm px-4 py-2.5"
+                    style={{ borderRadius: '12px 12px 2px 12px' }}
+                  >
+                    {msg.content}
                   </div>
-                  {msg.sources && msg.sources.length > 0 && (
-                    <SourcesPanel sources={msg.sources} />
-                  )}
-                </div>
-              )}
-            </div>
-          ))
+                ) : (
+                  <div className="max-w-[85%] flex flex-col gap-2">
+                    <div className="bg-muted border border-border rounded-xl rounded-tl-sm px-4 py-3 text-sm prose prose-invert prose-sm max-w-none">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                    {msg.sources && msg.sources.length > 0 && (
+                      <SourcesPanel sources={msg.sources} />
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div ref={bottomRef} />
+          </div>
         )}
-        <div ref={bottomRef} />
       </div>
 
       {/* Input Area */}
