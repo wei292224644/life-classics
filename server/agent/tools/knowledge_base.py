@@ -2,12 +2,9 @@
 知识库检索工具：供 Agent 基于混合检索（向量 + BM25 + Rerank）查询国家标准等内容。
 """
 
-from langchain_core.tools import tool
-
 from kb.retriever import search
 
 
-@tool
 async def knowledge_base(query: str, top_k: int = 5) -> str:
     """
     从知识库中检索与查询最相关的文档片段（国家标准等）。适合回答与已入库文档相关的问题。
