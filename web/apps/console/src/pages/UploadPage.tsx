@@ -225,7 +225,7 @@ export function UploadPage() {
   const currentStages = isUploading ? stages : (lastUpload?.stages ?? null)
 
   return (
-    <div className="flex gap-6 p-6 h-full">
+    <div className="flex gap-6 p-6 flex-1 min-h-0 overflow-hidden">
       {/* Left: Upload Area */}
       <div className="flex-1 flex flex-col gap-4">
         <p className="text-xs text-muted-foreground uppercase tracking-widest">上传文件</p>
