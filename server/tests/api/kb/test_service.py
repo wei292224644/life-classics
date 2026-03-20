@@ -12,7 +12,7 @@ def test_get_stats_counts_correctly():
         ],
     }
 
-    with patch("app.api.kb.service.get_collection", return_value=mock_col):
+    with patch("api.kb.service.get_collection", return_value=mock_col):
         from api.kb.service import KBService
         stats = KBService.get_stats()
 
@@ -28,8 +28,8 @@ def test_clear_all_deletes_from_chroma_and_fts():
         {"doc_id": "d1"}, {"doc_id": "d2"}
     ]}
 
-    with patch("app.api.kb.service.get_collection", return_value=mock_col), \
-         patch("app.api.kb.service.fts_writer") as mock_fts:
+    with patch("api.kb.service.get_collection", return_value=mock_col), \
+         patch("api.kb.service.fts_writer") as mock_fts:
         from api.kb.service import KBService
         result = KBService.clear_all()
 

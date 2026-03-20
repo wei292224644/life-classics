@@ -1,3 +1,4 @@
+import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -21,7 +22,7 @@ def test_get_chunks_no_filter_returns_all():
         _make_col_result(["c1", "c2"]),  # count query
     ]
 
-    with patch("app.api.chunks.service.get_collection", return_value=mock_col):
+    with patch("api.chunks.service.get_collection", return_value=mock_col):
         from api.chunks.service import ChunksService
         chunks, total = ChunksService.get_chunks(limit=20, offset=0)
 
@@ -37,7 +38,7 @@ def test_get_chunks_section_path_converted_to_pipe():
         _make_col_result(["c1"]),
     ]
 
-    with patch("app.api.chunks.service.get_collection", return_value=mock_col):
+    with patch("api.chunks.service.get_collection", return_value=mock_col):
         from api.chunks.service import ChunksService
         ChunksService.get_chunks(section_path="3/3.1", limit=20, offset=0)
 
@@ -49,7 +50,7 @@ def test_get_chunk_by_id_returns_chunk():
     mock_col = MagicMock()
     mock_col.get.return_value = _make_col_result(["c1"], ["内容"], [_meta()])
 
-    with patch("app.api.chunks.service.get_collection", return_value=mock_col):
+    with patch("api.chunks.service.get_collection", return_value=mock_col):
         from api.chunks.service import ChunksService
         chunk = ChunksService.get_chunk_by_id("c1")
 
@@ -62,22 +63,23 @@ def test_get_chunk_by_id_returns_none_if_not_found():
     mock_col = MagicMock()
     mock_col.get.return_value = _make_col_result([], [], [])
 
-    with patch("app.api.chunks.service.get_collection", return_value=mock_col):
+    with patch("api.chunks.service.get_collection", return_value=mock_col):
         from api.chunks.service import ChunksService
         chunk = ChunksService.get_chunk_by_id("nonexistent")
 
     assert chunk is None
 
 
+@pytest.mark.asyncio
 async def test_update_chunk_calls_reembed_and_upsert():
     """更新 chunk 时重新 embed 并 upsert 到 ChromaDB，同时更新 FTS"""
     mock_col = MagicMock()
     mock_col.get.return_value = _make_col_result(["c1"], ["旧内容"], [_meta()])
     fake_embedding = [[0.9, 0.8]]
 
-    with patch("app.api.chunks.service.get_collection", return_value=mock_col), \
-         patch("app.api.chunks.service.embed_batch", AsyncMock(return_value=fake_embedding)), \
-         patch("app.api.chunks.service.fts_writer") as mock_fts:
+    with patch("api.chunks.service.get_collection", return_value=mock_col), \
+         patch("api.chunks.service.embed_batch", AsyncMock(return_value=fake_embedding)), \
+         patch("api.chunks.service.fts_writer") as mock_fts:
         from api.chunks.service import ChunksService
         result = await ChunksService.update_chunk(
             chunk_id="c1",
@@ -100,8 +102,8 @@ def test_delete_chunk_calls_chroma_and_fts():
     mock_col = MagicMock()
     mock_col.get.return_value = _make_col_result(["c1"], ["内容"], [_meta()])
 
-    with patch("app.api.chunks.service.get_collection", return_value=mock_col), \
-         patch("app.api.chunks.service.fts_writer") as mock_fts:
+    with patch("api.chunks.service.get_collection", return_value=mock_col), \
+         patch("api.chunks.service.fts_writer") as mock_fts:
         from api.chunks.service import ChunksService
         ChunksService.delete_chunk("c1")
 
