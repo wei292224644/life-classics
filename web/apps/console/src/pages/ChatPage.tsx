@@ -96,7 +96,7 @@ export function ChatPage() {
       {/* Message List */}
       <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
         {messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground gap-2 mt-20">
+          <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground gap-2">
             <span className="text-4xl">💬</span>
             <p className="text-base font-medium">开始与知识库对话</p>
             <p className="text-sm">提问关于 GB 标准的任何问题</p>
