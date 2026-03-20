@@ -38,3 +38,32 @@ export interface UpdateChunkPayload {
   semantic_type: string
   section_path: string   // slash-separated, e.g. "1/1.1"
 }
+
+export interface UploadDocumentResponse {
+  success: boolean
+  message: string
+  doc_id: string | null
+  chunks_count: number
+  file_name: string
+  strategy: string
+}
+
+export interface AgentChatRequest {
+  message: string
+  conversation_history: { role: string; content: string }[]
+  thread_id: string
+}
+
+export interface SearchResult {
+  id: string
+  content: string
+  metadata?: Record<string, unknown>
+  relevance_score?: number
+  relevance_reason?: string
+}
+
+export interface AgentResponse {
+  content: string
+  sources: SearchResult[] | null
+  tool_calls: Record<string, unknown>[] | null
+}
