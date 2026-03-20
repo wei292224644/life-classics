@@ -22,10 +22,11 @@
 server/
 ├── agent/
 │   ├── tools/
-│   │   └── neo4j_query.py          ← 补全实现
+│   │   └── neo4j_query.py                  ← 补全实现
 │   └── skills/
-│       └── neo4j_gb2760.md         ← 新建 skill 文件
-└── config.py                       ← 新增 NEO4J_DATABASE 字段
+│       └── neo4j-graph/
+│           └── SKILL.md                    ← 更新现有占位符
+└── config.py                               ← 新增 NEO4J_DATABASE 字段
 ```
 
 `factory.py` 无需修改——`neo4j_query` 已注册在默认工具列表，skill 注入机制已存在。
@@ -74,15 +75,32 @@ def neo4j_query(cypher: str) -> str:
 - 连接失败 → 返回可读错误字符串（不抛异常，让 Agent 能理解并告知用户）
 - Cypher 语法错误 → 将 Neo4j 原始报错返回给 Agent，让其自行修正并重试
 
-### 2. `neo4j_gb2760.md` Skill 文件
+### 2. `neo4j-graph/SKILL.md` 更新
 
-文件分 4 块，总长控制在 150 行以内：
+文件遵循 Anthropic agent SDK 标准格式：**frontmatter + Markdown 正文**，总长控制在 150 行以内。
 
-**块 1：何时使用**
-声明在查询食品添加剂限量、功能分类、食品分类层级、香料许可、加工助剂、酶制剂时调用此工具。
+**Frontmatter（保持现有字段，更新 description）：**
+```yaml
+---
+name: neo4j-graph
+description: 用于查询 GB2760_2024 知识图谱中的食品添加剂限量、功能分类、食品分类层级、香料许可、加工助剂、酶制剂等信息。当用户询问某添加剂在某食品中是否允许使用、最大使用量是多少、具有哪些功能时使用。
+allowed-tools: neo4j_query
+---
+```
 
-**块 2：节点速查表**
-列出全部 10 种节点类型及其关键属性（紧凑格式）：
+**正文分 4 节：**
+
+**节 1：概述**
+说明本 skill 查询的是 GB2760_2024 知识图谱，Agent 负责将用户问题转换为 Cypher 语句后调用 `neo4j_query` 工具。
+
+**节 2：使用步骤**（沿用现有 skill 的三步结构）
+1. 判断用户意图是否涉及 GB2760 图谱数据
+2. 根据下方 schema 和模板构建 Cypher，调用 `neo4j_query`
+3. 将结果转化为自然语言回答，明确引用限量值和单位
+
+**节 3：Schema 速查**
+
+节点（10 种）：
 - `Chemical`：`id`, `name_zh`, `name_en`
 - `AdditiveCode`：`code`, `code_type`（CNS/INS）
 - `Function`：`name`
@@ -94,7 +112,7 @@ def neo4j_query(cypher: str) -> str:
 - `EnzymeSource`：`enzyme_code`, `source_organism`, `donor_organism`
 - `Organism`：`name_zh`, `name_en`
 
-**块 3：关系速查表**
+关系（8 种）：
 
 | 关系 | 方向 | 关键属性 |
 |------|------|---------|
@@ -107,23 +125,23 @@ def neo4j_query(cypher: str) -> str:
 | `HAS_SOURCE` | Enzyme → EnzymeSource | — |
 | `FROM_ORGANISM` / `USES_DONOR` | EnzymeSource → Organism | — |
 
-**块 4：查询模板（5 个，含参考 Cypher）**
+**节 4：查询模板（5 个，含参考 Cypher）**
 
 1. 查某添加剂在某食品分类下的限量：
 ```cypher
-MATCH (c:Chemical {name_zh: $name_zh})-[r:PERMITTED_IN]->(f:FoodCategory {code: $code})
+MATCH (c:Chemical {name_zh: "山梨酸"})-[r:PERMITTED_IN]->(f:FoodCategory {code: "01.01"})
 RETURN c.name_zh, f.name, r.max_usage, r.unit, r.note
 ```
 
 2. 查某添加剂的所有功能：
 ```cypher
-MATCH (c:Chemical {name_zh: $name_zh})-[:HAS_FUNCTION]->(fn:Function)
+MATCH (c:Chemical {name_zh: "山梨酸"})-[:HAS_FUNCTION]->(fn:Function)
 RETURN fn.name
 ```
 
 3. 查某食品分类下允许使用的所有添加剂（带限量）：
 ```cypher
-MATCH (c:Chemical)-[r:PERMITTED_IN]->(f:FoodCategory {code: $code})
+MATCH (c:Chemical)-[r:PERMITTED_IN]->(f:FoodCategory {code: "01.01"})
 RETURN c.name_zh, r.max_usage, r.unit
 ORDER BY c.name_zh
 LIMIT 50
@@ -131,13 +149,13 @@ LIMIT 50
 
 4. 查某香料是否允许用于某食品分类：
 ```cypher
-MATCH (fl:Flavoring {name_zh: $name_zh})-[r:PERMITTED_IN]->(f:FoodCategory {code: $code})
+MATCH (fl:Flavoring {name_zh: "香兰素"})-[r:PERMITTED_IN]->(f:FoodCategory {code: "05.01"})
 RETURN fl.name_zh, f.name, r.max_usage, r.note
 ```
 
 5. 查食品分类的直接子分类：
 ```cypher
-MATCH (parent:FoodCategory {code: $code})-[:HAS_SUBCATEGORY]->(child:FoodCategory)
+MATCH (parent:FoodCategory {code: "01"})-[:HAS_SUBCATEGORY]->(child:FoodCategory)
 RETURN child.code, child.name
 ORDER BY child.code
 ```
