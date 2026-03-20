@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast'
 import type { LayoutContext } from '@/components/Layout'
 
 interface Message {
+  id: string
   role: 'user' | 'assistant'
   content: string
   sources?: SearchResult[]
@@ -17,7 +18,10 @@ const LS_KEY = 'kb-chat-messages'
 function loadMessages(): Message[] {
   try {
     const raw = localStorage.getItem(LS_KEY)
-    return raw ? (JSON.parse(raw) as Message[]) : []
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as Message[]
+    // Ensure backward compatibility: add id if missing
+    return parsed.map((m, i) => ({ ...m, id: m.id ?? `legacy-${i}` }))
   } catch {
     return []
   }
@@ -52,17 +56,20 @@ export function ChatPage() {
     saveMessages(messages)
   }, [messages])
 
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
   const handleSend = async () => {
     const text = input.trim()
     if (!text || isSending) return
 
-    const userMsg: Message = { role: 'user', content: text }
+    const userMsg: Message = { id: crypto.randomUUID(), role: 'user', content: text }
     const nextMessages = [...messages, userMsg]
     setMessages(nextMessages)
     setInput('')
     setIsSending(true)
-
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
 
     try {
       const res = await api.agent.chat({
@@ -71,6 +78,7 @@ export function ChatPage() {
         thread_id: 'console-test',
       })
       const assistantMsg: Message = {
+        id: crypto.randomUUID(),
         role: 'assistant',
         content: res.content,
         sources: res.sources ?? undefined,
@@ -80,7 +88,6 @@ export function ChatPage() {
       toast({ description: `发送失败: ${err instanceof Error ? err.message : String(err)}`, variant: 'destructive' })
     } finally {
       setIsSending(false)
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
     }
   }
 
@@ -102,8 +109,8 @@ export function ChatPage() {
             <p className="text-sm">提问关于 GB 标准的任何问题</p>
           </div>
         ) : (
-          messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          messages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'user' ? (
                 <div
                   className="max-w-[70%] bg-purple-700 text-white text-sm px-4 py-2.5"
