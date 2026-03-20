@@ -1,4 +1,13 @@
-import type { Chunk, ChunksListResponse, DocumentInfo, KBStats, UpdateChunkPayload } from './types'
+import type {
+  Chunk,
+  ChunksListResponse,
+  DocumentInfo,
+  KBStats,
+  UpdateChunkPayload,
+  UploadDocumentResponse,
+  AgentChatRequest,
+  AgentResponse,
+} from './types'
 
 const BASE = '/api'
 
@@ -24,6 +33,17 @@ export const api = {
         deleted_documents: number
         deleted_chunks: number
       }>('/documents/clear', { method: 'DELETE' }),
+    upload: async (file: File): Promise<UploadDocumentResponse> => {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('strategy', 'text')
+      const res = await fetch('/api/documents', { method: 'POST', body: formData })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }))
+        throw new Error(err.detail ?? `HTTP ${res.status}`)
+      }
+      return res.json()
+    },
   },
   chunks: {
     list: (params: {
@@ -47,5 +67,9 @@ export const api = {
   },
   kb: {
     stats: () => request<KBStats>('/kb/stats'),
+  },
+  agent: {
+    chat: (payload: AgentChatRequest): Promise<AgentResponse> =>
+      request('/agent/chat', { method: 'POST', body: JSON.stringify(payload) }),
   },
 }
