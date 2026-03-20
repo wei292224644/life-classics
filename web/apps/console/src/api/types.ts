@@ -39,15 +39,6 @@ export interface UpdateChunkPayload {
   section_path: string   // slash-separated, e.g. "1/1.1"
 }
 
-export interface UploadDocumentResponse {
-  success: boolean
-  message: string
-  doc_id: string | null
-  chunks_count: number
-  file_name: string
-  strategy: string
-}
-
 export interface ConversationMessage {
   role: string
   content: string

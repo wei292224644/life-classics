@@ -4,7 +4,6 @@ import type {
   DocumentInfo,
   KBStats,
   UpdateChunkPayload,
-  UploadDocumentResponse,
   AgentChatRequest,
   AgentResponse,
 } from './types'
@@ -33,16 +32,49 @@ export const api = {
         deleted_documents: number
         deleted_chunks: number
       }>('/documents/clear', { method: 'DELETE' }),
-    upload: async (file: File): Promise<UploadDocumentResponse> => {
+    upload: async (
+      file: File,
+      onProgress: (stage: string, status: 'active' | 'done' | 'error') => void,
+    ): Promise<{ chunks_count: number }> => {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('strategy', 'text')
+
       const res = await fetch(`${BASE}/documents`, { method: 'POST', body: formData })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }))
         throw new Error(err.detail ?? `HTTP ${res.status}`)
       }
-      return res.json()
+
+      const reader = res.body!.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+
+        // SSE 事件以 \n\n 分隔
+        const parts = buffer.split('\n\n')
+        buffer = parts.pop() ?? ''
+
+        for (const part of parts) {
+          const dataLine = part.split('\n').find(l => l.startsWith('data: '))
+          if (!dataLine) continue
+          const payload = JSON.parse(dataLine.slice(6))
+
+          if (payload.type === 'stage') {
+            onProgress(payload.stage, payload.status)
+          } else if (payload.type === 'done') {
+            return { chunks_count: payload.chunks_count }
+          } else if (payload.type === 'error') {
+            throw new Error(payload.message)
+          }
+        }
+      }
+
+      throw new Error('上传流意外结束')
     },
   },
   chunks: {
