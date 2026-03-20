@@ -14,6 +14,8 @@ from agno.tools.neo4j import Neo4jTools
 from agno.tools.postgres import PostgresTools
 
 from agent.tools.knowledge_base import knowledge_base
+from agent.tools.neo4j_query import neo4j_query
+from agent.tools.neo4j_vector_search import neo4j_vector_search
 from config import settings
 
 _agent: Optional[Agent] = None
@@ -29,8 +31,8 @@ def create_agent() -> Agent:
     """
     model = OpenAILike(
         id=settings.CHAT_MODEL,
-        base_url=settings.LLM_BASE_URL or None,
-        api_key=settings.LLM_API_KEY,
+        base_url=settings.CHAT_BASE_URL or None,
+        api_key=settings.CHAT_API_KEY,
         temperature=settings.CHAT_TEMPERATURE,
     )
 
@@ -47,7 +49,11 @@ def create_agent() -> Agent:
             uri=settings.NEO4J_URI,
             user=settings.NEO4J_USERNAME,
             password=settings.NEO4J_PASSWORD,
+            database=settings.NEO4J_DATABASE,
+            enable_run_cypher=False,
         ))
+        tools.append(neo4j_query)
+        tools.append(neo4j_vector_search)
 
     if settings.POSTGRES_USER:
         tools.append(PostgresTools(
