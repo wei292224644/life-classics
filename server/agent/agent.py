@@ -40,24 +40,27 @@ def create_agent() -> Agent:
         skills_path = Path(__file__).parent.parent / settings.AGENT_SKILLS_PATH
     skills = Skills(loaders=[LocalSkills(path=str(skills_path))])
 
+    tools = [knowledge_base, DuckDuckGoTools()]
+
+    if settings.NEO4J_PASSWORD:
+        tools.append(Neo4jTools(
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USERNAME,
+            password=settings.NEO4J_PASSWORD,
+        ))
+
+    if settings.POSTGRES_USER:
+        tools.append(PostgresTools(
+            host=settings.POSTGRES_HOST,
+            port=settings.POSTGRES_PORT,
+            user=settings.POSTGRES_USER,
+            password=settings.POSTGRES_PASSWORD,
+            db_name=settings.POSTGRES_DB,
+        ))
+
     return Agent(
         model=model,
-        tools=[
-            knowledge_base,
-            DuckDuckGoTools(),
-            Neo4jTools(
-                uri=settings.NEO4J_URI,
-                user=settings.NEO4J_USERNAME,
-                password=settings.NEO4J_PASSWORD,
-            ),
-            PostgresTools(
-                host=settings.POSTGRES_HOST,
-                port=settings.POSTGRES_PORT,
-                user=settings.POSTGRES_USER,
-                password=settings.POSTGRES_PASSWORD,
-                db_name=settings.POSTGRES_DB,
-            ),
-        ],
+        tools=tools,
         skills=skills,
     )
 

@@ -1,7 +1,7 @@
 ---
 name: web-search
 description: 用于查询近期食品安全事件、最新法规修订、风险预警、召回信息等时效性内容。仅当问题涉及「最新」「近期」「最近」等时间敏感词时使用。
-allowed-tools: web_search
+allowed-tools: ["web_search"]
 ---
 
 # 网络检索

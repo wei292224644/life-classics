@@ -1,7 +1,7 @@
 ---
 name: document-type
 description: 判断某份标准文档属于哪一类（单添加剂/检测方法/微生物检验/产品/其他）。在用户询问文档类型、或需要按类型选择检索或解释策略时使用。
-allowed-tools: document_type
+allowed-tools: ["knowledge_base"]
 ---
 
 # 文档类型分类

@@ -1,7 +1,7 @@
 ---
 name: neo4j-graph
 description: 用于查询知识图谱中的文档-块关系、实体关系。当用户需要了解文档结构、块之间的关联、或图谱中存储的实体关系时使用。
-allowed-tools: neo4j_query
+allowed-tools: ["neo4j_query"]
 ---
 
 # Neo4j 图谱查询

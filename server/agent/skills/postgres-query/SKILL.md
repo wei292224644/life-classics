@@ -1,7 +1,7 @@
 ---
 name: postgres-query
 description: 用于查询 PostgreSQL 中存储的结构化业务数据。仅当用户明确需要查询数据库中的表格数据时使用。
-allowed-tools: postgres_query
+allowed-tools: ["postgres_query"]
 ---
 
 # PostgreSQL 查询

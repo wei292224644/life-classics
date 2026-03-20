@@ -1,7 +1,7 @@
 ---
 name: national-standard-rag
 description: 用于查询食品安全国家标准、食品添加剂（如 GB2760）、限量、适用范围、CNS/INS 号等知识库中已有的内容。当用户问及国标、添加剂、限量、适用范围时使用此技能。
-allowed-tools: knowledge_base
+allowed-tools: ["knowledge_base"]
 ---
 
 # 国标知识库检索
