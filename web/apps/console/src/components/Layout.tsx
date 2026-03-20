@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { TabNav } from './TabNav'
 import { api } from '@/api/client'
 import type { KBStats } from '@/api/types'
+import { Toaster } from '@/components/ui/toaster'
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
@@ -85,9 +86,10 @@ export function Layout() {
       <TabNav onClearChat={() => clearChatRef.current?.()} />
 
       {/* Page Content */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         <Outlet context={{ refreshStats, clearChatRef } satisfies LayoutContext} />
       </div>
     </div>
+    <Toaster />
   )
 }

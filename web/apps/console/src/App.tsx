@@ -3,7 +3,6 @@ import { Layout } from './components/Layout'
 import { ChunksPage } from './pages/ChunksPage'
 import { UploadPage } from './pages/UploadPage'
 import { ChatPage } from './pages/ChatPage'
-import { Toaster } from '@/components/ui/toaster'
 
 export default function App() {
   return (
@@ -16,7 +15,6 @@ export default function App() {
           <Route path="chat" element={<ChatPage />} />
         </Route>
       </Routes>
-      <Toaster />
     </BrowserRouter>
   )
 }
