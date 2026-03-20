@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import Any
 
 from fastapi import HTTPException
 
 from kb.clients import get_chroma_client
-from kb.writer import fts_writer
+from kb.writer import chroma_writer, fts_writer
+from parser.graph import run_parser_workflow
 
 
 def get_collection():
@@ -48,7 +51,39 @@ class DocumentsService:
         chunk_size: int | None = None,
         chunk_overlap: int | None = None,
     ) -> dict[str, Any]:
-        raise HTTPException(status_code=501, detail="文档上传功能尚未实现，请通过 parser_workflow 直接写入知识库")
+        try:
+            md_content = file_content.decode("utf-8")
+        except UnicodeDecodeError:
+            raise HTTPException(status_code=400, detail="文件编码错误，请确保文件为 UTF-8 编码")
+
+        # doc_id 取文件名去掉扩展名
+        doc_id = os.path.splitext(filename)[0]
+        doc_metadata = {
+            "doc_id": doc_id,
+            "standard_no": doc_id,
+            "doc_type": "standard",
+        }
+
+        rules_dir = str(Path(__file__).parent.parent.parent / "parser" / "rules")
+
+        result = await run_parser_workflow(
+            md_content=md_content,
+            doc_metadata=doc_metadata,
+            rules_dir=rules_dir,
+        )
+
+        if result.chunks:
+            await chroma_writer.write(result.chunks, doc_metadata)
+            fts_writer.write(result.chunks, doc_metadata)
+
+        return {
+            "success": True,
+            "message": f"上传成功，共生成 {len(result.chunks)} 个 chunk",
+            "doc_id": doc_id,
+            "chunks_count": len(result.chunks),
+            "file_name": filename,
+            "strategy": strategy,
+        }
 
     @staticmethod
     def clear_all() -> dict[str, Any]:
