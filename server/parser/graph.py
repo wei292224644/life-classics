@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from typing import Any
 
 from langgraph.graph import END, StateGraph  # type: ignore[import]
@@ -81,3 +82,58 @@ async def run_parser_workflow(
             "escalate_count": escalate_count,
         },
     )
+
+
+# 节点名集合，对应前端 PIPELINE_STAGES 的 id（去掉 _node 后缀）
+_PIPELINE_NODE_NAMES = {
+    "parse_node", "clean_node", "structure_node", "slice_node",
+    "classify_node", "escalate_node", "enrich_node", "transform_node", "merge_node",
+}
+
+
+async def run_parser_workflow_stream(
+    md_content: str,
+    doc_metadata: dict,
+    rules_dir: str,
+    config: dict | None = None,
+) -> AsyncGenerator[dict, None]:
+    """流式执行 parser workflow，每个节点开始/结束时 yield 进度事件。
+
+    使用 metadata["langgraph_node"] 过滤节点边界事件（比 event["name"] 更可靠，
+    可排除 LLM 调用、RunnableSequence 等子事件的干扰）。
+
+    Yields:
+        {"type": "stage", "stage": str, "status": "active" | "done"}
+        {"type": "workflow_done", "chunks": list[DocumentChunk]}
+    """
+    initial_state = WorkflowState(
+        md_content=md_content,
+        doc_metadata=doc_metadata,
+        config=config or {},
+        rules_dir=rules_dir,
+        raw_chunks=[],
+        classified_chunks=[],
+        final_chunks=[],
+        errors=[],
+    )
+
+    async for event in parser_graph.astream_events(initial_state, version="v2"):
+        event_type = event.get("event", "")
+        # 用 metadata.langgraph_node 定位节点边界（比 event["name"] 更可靠）
+        node_name = event.get("metadata", {}).get("langgraph_node", "")
+
+        if node_name not in _PIPELINE_NODE_NAMES:
+            continue
+
+        stage = node_name.removesuffix("_node")
+
+        if event_type == "on_chain_start":
+            yield {"type": "stage", "stage": stage, "status": "active"}
+
+        elif event_type == "on_chain_end":
+            yield {"type": "stage", "stage": stage, "status": "done"}
+
+            if node_name == "merge_node":
+                output = event.get("data", {}).get("output") or {}
+                final_chunks = output.get("final_chunks", [])
+                yield {"type": "workflow_done", "chunks": final_chunks}
