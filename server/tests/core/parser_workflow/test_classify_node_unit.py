@@ -381,7 +381,7 @@ async def test_classify_node_restores_latex_in_seg_content(tmp_path):
 async def test_classify_node_concurrent_execution_with_exceptions(tmp_path):
     """classify_node 并发执行时，return_exceptions=True 保证部分失败不影响整体"""
     from parser.nodes.classify_node import classify_node
-    from parser.models import WorkflowState
+    from parser.models import WorkflowState, ClassifiedChunk, TypedSegment
     from parser.nodes.output import ClassifyOutput, SegmentItem
 
     # 构造 state：4 个 raw_chunks
@@ -401,10 +401,22 @@ async def test_classify_node_concurrent_execution_with_exceptions(tmp_path):
         errors=[],
     )
 
-    # 模拟 4 个 chunk：3 个成功，1 个超时
-    mock_output = ClassifyOutput(segments=[
-        SegmentItem(content="x", structure_type="paragraph", semantic_type="scope", confidence=0.9),
-    ])
+    # classify_raw_chunk 返回 ClassifiedChunk（TypedDict），不是 ClassifyOutput
+    mock_classified_chunk = ClassifiedChunk(
+        raw_chunk={"content": "chunk", "section_path": ["A.1"], "char_count": 6},
+        segments=[TypedSegment(
+            content="x",
+            structure_type="paragraph",
+            semantic_type="scope",
+            transform_params={"strategy": "plain_embed", "prompt_template": ""},
+            confidence=0.9,
+            escalated=False,
+            cross_refs=[],
+            ref_context="",
+            failed_table_refs=[],
+        )],
+        has_unknown=False,
+    )
     exception = Exception("timeout")
 
     # mock asyncio.to_thread：第 2 个 chunk 抛异常，其余成功
@@ -414,7 +426,7 @@ async def test_classify_node_concurrent_execution_with_exceptions(tmp_path):
         idx = mock_to_thread.call_count - 1
         if idx == 1:
             raise exception
-        return mock_output
+        return mock_classified_chunk
     mock_to_thread.call_count = 0
 
     with patch("parser.nodes.classify_node.asyncio.to_thread", side_effect=mock_to_thread):
