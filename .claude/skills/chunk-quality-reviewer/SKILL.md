@@ -1,6 +1,6 @@
 ---
 name: chunk-quality-reviewer
-description: 评估知识库 chunk 的质量——是否最大化检索有效信息同时最小化噪音。用户提供 JSON 文件路径和字段路径，skill 通过对话式诊断分析 chunks 并输出问题清单、整体评估和改进建议。
+description: 评估知识库 chunk 的质量——是否最大化检索有效信息同时最小化噪音。用户提供 doc_id，skill 通过 API 获取该文档的 chunks，经对话式诊断分析后输出问题清单、整体评估和改进建议。
 ---
 
 你正在执行 chunk-quality-reviewer skill。请严格按以下步骤操作。
@@ -8,9 +8,7 @@ description: 评估知识库 chunk 的质量——是否最大化检索有效信
 ## 参数解析
 
 从 `ARGUMENTS` 中解析以下信息（用户在调用时以自然语言描述）：
-- **JSON 文件路径**：包含 chunks 的文件路径
-- **字段路径**：需要读取的字段（如 `node_output.final_chunks[*].content` 和 `.meta`）
-- **标识字段**（可选）：用于标识 chunk 的字段名（如 `chunk_id`）；未指定时使用数组下标 `#0`、`#1`...
+- **doc_id**（必填）：要评估的文档 ID，用于通过 API 获取该文档下的所有 chunks
 - **当前切分策略**（可选）：用户正在使用的策略名称（如 `heading_strategy`、`structured_strategy`）
 
 ## Phase 1：读取数据
