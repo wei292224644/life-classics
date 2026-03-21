@@ -5,6 +5,9 @@ import time
 from typing import Dict, List
 
 import structlog
+from opentelemetry import trace
+
+_tracer = trace.get_tracer(__name__)
 
 from parser.models import (
     ClassifiedChunk,
@@ -210,21 +213,25 @@ def classify_raw_chunk(
 
 
 def classify_node(state: WorkflowState) -> dict:
-    chunk_count = len(state["raw_chunks"])
+    chunks_in = len(state["raw_chunks"])
     _start = time.perf_counter()
-    _logger.info("classify_node_start", chunk_count=chunk_count)
+    _logger.info("classify_node_start", chunk_count=chunks_in)
 
-    store = RulesStore(state["rules_dir"])
-    classified: List[ClassifiedChunk] = [
-        classify_raw_chunk(chunk, store) for chunk in state["raw_chunks"]
-    ]
+    with _tracer.start_as_current_span("classify_node") as span:
+        span.set_attribute("parser.node", "classify_node")
+        span.set_attribute("parser.doc_id", state.get("doc_metadata", {}).get("doc_id", ""))
+        span.set_attribute("parser.chunk_count.in", chunks_in)
+        store = RulesStore(state["rules_dir"])
+        classified: List[ClassifiedChunk] = [
+            classify_raw_chunk(chunk, store) for chunk in state["raw_chunks"]
+        ]
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="classify_node").observe(duration)
-    parser_chunks_processed_total.labels(node="classify_node").inc(chunk_count)
+    parser_chunks_processed_total.labels(node="classify_node").inc(chunks_in)
     _logger.info(
         "classify_node_done",
-        chunk_count=chunk_count,
+        chunk_count=chunks_in,
         duration_ms=round(duration * 1000, 2),
         model=settings.CLASSIFY_MODEL,
     )

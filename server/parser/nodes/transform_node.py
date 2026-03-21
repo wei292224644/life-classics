@@ -5,6 +5,9 @@ import time
 from typing import List
 
 import structlog
+from opentelemetry import trace
+
+_tracer = trace.get_tracer(__name__)
 
 from parser.models import (
     DocumentChunk,
@@ -125,25 +128,29 @@ def apply_strategy(
 
 
 def transform_node(state: WorkflowState) -> dict:
-    chunk_count = len(state["classified_chunks"])
+    chunks_in = len(state["classified_chunks"])
     _start = time.perf_counter()
-    _logger.info("transform_node_start", chunk_count=chunk_count)
+    _logger.info("transform_node_start", chunk_count=chunks_in)
 
-    final_chunks: List[DocumentChunk] = []
-    for classified in state["classified_chunks"]:
-        chunks = apply_strategy(
-            classified["segments"],
-            classified["raw_chunk"],
-            state["doc_metadata"],
-        )
-        final_chunks.extend(chunks)
+    with _tracer.start_as_current_span("transform_node") as span:
+        span.set_attribute("parser.node", "transform_node")
+        span.set_attribute("parser.doc_id", state.get("doc_metadata", {}).get("doc_id", ""))
+        span.set_attribute("parser.chunk_count.in", chunks_in)
+        final_chunks: List[DocumentChunk] = []
+        for classified in state["classified_chunks"]:
+            chunks = apply_strategy(
+                classified["segments"],
+                classified["raw_chunk"],
+                state["doc_metadata"],
+            )
+            final_chunks.extend(chunks)
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="transform_node").observe(duration)
-    parser_chunks_processed_total.labels(node="transform_node").inc(chunk_count)
+    parser_chunks_processed_total.labels(node="transform_node").inc(chunks_in)
     _logger.info(
         "transform_node_done",
-        chunk_count=chunk_count,
+        chunk_count=chunks_in,
         output_chunk_count=len(final_chunks),
         duration_ms=round(duration * 1000, 2),
         model=_transform_model(),

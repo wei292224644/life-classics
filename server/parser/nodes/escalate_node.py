@@ -5,6 +5,9 @@ from typing import Any, Dict, List
 import json
 
 import structlog
+from opentelemetry import trace
+
+_tracer = trace.get_tracer(__name__)
 
 from parser.models import ClassifiedChunk, TypedSegment, WorkflowState
 from parser.rules import RulesStore
@@ -67,58 +70,62 @@ def _call_escalate_llm(
 
 
 def escalate_node(state: WorkflowState) -> dict:
-    chunk_count = len(state["classified_chunks"])
+    chunks_in = len(state["classified_chunks"])
     _start = time.perf_counter()
-    _logger.info("escalate_node_start", chunk_count=chunk_count)
+    _logger.info("escalate_node_start", chunk_count=chunks_in)
 
-    store = RulesStore(state["rules_dir"])
-    config = state.get("config", {})
-    classified_chunks: List[ClassifiedChunk] = [
-        dict(c) for c in state["classified_chunks"]
-    ]
+    with _tracer.start_as_current_span("escalate_node") as span:
+        span.set_attribute("parser.node", "escalate_node")
+        span.set_attribute("parser.doc_id", state.get("doc_metadata", {}).get("doc_id", ""))
+        span.set_attribute("parser.chunk_count.in", chunks_in)
+        store = RulesStore(state["rules_dir"])
+        config = state.get("config", {})
+        classified_chunks: List[ClassifiedChunk] = [
+            dict(c) for c in state["classified_chunks"]
+        ]
 
-    for i, cc in enumerate(classified_chunks):
-        if not cc["has_unknown"]:
-            continue
-
-        existing_types = store.get_content_type_rules().get("content_types", [])
-        new_segments = list(cc["segments"])
-
-        for j, seg in enumerate(new_segments):
-            if seg["content_type"] != "unknown":
+        for i, cc in enumerate(classified_chunks):
+            if not cc["has_unknown"]:
                 continue
 
-            llm_result = _call_escalate_llm(seg["content"], existing_types)
-            llm_calls_total.labels(node="escalate_node", model=settings.ESCALATE_MODEL).inc()
-            new_ct_id = llm_result.id
+            existing_types = store.get_content_type_rules().get("content_types", [])
+            new_segments = list(cc["segments"])
 
-            if llm_result.action == "create_new":
-                store.append_content_type(llm_result.model_dump())
+            for j, seg in enumerate(new_segments):
+                if seg["content_type"] != "unknown":
+                    continue
 
-            transform_params = llm_result.transform.model_dump()
-            new_segments[j] = TypedSegment(
-                content=seg["content"],
-                content_type=new_ct_id,
-                transform_params=transform_params,
-                confidence=1.0,
-                escalated=True,
-                cross_refs=[],
-                ref_context="",
-                failed_table_refs=[],
+                llm_result = _call_escalate_llm(seg["content"], existing_types)
+                llm_calls_total.labels(node="escalate_node", model=settings.ESCALATE_MODEL).inc()
+                new_ct_id = llm_result.id
+
+                if llm_result.action == "create_new":
+                    store.append_content_type(llm_result.model_dump())
+
+                transform_params = llm_result.transform.model_dump()
+                new_segments[j] = TypedSegment(
+                    content=seg["content"],
+                    content_type=new_ct_id,
+                    transform_params=transform_params,
+                    confidence=1.0,
+                    escalated=True,
+                    cross_refs=[],
+                    ref_context="",
+                    failed_table_refs=[],
+                )
+
+            classified_chunks[i] = ClassifiedChunk(
+                raw_chunk=cc["raw_chunk"],
+                segments=new_segments,
+                has_unknown=False,
             )
-
-        classified_chunks[i] = ClassifiedChunk(
-            raw_chunk=cc["raw_chunk"],
-            segments=new_segments,
-            has_unknown=False,
-        )
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="escalate_node").observe(duration)
-    parser_chunks_processed_total.labels(node="escalate_node").inc(chunk_count)
+    parser_chunks_processed_total.labels(node="escalate_node").inc(chunks_in)
     _logger.info(
         "escalate_node_done",
-        chunk_count=chunk_count,
+        chunk_count=chunks_in,
         duration_ms=round(duration * 1000, 2),
         model=settings.ESCALATE_MODEL,
     )
