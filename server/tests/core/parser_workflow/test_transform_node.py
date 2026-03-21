@@ -124,7 +124,8 @@ def test_apply_strategy_returns_document_chunks():
 # ── transform_node ───────────────────────────────────────────────────
 
 
-def test_transform_node_processes_all_chunks():
+@pytest.mark.asyncio
+async def test_transform_node_processes_all_chunks():
     """transform_node 处理所有 classified_chunks 并返回 final_chunks"""
     raw_chunk: RawChunk = {
         "content": "原始文本",
@@ -162,7 +163,7 @@ def test_transform_node_processes_all_chunks():
         "parser.nodes.transform_node._call_llm_transform",
         return_value="最终文本",
     ):
-        result = transform_node(state)
+        result = await transform_node(state)
 
     assert "final_chunks" in result
     assert len(result["final_chunks"]) == 1

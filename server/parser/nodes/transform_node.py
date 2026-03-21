@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import re
 import time
 from typing import List
@@ -127,23 +128,25 @@ def apply_strategy(
     return results
 
 
-def transform_node(state: WorkflowState) -> dict:
+async def transform_node(state: WorkflowState) -> dict:
     chunks_in = len(state["classified_chunks"])
     _start = time.perf_counter()
     _logger.info("transform_node_start", chunk_count=chunks_in)
 
-    with _tracer.start_as_current_span("transform_node") as span:
-        span.set_attribute("parser.node", "transform_node")
-        span.set_attribute("parser.doc_id", state.get("doc_metadata", {}).get("doc_id", ""))
-        span.set_attribute("parser.chunk_count.in", chunks_in)
-        final_chunks: List[DocumentChunk] = []
-        for classified in state["classified_chunks"]:
-            chunks = apply_strategy(
-                classified["segments"],
-                classified["raw_chunk"],
-                state["doc_metadata"],
-            )
-            final_chunks.extend(chunks)
+    tasks = [
+        asyncio.to_thread(apply_strategy, classified["segments"], classified["raw_chunk"], state["doc_metadata"])
+        for classified in state["classified_chunks"]
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    final_chunks = []
+    errors = []
+    for i, result in enumerate(results):
+        if isinstance(result, Exception):
+            _logger.error("transform_chunk_failed", chunk_index=i, error=str(result))
+            errors.append(f"transform_node[{i}]: {result}")
+        else:
+            final_chunks.extend(result)
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="transform_node").observe(duration)
@@ -154,5 +157,6 @@ def transform_node(state: WorkflowState) -> dict:
         output_chunk_count=len(final_chunks),
         duration_ms=round(duration * 1000, 2),
         model=_transform_model(),
+        error_count=len(errors),
     )
-    return {"final_chunks": final_chunks}
+    return {"final_chunks": final_chunks, "errors": state.get("errors", []) + errors}

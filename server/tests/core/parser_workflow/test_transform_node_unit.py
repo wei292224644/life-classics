@@ -1,3 +1,4 @@
+import pytest
 from unittest.mock import patch
 
 from parser.models import (
@@ -37,13 +38,14 @@ def _make_state(structure_type: str, semantic_type: str) -> WorkflowState:
     )
 
 
-def test_transform_node_output_chunk_has_dual_type_fields():
+@pytest.mark.asyncio
+async def test_transform_node_output_chunk_has_dual_type_fields():
     """transform_node 产出的 DocumentChunk 应包含 structure_type + semantic_type"""
     with patch(
         "parser.nodes.transform_node._call_llm_transform",
         return_value="规范化文本",
     ):
-        result = transform_node(_make_state("list", "procedure"))
+        result = await transform_node(_make_state("list", "procedure"))
 
     chunks = result["final_chunks"]
     assert chunks
@@ -95,7 +97,8 @@ def _make_state_for_transform(latex_text: str, section_path: list, standard_no: 
     )
 
 
-def test_transform_node_raw_content_matches_seg_content():
+@pytest.mark.asyncio
+async def test_transform_node_raw_content_matches_seg_content():
     """transform_node 的 raw_content 应与 seg['content'] 一一对应，而非整个 chunk。"""
     latex_text = "称取 $4\\mathrm{g}$ 试样于烧杯中"
     captured_args = []
@@ -107,7 +110,7 @@ def test_transform_node_raw_content_matches_seg_content():
 
     with patch("parser.nodes.transform_node._call_llm_transform", side_effect=capture_transform):
         state = _make_state_for_transform(latex_text, ["5.1"], "GB 5009.3")
-        result = transform_node(state)
+        result = await transform_node(state)
 
     # 两个 segment 各调用一次 transform，content 应各与对应 seg["content"] 相同
     assert len(captured_args) == 2
