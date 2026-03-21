@@ -27,7 +27,7 @@ delete: (doc_id: string) =>
 
 ### Props 变更
 
-新增 `onDelete` 回调：
+新增 `onDelete` 回调和 `deletingDocId`：
 
 ```ts
 interface Props {
@@ -35,18 +35,21 @@ interface Props {
   loading: boolean
   selectedDocId: string | null
   onSelect: (docId: string) => void
-  onDelete: (docId: string) => void   // 新增
+  onDelete: (docId: string) => Promise<void>   // 新增，返回 Promise 以便控制弹窗关闭
+  deletingDocId: string | null                 // 新增，正在删除中的 doc_id
 }
 ```
 
 ### UI 变更
 
 每条文档 item 改为相对定位容器，右侧添加 `Trash2` 图标按钮：
-- 默认隐藏，`group-hover` 时显示
-- 点击后弹出 `AlertDialog` 确认框，内容为：
+- 默认隐藏，`group-hover` 时显示；当 `deletingDocId === doc.doc_id` 时显示 loading 旋转图标（`Loader2`）并禁用点击，防止重复触发
+- 点击后弹出 `AlertDialog` 确认框（**受控模式**，每个 item 维护自己的 `open` state）：
   > 确认删除「{doc.title || doc.doc_id}」？此操作将删除该文档所有 chunks，无法撤销。
-- 确认后：确认按钮进入 `disabled` 状态防止重复点击，调用 `onDelete(doc_id)`，完成后弹窗关闭
-- 取消则不做任何操作
+- 确认后：确认按钮进入 `disabled` 状态（防止重复点击），调用 `onDelete(doc_id)`，`onDelete` 完成后手动 `setOpen(false)` 关闭弹窗
+- 取消则 `setOpen(false)`，不做任何操作
+
+`Props` 新增 `deletingDocId: string | null`，由 `ChunksPage` 传入，用于控制 loading 状态。
 
 确认弹窗使用 `@radix-ui/react-alert-dialog`（项目已有）。
 
@@ -56,7 +59,7 @@ interface Props {
 
 **文件：** `web/apps/console/src/pages/ChunksPage.tsx`
 
-首先将现有 `useEffect` 内的文档加载逻辑提取为独立函数 `refreshDocuments`，然后实现 `handleDeleteDoc`：
+首先将现有 `useEffect` 内的文档加载逻辑提取为独立函数 `refreshDocuments`（静默刷新，不触发 `docsLoading`，避免列表闪烁），然后实现 `handleDeleteDoc`：
 
 ```ts
 const refreshDocuments = useCallback(async () => {
@@ -64,7 +67,10 @@ const refreshDocuments = useCallback(async () => {
   setDocuments(documents)
 }, [])
 
+const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
+
 const handleDeleteDoc = async (docId: string) => {
+  setDeletingDocId(docId)
   try {
     const result = await api.documents.delete(docId)
     if (selectedDocId === docId) setSelectedDocId(null)
@@ -76,11 +82,13 @@ const handleDeleteDoc = async (docId: string) => {
     }
   } catch (e) {
     toast({ title: '删除失败', description: (e as Error).message, variant: 'destructive' })
+  } finally {
+    setDeletingDocId(null)
   }
 }
 ```
 
-将 `handleDeleteDoc` 作为 `onDelete` prop 传给 `<DocList>`。
+将 `handleDeleteDoc` 和 `deletingDocId` 分别作为 `onDelete`、`deletingDocId` prop 传给 `<DocList>`。
 
 ---
 
