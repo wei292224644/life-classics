@@ -122,3 +122,104 @@ async def test_transform_node_raw_content_matches_seg_content():
     assert len(chunks) == 2
     assert chunks[0]["raw_content"] == _SEG1_CONTENT
     assert chunks[1]["raw_content"] == _SEG2_CONTENT
+
+
+@pytest.mark.asyncio
+async def test_transform_node_concurrent_execution_with_exceptions():
+    """transform_node 并发执行时，return_exceptions=True 保证部分失败不影响整体"""
+    from parser.nodes.transform_node import transform_node
+    from parser.models import WorkflowState, DocumentChunk, ClassifiedChunk, RawChunk, TypedSegment
+
+    # 3 个 classified chunks：2 个成功，1 个超时
+    classified_chunks = [
+        ClassifiedChunk(
+            raw_chunk=RawChunk(content="c0", section_path=["A.1"], char_count=3),
+            segments=[
+                TypedSegment(
+                    content="x",
+                    structure_type="paragraph",
+                    semantic_type="scope",
+                    transform_params={"strategy": "plain_embed", "prompt_template": ""},
+                    confidence=0.9,
+                    escalated=False,
+                    cross_refs=[],
+                    ref_context="",
+                    failed_table_refs=[],
+                )
+            ],
+            has_unknown=False,
+        ),
+        ClassifiedChunk(
+            raw_chunk=RawChunk(content="c1", section_path=["A.2"], char_count=3),
+            segments=[
+                TypedSegment(
+                    content="y",
+                    structure_type="paragraph",
+                    semantic_type="scope",
+                    transform_params={"strategy": "plain_embed", "prompt_template": ""},
+                    confidence=0.9,
+                    escalated=False,
+                    cross_refs=[],
+                    ref_context="",
+                    failed_table_refs=[],
+                )
+            ],
+            has_unknown=False,
+        ),
+        ClassifiedChunk(
+            raw_chunk=RawChunk(content="c2", section_path=["A.3"], char_count=3),
+            segments=[
+                TypedSegment(
+                    content="z",
+                    structure_type="paragraph",
+                    semantic_type="scope",
+                    transform_params={"strategy": "plain_embed", "prompt_template": ""},
+                    confidence=0.9,
+                    escalated=False,
+                    cross_refs=[],
+                    ref_context="",
+                    failed_table_refs=[],
+                )
+            ],
+            has_unknown=False,
+        ),
+    ]
+
+    state = WorkflowState(
+        md_content="",
+        doc_metadata={"standard_no": "TEST001"},
+        config={},
+        rules_dir="",
+        raw_chunks=[],
+        classified_chunks=classified_chunks,
+        final_chunks=[],
+        errors=[],
+    )
+
+    mock_chunk: DocumentChunk = {
+        "chunk_id": "abc",
+        "content": "normalized",
+        "raw_content": "raw",
+        "structure_type": "paragraph",
+        "semantic_type": "scope",
+        "section_path": ["A.1"],
+        "doc_metadata": {"standard_no": "TEST001"},
+        "meta": {},
+    }
+
+    async def mock_to_thread(func, *args, **kwargs):
+        mock_to_thread.call_count += 1
+        idx = mock_to_thread.call_count - 1
+        if idx == 1:
+            raise Exception("timeout")
+        return [mock_chunk]
+
+    mock_to_thread.call_count = 0
+
+    with patch("parser.nodes.transform_node.asyncio.to_thread", side_effect=mock_to_thread):
+        result = await transform_node(state)
+
+    assert len(result["final_chunks"]) == 2  # 2 个成功
+    assert len(result["errors"]) == 1
+    assert "timeout" in result["errors"][0]
+    assert "transform_node[1]:" in result["errors"][0]
