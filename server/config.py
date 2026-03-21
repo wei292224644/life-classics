@@ -96,5 +96,10 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
 
+    # ── 可观测性（OTel + 日志）────────────────────────────────────────────────
+    OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4318"
+    OTEL_SERVICE_NAME: str = "life-classics-server"
+    LOG_LEVEL: str = "INFO"
+
 
 settings = Settings()
