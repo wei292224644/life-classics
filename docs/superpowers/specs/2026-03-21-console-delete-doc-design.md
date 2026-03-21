@@ -1,0 +1,82 @@
+# 控制台单独删除文档 设计文档
+
+## 背景
+
+控制台（`web/apps/console/`）的文档列表目前只支持"清空所有文档"，无法单独删除某一个文档。后端已有 `DELETE /api/documents/{doc_id}` 接口，只需在前端实现调用。
+
+---
+
+## 改动一：`api/client.ts` — 新增 `delete` 方法
+
+**文件：** `web/apps/console/src/api/client.ts`
+
+在 `api.documents` 对象中新增：
+
+```ts
+delete: (doc_id: string) =>
+  request<void>(`/documents/${doc_id}`, { method: 'DELETE' }),
+```
+
+`DELETE /api/documents/{doc_id}` 后端返回 `{"doc_id": ..., "errors": []}` 或 HTTP 错误，现有 `request<T>` 函数已处理错误抛出。
+
+---
+
+## 改动二：`DocList.tsx` — 删除按钮 + 确认弹窗
+
+**文件：** `web/apps/console/src/components/DocList.tsx`
+
+### Props 变更
+
+新增 `onDelete` 回调：
+
+```ts
+interface Props {
+  documents: DocumentInfo[]
+  loading: boolean
+  selectedDocId: string | null
+  onSelect: (docId: string) => void
+  onDelete: (docId: string) => void   // 新增
+}
+```
+
+### UI 变更
+
+每条文档 item 改为相对定位容器，右侧添加 `Trash2` 图标按钮：
+- 默认隐藏，`group-hover` 时显示
+- 点击后弹出 `AlertDialog` 确认框，内容为：
+  > 确认删除「{title}」？此操作将删除该文档所有 chunks，无法撤销。
+- 确认后调用 `onDelete(doc_id)`，弹窗关闭
+- 取消则不做任何操作
+
+确认弹窗使用 `@radix-ui/react-alert-dialog`（项目已有）。
+
+---
+
+## 改动三：`ChunksPage.tsx` — 实现删除逻辑
+
+**文件：** `web/apps/console/src/pages/ChunksPage.tsx`
+
+实现 `handleDeleteDoc`：
+
+```ts
+const handleDeleteDoc = async (docId: string) => {
+  try {
+    await api.documents.delete(docId)
+    if (selectedDocId === docId) setSelectedDocId(null)
+    await refreshDocuments()
+    toast({ title: '已删除' })
+  } catch (e) {
+    toast({ title: '删除失败', description: e.message, variant: 'destructive' })
+  }
+}
+```
+
+将 `handleDeleteDoc` 作为 `onDelete` prop 传给 `<DocList>`。
+
+---
+
+## 不在范围内
+
+- 批量选择删除
+- 删除前展示 chunk 数量预览（AlertDialog 里只显示文档标题）
+- 后端接口变更（已有 `DELETE /api/documents/{doc_id}`）
