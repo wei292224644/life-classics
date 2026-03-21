@@ -28,7 +28,7 @@ def test_infer_doc_type_with_llm_calls_invoke_structured():
     )
 
     with patch(
-        "app.core.parser_workflow.nodes.structure_node.invoke_structured",
+        "parser.nodes.structure_node.invoke_structured",
         return_value=mock_output,
     ) as mock_invoke:
         result = _infer_doc_type_with_llm(
@@ -56,7 +56,7 @@ def test_infer_doc_type_with_llm_raises_on_structured_error():
         raw_error="validation error",
     )
     with patch(
-        "app.core.parser_workflow.nodes.structure_node.invoke_structured",
+        "parser.nodes.structure_node.invoke_structured",
         side_effect=err,
     ):
         with pytest.raises(StructuredOutputError) as exc_info:
@@ -98,10 +98,10 @@ def test_structure_node_uses_rule_match():
     }
 
     with patch(
-        "app.core.parser_workflow.nodes.structure_node.RulesStore",
+        "parser.nodes.structure_node.RulesStore",
         return_value=mock_store,
     ), patch(
-        "app.core.parser_workflow.nodes.structure_node._infer_doc_type_with_llm"
+        "parser.nodes.structure_node._infer_doc_type_with_llm"
     ) as mock_llm:
         result = structure_node(state)
 
@@ -137,10 +137,10 @@ def test_structure_node_falls_back_to_llm():
     }
 
     with patch(
-        "app.core.parser_workflow.nodes.structure_node.RulesStore",
+        "parser.nodes.structure_node.RulesStore",
         return_value=mock_store,
     ), patch(
-        "app.core.parser_workflow.nodes.structure_node._infer_doc_type_with_llm",
+        "parser.nodes.structure_node._infer_doc_type_with_llm",
         return_value=new_rule,
     ) as mock_llm:
         result = structure_node(state)

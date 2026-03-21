@@ -40,7 +40,7 @@ def _make_state(structure_type: str, semantic_type: str) -> WorkflowState:
 def test_transform_node_output_chunk_has_dual_type_fields():
     """transform_node 产出的 DocumentChunk 应包含 structure_type + semantic_type"""
     with patch(
-        "app.core.parser_workflow.nodes.transform_node._call_llm_transform",
+        "parser.nodes.transform_node._call_llm_transform",
         return_value="规范化文本",
     ):
         result = transform_node(_make_state("list", "procedure"))

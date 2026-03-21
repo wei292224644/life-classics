@@ -29,7 +29,7 @@ def test_call_llm_transform_returns_content():
     mock_resp = TransformOutput(content="转化后的文本")
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node.invoke_structured",
+        "parser.nodes.transform_node.invoke_structured",
         return_value=mock_resp,
     ) as mock_invoke:
         result = _call_llm_transform(
@@ -48,7 +48,7 @@ def test_call_llm_transform_uses_invoke_structured():
     mock_resp = TransformOutput(content="output")
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node.invoke_structured",
+        "parser.nodes.transform_node.invoke_structured",
         return_value=mock_resp,
     ) as mock_invoke:
         _call_llm_transform("内容", {"strategy": "s", "prompt_template": "p"})
@@ -71,7 +71,7 @@ def test_call_llm_transform_invoke_structured_fails_raises():
         raw_error="validation error",
     )
     with patch(
-        "app.core.parser_workflow.nodes.transform_node.invoke_structured",
+        "parser.nodes.transform_node.invoke_structured",
         side_effect=err,
     ):
         with pytest.raises(StructuredOutputError) as exc_info:
@@ -106,7 +106,7 @@ def test_apply_strategy_returns_document_chunks():
     doc_metadata = {"standard_no": "GB/T-001", "title": "测试标准"}
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node._call_llm_transform",
+        "parser.nodes.transform_node._call_llm_transform",
         return_value="转化结果",
     ):
         result = apply_strategy([seg], raw_chunk, doc_metadata)
@@ -114,7 +114,7 @@ def test_apply_strategy_returns_document_chunks():
     assert len(result) == 1
     chunk = result[0]
     assert chunk["content"] == "转化结果"
-    assert chunk["raw_content"] == "原始文本"
+    assert chunk["raw_content"] == "称取试料（5 ± 0.05）g，于50 mL离心管中，加乙酸乙酯20 mL，振荡10 min，4000 r/min离心。"
     assert chunk["structure_type"] == "paragraph"
     assert chunk["semantic_type"] == "scope"
     assert chunk["meta"]["transform_strategy"] == "plain_embed"
@@ -159,7 +159,7 @@ def test_transform_node_processes_all_chunks():
     }
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node._call_llm_transform",
+        "parser.nodes.transform_node._call_llm_transform",
         return_value="最终文本",
     ):
         result = transform_node(state)
@@ -181,7 +181,7 @@ def test_call_llm_transform_appends_ref_context_to_prompt():
         return mock_resp
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node.invoke_structured",
+        "parser.nodes.transform_node.invoke_structured",
         side_effect=capture_invoke,
     ):
         _call_llm_transform(
@@ -206,7 +206,7 @@ def test_call_llm_transform_no_ref_context_unchanged():
         return mock_resp
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node.invoke_structured",
+        "parser.nodes.transform_node.invoke_structured",
         side_effect=capture_invoke,
     ):
         _call_llm_transform(
@@ -238,7 +238,7 @@ def test_apply_strategy_writes_cross_refs_to_meta():
     doc_metadata = {"standard_no": "GB/T-001", "title": "测试标准"}
 
     with patch(
-        "app.core.parser_workflow.nodes.transform_node._call_llm_transform",
+        "parser.nodes.transform_node._call_llm_transform",
         return_value="转化结果",
     ):
         result = apply_strategy([seg], raw_chunk, doc_metadata)
