@@ -1,12 +1,23 @@
 from __future__ import annotations
 
+import time
 from typing import List
 
+import structlog
+from opentelemetry import trace
+
+from observability.metrics import (
+    parser_chunks_processed_total,
+    parser_node_duration_seconds,
+)
 from parser.models import (
     DocumentChunk,
     WorkflowState,
     make_chunk_id,
 )
+
+_tracer = trace.get_tracer(__name__)
+_logger = structlog.get_logger(__name__)
 
 
 def _chunks_from_same_raw(a: DocumentChunk, b: DocumentChunk) -> bool:
@@ -57,22 +68,48 @@ def _merge_two(a: DocumentChunk, b: DocumentChunk) -> DocumentChunk:
 
 def merge_node(state: WorkflowState) -> dict:
     """遍历 state["final_chunks"]，贪心合并相邻且满足条件的 chunk"""
-    chunks = state["final_chunks"]
-    if not chunks:
-        return {"final_chunks": []}
+    _start = time.perf_counter()
+    doc_id = state.get("doc_metadata", {}).get("doc_id", "")
+    chunks_in = len(state["final_chunks"])
+    _logger.info("merge_node_start", node="merge_node", doc_id=doc_id, chunks_in=chunks_in)
 
-    merged: List[DocumentChunk] = []
-    i = 0
-    while i < len(chunks):
-        # 从当前 chunk 开始，一直向后合并直到不能合并为止
-        merged_chunk = chunks[i]
-        j = i + 1
-        while j < len(chunks) and _chunks_from_same_raw(merged_chunk, chunks[j]) and _same_classification(
-            merged_chunk, chunks[j]
-        ):
-            merged_chunk = _merge_two(merged_chunk, chunks[j])
-            j += 1
-        merged.append(merged_chunk)
-        i = j
+    with _tracer.start_as_current_span("merge_node") as span:
+        span.set_attribute("parser.node", "merge_node")
+        span.set_attribute("parser.doc_id", doc_id)
+        span.set_attribute("parser.chunk_count.in", chunks_in)
 
+        chunks = state["final_chunks"]
+        if not chunks:
+            chunks_out = 0
+            span.set_attribute("parser.chunk_count.out", chunks_out)
+            return {"final_chunks": []}
+
+        merged: List[DocumentChunk] = []
+        i = 0
+        while i < len(chunks):
+            # 从当前 chunk 开始，一直向后合并直到不能合并为止
+            merged_chunk = chunks[i]
+            j = i + 1
+            while j < len(chunks) and _chunks_from_same_raw(merged_chunk, chunks[j]) and _same_classification(
+                merged_chunk, chunks[j]
+            ):
+                merged_chunk = _merge_two(merged_chunk, chunks[j])
+                j += 1
+            merged.append(merged_chunk)
+            i = j
+
+        chunks_out = len(merged)
+        span.set_attribute("parser.chunk_count.out", chunks_out)
+
+    duration = time.perf_counter() - _start
+    parser_node_duration_seconds.labels(node="merge_node").observe(duration)
+    parser_chunks_processed_total.labels(node="merge_node").inc(chunks_in)
+    _logger.info(
+        "merge_node_done",
+        node="merge_node",
+        doc_id=doc_id,
+        duration_ms=round(duration * 1000, 2),
+        chunks_in=chunks_in,
+        chunks_out=chunks_out,
+    )
     return {"final_chunks": merged}
