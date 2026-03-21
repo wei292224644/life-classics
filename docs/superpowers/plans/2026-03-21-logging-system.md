@@ -19,10 +19,11 @@
 ```
 observability/
 ├── docker-compose.yml                          # 7 个容器定义
-├── otel-collector/config.yaml                  # OTel Collector 路由规则
+├── otel-collector/config.yaml                  # OTel Collector 路由规则（含 health_check）
 ├── prometheus/prometheus.yml                   # scrape 目标配置
 ├── loki/config.yaml                            # Loki 存储配置
 ├── tempo/config.yaml                           # Tempo 接收与存储配置
+├── promtail/config.yaml                        # Promtail 应急备份采集配置
 └── grafana/
     ├── provisioning/datasources/datasources.yaml
     ├── provisioning/dashboards/dashboards.yaml
@@ -171,6 +172,10 @@ scrape_configs:
 - [ ] **Step 5: 创建 `observability/otel-collector/config.yaml`**
 
 ```yaml
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
 receivers:
   otlp:
     protocols:
@@ -197,6 +202,7 @@ exporters:
     verbosity: basic
 
 service:
+  extensions: [health_check]
   pipelines:
     traces:
       receivers: [otlp]
@@ -301,8 +307,9 @@ services:
     image: grafana/tempo:2.6.1
     container_name: tempo
     ports:
-      - "3200:3200"
-      - "4317:4317"
+      - "3200:3200"    # HTTP API 供 Grafana 查询
+      # 注意：4317（gRPC）只在容器内部网络暴露给 OTel Collector，不绑定宿主机
+      # 宿主机的 4317 已被 otel-collector 占用
     volumes:
       - ./tempo/config.yaml:/etc/tempo.yaml
       - tempo-data:/var/tempo
@@ -369,12 +376,44 @@ services:
     container_name: promtail
     profiles: ["backup"]
     volumes:
+      - ./promtail/config.yaml:/etc/promtail/config.yaml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yaml
     networks:
       - observability
 ```
 
-- [ ] **Step 9: 启动并验证**
+- [ ] **Step 9: 补充 `observability/promtail/config.yaml`**
+
+```yaml
+server:
+  http_listen_port: 9080
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker-containers
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: docker
+          source: promtail
+          __path__: /var/lib/docker/containers/*/*-json.log
+    pipeline_stages:
+      - json:
+          expressions:
+            log: log
+            stream: stream
+      - output:
+          source: log
+```
+
+- [ ] **Step 10: 启动并验证**
 
 ```bash
 cd observability
@@ -393,11 +432,13 @@ curl -s http://localhost:3100/ready
 # Prometheus 就绪
 curl -s http://localhost:9090/-/ready
 
-# OTel Collector 就绪
-curl -s http://localhost:4318/  # 应返回 404（接口存在但无路径）
+# OTel Collector 健康检查（通过 health_check extension）
+curl -s http://localhost:13133/
 ```
 
-- [ ] **Step 10: Commit**
+Expected：最后一个命令返回 `{"status":"Server available","upSince":...}`
+
+- [ ] **Step 11: Commit**
 
 ```bash
 git add observability/
@@ -458,6 +499,7 @@ uv add structlog \
   opentelemetry-exporter-otlp-proto-http \
   opentelemetry-instrumentation-fastapi \
   opentelemetry-instrumentation-logging \
+  opentelemetry-sdk \
   prometheus-fastapi-instrumentator \
   prometheus-client
 ```
@@ -469,9 +511,16 @@ uv add structlog \
 ```python
 """测试 structlog 配置和 OTel 初始化。"""
 import json
-import io
 import structlog
+import pytest
 from observability.configure import configure_logging
+
+
+@pytest.fixture(autouse=True)
+def reset_structlog():
+    """每个测试前后重置 structlog 全局状态，避免 cache_logger_on_first_use 跨测试污染。"""
+    yield
+    structlog.reset_defaults()
 
 
 def test_structlog_outputs_json(capsys):
@@ -481,21 +530,26 @@ def test_structlog_outputs_json(capsys):
     logger.info("hello world", user="alice")
 
     captured = capsys.readouterr()
-    # 取最后一行非空输出
     lines = [l for l in captured.out.strip().split("\n") if l]
     assert lines, "没有任何输出"
     record = json.loads(lines[-1])
     assert record["event"] == "hello world"
     assert record["user"] == "alice"
     assert "timestamp" in record
+    assert record.get("service") == "test-service"  # service 字段由 configure_logging 注入
 
 
-def test_structlog_includes_level():
-    """日志记录应包含 level 字段。"""
+def test_structlog_includes_level(capsys):
+    """WARNING 日志应包含 level 字段且值为 warning。"""
     configure_logging(log_level="WARNING", service_name="test-service")
     logger = structlog.get_logger()
-    # 仅验证不抛异常
     logger.warning("test warning")
+
+    captured = capsys.readouterr()
+    lines = [l for l in captured.out.strip().split("\n") if l]
+    assert lines, "没有任何输出"
+    record = json.loads(lines[-1])
+    assert record.get("level") == "warning"
 ```
 
 - [ ] **Step 3: 运行确认失败**
@@ -519,29 +573,37 @@ __all__ = ["configure_logging", "setup_otel"]
 - [ ] **Step 5: 创建 `server/observability/configure.py`**
 
 ```python
-"""structlog 全局初始化 + OpenTelemetry SDK 配置。"""
+"""structlog 全局初始化 + OpenTelemetry SDK 配置（traces + logs）。"""
 from __future__ import annotations
 
 import logging
 import sys
 
 import structlog
-from opentelemetry import trace
+from opentelemetry import trace, _logs as otel_logs
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk._logs import LoggerProvider
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 
 
 def configure_logging(log_level: str = "INFO", service_name: str = "life-classics-server") -> None:
     """
     配置 structlog 输出 JSON 格式日志到 stdout。
+    同时将 service_name 注入为全局上下文变量，每条日志自动携带。
 
     structlog 与标准库 logging 桥接，使第三方库（uvicorn、httpx 等）的日志
     也以 JSON 格式输出。
     """
     level = getattr(logging, log_level.upper(), logging.INFO)
+
+    # 将 service 注入为全局上下文，所有日志自动携带
+    structlog.contextvars.clear_contextvars()
+    structlog.contextvars.bind_contextvars(service=service_name)
 
     # 标准库 logging 基础配置（给第三方库用）
     logging.basicConfig(
@@ -563,7 +625,7 @@ def configure_logging(log_level: str = "INFO", service_name: str = "life-classic
         wrapper_class=structlog.make_filtering_bound_logger(level),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(sys.stdout),
-        cache_logger_on_first_use=True,
+        cache_logger_on_first_use=False,  # 测试环境需要每次重新配置
     )
 
 
@@ -572,22 +634,29 @@ def setup_otel(
     service_name: str,
 ) -> TracerProvider:
     """
-    初始化 OpenTelemetry TracerProvider，将 traces 导出到 OTel Collector。
+    初始化 OpenTelemetry TracerProvider + LoggerProvider。
 
-    返回 TracerProvider，供 FastAPI instrumentation 使用。
+    - TracerProvider：将 traces 通过 OTLP/HTTP 导出到 OTel Collector → Tempo
+    - LoggerProvider：将结构化日志通过 OTLP/HTTP 导出到 OTel Collector → Loki
     """
     resource = Resource.create({"service.name": service_name})
-    provider = TracerProvider(resource=resource)
 
-    exporter = OTLPSpanExporter(endpoint=f"{otlp_endpoint}/v1/traces")
-    provider.add_span_processor(BatchSpanProcessor(exporter))
+    # ── Traces ────────────────────────────────────────────────────────────────
+    tracer_provider = TracerProvider(resource=resource)
+    span_exporter = OTLPSpanExporter(endpoint=f"{otlp_endpoint}/v1/traces")
+    tracer_provider.add_span_processor(BatchSpanProcessor(span_exporter))
+    trace.set_tracer_provider(tracer_provider)
 
-    trace.set_tracer_provider(provider)
+    # ── Logs → Loki ───────────────────────────────────────────────────────────
+    logger_provider = LoggerProvider(resource=resource)
+    log_exporter = OTLPLogExporter(endpoint=f"{otlp_endpoint}/v1/logs")
+    logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
+    otel_logs.set_logger_provider(logger_provider)
 
     # 将 trace_id 注入标准库 logging（structlog 桥接后自动携带）
     LoggingInstrumentor().instrument(set_logging_format=False)
 
-    return provider
+    return tracer_provider
 ```
 
 - [ ] **Step 6: 运行测试，确认通过**
