@@ -308,3 +308,59 @@ def test_restore_placeholders_multiple():
     text = "加 [__MATH_0__] 水，加热至 [__MATH_1__]"
     result = _restore_placeholders(text, mapping)
     assert result == "加 $200~\\mathrm{mL}$ 水，加热至 $80^{\\circ}C$"
+
+
+# ── 占位符集成测试 ──────────────────────────────────────────────
+
+def test_classify_llm_sends_placeholder_not_latex(tmp_path):
+    """_call_classify_llm 发给 LLM 的 prompt 应含占位符而非原始 LaTeX。"""
+    from parser.nodes.classify_node import _call_classify_llm
+    from parser.rules import RulesStore
+
+    captured_prompts = []
+    mock_output = ClassifyOutput(segments=[
+        SegmentItem(content="[__MATH_0__]", structure_type="formula", semantic_type="calculation", confidence=0.95),
+    ])
+
+    def capture_invoke(node_name, prompt, response_model, **kwargs):
+        captured_prompts.append(prompt)
+        return mock_output
+
+    store = RulesStore(str(tmp_path))
+    ct_rules = store.get_content_type_rules()
+    structure_types = ct_rules.get("structure_types", [])
+    semantic_types = ct_rules.get("semantic_types", [])
+
+    with patch("parser.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
+        _call_classify_llm(
+            "称取 $4\\mathrm{g}$ 试样",
+            structure_types,
+            semantic_types,
+        )
+
+    assert captured_prompts
+    prompt = captured_prompts[0]
+    assert "[__MATH_0__]" in prompt, "prompt 中应含占位符"
+    assert "$4\\mathrm{g}$" not in prompt, "prompt 中不应含原始 LaTeX"
+
+
+def test_classify_node_restores_latex_in_seg_content(tmp_path):
+    """classify_node 输出的 segment.content 应含还原后的原始 LaTeX。"""
+    latex_text = "称取 $4\\mathrm{g}$ 试样，加热至 $80^{\\circ}C$。"
+    mock_output = ClassifyOutput(segments=[
+        SegmentItem(
+            content="称取 [__MATH_0__] 试样，加热至 [__MATH_1__]。",
+            structure_type="procedure",
+            semantic_type="procedure",
+            confidence=0.9,
+        ),
+    ])
+
+    with patch("parser.nodes.classify_node.invoke_structured", return_value=mock_output):
+        state = _make_state(latex_text, tmp_path)
+        result = classify_node(state)
+
+    seg = result["classified_chunks"][0]["segments"][0]
+    assert "$4\\mathrm{g}$" in seg["content"], "原始 LaTeX 应已还原到 segment.content"
+    assert "$80^{\\circ}C$" in seg["content"], "原始 LaTeX 应已还原到 segment.content"
+    assert "[__MATH_0__]" not in seg["content"], "占位符不应出现在最终 segment.content 中"

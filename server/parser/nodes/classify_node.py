@@ -44,6 +44,7 @@ def _call_classify_llm(
     """
     调用小模型对 chunk 做分段 + 双维度分类（单次调用，prompt 内两步推断）。
     """
+    clean_text, math_mapping = _replace_latex_with_placeholders(chunk_content)
     structure_desc = "\n".join(
         f"- {t['id']}: {t['description']}" for t in structure_types
     )
@@ -68,17 +69,8 @@ def _call_classify_llm(
 5. 双维度先推断结构再推断用途：structure_type 决定内容呈现形式，semantic_type 决定读者用途，两者非独立——formula 必然是 calculation，header 仅用于 metadata，procedure 可包含 limit 注释（如"注：..."）。
 6. confidence 反映综合把握程度（0-1），低于阈值（0.7）的 segment 会进入人工审核。
 
-【输出 content 字段的 LaTeX 处理规则】
-在每个 segment 的 content 字段中，将内联 LaTeX（$...$）转化为可读文本，不得在输出中保留任何 LaTeX 语法：
-- 数值与单位：$4\\mathrm{{g}}$ → 4 g，$200~\\mathrm{{mL}}$ → 200 mL，$80^{{\\circ}}C$ → 80°C，$15\\mathrm{{min}}$ → 15 min，$1000\\mathrm{{r/min}}$ → 1000 r/min
-- 分数/比例：$85 + 15$ → 85+15（保留运算符）
-- 希腊字母：$\\lambda$ → λ，$\\alpha$ → α
-- 百分比：$0.2\\%$ → 0.2%
-- 范围：$1000\\mathrm{{cm}}^{{-1}}\\sim 1100\\mathrm{{cm}}^{{-1}}$ → 1000 cm⁻¹～1100 cm⁻¹
-- 块公式（$$...$$）保留原始 LaTeX 不转换（由后续步骤处理）
-
 文本内容：
-{_escape_for_json_prompt(chunk_content)}
+{_escape_for_json_prompt(clean_text)}
 """
     result = invoke_structured(
         node_name="classify_node",
@@ -87,7 +79,16 @@ def _call_classify_llm(
         extra_body={"enable_thinking": False, "reasoning_split": True},
         max_tokens=15000,
     )
-    return result.segments
+    segments = result.segments
+    return [
+        SegmentItem(
+            content=_restore_placeholders(item.content, math_mapping),
+            structure_type=item.structure_type,
+            semantic_type=item.semantic_type,
+            confidence=item.confidence,
+        )
+        for item in segments
+    ]
 
 
 def _escape_for_json_prompt(text: str) -> str:
