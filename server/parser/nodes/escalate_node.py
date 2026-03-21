@@ -120,7 +120,7 @@ def escalate_node(state: WorkflowState) -> dict:
                 has_unknown=False,
             )
 
-    duration = time.perf_counter() - _start
+        duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="escalate_node").observe(duration)
     parser_chunks_processed_total.labels(node="escalate_node").inc(chunks_in)
     _logger.info(
