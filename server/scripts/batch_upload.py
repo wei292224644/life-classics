@@ -31,9 +31,10 @@ def get_uploaded_titles() -> set[str]:
         resp = requests.get(f"{API_BASE}/api/documents", timeout=10)
         resp.raise_for_status()
         docs = resp.json().get("documents", [])
+        # 过滤 title 为空的文档（历史数据），这类文档若重复上传视为新文档处理
         return {d["title"] for d in docs if d.get("title")}
-    except requests.ConnectionError:
-        print(f"[错误] 无法连接到服务器 {API_BASE}，请确认服务已启动。")
+    except requests.RequestException as e:
+        print(f"[错误] 无法获取已上传文档列表：{e}")
         raise SystemExit(1)
 
 
