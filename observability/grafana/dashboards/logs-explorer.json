@@ -38,7 +38,7 @@
         "name": "level",
         "type": "custom",
         "query": "debug,info,warning,error",
-        "current": {"value": "error"},
+        "current": {"value": "$__all"},
         "multi": true,
         "includeAll": true
       }

@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from collections.abc import AsyncGenerator
 from typing import Any
+import uuid
 
 from langgraph.graph import END, StateGraph  # type: ignore[import]
 from opentelemetry import trace
@@ -98,14 +99,21 @@ async def run_parser_workflow(
 
 # 节点名集合，对应前端 PIPELINE_STAGES 的 id（去掉 _node 后缀）
 _PIPELINE_NODE_NAMES = {
-    "parse_node", "clean_node", "structure_node", "slice_node",
-    "classify_node", "escalate_node", "enrich_node", "transform_node", "merge_node",
+    "parse_node",
+    "clean_node",
+    "structure_node",
+    "slice_node",
+    "classify_node",
+    "escalate_node",
+    "enrich_node",
+    "transform_node",
+    "merge_node",
 }
 
 
 async def run_parser_workflow_stream(
     md_content: str,
-    doc_metadata: dict,
+    doc_name: str,
     rules_dir: str,
     config: dict | None = None,
 ) -> AsyncGenerator[dict, None]:
@@ -119,11 +127,15 @@ async def run_parser_workflow_stream(
         {"type": "workflow_done", "chunks": list[DocumentChunk]}
     """
     start_time = time.perf_counter()
-    doc_id = doc_metadata.get("doc_id", "")
-    doc_type = "unknown"
+    doc_id = str(uuid.uuid4())
+    doc_type = "standard"
     initial_state = WorkflowState(
         md_content=md_content,
-        doc_metadata=doc_metadata,
+        doc_metadata={
+            "doc_id": doc_id,
+            "title": doc_name,
+            "doc_type": doc_type,
+        },
         config=config or {},
         rules_dir=rules_dir,
         raw_chunks=[],
@@ -151,10 +163,15 @@ async def run_parser_workflow_stream(
                     # 在 "workflow_done" 事件中捕获最终 doc_type
                     if node_name == "merge_node":
                         output = event.get("data", {}).get("output") or {}
-                        doc_type = output.get("doc_metadata", {}).get("doc_type", "unknown")
+                        result_doc_metadata = output.get("doc_metadata", {})
+                        doc_type = result_doc_metadata.get("doc_type", "unknown")
                         root_span.set_attribute("parser.doc_type", doc_type)
                         final_chunks = output.get("final_chunks", [])
-                        yield {"type": "workflow_done", "chunks": final_chunks}
+                        yield {
+                            "type": "workflow_done",
+                            "chunks": final_chunks,
+                            "doc_metadata": result_doc_metadata,
+                        }
                     yield {"type": "stage", "stage": stage, "status": "done"}
     finally:
         parser_workflow_duration_seconds.labels(doc_type=doc_type or "unknown").observe(

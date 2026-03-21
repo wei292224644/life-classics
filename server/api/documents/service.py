@@ -55,22 +55,18 @@ class DocumentsService:
             yield f"data: {json.dumps({'type': 'error', 'message': '文件编码错误，请确保文件为 UTF-8 编码'})}\n\n"
             return
 
-        doc_id = os.path.splitext(filename)[0]
-        doc_metadata = {
-            "doc_id": doc_id,
-            "standard_no": doc_id,
-            "doc_type": "standard",
-        }
+        doc_title = os.path.splitext(filename)[0]
         rules_dir = str(Path(__file__).parent.parent.parent / "parser" / "rules")
 
         try:
             async for event in run_parser_workflow_stream(
                 md_content=md_content,
-                doc_metadata=doc_metadata,
+                doc_name=doc_title,
                 rules_dir=rules_dir,
             ):
                 if event["type"] == "workflow_done":
                     chunks = event["chunks"]
+                    doc_metadata = event["doc_metadata"]
                     if chunks:
                         await chroma_writer.write(chunks, doc_metadata)
                         fts_writer.write(chunks, doc_metadata)

@@ -43,6 +43,7 @@ async def write(chunks: List[DocumentChunk], doc_metadata: dict) -> None:
                 "semantic_type": c["semantic_type"],
                 "section_path": "|".join(c["section_path"]),
                 "doc_type": doc_metadata.get("doc_type", ""),
+                "title": doc_metadata.get("title", ""),
                 "raw_content": (
                     lambda raw: (
                         raw[:_MAX_RAW_LEN - len(_TRUNCATE_SUFFIX)] + _TRUNCATE_SUFFIX

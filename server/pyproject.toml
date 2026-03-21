@@ -58,6 +58,7 @@ dependencies = [
     "opentelemetry-instrumentation-logging>=0.61b0",
     "prometheus-fastapi-instrumentator>=7.1.0",
     "prometheus-client>=0.24.1",
+    "slowapi>=0.1.9",
 ]
 
 [tool.uv.sources]

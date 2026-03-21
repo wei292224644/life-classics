@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import time
 import uuid
 
@@ -40,9 +41,17 @@ def parse_node(state: WorkflowState) -> dict:
         if not meta.get("doc_id"):
             meta["doc_id"] = str(uuid.uuid4())
 
-        # standard_no 缺失时记录警告（非错误，允许无编号文档）
+        # standard_no 缺失时，尝试从 Markdown 内容中提取
         if not meta.get("standard_no"):
-            errors.append("WARNING: doc_metadata missing 'standard_no'")
+            pattern = r"GB[\s_]?\d+(?:[.\d]*)?(?:\.\d+)?-\d{4}"
+            match = re.search(pattern, state["md_content"])
+            if match:
+                meta["standard_no"] = match.group(0)
+            elif meta.get("doc_id"):
+                # fallback：使用 doc_id（通常为文件名去扩展名）
+                meta["standard_no"] = meta["doc_id"]
+            else:
+                errors.append("WARNING: doc_metadata missing 'standard_no'")
 
         span.set_attribute("parser.chunk_count.out", 1)
 

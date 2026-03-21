@@ -6,8 +6,12 @@ import sys
 
 import structlog
 from opentelemetry import trace
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -15,8 +19,9 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 def configure_logging(log_level: str = "INFO", service_name: str = "life-classics-server") -> None:
     """
-    配置 structlog 输出 JSON 格式日志到 stdout。
-    同时将 service_name 注入为全局上下文变量，每条日志自动携带。
+    配置 structlog 通过 stdlib logging 输出日志。
+    stdlib logging 同时承接 stdout StreamHandler 和 OTel LoggingHandler（由 setup_otel 注入），
+    从而让 structlog 日志同时写到终端和 Loki。
     """
     level = getattr(logging, log_level.upper(), logging.INFO)
 
@@ -24,7 +29,7 @@ def configure_logging(log_level: str = "INFO", service_name: str = "life-classic
     structlog.contextvars.clear_contextvars()
     structlog.contextvars.bind_contextvars(service=service_name)
 
-    # 标准库 logging 基础配置（给第三方库用）
+    # 标准库 logging 基础配置（stdout handler，OTel handler 由 setup_otel 追加）
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
     if not root_logger.handlers:
@@ -43,7 +48,8 @@ def configure_logging(log_level: str = "INFO", service_name: str = "life-classic
         ],
         wrapper_class=structlog.make_filtering_bound_logger(level),
         context_class=dict,
-        logger_factory=structlog.PrintLoggerFactory(sys.stdout),
+        # 使用 stdlib LoggerFactory，日志经 stdlib logging 流向所有 handler（含 OTel）
+        logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=False,
     )
 
@@ -69,7 +75,17 @@ def setup_otel(
     tracer_provider.add_span_processor(BatchSpanProcessor(span_exporter))
     trace.set_tracer_provider(tracer_provider)
 
-    # 将 trace_id 注入标准库 logging（structlog 桥接后自动携带）
+    # ── Logs ──────────────────────────────────────────────────────────────────
+    log_exporter = OTLPLogExporter(endpoint=f"{otlp_endpoint}/v1/logs")
+    logger_provider = LoggerProvider(resource=resource)
+    logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
+    set_logger_provider(logger_provider)
+
+    # 将 OTel LoggingHandler 挂到 root logger，structlog（经 stdlib）的日志由此进入 OTLP 链路
+    otel_handler = LoggingHandler(level=logging.DEBUG, logger_provider=logger_provider)
+    logging.getLogger().addHandler(otel_handler)
+
+    # 将 trace_id / span_id 注入 stdlib logging record（structlog 经 stdlib 后自动携带）
     LoggingInstrumentor().instrument(set_logging_format=False)
 
     return tracer_provider
