@@ -249,7 +249,7 @@ def test_classify_llm_sends_placeholder_not_latex(tmp_path):
         captured_prompts.append(prompt)
         return mock_output
 
-    with patch("parser.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
+    with patch("app.core.parser_workflow.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
         state = _make_state(content, tmp_path)
         classify_node(state)
 
@@ -266,7 +266,7 @@ def test_classify_node_restores_latex_in_seg_content(tmp_path):
                     structure_type="list", semantic_type="material", confidence=0.9),
     ])
 
-    with patch("parser.nodes.classify_node.invoke_structured", return_value=mock_output):
+    with patch("app.core.parser_workflow.nodes.classify_node.invoke_structured", return_value=mock_output):
         state = _make_state(content, tmp_path)
         result = classify_node(state)
 
@@ -307,15 +307,19 @@ def _call_classify_llm(
     # [改动 1] 函数开头：预处理 LaTeX → 占位符
     clean_content, latex_mapping = _replace_latex_with_placeholders(chunk_content)
 
-    structure_desc = "\n".join(...)   # 不变
-    semantic_desc = _build_type_desc(...)  # 不变
+    structure_desc = "\n".join(                    # 原第 36-38 行，逐字保留
+        f"- {t['id']}: {t['description']}" for t in structure_types
+    )
+    semantic_desc = _build_type_desc(semantic_types)  # 原第 39 行，逐字保留
 
-    prompt = f"""...(保留原有 prompt 全文)...
+    prompt = f"""请将以下文本拆分为语义独立的片段，并对每个片段进行双维度分类。
+    ...（原第 40-58 行 prompt 正文逐字保留，含结构类型/语义类型/分类规则三大段）...
 
 文本内容：
-{_escape_for_json_prompt(clean_content)}  # [改动 2] chunk_content → clean_content
+{_escape_for_json_prompt(clean_content)}
 """
-    # [改动 3] 同时删除 prompt 末尾的【输出 content 字段的 LaTeX 处理规则】整段
+    # [改动] 将上一行的 chunk_content 改为 clean_content
+    # [删除] prompt 末尾的【输出 content 字段的 LaTeX 处理规则】整段
     # （该段从"【输出 content 字段的 LaTeX 处理规则】"开始到 f""" 结束前，约 12 行）
 
     result = invoke_structured(
@@ -365,7 +369,9 @@ git commit -m "feat(classify): wire latex placeholder into _call_classify_llm, r
 
 - [ ] **Step 1：在 test_transform_node_unit.py 末尾追加失败测试**
 
-注意：`apply_strategy` 内部所有 strategy（包括 `plain_embed`）均通过 `_call_llm_transform` 处理内容（当 `len(content) >= 50` 时），patch 路径 `parser.nodes.transform_node._call_llm_transform` 对本测试有效。测试中两个 segment 的 content 长度均超过 50 字符，确保走 LLM 分支。
+注意：
+- `apply_strategy` 内部所有 strategy（包括 `plain_embed`）均通过 `_call_llm_transform` 处理内容（当 `len(content) >= 50` 时），测试中两个 segment 的 content 长度均超过 50 字符，确保走 LLM 分支。
+- patch 路径与该测试文件中现有测试保持一致，均使用 `"app.core.parser_workflow.nodes.transform_node._call_llm_transform"`。
 
 ```python
 def test_transform_node_raw_content_matches_seg_content():
@@ -414,7 +420,7 @@ def test_transform_node_raw_content_matches_seg_content():
     )
 
     with patch(
-        "parser.nodes.transform_node._call_llm_transform",
+        "app.core.parser_workflow.nodes.transform_node._call_llm_transform",
         side_effect=lambda content, params, ref="": f"转化后：{content}",
     ):
         result = transform_node(state)
