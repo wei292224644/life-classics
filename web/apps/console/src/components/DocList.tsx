@@ -94,6 +94,7 @@ interface DocItemProps {
 function DocItem({ doc, selected, isDeleting, onSelect, onDelete }: DocItemProps) {
   const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  const [hovered, setHovered] = useState(false)
 
   const handleConfirm = async () => {
     setConfirming(true)
@@ -106,7 +107,11 @@ function DocItem({ doc, selected, isDeleting, onSelect, onDelete }: DocItemProps
   }
 
   return (
-    <div className="group relative">
+    <div
+      className="relative"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <button
         onClick={() => onSelect(doc.doc_id)}
         className={`w-full text-left px-3 py-2 rounded-md transition-colors text-sm pr-8 ${
@@ -129,7 +134,7 @@ function DocItem({ doc, selected, isDeleting, onSelect, onDelete }: DocItemProps
       <button
         onClick={e => { e.stopPropagation(); setOpen(true) }}
         disabled={isDeleting}
-        className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-opacity disabled:opacity-50"
+        className={`absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded transition-opacity hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 ${hovered || isDeleting ? 'opacity-100' : 'opacity-0'}`}
         aria-label="删除文档"
       >
         {isDeleting
