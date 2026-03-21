@@ -4,13 +4,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-def _make_meta(doc_id="d1", standard_no="GB 2762-2022", doc_type="food_safety", semantic_type="scope", section_path="1|1.1"):
+def _make_meta(doc_id="d1", standard_no="GB 2762-2022", doc_type="food_safety", semantic_type="scope", section_path="1|1.1", title=""):
     return {
         "doc_id": doc_id,
         "standard_no": standard_no,
         "doc_type": doc_type,
         "semantic_type": semantic_type,
         "section_path": section_path,
+        "title": title,
     }
 
 
@@ -22,9 +23,9 @@ def test_get_all_documents_aggregates_by_doc_id():
     mock_col.get.return_value = {
         "ids": ["c1", "c2", "c3"],
         "metadatas": [
-            _make_meta("d1", "GB 2762-2022", "food_safety"),
-            _make_meta("d1", "GB 2762-2022", "food_safety", "definition"),
-            _make_meta("d2", "GB 5009.3", "method"),
+            _make_meta("d1", "GB 2762-2022", "food_safety", title="食品安全国家标准 食品中污染物限量"),
+            _make_meta("d1", "GB 2762-2022", "food_safety", "definition", title="食品安全国家标准 食品中污染物限量"),
+            _make_meta("d2", "GB 5009.3", "method", title="食品安全国家标准 食品中水分的测定"),
         ],
     }
 
@@ -36,6 +37,9 @@ def test_get_all_documents_aggregates_by_doc_id():
     assert d1["standard_no"] == "GB 2762-2022"
     assert d1["doc_type"] == "food_safety"
     assert d1["chunks_count"] == 2
+    assert d1["title"] == "食品安全国家标准 食品中污染物限量"
+    d2 = next(d for d in docs if d["doc_id"] == "d2")
+    assert d2["title"] == "食品安全国家标准 食品中水分的测定"
 
 
 def test_get_all_documents_returns_empty_list_when_no_chunks():
@@ -73,7 +77,7 @@ async def test_upload_document_stream_yields_stage_events():
     fake_events = [
         {"type": "stage", "stage": "parse", "status": "active"},
         {"type": "stage", "stage": "parse", "status": "done"},
-        {"type": "workflow_done", "chunks": [{"chunk_id": "abc"}]},
+        {"type": "workflow_done", "chunks": [{"chunk_id": "abc"}], "doc_metadata": {"doc_id": "test-doc", "title": "测试文档", "doc_type": "standard"}},
     ]
 
     async def fake_stream(*args, **kwargs):
