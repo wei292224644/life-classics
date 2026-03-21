@@ -156,10 +156,38 @@ def invoke_structured(
                 retry_count=attempt,
                 raw_error=str(e),
             ) from e
-        except (TimeoutError, ConnectionError) as e:
+        except (TimeoutError, ConnectionError, Exception) as e:
+            # 兼容 httpx.ReadTimeout、httpx.ConnectTimeout、openai.APITimeoutError
+            # 等价于：from httpx import TimeoutException; except (TimeoutError, *httpx.TimeoutException.__subclasses__())
+            _is_retryable = (
+                isinstance(e, TimeoutError)
+                or isinstance(e, ConnectionError)
+                or type(e).__name__ in (
+                    "ReadTimeout",
+                    "ConnectTimeout",
+                    "ConnectError",
+                    "PoolTimeout",
+                    "WriteTimeout",
+                    "APITimeoutError",
+                    "RequestTimeoutError",
+                    "Timeout",
+                )
+                or "timeout" in type(e).__name__.lower()
+                or "timed out" in str(e).lower()
+            )
+            if not _is_retryable:
+                _logger.error(
+                    "structured_llm_unexpected_error",
+                    node_name=node_name,
+                    provider=resolved_provider,
+                    model=resolved_model,
+                    error=str(e),
+                    messages_count=len(messages),
+                )
+                raise e
             last_error = e
             retry_count = attempt + 1
-            print(f"[{node_name}] 可恢复错误，第 {attempt + 1}/{max_retries + 1} 次尝试: {e}")
+            print(f"[{node_name}] 可恢复错误（timeout/network），第 {attempt + 1}/{max_retries + 1} 次尝试: {e}")
             if attempt >= max_retries:
                 break
             continue
