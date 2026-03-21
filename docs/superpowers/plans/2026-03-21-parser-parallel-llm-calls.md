@@ -45,11 +45,12 @@
 **Test:** `test_classify_node_concurrent_execution_with_exceptions`
 - `@pytest.mark.asyncio` 装饰器（async 测试）
 - `async def test_...`
-- mock `parser.nodes.classify_node.asyncio.gather`
-- mock 返回值：4 个结果中 1 个是 `Exception`，3 个是成功的 `ClassifyOutput`
+- mock `parser.nodes.classify_node.asyncio.to_thread`：
+  - 4 个 chunk 的 side_effect：3 个返回成功的 `ClassifyOutput`，1 个直接返回 `Exception("timeout")`（模拟 LLM 超时）
+  - `to_thread` 被 mock 后不会真正调 LLM，所以不需要额外 mock `classify_raw_chunk`
 - 调用 `await classify_node(state)`
 - 验证 `classified_chunks` 长度 = 3（成功数）
-- 验证 `errors` 长度 = 1，格式为 `"classify_node[1]: <exception>"`
+- 验证 `errors` 长度 = 1，格式为 `"classify_node[1]: timeout"`
 
 ---
 
@@ -76,11 +77,11 @@
 **Test:** `test_transform_node_concurrent_execution_with_exceptions`
 - `@pytest.mark.asyncio` 装饰器（async 测试）
 - `async def test_...`
-- mock `parser.nodes.transform_node.asyncio.gather`
-- 3 个 classified chunks：1 个返回 `Exception`，2 个返回 `List[DocumentChunk]`
+- mock `parser.nodes.transform_node.asyncio.to_thread`：
+  - 3 个 classified chunks 的 side_effect：2 个返回 `List[DocumentChunk]`，1 个直接 `Exception("timeout")`
 - 调用 `await transform_node(state)`
 - 验证 `final_chunks` 长度 = 2（成功数）
-- 验证 `errors` 长度 = 1，格式为 `"transform_node[0]: <exception>"`
+- 验证 `errors` 长度 = 1，格式为 `"transform_node[1]: timeout"`
 
 ---
 
