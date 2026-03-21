@@ -43,10 +43,11 @@
 - Modify: `server/tests/core/parser_workflow/test_classify_node_unit.py`
 
 **Test:** `test_classify_node_concurrent_execution_with_exceptions`
+- `@pytest.mark.asyncio` 装饰器（async 测试）
+- `async def test_...`
 - mock `parser.nodes.classify_node.asyncio.gather`
 - mock 返回值：4 个结果中 1 个是 `Exception`，3 个是成功的 `ClassifyOutput`
-- patch `parser.nodes.classify_node.classify_raw_chunk` 不需要（因为 `asyncio.gather` 被 mock）
-- 调用 `classify_node(state)`
+- 调用 `await classify_node(state)`
 - 验证 `classified_chunks` 长度 = 3（成功数）
 - 验证 `errors` 长度 = 1，格式为 `"classify_node[1]: <exception>"`
 
@@ -73,9 +74,11 @@
 - Modify: `server/tests/core/parser_workflow/test_transform_node_unit.py`
 
 **Test:** `test_transform_node_concurrent_execution_with_exceptions`
+- `@pytest.mark.asyncio` 装饰器（async 测试）
+- `async def test_...`
 - mock `parser.nodes.transform_node.asyncio.gather`
 - 3 个 classified chunks：1 个返回 `Exception`，2 个返回 `List[DocumentChunk]`
-- 调用 `transform_node(state)`
+- 调用 `await transform_node(state)`
 - 验证 `final_chunks` 长度 = 2（成功数）
 - 验证 `errors` 长度 = 1，格式为 `"transform_node[0]: <exception>"`
 
