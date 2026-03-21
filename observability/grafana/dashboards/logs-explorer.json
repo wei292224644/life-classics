@@ -1,0 +1,49 @@
+{
+  "title": "Logs Explorer",
+  "uid": "logs-explorer",
+  "version": 1,
+  "schemaVersion": 39,
+  "tags": ["life-classics", "logs"],
+  "panels": [
+    {
+      "id": 1,
+      "type": "logs",
+      "title": "结构化日志",
+      "gridPos": {"h": 20, "w": 24, "x": 0, "y": 0},
+      "datasource": {"type": "loki", "uid": "${loki_datasource}"},
+      "targets": [
+        {
+          "expr": "{service_name=\"$service\"} | json | level=~\"$level\"",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "showLabels": false,
+        "showTime": true,
+        "wrapLogMessage": true,
+        "enableLogDetails": true
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {"name": "loki_datasource", "type": "datasource", "query": "loki"},
+      {
+        "name": "service",
+        "type": "custom",
+        "query": "life-classics-server,console-web,frontend",
+        "current": {"value": "life-classics-server"}
+      },
+      {
+        "name": "level",
+        "type": "custom",
+        "query": "debug,info,warning,error",
+        "current": {"value": "error"},
+        "multi": true,
+        "includeAll": true
+      }
+    ]
+  },
+  "time": {"from": "now-1h", "to": "now"},
+  "refresh": "30s"
+}
