@@ -4,6 +4,8 @@ from parser.models import RawChunk, WorkflowState
 from parser.nodes.classify_node import (
     classify_node,
     _escape_for_json_prompt,
+    _replace_latex_with_placeholders,
+    _restore_placeholders,
 )
 from parser.nodes.output import ClassifyOutput, SegmentItem
 
@@ -221,3 +223,89 @@ def test_classify_node_applies_all_hooks(tmp_path):
     segments = result["classified_chunks"][0]["segments"]
     assert len(segments) == 1, "公式与变量说明应已合并为一个 segment"
     assert segments[0]["structure_type"] == "formula"
+
+
+# ── 占位符预处理 ──────────────────────────────────────────────
+
+def test_replace_inline_latex_single():
+    """单个内联公式应被替换为 [__MATH_0__]，mapping 记录原始 LaTeX。"""
+    text = "称取 $4\\mathrm{g}$ 试样"
+    clean, mapping = _replace_latex_with_placeholders(text)
+    assert "[__MATH_0__]" in clean
+    assert "$" not in clean
+    assert mapping["[__MATH_0__]"] == "$4\\mathrm{g}$"
+
+
+def test_replace_inline_latex_multiple():
+    """多个内联公式按出现顺序分配序号。"""
+    text = "加 $200~\\mathrm{mL}$ 水，加热至 $80^{\\circ}C$"
+    clean, mapping = _replace_latex_with_placeholders(text)
+    assert "[__MATH_0__]" in clean
+    assert "[__MATH_1__]" in clean
+    assert "$" not in clean
+    assert len(mapping) == 2
+
+
+def test_replace_block_latex():
+    """block 公式 $$...$$ 应被替换，且优先于 inline 匹配。"""
+    text = "按下式计算：\n$$\nw = m_1 / m\n$$\n式中 w 为质量分数。"
+    clean, mapping = _replace_latex_with_placeholders(text)
+    assert "[__MATH_0__]" in clean
+    assert "$$" not in clean
+    assert mapping["[__MATH_0__]"].startswith("$$")
+
+
+def test_replace_mixed_block_and_inline():
+    """block 先替换，inline 后替换，序号连续。"""
+    text = "公式：\n$$\nX = a + b\n$$\n其中 $a$ 为常数。"
+    clean, mapping = _replace_latex_with_placeholders(text)
+    assert len(mapping) == 2
+    # block 应为 MATH_0
+    assert mapping["[__MATH_0__]"].startswith("$$")
+    # inline 应为 MATH_1
+    assert mapping["[__MATH_1__]"] == "$a$"
+
+
+def test_replace_no_latex_unchanged():
+    """不含 LaTeX 的文本应原样返回，mapping 为空。"""
+    text = "本标准适用于食品添加剂卡拉胶。"
+    clean, mapping = _replace_latex_with_placeholders(text)
+    assert clean == text
+    assert mapping == {}
+
+
+# ── 占位符后处理 ──────────────────────────────────────────────
+
+def test_restore_placeholders_normal():
+    """正常情况下占位符应被精确还原为原始 LaTeX。"""
+    mapping = {"[__MATH_0__]": "$4\\mathrm{g}$"}
+    text = "称取 [__MATH_0__] 试样"
+    result = _restore_placeholders(text, mapping)
+    assert result == "称取 $4\\mathrm{g}$ 试样"
+
+
+def test_restore_placeholders_tolerates_extra_spaces():
+    """占位符前后多余空格应被容忍，还原后得到完整原始 LaTeX。"""
+    mapping = {"[__MATH_0__]": "$4\\mathrm{g}$"}
+    text = "称取 [ __MATH_0__ ] 试样"
+    result = _restore_placeholders(text, mapping)
+    assert result == "称取 $4\\mathrm{g}$ 试样"
+
+
+def test_restore_placeholders_missing_not_raises():
+    """若 LLM 删除了占位符，不抛异常，返回原文本。"""
+    mapping = {"[__MATH_0__]": "$4\\mathrm{g}$"}
+    text = "称取试样"
+    result = _restore_placeholders(text, mapping)
+    assert result == "称取试样"
+
+
+def test_restore_placeholders_multiple():
+    """多个占位符全部还原。"""
+    mapping = {
+        "[__MATH_0__]": "$200~\\mathrm{mL}$",
+        "[__MATH_1__]": "$80^{\\circ}C$",
+    }
+    text = "加 [__MATH_0__] 水，加热至 [__MATH_1__]"
+    result = _restore_placeholders(text, mapping)
+    assert result == "加 $200~\\mathrm{mL}$ 水，加热至 $80^{\\circ}C$"

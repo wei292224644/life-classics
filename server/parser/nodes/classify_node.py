@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import time
 from typing import Dict, List
 
@@ -92,6 +93,60 @@ def _call_classify_llm(
 def _escape_for_json_prompt(text: str) -> str:
     """转义文本中的 ASCII 双引号，防止 LLM 生成 JSON 时字符串值被提前截断。"""
     return text.replace('"', '\\"')
+
+
+def _replace_latex_with_placeholders(text: str) -> tuple[str, dict[str, str]]:
+    """将文本中的 LaTeX 公式替换为占位符，返回 (clean_text, mapping)。
+
+    先匹配 $$...$$ (block)，再匹配 $...$ (inline)，顺序不可颠倒。
+    mapping 格式：{占位符字符串: 原始LaTeX字符串}
+    """
+    mapping: dict[str, str] = {}
+    counter = 0
+
+    def make_placeholder() -> str:
+        nonlocal counter
+        placeholder = f"[__MATH_{counter}__]"
+        counter += 1
+        return placeholder
+
+    # 先匹配 block LaTeX: $$...$$
+    block_pattern = re.compile(r'\$\$[\s\S]*?\$\$', re.DOTALL)
+    result = text
+    for match in block_pattern.findall(result):
+        placeholder = make_placeholder()
+        mapping[placeholder] = match
+        result = result.replace(match, placeholder, 1)
+
+    # 再匹配 inline LaTeX: $...$（单行，不跨行）
+    inline_pattern = re.compile(r'\$[^$\n]+?\$')
+    for match in inline_pattern.findall(result):
+        placeholder = make_placeholder()
+        mapping[placeholder] = match
+        result = result.replace(match, placeholder, 1)
+
+    return result, mapping
+
+
+def _restore_placeholders(text: str, mapping: dict[str, str]) -> str:
+    """将文本中的占位符还原为原始 LaTeX。
+
+    容错：也尝试匹配带额外空格的占位符变体（如 [ __MATH_0__ ]）。
+    若某占位符在 text 中找不到，不抛出异常，保留 text 原样继续。
+    """
+    result = text
+    for placeholder, original in mapping.items():
+        if placeholder in result:
+            result = result.replace(placeholder, original)
+        else:
+            # 尝试带额外空格的变体：[__MATH_0__] → [ __MATH_0__ ]
+            # 提取占位符内部内容（去掉方括号）
+            inner = placeholder[1:-1]  # __MATH_N__
+            spaced_variant = f"[ {inner} ]"
+            if spaced_variant in result:
+                result = result.replace(spaced_variant, original)
+            # 若两者都找不到，保留原样继续（不抛出异常）
+    return result
 
 
 def classify_raw_chunk(
