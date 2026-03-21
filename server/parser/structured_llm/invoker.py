@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 
 from config import settings
+from observability.metrics import llm_tokens_total
 from parser.structured_llm.client_factory import get_structured_client
 from parser.structured_llm.errors import StructuredOutputError
 
@@ -145,6 +146,11 @@ def invoke_structured(
                 extra_body=extra_body or {},
                 **kwargs,
             )
+            # Token 计数
+            usage = getattr(result, "usage", None)
+            if usage:
+                llm_tokens_total.labels(node=node_name, model=resolved_model, type="prompt").inc(usage.prompt_tokens or 0)
+                llm_tokens_total.labels(node=node_name, model=resolved_model, type="completion").inc(usage.completion_tokens or 0)
             return result
         except PydanticValidationError as e:
             raise StructuredOutputError(
@@ -187,7 +193,15 @@ def invoke_structured(
                 raise e
             last_error = e
             retry_count = attempt + 1
-            print(f"[{node_name}] 可恢复错误（timeout/network），第 {attempt + 1}/{max_retries + 1} 次尝试: {e}")
+            _logger.warning(
+                "structured_llm_retry",
+                node_name=node_name,
+                provider=resolved_provider,
+                model=resolved_model,
+                attempt=attempt + 1,
+                max_retries=max_retries + 1,
+                error=str(e),
+            )
             if attempt >= max_retries:
                 break
             continue
