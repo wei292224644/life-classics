@@ -28,6 +28,7 @@ class DocumentsService:
             if doc_id not in doc_map:
                 doc_map[doc_id] = {
                     "doc_id": doc_id,
+                    "title": meta.get("title", ""),
                     "standard_no": meta.get("standard_no", ""),
                     "doc_type": meta.get("doc_type", ""),
                     "chunks_count": 0,
