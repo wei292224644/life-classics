@@ -81,7 +81,7 @@ def apply_strategy(
         if seg["structure_type"] == "header":
             continue
 
-        raw_content = raw_chunk["content"]
+        raw_content = seg["content"]
         ref_context = seg.get("ref_context", "")
         cross_refs = seg.get("cross_refs", [])
         failed_table_refs = seg.get("failed_table_refs", [])
