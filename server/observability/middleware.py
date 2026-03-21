@@ -27,19 +27,20 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         # 将 trace_id 注入到全局 structlog context，请求期间所有日志自动携带
         structlog.contextvars.bind_contextvars(trace_id=trace_id)
+
+        status_code = 500
         try:
             response = await call_next(request)
+            status_code = response.status_code
+            return response
         finally:
+            duration_ms = round((time.perf_counter() - start) * 1000, 2)
+            logger.info(
+                "http_request",
+                method=request.method,
+                path=request.url.path,
+                status_code=status_code,
+                duration_ms=duration_ms,
+            )
             # 请求结束后清理 trace_id，避免泄漏到后续请求
             structlog.contextvars.unbind_contextvars("trace_id")
-
-        duration_ms = round((time.perf_counter() - start) * 1000, 2)
-
-        logger.info(
-            "http_request",
-            method=request.method,
-            path=request.url.path,
-            status_code=response.status_code,
-            duration_ms=duration_ms,
-        )
-        return response

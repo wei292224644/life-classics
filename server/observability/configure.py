@@ -25,11 +25,12 @@ def configure_logging(log_level: str = "INFO", service_name: str = "life-classic
     structlog.contextvars.bind_contextvars(service=service_name)
 
     # 标准库 logging 基础配置（给第三方库用）
-    logging.basicConfig(
-        format="%(message)s",
-        stream=sys.stdout,
-        level=level,
-    )
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+    if not root_logger.handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        root_logger.addHandler(handler)
 
     structlog.configure(
         processors=[
@@ -55,6 +56,11 @@ def setup_otel(
     初始化 OpenTelemetry TracerProvider + LoggerProvider。
     将 traces 和 logs 通过 OTLP/HTTP 导出到 OTel Collector。
     """
+    # 幂等保护：避免重复初始化（热重载、测试多次调用等场景）
+    existing = trace.get_tracer_provider()
+    if isinstance(existing, TracerProvider):
+        return existing
+
     resource = Resource.create({"service.name": service_name})
 
     # ── Traces ────────────────────────────────────────────────────────────────
