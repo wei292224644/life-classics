@@ -39,7 +39,7 @@ def _call_llm_transform(
         node_name="transform_node",
         prompt=prompt,
         response_model=TransformOutput,
-        extra_body={"enable_thinking": False},
+        extra_body={"enable_thinking": False, "reasoning_split": True},
     )
     return resp.content
 

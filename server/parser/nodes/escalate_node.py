@@ -50,6 +50,7 @@ def _call_escalate_llm(
         node_name="escalate_node",
         prompt=prompt,
         response_model=EscalateOutput,
+        extra_body={"enable_thinking": False, "reasoning_split": True},
     )
     return result
 

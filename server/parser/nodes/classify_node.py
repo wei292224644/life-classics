@@ -64,7 +64,7 @@ def _call_classify_llm(
         node_name="classify_node",
         prompt=prompt,
         response_model=ClassifyOutput,
-        extra_body={"enable_thinking": False},
+        extra_body={"enable_thinking": False, "reasoning_split": True},
         max_tokens=15000,
     )
     return result.segments

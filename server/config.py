@@ -64,9 +64,8 @@ class Settings(BaseSettings):
 
     # ── Embedding 配置 ────────────────────────────────────────────────────────
     EMBEDDING_MODEL: str = "text-embedding-v3"
-    EMBEDDING_LLM_PROVIDER: str = (
-        ""  # 空则使用 PARSER_LLM_PROVIDER，支持 openai/dashscope/ollama
-    )
+    EMBEDDING_LLM_PROVIDER: str = ""  # 空则使用 PARSER_LLM_PROVIDER，支持 openai/dashscope/ollama
+    
 
     # ── Neo4j 连接 ────────────────────────────────────────────────────────────
     NEO4J_URI: str = "bolt://localhost:7687"

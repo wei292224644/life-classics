@@ -19,7 +19,7 @@ def _create_openai_client(
     """通过 from_provider 创建 Instructor 客户端。"""
     return instructor.from_provider(
         model_ref,
-        mode=instructor.Mode.TOOLS,
+        mode=instructor.Mode.MD_JSON,
         api_key=api_key,
         base_url=base_url,
         timeout=settings.PARSER_STRUCTURED_TIMEOUT_SECONDS,
