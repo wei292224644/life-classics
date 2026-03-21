@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -15,6 +15,28 @@ const SEMANTIC_TYPES = [
   'material', 'calculation', 'amendment', 'metadata', 'unknown',
 ]
 const PAGE_SIZE = 20
+
+function CopyId({ id }: { id: string }) {
+  const [copied, setCopied] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(id)
+    setCopied(true)
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(() => setCopied(false), 1500)
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded px-1.5 py-0.5"
+      title={id}
+    >
+      {copied ? '已复制' : id.slice(0, 8) + '…'}
+    </button>
+  )
+}
 
 interface Props {
   docId: string | null
@@ -80,6 +102,7 @@ export function ChunkList({ docId }: Props) {
           </Button>
         )}
         <span className="ml-auto text-xs text-muted-foreground">共 {total} 条</span>
+        <CopyId id={docId} />
       </div>
 
       {/* Chunk list */}
