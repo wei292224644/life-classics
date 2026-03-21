@@ -1,12 +1,23 @@
 from __future__ import annotations
 
+import time
 from typing import Any, Dict, List
 import json
+
+import structlog
 
 from parser.models import ClassifiedChunk, TypedSegment, WorkflowState
 from parser.rules import RulesStore
 from parser.nodes.output import EscalateOutput
 from parser.structured_llm import invoke_structured
+from config import settings
+from observability.metrics import (
+    llm_calls_total,
+    parser_chunks_processed_total,
+    parser_node_duration_seconds,
+)
+
+_logger = structlog.get_logger(__name__)
 
 
 def _call_escalate_llm(
@@ -56,6 +67,10 @@ def _call_escalate_llm(
 
 
 def escalate_node(state: WorkflowState) -> dict:
+    chunk_count = len(state["classified_chunks"])
+    _start = time.perf_counter()
+    _logger.info("escalate_node_start", chunk_count=chunk_count)
+
     store = RulesStore(state["rules_dir"])
     config = state.get("config", {})
     classified_chunks: List[ClassifiedChunk] = [
@@ -74,6 +89,7 @@ def escalate_node(state: WorkflowState) -> dict:
                 continue
 
             llm_result = _call_escalate_llm(seg["content"], existing_types)
+            llm_calls_total.labels(node="escalate_node", model=settings.ESCALATE_MODEL).inc()
             new_ct_id = llm_result.id
 
             if llm_result.action == "create_new":
@@ -97,4 +113,13 @@ def escalate_node(state: WorkflowState) -> dict:
             has_unknown=False,
         )
 
+    duration = time.perf_counter() - _start
+    parser_node_duration_seconds.labels(node="escalate_node").observe(duration)
+    parser_chunks_processed_total.labels(node="escalate_node").inc(chunk_count)
+    _logger.info(
+        "escalate_node_done",
+        chunk_count=chunk_count,
+        duration_ms=round(duration * 1000, 2),
+        model=settings.ESCALATE_MODEL,
+    )
     return {"classified_chunks": classified_chunks}

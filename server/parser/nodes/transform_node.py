@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import re
+import time
 from typing import List
+
+import structlog
 
 from parser.models import (
     DocumentChunk,
@@ -11,6 +14,19 @@ from parser.models import (
 )
 from parser.structured_llm import invoke_structured
 from parser.nodes.output import TransformOutput
+from config import settings
+from observability.metrics import (
+    llm_calls_total,
+    parser_chunks_processed_total,
+    parser_node_duration_seconds,
+)
+
+_logger = structlog.get_logger(__name__)
+
+
+def _transform_model() -> str:
+    """返回 transform 节点实际使用的模型名，空则 fallback 到 ESCALATE_MODEL。"""
+    return settings.TRANSFORM_MODEL or settings.ESCALATE_MODEL
 
 
 def _call_llm_transform(
@@ -80,6 +96,7 @@ def apply_strategy(
             llm_text = _call_llm_transform(
                 content, seg["transform_params"], ref_context
             )
+            llm_calls_total.labels(node="transform_node", model=_transform_model()).inc()
 
         results.append(
             DocumentChunk(
@@ -108,6 +125,10 @@ def apply_strategy(
 
 
 def transform_node(state: WorkflowState) -> dict:
+    chunk_count = len(state["classified_chunks"])
+    _start = time.perf_counter()
+    _logger.info("transform_node_start", chunk_count=chunk_count)
+
     final_chunks: List[DocumentChunk] = []
     for classified in state["classified_chunks"]:
         chunks = apply_strategy(
@@ -116,4 +137,15 @@ def transform_node(state: WorkflowState) -> dict:
             state["doc_metadata"],
         )
         final_chunks.extend(chunks)
+
+    duration = time.perf_counter() - _start
+    parser_node_duration_seconds.labels(node="transform_node").observe(duration)
+    parser_chunks_processed_total.labels(node="transform_node").inc(chunk_count)
+    _logger.info(
+        "transform_node_done",
+        chunk_count=chunk_count,
+        output_chunk_count=len(final_chunks),
+        duration_ms=round(duration * 1000, 2),
+        model=_transform_model(),
+    )
     return {"final_chunks": final_chunks}

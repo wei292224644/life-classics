@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import time
 from typing import Dict, List
+
+import structlog
 
 from parser.models import (
     ClassifiedChunk,
@@ -13,6 +16,13 @@ from parser.rules import RulesStore
 from config import settings
 from parser.structured_llm import invoke_structured
 from parser.nodes.output import ClassifyOutput, SegmentItem
+from observability.metrics import (
+    llm_calls_total,
+    parser_chunks_processed_total,
+    parser_node_duration_seconds,
+)
+
+_logger = structlog.get_logger(__name__)
 
 
 def _build_type_desc(types: List[Dict]) -> str:
@@ -57,6 +67,15 @@ def _call_classify_llm(
 5. 双维度先推断结构再推断用途：structure_type 决定内容呈现形式，semantic_type 决定读者用途，两者非独立——formula 必然是 calculation，header 仅用于 metadata，procedure 可包含 limit 注释（如"注：..."）。
 6. confidence 反映综合把握程度（0-1），低于阈值（0.7）的 segment 会进入人工审核。
 
+【输出 content 字段的 LaTeX 处理规则】
+在每个 segment 的 content 字段中，将内联 LaTeX（$...$）转化为可读文本，不得在输出中保留任何 LaTeX 语法：
+- 数值与单位：$4\\mathrm{{g}}$ → 4 g，$200~\\mathrm{{mL}}$ → 200 mL，$80^{{\\circ}}C$ → 80°C，$15\\mathrm{{min}}$ → 15 min，$1000\\mathrm{{r/min}}$ → 1000 r/min
+- 分数/比例：$85 + 15$ → 85+15（保留运算符）
+- 希腊字母：$\\lambda$ → λ，$\\alpha$ → α
+- 百分比：$0.2\\%$ → 0.2%
+- 范围：$1000\\mathrm{{cm}}^{{-1}}\\sim 1100\\mathrm{{cm}}^{{-1}}$ → 1000 cm⁻¹～1100 cm⁻¹
+- 块公式（$$...$$）保留原始 LaTeX 不转换（由后续步骤处理）
+
 文本内容：
 {_escape_for_json_prompt(chunk_content)}
 """
@@ -87,6 +106,7 @@ def classify_raw_chunk(
     llm_output = _call_classify_llm(
         raw_chunk["content"], structure_types, semantic_types
     )
+    llm_calls_total.labels(node="classify_node", model=settings.CLASSIFY_MODEL).inc()
 
     segments: List[TypedSegment] = []
     has_unknown = False
@@ -134,8 +154,22 @@ def classify_raw_chunk(
 
 
 def classify_node(state: WorkflowState) -> dict:
+    chunk_count = len(state["raw_chunks"])
+    _start = time.perf_counter()
+    _logger.info("classify_node_start", chunk_count=chunk_count)
+
     store = RulesStore(state["rules_dir"])
     classified: List[ClassifiedChunk] = [
         classify_raw_chunk(chunk, store) for chunk in state["raw_chunks"]
     ]
+
+    duration = time.perf_counter() - _start
+    parser_node_duration_seconds.labels(node="classify_node").observe(duration)
+    parser_chunks_processed_total.labels(node="classify_node").inc(chunk_count)
+    _logger.info(
+        "classify_node_done",
+        chunk_count=chunk_count,
+        duration_ms=round(duration * 1000, 2),
+        model=settings.CLASSIFY_MODEL,
+    )
     return {"classified_chunks": classified}
