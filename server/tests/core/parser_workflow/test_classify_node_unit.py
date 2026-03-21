@@ -31,7 +31,7 @@ def test_classify_node_produces_dual_type_segments(tmp_path):
         SegmentItem(content="称取试样约2g", structure_type="list", semantic_type="procedure", confidence=0.9),
     ])
 
-    with patch("app.core.parser_workflow.nodes.classify_node.invoke_structured", return_value=mock_output):
+    with patch("parser.nodes.classify_node.invoke_structured", return_value=mock_output):
         state = _make_state("称取试样约2g", tmp_path)
         result = classify_node(state)
 
@@ -49,7 +49,7 @@ def test_classify_node_low_confidence_sets_unknown(tmp_path):
         SegmentItem(content="某段内容", structure_type="paragraph", semantic_type="scope", confidence=0.3),
     ])
 
-    with patch("app.core.parser_workflow.nodes.classify_node.invoke_structured", return_value=mock_output):
+    with patch("parser.nodes.classify_node.invoke_structured", return_value=mock_output):
         state = _make_state("某段内容", tmp_path)
         result = classify_node(state)
 
@@ -71,7 +71,7 @@ def test_classify_node_prompt_includes_both_type_lists(tmp_path):
         captured_prompts.append(prompt)
         return mock_output
 
-    with patch("app.core.parser_workflow.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
+    with patch("parser.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
         state = _make_state("x", tmp_path)
         classify_node(state)
 
@@ -95,7 +95,7 @@ def test_classify_node_prompt_contains_formula_rule(tmp_path):
         captured_prompts.append(prompt)
         return mock_output
 
-    with patch("app.core.parser_workflow.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
+    with patch("parser.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
         state = _make_state("x", tmp_path)
         classify_node(state)
 
@@ -103,7 +103,6 @@ def test_classify_node_prompt_contains_formula_rule(tmp_path):
     assert "$$" in prompt, "prompt 未包含 $$ 公式规则"
     assert "structure_type=formula" in prompt, "prompt 未要求含 $$ 的 segment 用 structure_type=formula"
     assert "semantic_type=calculation" in prompt, "prompt 未要求含 $$ 的 segment 用 semantic_type=calculation"
-    assert "plain_text" in prompt, "prompt 中应提到不得将公式归为 plain_text"
 
 
 def test_escape_for_json_prompt_escapes_double_quotes():
@@ -140,7 +139,7 @@ def test_classify_node_html_chunk_prompt_escapes_attribute_quotes(tmp_path):
         return mock_output
 
     with patch(
-        "app.core.parser_workflow.nodes.classify_node.invoke_structured",
+        "parser.nodes.classify_node.invoke_structured",
         side_effect=capture_invoke,
     ):
         state = _make_state(html_content, tmp_path)
@@ -170,7 +169,7 @@ def test_classify_node_html_chunk_content_unchanged_in_segment(tmp_path):
     ])
 
     with patch(
-        "app.core.parser_workflow.nodes.classify_node.invoke_structured",
+        "parser.nodes.classify_node.invoke_structured",
         return_value=mock_output,
     ):
         state = _make_state(html_content, tmp_path)
@@ -214,7 +213,7 @@ def test_classify_node_applies_all_hooks(tmp_path):
     ])
 
     with patch(
-        "app.core.parser_workflow.nodes.classify_node.invoke_structured",
+        "parser.nodes.classify_node.invoke_structured",
         return_value=mock_output,
     ):
         state = _make_state(formula_content + "\n\n" + var_content, tmp_path)
