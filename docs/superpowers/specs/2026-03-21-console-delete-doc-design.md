@@ -14,10 +14,10 @@
 
 ```ts
 delete: (doc_id: string) =>
-  request<void>(`/documents/${doc_id}`, { method: 'DELETE' }),
+  request<{ doc_id: string; errors: string[] }>(`/documents/${doc_id}`, { method: 'DELETE' }),
 ```
 
-`DELETE /api/documents/{doc_id}` 后端返回 `{"doc_id": ..., "errors": []}` 或 HTTP 错误，现有 `request<T>` 函数已处理错误抛出。
+`DELETE /api/documents/{doc_id}` 后端返回 `{"doc_id": ..., "errors": []}` 或 HTTP 错误，现有 `request<T>` 函数已处理错误抛出。`errors` 数组非空时视为部分失败，`handleDeleteDoc` 中需检查并展示警告。
 
 ---
 
@@ -44,8 +44,8 @@ interface Props {
 每条文档 item 改为相对定位容器，右侧添加 `Trash2` 图标按钮：
 - 默认隐藏，`group-hover` 时显示
 - 点击后弹出 `AlertDialog` 确认框，内容为：
-  > 确认删除「{title}」？此操作将删除该文档所有 chunks，无法撤销。
-- 确认后调用 `onDelete(doc_id)`，弹窗关闭
+  > 确认删除「{doc.title || doc.doc_id}」？此操作将删除该文档所有 chunks，无法撤销。
+- 确认后：确认按钮进入 `disabled` 状态防止重复点击，调用 `onDelete(doc_id)`，完成后弹窗关闭
 - 取消则不做任何操作
 
 确认弹窗使用 `@radix-ui/react-alert-dialog`（项目已有）。
@@ -56,17 +56,26 @@ interface Props {
 
 **文件：** `web/apps/console/src/pages/ChunksPage.tsx`
 
-实现 `handleDeleteDoc`：
+首先将现有 `useEffect` 内的文档加载逻辑提取为独立函数 `refreshDocuments`，然后实现 `handleDeleteDoc`：
 
 ```ts
+const refreshDocuments = useCallback(async () => {
+  const { documents } = await api.documents.list()
+  setDocuments(documents)
+}, [])
+
 const handleDeleteDoc = async (docId: string) => {
   try {
-    await api.documents.delete(docId)
+    const result = await api.documents.delete(docId)
     if (selectedDocId === docId) setSelectedDocId(null)
     await refreshDocuments()
-    toast({ title: '已删除' })
+    if (result.errors.length > 0) {
+      toast({ title: '部分删除失败', description: result.errors.join('; '), variant: 'destructive' })
+    } else {
+      toast({ title: '已删除' })
+    }
   } catch (e) {
-    toast({ title: '删除失败', description: e.message, variant: 'destructive' })
+    toast({ title: '删除失败', description: (e as Error).message, variant: 'destructive' })
   }
 }
 ```
