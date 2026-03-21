@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import re
 import time
 from typing import Dict, List
@@ -212,27 +213,36 @@ def classify_raw_chunk(
     )
 
 
-def classify_node(state: WorkflowState) -> dict:
+async def classify_node(state: WorkflowState) -> dict:
     chunks_in = len(state["raw_chunks"])
     _start = time.perf_counter()
     _logger.info("classify_node_start", chunk_count=chunks_in)
 
-    with _tracer.start_as_current_span("classify_node") as span:
-        span.set_attribute("parser.node", "classify_node")
-        span.set_attribute("parser.doc_id", state.get("doc_metadata", {}).get("doc_id", ""))
-        span.set_attribute("parser.chunk_count.in", chunks_in)
-        store = RulesStore(state["rules_dir"])
-        classified: List[ClassifiedChunk] = [
-            classify_raw_chunk(chunk, store) for chunk in state["raw_chunks"]
-        ]
+    store = RulesStore(state["rules_dir"])
+    results = await asyncio.gather(
+        *[asyncio.to_thread(classify_raw_chunk, chunk, store)
+          for chunk in state["raw_chunks"]],
+        return_exceptions=True,
+    )
+
+    classified: List[ClassifiedChunk] = []
+    errors: List[str] = []
+    for i, result in enumerate(results):
+        if isinstance(result, Exception):
+            _logger.error("classify_chunk_failed", chunk_index=i, error=str(result))
+            errors.append(f"classify_node[{i}]: {result}")
+        else:
+            classified.append(result)
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="classify_node").observe(duration)
-    parser_chunks_processed_total.labels(node="classify_node").inc(chunks_in)
+    parser_chunks_processed_total.labels(node="classify_node").inc(len(classified))
     _logger.info(
         "classify_node_done",
         chunk_count=chunks_in,
+        success_count=len(classified),
+        error_count=len(errors),
         duration_ms=round(duration * 1000, 2),
         model=settings.CLASSIFY_MODEL,
     )
-    return {"classified_chunks": classified}
+    return {"classified_chunks": classified, "errors": state.get("errors", []) + errors}

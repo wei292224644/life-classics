@@ -1,3 +1,6 @@
+import asyncio
+
+import pytest
 from unittest.mock import patch
 
 from parser.models import RawChunk, WorkflowState
@@ -25,7 +28,8 @@ def _make_state(content: str, tmp_path) -> WorkflowState:
     )
 
 
-def test_classify_node_produces_dual_type_segments(tmp_path):
+@pytest.mark.asyncio
+async def test_classify_node_produces_dual_type_segments(tmp_path):
     """classify_node 应产生含 structure_type + semantic_type 的 segments"""
     mock_output = ClassifyOutput(segments=[
         SegmentItem(content="称取试样约2g", structure_type="list", semantic_type="procedure", confidence=0.9),
@@ -33,7 +37,7 @@ def test_classify_node_produces_dual_type_segments(tmp_path):
 
     with patch("parser.nodes.classify_node.invoke_structured", return_value=mock_output):
         state = _make_state("称取试样约2g", tmp_path)
-        result = classify_node(state)
+        result = await classify_node(state)
 
     chunks = result["classified_chunks"]
     assert chunks
@@ -43,7 +47,8 @@ def test_classify_node_produces_dual_type_segments(tmp_path):
     assert "content_type" not in seg
 
 
-def test_classify_node_low_confidence_sets_unknown(tmp_path):
+@pytest.mark.asyncio
+async def test_classify_node_low_confidence_sets_unknown(tmp_path):
     """置信度低于阈值时，两个字段均应为 'unknown'"""
     mock_output = ClassifyOutput(segments=[
         SegmentItem(content="某段内容", structure_type="paragraph", semantic_type="scope", confidence=0.3),
@@ -51,7 +56,7 @@ def test_classify_node_low_confidence_sets_unknown(tmp_path):
 
     with patch("parser.nodes.classify_node.invoke_structured", return_value=mock_output):
         state = _make_state("某段内容", tmp_path)
-        result = classify_node(state)
+        result = await classify_node(state)
 
     seg = result["classified_chunks"][0]["segments"][0]
     assert seg["structure_type"] == "unknown"
@@ -59,7 +64,8 @@ def test_classify_node_low_confidence_sets_unknown(tmp_path):
     assert result["classified_chunks"][0]["has_unknown"] is True
 
 
-def test_classify_node_prompt_includes_both_type_lists(tmp_path):
+@pytest.mark.asyncio
+async def test_classify_node_prompt_includes_both_type_lists(tmp_path):
     """LLM 调用的 prompt 应包含 structure_types 和 semantic_types 两组描述"""
     mock_output = ClassifyOutput(segments=[
         SegmentItem(content="x", structure_type="paragraph", semantic_type="scope", confidence=0.9),
@@ -73,7 +79,7 @@ def test_classify_node_prompt_includes_both_type_lists(tmp_path):
 
     with patch("parser.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
         state = _make_state("x", tmp_path)
-        classify_node(state)
+        await classify_node(state)
 
     assert captured_prompts
     prompt = captured_prompts[0]
@@ -83,7 +89,8 @@ def test_classify_node_prompt_includes_both_type_lists(tmp_path):
         assert type_id in prompt, f"prompt 未包含 semantic_type '{type_id}'"
 
 
-def test_classify_node_prompt_contains_formula_rule(tmp_path):
+@pytest.mark.asyncio
+async def test_classify_node_prompt_contains_formula_rule(tmp_path):
     """prompt 中应包含公式识别确定性规则，要求含 $$ 的 segment 必须分类为 formula"""
     mock_output = ClassifyOutput(segments=[
         SegmentItem(content="x", structure_type="formula", semantic_type="calculation", confidence=0.9),
@@ -97,7 +104,7 @@ def test_classify_node_prompt_contains_formula_rule(tmp_path):
 
     with patch("parser.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
         state = _make_state("x", tmp_path)
-        classify_node(state)
+        await classify_node(state)
 
     prompt = captured_prompts[0]
     assert "$$" in prompt, "prompt 未包含 $$ 公式规则"
@@ -120,7 +127,8 @@ def test_escape_for_json_prompt_preserves_other_characters():
     assert _escape_for_json_prompt(raw) == raw
 
 
-def test_classify_node_html_chunk_prompt_escapes_attribute_quotes(tmp_path):
+@pytest.mark.asyncio
+async def test_classify_node_html_chunk_prompt_escapes_attribute_quotes(tmp_path):
     """classify_node 传给 LLM 的 prompt 中，HTML 属性双引号应被转义为 \\"."""
     html_content = '<td rowspan="2">取适量试样置于清洁、干燥的白瓷盘中</td>'
     mock_output = ClassifyOutput(segments=[
@@ -143,7 +151,7 @@ def test_classify_node_html_chunk_prompt_escapes_attribute_quotes(tmp_path):
         side_effect=capture_invoke,
     ):
         state = _make_state(html_content, tmp_path)
-        classify_node(state)
+        await classify_node(state)
 
     assert captured_prompts
     prompt = captured_prompts[0]
@@ -151,7 +159,8 @@ def test_classify_node_html_chunk_prompt_escapes_attribute_quotes(tmp_path):
     assert 'rowspan="2"' not in prompt, "prompt 中不应含未转义的 HTML 属性双引号"
 
 
-def test_classify_node_html_chunk_content_unchanged_in_segment(tmp_path):
+@pytest.mark.asyncio
+async def test_classify_node_html_chunk_content_unchanged_in_segment(tmp_path):
     """segment.content 应存储原始未转义的 HTML（含真双引号），不得将 \\" 泄漏到存储内容中。
 
     回归场景（ISSUE-02）：_escape_for_json_prompt 只能作用于 prompt，
@@ -173,7 +182,7 @@ def test_classify_node_html_chunk_content_unchanged_in_segment(tmp_path):
         return_value=mock_output,
     ):
         state = _make_state(html_content, tmp_path)
-        result = classify_node(state)
+        result = await classify_node(state)
 
     seg = result["classified_chunks"][0]["segments"][0]
     # 存储的 content 必须包含真双引号（未转义）
@@ -188,7 +197,8 @@ def test_classify_node_html_chunk_content_unchanged_in_segment(tmp_path):
     )
 
 
-def test_classify_node_applies_all_hooks(tmp_path):
+@pytest.mark.asyncio
+async def test_classify_node_applies_all_hooks(tmp_path):
     """classify_node 应通过 POST_CLASSIFY_HOOKS 注册表应用所有 hook。
 
     回归测试：确保重构后 hook 仍被执行（以 merge_formula_with_variables 为例）。
@@ -217,7 +227,7 @@ def test_classify_node_applies_all_hooks(tmp_path):
         return_value=mock_output,
     ):
         state = _make_state(formula_content + "\n\n" + var_content, tmp_path)
-        result = classify_node(state)
+        result = await classify_node(state)
 
     segments = result["classified_chunks"][0]["segments"]
     assert len(segments) == 1, "公式与变量说明应已合并为一个 segment"
@@ -344,7 +354,8 @@ def test_classify_llm_sends_placeholder_not_latex(tmp_path):
     assert "$4\\mathrm{g}$" not in prompt, "prompt 中不应含原始 LaTeX"
 
 
-def test_classify_node_restores_latex_in_seg_content(tmp_path):
+@pytest.mark.asyncio
+async def test_classify_node_restores_latex_in_seg_content(tmp_path):
     """classify_node 输出的 segment.content 应含还原后的原始 LaTeX。"""
     latex_text = "称取 $4\\mathrm{g}$ 试样，加热至 $80^{\\circ}C$。"
     mock_output = ClassifyOutput(segments=[
@@ -358,7 +369,7 @@ def test_classify_node_restores_latex_in_seg_content(tmp_path):
 
     with patch("parser.nodes.classify_node.invoke_structured", return_value=mock_output):
         state = _make_state(latex_text, tmp_path)
-        result = classify_node(state)
+        result = await classify_node(state)
 
     seg = result["classified_chunks"][0]["segments"][0]
     assert "$4\\mathrm{g}$" in seg["content"], "原始 LaTeX 应已还原到 segment.content"
