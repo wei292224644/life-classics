@@ -25,3 +25,10 @@ parser_node_duration_seconds = Histogram(
     ["node"],
     buckets=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0],
 )
+
+parser_workflow_duration_seconds = Histogram(
+    "parser_workflow_duration_seconds",
+    "Parser 完整流水线处理耗时（秒）",
+    ["doc_type"],
+    buckets=[0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0],
+)
