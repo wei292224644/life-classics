@@ -1,14 +1,25 @@
 from __future__ import annotations
 
 import re
+import time
 from typing import Dict, List
 
+import structlog
+from opentelemetry import trace
+
+from observability.metrics import (
+    parser_chunks_processed_total,
+    parser_node_duration_seconds,
+)
 from parser.models import (
     ClassifiedChunk,
     RawChunk,
     TypedSegment,
     WorkflowState,
 )
+
+_tracer = trace.get_tracer(__name__)
+_logger = structlog.get_logger(__name__)
 
 # 匹配表格标题行，如 "表1 xxx"、"表A.1 xxx"、"表 1 xxx"
 # 规范化后 key 去除 "表" 后的空格：表 1 → 表1
@@ -138,64 +149,88 @@ def enrich_node(state: WorkflowState) -> dict:
     - 其他引用（图/附录/章节）：只记录到 cross_refs
     未解析的表格引用追加到 errors（不中断流程）。
     """
-    raw_chunks: List[RawChunk] = state["raw_chunks"]
-    classified_chunks: List[ClassifiedChunk] = [dict(cc) for cc in state["classified_chunks"]]
-    existing_errors: List[str] = list(state.get("errors", []))
-    new_errors: List[str] = []
+    _start = time.perf_counter()
+    doc_id = state.get("doc_metadata", {}).get("doc_id", "")
+    chunks_in = len(state["classified_chunks"])
+    _logger.info("enrich_node_start", node="enrich_node", doc_id=doc_id, chunks_in=chunks_in)
 
-    # Step 1: 建表格标签索引
-    label_index = build_table_label_index(raw_chunks)
+    with _tracer.start_as_current_span("enrich_node") as span:
+        span.set_attribute("parser.node", "enrich_node")
+        span.set_attribute("parser.doc_id", doc_id)
+        span.set_attribute("parser.chunk_count.in", chunks_in)
 
-    # Step 2: 逐段处理
-    updated_chunks: List[ClassifiedChunk] = []
-    for cc in classified_chunks:
-        new_segments: List[TypedSegment] = []
-        for seg in cc["segments"]:
-            text = seg["content"]
+        raw_chunks: List[RawChunk] = state["raw_chunks"]
+        classified_chunks: List[ClassifiedChunk] = [dict(cc) for cc in state["classified_chunks"]]
+        existing_errors: List[str] = list(state.get("errors", []))
+        new_errors: List[str] = []
 
-            # 提取引用
-            table_refs = extract_table_refs(text)
-            other_refs = extract_other_refs(text)
-            all_refs = list(dict.fromkeys(table_refs + other_refs))  # 去重保序
+        # Step 1: 建表格标签索引
+        label_index = build_table_label_index(raw_chunks)
 
-            # 修改单专用：提取被修改的章节编号写入 cross_refs
-            if seg.get("semantic_type") == "amendment":
-                amendment_refs = extract_amendment_refs(text)
-                all_refs = list(dict.fromkeys(all_refs + amendment_refs))
+        # Step 2: 逐段处理
+        updated_chunks: List[ClassifiedChunk] = []
+        for cc in classified_chunks:
+            new_segments: List[TypedSegment] = []
+            for seg in cc["segments"]:
+                text = seg["content"]
 
-            # 解析表格引用
-            resolved_parts: List[str] = []
-            failed_labels: List[str] = []
-            for label in table_refs:
-                content = resolve_table_ref(label, label_index, classified_chunks)
-                if content is not None:
-                    resolved_parts.append(content)
-                else:
-                    failed_labels.append(label)
-                    new_errors.append(
-                        f"WARN: unresolved cross_ref \"{label}\" "
-                        f"in section_path {cc['raw_chunk']['section_path']} "
-                        f"— no matching raw_chunk found"
-                    )
+                # 提取引用
+                table_refs = extract_table_refs(text)
+                other_refs = extract_other_refs(text)
+                all_refs = list(dict.fromkeys(table_refs + other_refs))  # 去重保序
 
-            new_segments.append(TypedSegment(
-                content=seg["content"],
-                structure_type=seg.get("structure_type", seg.get("content_type", "")),
-                semantic_type=seg.get("semantic_type", ""),
-                transform_params=seg["transform_params"],
-                confidence=seg["confidence"],
-                escalated=seg["escalated"],
-                cross_refs=all_refs,
-                ref_context="\n\n".join(resolved_parts),
-                failed_table_refs=failed_labels,
+                # 修改单专用：提取被修改的章节编号写入 cross_refs
+                if seg.get("semantic_type") == "amendment":
+                    amendment_refs = extract_amendment_refs(text)
+                    all_refs = list(dict.fromkeys(all_refs + amendment_refs))
+
+                # 解析表格引用
+                resolved_parts: List[str] = []
+                failed_labels: List[str] = []
+                for label in table_refs:
+                    content = resolve_table_ref(label, label_index, classified_chunks)
+                    if content is not None:
+                        resolved_parts.append(content)
+                    else:
+                        failed_labels.append(label)
+                        new_errors.append(
+                            f"WARN: unresolved cross_ref \"{label}\" "
+                            f"in section_path {cc['raw_chunk']['section_path']} "
+                            f"— no matching raw_chunk found"
+                        )
+
+                new_segments.append(TypedSegment(
+                    content=seg["content"],
+                    structure_type=seg.get("structure_type", seg.get("content_type", "")),
+                    semantic_type=seg.get("semantic_type", ""),
+                    transform_params=seg["transform_params"],
+                    confidence=seg["confidence"],
+                    escalated=seg["escalated"],
+                    cross_refs=all_refs,
+                    ref_context="\n\n".join(resolved_parts),
+                    failed_table_refs=failed_labels,
+                ))
+
+            updated_chunks.append(ClassifiedChunk(
+                raw_chunk=cc["raw_chunk"],
+                segments=new_segments,
+                has_unknown=cc["has_unknown"],
             ))
 
-        updated_chunks.append(ClassifiedChunk(
-            raw_chunk=cc["raw_chunk"],
-            segments=new_segments,
-            has_unknown=cc["has_unknown"],
-        ))
+        chunks_out = len(updated_chunks)
+        span.set_attribute("parser.chunk_count.out", chunks_out)
 
+    duration = time.perf_counter() - _start
+    parser_node_duration_seconds.labels(node="enrich_node").observe(duration)
+    parser_chunks_processed_total.labels(node="enrich_node").inc(chunks_in)
+    _logger.info(
+        "enrich_node_done",
+        node="enrich_node",
+        doc_id=doc_id,
+        duration_ms=round(duration * 1000, 2),
+        chunks_in=chunks_in,
+        chunks_out=chunks_out,
+    )
     return {
         "classified_chunks": updated_chunks,
         "errors": existing_errors + new_errors,

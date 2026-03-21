@@ -1,10 +1,21 @@
 from __future__ import annotations
 
 import re
+import time
 from typing import List, Tuple
 
+import structlog
+from opentelemetry import trace
+
 from config import settings
+from observability.metrics import (
+    parser_chunks_processed_total,
+    parser_node_duration_seconds,
+)
 from parser.models import RawChunk, WorkflowState
+
+_tracer = trace.get_tracer(__name__)
+_logger = structlog.get_logger(__name__)
 
 
 def _clean_section_path_text(title: str) -> str:
@@ -162,37 +173,67 @@ def recursive_slice(
 
 
 def slice_node(state: WorkflowState) -> dict:
-    soft_max = settings.CHUNK_SOFT_MAX
-    hard_max = settings.CHUNK_HARD_MAX
-    min_chunk_size = settings.CHUNK_MIN_SIZE
-    print(f"soft_max: {soft_max}, hard_max: {hard_max}, min_chunk_size: {min_chunk_size}")
-    levels = settings.SLICE_HEADING_LEVELS
+    _start = time.perf_counter()
+    doc_id = state.get("doc_metadata", {}).get("doc_id", "")
+    chunks_in = len(state["raw_chunks"])
+    _logger.info("slice_node_start", node="slice_node", doc_id=doc_id, chunks_in=chunks_in)
 
-    md = state["md_content"]
-    errors = list(state.get("errors", []))
-    raw_chunks: List[RawChunk] = []
+    with _tracer.start_as_current_span("slice_node") as span:
+        span.set_attribute("parser.node", "slice_node")
+        span.set_attribute("parser.doc_id", doc_id)
+        span.set_attribute("parser.chunk_count.in", chunks_in)
 
-    # 如果文档中存在一级标题但配置未包含，则将 1 级标题提升为最高优先级。
-    # 这样可以兼容 GB 标准这类以 "#" 作为章节标题的文档，避免将 "# 2 技术要求" 等错算进前言块。
-    if 1 not in levels and _heading_pattern(1).search(md):
-        levels = [1] + [lvl for lvl in levels if lvl != 1]
+        soft_max = settings.CHUNK_SOFT_MAX
+        hard_max = settings.CHUNK_HARD_MAX
+        min_chunk_size = settings.CHUNK_MIN_SIZE
+        _logger.info(
+            "slice_node_config",
+            node="slice_node",
+            soft_max=soft_max,
+            hard_max=hard_max,
+            min_chunk_size=min_chunk_size,
+        )
+        levels = settings.SLICE_HEADING_LEVELS
 
-    # 前言处理：提取第一个顶级标题前的内容
-    first_heading_level = levels[0]
-    pattern = _heading_pattern(first_heading_level)
-    first_match = pattern.search(md)
-    if first_match and first_match.start() > 0:
-        preamble = md[: first_match.start()].strip()
-        if preamble:
-            raw_chunks.append(
-                RawChunk(
-                    content=preamble,
-                    section_path=["__preamble__"],
-                    char_count=len(preamble),
+        md = state["md_content"]
+        errors = list(state.get("errors", []))
+        raw_chunks: List[RawChunk] = []
+
+        # 如果文档中存在一级标题但配置未包含，则将 1 级标题提升为最高优先级。
+        # 这样可以兼容 GB 标准这类以 "#" 作为章节标题的文档，避免将 "# 2 技术要求" 等错算进前言块。
+        if 1 not in levels and _heading_pattern(1).search(md):
+            levels = [1] + [lvl for lvl in levels if lvl != 1]
+
+        # 前言处理：提取第一个顶级标题前的内容
+        first_heading_level = levels[0]
+        pattern = _heading_pattern(first_heading_level)
+        first_match = pattern.search(md)
+        if first_match and first_match.start() > 0:
+            preamble = md[: first_match.start()].strip()
+            if preamble:
+                raw_chunks.append(
+                    RawChunk(
+                        content=preamble,
+                        section_path=["__preamble__"],
+                        char_count=len(preamble),
+                    )
                 )
-            )
-        md = md[first_match.start():]
+            md = md[first_match.start():]
 
-    raw_chunks.extend(recursive_slice(md, levels, [], soft_max, hard_max, min_chunk_size, errors))
+        raw_chunks.extend(recursive_slice(md, levels, [], soft_max, hard_max, min_chunk_size, errors))
+        chunks_out = len(raw_chunks)
+        span.set_attribute("parser.chunk_count.out", chunks_out)
+
+    duration = time.perf_counter() - _start
+    parser_node_duration_seconds.labels(node="slice_node").observe(duration)
+    parser_chunks_processed_total.labels(node="slice_node").inc(chunks_in)
+    _logger.info(
+        "slice_node_done",
+        node="slice_node",
+        doc_id=doc_id,
+        duration_ms=round(duration * 1000, 2),
+        chunks_in=chunks_in,
+        chunks_out=chunks_out,
+    )
     return {"raw_chunks": raw_chunks, "errors": errors}
 

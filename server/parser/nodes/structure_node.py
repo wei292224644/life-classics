@@ -1,11 +1,24 @@
 from __future__ import annotations
 
 import re
+import time
 
+import structlog
+from opentelemetry import trace
+
+from config import settings
+from observability.metrics import (
+    llm_calls_total,
+    parser_chunks_processed_total,
+    parser_node_duration_seconds,
+)
 from parser.models import WorkflowState
-from parser.rules import RulesStore
 from parser.nodes.output import DocTypeOutput
+from parser.rules import RulesStore
 from parser.structured_llm import invoke_structured
+
+_tracer = trace.get_tracer(__name__)
+_logger = structlog.get_logger(__name__)
 
 
 def _extract_headings(md: str) -> list[str]:
@@ -65,25 +78,48 @@ def _infer_doc_type_with_llm(
         prompt=prompt,
         response_model=DocTypeOutput,
     )
+    llm_calls_total.labels(node="structure_node", model=settings.DOC_TYPE_LLM_MODEL or "unknown").inc()
     return resp.model_dump()
 
 
 def structure_node(state: WorkflowState) -> dict:
-    meta = dict(state["doc_metadata"])
-    errors = list(state.get("errors", []))
-    store = RulesStore(state["rules_dir"])
+    _start = time.perf_counter()
+    doc_id = state.get("doc_metadata", {}).get("doc_id", "")
+    _logger.info("structure_node_start", node="structure_node", doc_id=doc_id, chunks_in=1)
 
-    match = match_doc_type_by_rules(state["md_content"], store)
-    if match:
-        meta["doc_type"], meta["doc_type_source"] = match
-    else:
-        headings = _extract_headings(state["md_content"])
-        existing_types = store.get_doc_type_rules().get("doc_types", [])
-        new_rule = _infer_doc_type_with_llm(
-            headings, existing_types, state.get("config", {})
-        )
-        store.append_doc_type(new_rule)
-        meta["doc_type"] = new_rule["id"]
-        meta["doc_type_source"] = "llm"
+    with _tracer.start_as_current_span("structure_node") as span:
+        span.set_attribute("parser.node", "structure_node")
+        span.set_attribute("parser.doc_id", doc_id)
+        span.set_attribute("parser.chunk_count.in", 1)
 
+        meta = dict(state["doc_metadata"])
+        errors = list(state.get("errors", []))
+        store = RulesStore(state["rules_dir"])
+
+        match = match_doc_type_by_rules(state["md_content"], store)
+        if match:
+            meta["doc_type"], meta["doc_type_source"] = match
+        else:
+            headings = _extract_headings(state["md_content"])
+            existing_types = store.get_doc_type_rules().get("doc_types", [])
+            new_rule = _infer_doc_type_with_llm(
+                headings, existing_types, state.get("config", {})
+            )
+            store.append_doc_type(new_rule)
+            meta["doc_type"] = new_rule["id"]
+            meta["doc_type_source"] = "llm"
+
+        span.set_attribute("parser.chunk_count.out", 1)
+
+    duration = time.perf_counter() - _start
+    parser_node_duration_seconds.labels(node="structure_node").observe(duration)
+    parser_chunks_processed_total.labels(node="structure_node").inc(1)
+    _logger.info(
+        "structure_node_done",
+        node="structure_node",
+        doc_id=doc_id,
+        duration_ms=round(duration * 1000, 2),
+        chunks_in=1,
+        chunks_out=1,
+    )
     return {"doc_metadata": meta, "errors": errors}
