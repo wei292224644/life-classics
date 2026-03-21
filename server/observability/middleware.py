@@ -19,12 +19,21 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         start = time.perf_counter()
-        response = await call_next(request)
-        duration_ms = round((time.perf_counter() - start) * 1000, 2)
 
+        # 先获取当前 span context（FastAPI instrumentation 会在此之前创建 span）
         span = trace.get_current_span()
         ctx = span.get_span_context()
         trace_id = format(ctx.trace_id, "032x") if ctx.is_valid else ""
+
+        # 将 trace_id 注入到全局 structlog context，请求期间所有日志自动携带
+        structlog.contextvars.bind_contextvars(trace_id=trace_id)
+        try:
+            response = await call_next(request)
+        finally:
+            # 请求结束后清理 trace_id，避免泄漏到后续请求
+            structlog.contextvars.unbind_contextvars("trace_id")
+
+        duration_ms = round((time.perf_counter() - start) * 1000, 2)
 
         logger.info(
             "http_request",
@@ -32,6 +41,5 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             path=request.url.path,
             status_code=response.status_code,
             duration_ms=duration_ms,
-            trace_id=trace_id,
         )
         return response
