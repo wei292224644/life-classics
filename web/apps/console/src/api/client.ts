@@ -26,6 +26,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   documents: {
     list: () => request<{ documents: DocumentInfo[]; total: number }>('/documents'),
+    delete: (doc_id: string) =>
+      request<{ doc_id: string; errors: string[] }>(`/documents/${doc_id}`, { method: 'DELETE' }),
     clearAll: () =>
       request<{
         status: string
