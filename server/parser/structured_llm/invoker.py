@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from typing import Any, TypeVar
 
+import structlog
 from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 
 from config import settings
 from parser.structured_llm.client_factory import get_structured_client
 from parser.structured_llm.errors import StructuredOutputError
+
+_logger = structlog.get_logger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -131,48 +134,53 @@ def invoke_structured(
     last_error: Exception | None = None
     retry_count = 0
 
-    # for attempt in range(max_retries + 1):
-    try:
+    for attempt in range(max_retries + 1):
+        try:
+            result = create_fn(
+                model=resolved_model,
+                messages=messages,
+                response_model=response_model,
+                temperature=temperature,
+                timeout=timeout_seconds,
+                extra_body=extra_body or {},
+                **kwargs,
+            )
+            return result
+        except PydanticValidationError as e:
+            raise StructuredOutputError(
+                f"结构化输出校验失败: {node_name} {messages}",
+                provider=resolved_provider,
+                model=resolved_model,
+                node_name=node_name,
+                response_model=response_model.__name__,
+                retry_count=attempt,
+                raw_error=str(e),
+            ) from e
+        except (TimeoutError, ConnectionError) as e:
+            last_error = e
+            retry_count = attempt + 1
+            print(f"[{node_name}] 可恢复错误，第 {attempt + 1}/{max_retries + 1} 次尝试: {e}")
+            if attempt >= max_retries:
+                break
+            continue
+        except Exception as e:
+            _logger.error(
+                "structured_llm_unexpected_error",
+                node_name=node_name,
+                provider=resolved_provider,
+                model=resolved_model,
+                error=str(e),
+                messages_count=len(messages),
+            )
+            raise e
 
-        result = create_fn(
-            model=resolved_model,
-            messages=messages,
-            response_model=response_model,
-            temperature=temperature,
-            timeout=timeout_seconds,
-            extra_body=extra_body or {},
-            **kwargs,
-        )
-        return result
-    except PydanticValidationError as e:
-        raise StructuredOutputError(
-            f"结构化输出校验失败: {node_name} {messages}",
-            provider=resolved_provider,
-            model=resolved_model,
-            node_name=node_name,
-            response_model=response_model.__name__,
-            # retry_count=attempt,
-            raw_error=str(e),
-        ) from e
-    # except (TimeoutError, ConnectionError) as e:
-    #     last_error = e
-    #     retry_count = attempt + 1
-    #     if attempt >= max_retries:
-    #         break
-    #     continue
-    except Exception as e:
-        print(e)
-        print("=" * 100)
-        print(messages)
-        raise e
-
-    # raw_err = str(last_error)[:500] if last_error else "unknown"
-    # raise StructuredOutputError(
-    #     f"结构化输出调用失败（重试 {retry_count} 次）: {node_name}",
-    #     provider=resolved_provider,
-    #     model=resolved_model,
-    #     node_name=node_name,
-    #     response_model=response_model.__name__,
-    #     retry_count=retry_count,
-    #     raw_error=raw_err,
-    # ) from last_error
+    raw_err = str(last_error)[:500] if last_error else "unknown"
+    raise StructuredOutputError(
+        f"结构化输出调用失败（重试 {retry_count} 次）: {node_name}",
+        provider=resolved_provider,
+        model=resolved_model,
+        node_name=node_name,
+        response_model=response_model.__name__,
+        retry_count=retry_count,
+        raw_error=raw_err,
+    ) from last_error
