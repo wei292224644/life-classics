@@ -1,13 +1,5 @@
 <template>
   <view class="product-header">
-    <!-- Status Bar -->
-    <view
-      class="status-bar"
-      :style="{ height: statusBarHeight + 'px' }"
-    >
-      <text class="status-time">9:41</text>
-    </view>
-
     <!-- Header (fixed) -->
     <view
       class="header"

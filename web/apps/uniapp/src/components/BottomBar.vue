@@ -39,7 +39,7 @@ const emit = defineEmits<{
 
 .action-btn {
   flex: 1;
-  padding: 14px 16px;
+  padding: 12px 16px;
   border-radius: 14px;
   font-size: 14px;
   font-weight: 600;
@@ -49,6 +49,9 @@ const emit = defineEmits<{
   border: none;
   -webkit-appearance: none;
   appearance: none;
+  line-height: 1.2;
+  min-height: 0;
+  box-sizing: border-box;
 
   &:active {
     transform: scale(0.97);
@@ -61,8 +64,8 @@ const emit = defineEmits<{
 
   // Primary: pink gradient
   &.primary {
-    color: #fff;
-    background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink));
+    color: #fff !important;
+    background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink)) !important;
     box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
 
     &:hover {
@@ -73,12 +76,12 @@ const emit = defineEmits<{
 
   // Secondary: transparent with border (v14 style)
   &.secondary {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #f5f5f5;
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #f5f5f5 !important;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.06) !important;
     }
   }
 }
