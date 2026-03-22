@@ -12,8 +12,9 @@
           <text class="risk-count">{{ groupedIngredients[levelKey].length }} 项</text>
         </view>
 
-        <!-- 配料卡列表 -->
-        <view class="ingredient-scroll">
+        <!-- 横向滚动配料卡 -->
+        <scroll-view scroll-x class="ingredient-scroll">
+          <view class="ingredient-scroll-inner">
           <view
             v-for="item in groupedIngredients[levelKey]"
             :key="item.id"
@@ -53,7 +54,8 @@
               </view>
             </view>
           </view>
-        </view>
+          </view>
+        </scroll-view>
       </view>
     </template>
   </view>
@@ -158,16 +160,25 @@ function goToDetail(id: number) {
   margin-left: auto;
 }
 
-// ── 配料卡列表 ────────────────────────────────────────
+// ── 横向滚动 ──────────────────────────────────────────
 .ingredient-scroll {
+  width: 100%;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.ingredient-scroll-inner {
   display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+  flex-direction: row;
+  gap: 20rpx;
+  width: max-content;
+  padding-bottom: 8rpx;
 }
 
 // ── 配料卡片 ──────────────────────────────────────────
 .ingredient-card {
-  width: 100%;
+  flex: 0 0 auto;
+  width: 280rpx;
   border-radius: 32rpx;
   padding: 28rpx;
   position: relative;
