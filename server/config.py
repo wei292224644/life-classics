@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     # ── 服务器 ─────────────────────────────────────────────────────────────
     HOST: str = "0.0.0.0"
     PORT: int = 9999
+    # CORS Origins: "*" 适用于所有平台（浏览器/H5/微信小程序/支付宝小程序/抖音小程序）。
+    # 小程序容器内置了 CORS 处理，"*" 可满足所有平台的白名单需求。
     CORS_ORIGINS: list[str] = ["*"]
 
     # ── LLM 通用连接 ────────────────────────────────────────────────────────
@@ -95,6 +97,8 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = ""
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
+    POSTGRES_URL: str = ""  # 直接连接 URL，优先级高于上面的分项配置
+                             # 格式: postgresql+psycopg://user:password@host:port/dbname
 
     # ── 可观测性（OTel + 日志）────────────────────────────────────────────────
     OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4318"
