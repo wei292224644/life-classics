@@ -41,19 +41,18 @@ description: 评估知识库 chunk 的质量——是否最大化检索有效信
 
 ### 执行路径
 
-**先发起一次请求**（`limit=100&offset=0`）读取 `total`，再根据 `total` 选择路径：
+发起第一次请求（`limit=100&offset=0`），同时读取 `total` 并保留返回的 chunks 数据，再根据 `total` 选择路径：
 
 **路径 A：抽样（total > 50）**
 
-不拉取全量，只发起两次请求：
-1. `GET /api/chunks?doc_id=<doc_id>&limit=20&offset=0`，取前 20 个 chunks
-2. `GET /api/chunks?doc_id=<doc_id>&limit=10&offset=<floor(total/2)>`，取中间段最多 10 个 chunks（超出范围时 API 自动截断返回剩余部分）
+复用第一次请求的前 20 个 chunks，再发起第二次请求：
+- `GET /api/chunks?doc_id=<doc_id>&limit=10&offset=<floor(total/2)>`，取中间段最多 10 个 chunks（超出范围时 API 自动截断返回剩余部分）
 
-合并两次结果，共最多 30 个 chunks。
+合并两次请求的结果，共最多 30 个 chunks。总请求次数：2 次。
 
 **路径 B：全量（total ≤ 50）**
 
-第一次请求已取得全部 chunks（total ≤ 50 ≤ limit=100），直接使用该结果。
+第一次请求已取得全部 chunks（total ≤ 50 ≤ limit=100），直接使用该结果。总请求次数：1 次。
 
 ### chunk 字段映射
 
@@ -68,7 +67,7 @@ description: 评估知识库 chunk 的质量——是否最大化检索有效信
 ### 成功提示
 
 **抽样模式：**
-> "已抽样 Y 个 chunks（共 X 个）。在开始评估前，我需要了解两个问题以确定评估重点。"
+> "已抽样 Y 个 chunks（共 X 个，Y 为合并后的实际获取数量）。在开始评估前，我需要了解两个问题以确定评估重点。"
 
 **全量模式：**
 > "已读取 X 个 chunks。在开始评估前，我需要了解两个问题以确定评估重点。"
