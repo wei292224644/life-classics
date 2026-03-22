@@ -4,6 +4,7 @@ import type {
   DocumentInfo,
   KBStats,
   UpdateChunkPayload,
+  UpdateDocumentPayload,
   AgentChatRequest,
   AgentResponse,
 } from './types'
@@ -34,6 +35,11 @@ export const api = {
         deleted_documents: number
         deleted_chunks: number
       }>('/documents/clear', { method: 'DELETE' }),
+    update: (doc_id: string, payload: UpdateDocumentPayload) =>
+      request<DocumentInfo>(`/documents/${doc_id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      }),
     upload: async (
       file: File,
       onProgress: (stage: string, status: 'active' | 'done' | 'error') => void,

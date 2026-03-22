@@ -1,5 +1,6 @@
 export interface DocumentInfo {
   doc_id: string
+  title: string
   standard_no: string
   doc_type: string
   chunks_count: number
@@ -7,6 +8,7 @@ export interface DocumentInfo {
 
 export interface ChunkMetadata {
   doc_id: string
+  title: string
   standard_no: string
   doc_type: string
   semantic_type: string
@@ -63,4 +65,10 @@ export interface AgentResponse {
   content: string
   sources: SearchResult[] | null
   tool_calls: Record<string, unknown>[] | null
+}
+
+export interface UpdateDocumentPayload {
+  title?: string
+  standard_no?: string
+  doc_type?: string
 }
