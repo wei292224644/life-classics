@@ -1,0 +1,106 @@
+<script setup lang="ts">
+const emit = defineEmits<{
+  (e: 'add-record'): void;
+  (e: 'chat'): void;
+}>();
+</script>
+
+<template>
+  <view class="bottom-bar">
+    <button type="button" class="action-btn secondary" @click="emit('add-record')">
+      添加到记录
+    </button>
+    <button type="button" class="action-btn primary" @click="emit('chat')">
+      咨询 AI 助手
+    </button>
+  </view>
+</template>
+
+<style lang="scss" scoped>
+@import "~/@/styles/design-system.scss";
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 20px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 12px;
+  z-index: 40;
+
+  .dark-mode & {
+    background: rgba(15, 15, 15, 0.95);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .light-mode & {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.action-btn {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-pink);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &.primary {
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
+
+    .dark-mode & {
+      background: linear-gradient(135deg, #f472b6, #ec4899);
+    }
+
+    .light-mode & {
+      background: linear-gradient(135deg, #ec4899, #db2777);
+    }
+
+    &:hover {
+      box-shadow: 0 6px 28px rgba(236, 72, 153, 0.4);
+      transform: translateY(-1px);
+    }
+  }
+
+  &.secondary {
+    .dark-mode & {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    .light-mode & {
+      background: rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      color: #111;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.08);
+      }
+    }
+  }
+}
+</style>
