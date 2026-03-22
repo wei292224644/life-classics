@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -13,4 +15,9 @@ class DocumentsListResponse(BaseModel):
     documents: list[DocumentInfo]
     total: int
 
+
+class UpdateDocumentRequest(BaseModel):
+    title: Optional[str] = None
+    standard_no: Optional[str] = None
+    doc_type: Optional[str] = None
 
