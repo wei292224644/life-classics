@@ -3,7 +3,6 @@
     <!-- Status Bar -->
     <view
       class="status-bar"
-      :class="{ 'light-mode': isLight }"
       :style="{ height: statusBarHeight + 'px' }"
     >
       <text class="status-time">9:41</text>
@@ -12,41 +11,28 @@
     <!-- Header (fixed) -->
     <view
       class="header"
-      :class="{ 'header--scrolled': isScrolled, 'light-mode': isLight }"
+      :class="{ 'header--scrolled': isScrolled }"
       :style="{ top: statusBarHeight + 'px' }"
     >
       <button type="button" class="header-btn" aria-label="返回" @click="handleBack">
-        <up-icon name="arrow-left" size="18" :color="isLight ? '#111' : '#fff'" />
+        <up-icon name="arrow-left" size="18" color="#fff" />
       </button>
       <text class="header-title">{{ name }}</text>
       <button type="button" class="header-btn" aria-label="分享" @click="handleShare">
-        <up-icon name="share" size="18" :color="isLight ? '#111' : '#fff'" />
+        <up-icon name="share" size="18" color="#fff" />
       </button>
-    </view>
-
-    <!-- Banner -->
-    <view class="banner" :class="{ 'light-mode': isLight }">
-      <view class="banner-content">
-        <image v-if="imageUrl" :src="imageUrl" class="banner-image" mode="aspectFill" />
-        <text v-else class="banner-emoji">🍎</text>
-        <text class="banner-label">产品图片</text>
-      </view>
-      <view class="banner-badge" :class="{ 'light-mode': isLight }">
-        <up-icon name="checkmark-circle" size="14" color="var(--risk-t0)" />
-        <text class="banner-badge-text">低风险</text>
-      </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useSystemInfo } from "../utils/system";
 
 interface Props {
   name: string;
   imageUrl?: string;
-  overallRiskLevel: string; // "t0"|"t1"|"t2"|"t3"|"t4"|"unknown"
+  overallRiskLevel: string;
 }
 
 const props = defineProps<Props>();
@@ -54,23 +40,14 @@ const props = defineProps<Props>();
 const { statusBarHeight } = useSystemInfo();
 
 const isScrolled = ref(false);
-const isDark = ref(true); // Default to dark mode
-
-const isLight = computed(() => !isDark.value);
 
 // Expose updateScroll for parent page to call
 function updateScroll(scrollTop: number) {
   isScrolled.value = scrollTop > 60;
 }
 
-// Expose setTheme for parent page to call
-function setTheme(dark: boolean) {
-  isDark.value = dark;
-}
-
 defineExpose({
   updateScroll,
-  setTheme,
 });
 
 function handleBack() {
@@ -86,8 +63,12 @@ function handleShare() {
 @import "@/styles/design-system.scss";
 
 .product-header {
-  position: relative;
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  pointer-events: none;
 }
 
 // Status Bar
@@ -97,15 +78,14 @@ function handleShare() {
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 50;
-  background: var(--status-bar-bg);
-  border-bottom: 1px solid var(--status-bar-border);
+  background: transparent;
+  pointer-events: none;
 
   .status-time {
     font-size: 14px;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: var(--status-bar-text);
+    color: #fff;
   }
 }
 
@@ -113,14 +93,14 @@ function handleShare() {
 .header {
   position: fixed;
   width: 100%;
-  z-index: 50;
   padding: 8px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
   left: 0;
-  background: var(--header-bg);
+  background: transparent;
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: auto;
 
   &--scrolled {
     background: var(--header-scrolled-bg);
@@ -139,8 +119,10 @@ function handleShare() {
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.3);
   border: none;
+  -webkit-appearance: none;
+  appearance: none;
 
   &:active {
     transform: scale(0.92);
@@ -158,94 +140,12 @@ function handleShare() {
   flex: 1;
   letter-spacing: -0.02em;
   transition: color 0.3s;
-  color: var(--header-text);
-}
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 
-// Banner
-.banner {
-  height: 260px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: var(--banner-bg);
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
+  .header--scrolled & {
+    color: var(--text-primary);
+    text-shadow: none;
   }
-
-  &.light-mode::before {
-    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(251, 191, 36, 0.3) 0%, transparent 60%);
-  }
-
-  &:not(.light-mode)::before {
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34, 197, 94, 0.08) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
-  }
-}
-
-.banner-content {
-  text-align: center;
-  position: relative;
-  z-index: 1;
-}
-
-.banner-image {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-  object-fit: cover;
-}
-
-.banner-emoji {
-  font-size: 80px;
-  margin-bottom: 8px;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.3));
-  animation: floatIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  opacity: 0;
-  transform: scale(0.8);
-  transform-origin: center;
-
-  .light-mode & {
-    filter: drop-shadow(0 8px 24px rgba(251, 191, 36, 0.3));
-  }
-}
-
-.banner-label {
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  color: var(--banner-label);
-}
-
-// Banner Badge (低风险徽章)
-.banner-badge {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  border-radius: 14px;
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  animation: slideUp 0.6s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  opacity: 0;
-  transform: translateY(10px);
-
-  background: var(--banner-badge-bg);
-  border: 1px solid var(--banner-badge-border);
-  box-shadow: var(--banner-badge-shadow);
-}
-
-.banner-badge-text {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--risk-t0);
 }
 </style>

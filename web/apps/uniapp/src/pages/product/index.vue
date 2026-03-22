@@ -1,6 +1,6 @@
 <template>
   <view class="product-page dark-mode">
-    <!-- ProductHeader: status-bar (44px) + fixed header + banner (260px) -->
+    <!-- ProductHeader: status-bar (44px) + fixed header -->
     <ProductHeader
       ref="headerRef"
       :name="store.product?.name ?? ''"
@@ -33,6 +33,19 @@
       scroll-y
       @scroll="onScroll"
     >
+      <!-- Product Banner (hero image) - inside scroll for full-screen effect -->
+      <view class="product-banner">
+        <image v-if="store.product.image_url_list?.[0]" :src="store.product.image_url_list[0]" class="banner-img" mode="aspectFill" />
+        <view v-else class="banner-placeholder">
+          <text class="banner-emoji">🍎</text>
+        </view>
+        <!-- Low risk badge -->
+        <view class="banner-badge">
+          <up-icon name="checkmark-circle" size="14" color="var(--risk-t0)" />
+          <text class="banner-badge-text">低风险</text>
+        </view>
+      </view>
+
       <view class="content">
         <!-- Nutrition Card -->
         <NutritionCard :nutritions="store.product.nutritions" />
@@ -162,6 +175,70 @@ const overallRiskLevel = computed(() => {
   background: var(--bg-base);
 }
 
+// Product hero banner - full width, inside scroll area
+.product-banner {
+  width: 100%;
+  height: 320px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34, 197, 94, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+    z-index: 1;
+  }
+}
+
+.banner-img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+}
+
+.banner-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-emoji {
+  font-size: 120px;
+  filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.4));
+  animation: floatIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.banner-badge {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  border-radius: 14px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 2;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.3));
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.banner-badge-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--risk-t0);
+}
+
 .status-center {
   position: fixed;
   top: 0;
@@ -174,6 +251,7 @@ const overallRiskLevel = computed(() => {
   justify-content: center;
   gap: 48rpx;
   z-index: 10;
+  background: var(--bg-base);
 }
 
 .status-text {
@@ -191,7 +269,7 @@ const overallRiskLevel = computed(() => {
 }
 
 .content {
-  padding: calc(44px + 260px) 40rpx 200rpx;
+  padding: 0 40rpx 200rpx;
 }
 
 .section-title {
@@ -200,5 +278,6 @@ const overallRiskLevel = computed(() => {
   letter-spacing: -0.02em;
   color: var(--text-primary);
   margin-bottom: 28rpx;
+  margin-top: 48rpx;
 }
 </style>

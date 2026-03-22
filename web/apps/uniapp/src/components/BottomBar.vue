@@ -45,8 +45,10 @@ const emit = defineEmits<{
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  border: none;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 0;
+  -webkit-appearance: none;
+  appearance: none;
 
   &:focus-visible {
     outline: 2px solid var(--accent-pink);
