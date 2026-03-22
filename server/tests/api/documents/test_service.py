@@ -113,3 +113,66 @@ async def test_upload_document_stream_utf8_error():
     payload = json.loads(results[0].removeprefix("data: ").rstrip())
     assert payload["type"] == "error"
     assert "UTF-8" in payload["message"]
+
+
+def test_update_document_updates_all_chunks():
+    """update_document 应更新该 doc 所有 chunk 的指定 metadata 字段"""
+    from api.documents.service import DocumentsService
+
+    mock_col = MagicMock()
+    mock_col.get.return_value = {
+        "ids": ["c1", "c2"],
+        "metadatas": [
+            _make_meta("d1", "GB 2762-2022", "food_safety", title="旧标题"),
+            _make_meta("d1", "GB 2762-2022", "food_safety", title="旧标题"),
+        ],
+    }
+
+    with patch("api.documents.service.get_collection", return_value=mock_col):
+        result = DocumentsService.update_document("d1", {"title": "新标题"})
+
+    mock_col.update.assert_called_once()
+    call_kwargs = mock_col.update.call_args.kwargs
+    assert set(call_kwargs["ids"]) == {"c1", "c2"}
+    for meta in call_kwargs["metadatas"]:
+        assert meta["title"] == "新标题"
+        assert meta["standard_no"] == "GB 2762-2022"
+
+    assert result["doc_id"] == "d1"
+    assert result["title"] == "新标题"
+    assert result["chunks_count"] == 2
+
+
+def test_update_document_returns_404_when_no_chunks():
+    """doc_id 不存在时应抛出 ValueError"""
+    from api.documents.service import DocumentsService
+
+    mock_col = MagicMock()
+    mock_col.get.return_value = {"ids": [], "metadatas": []}
+
+    with patch("api.documents.service.get_collection", return_value=mock_col):
+        with pytest.raises(ValueError, match="not found"):
+            DocumentsService.update_document("nonexistent", {"title": "x"})
+
+
+def test_update_document_only_updates_provided_fields():
+    """只更新传入的字段，未传字段保持原值"""
+    from api.documents.service import DocumentsService
+
+    mock_col = MagicMock()
+    mock_col.get.return_value = {
+        "ids": ["c1"],
+        "metadatas": [
+            _make_meta("d1", "GB 2762-2022", "food_safety", title="原标题"),
+        ],
+    }
+
+    with patch("api.documents.service.get_collection", return_value=mock_col):
+        result = DocumentsService.update_document("d1", {"doc_type": "method"})
+
+    call_kwargs = mock_col.update.call_args.kwargs
+    meta = call_kwargs["metadatas"][0]
+    assert meta["doc_type"] == "method"
+    assert meta["title"] == "原标题"
+    assert meta["standard_no"] == "GB 2762-2022"
+    assert result["doc_type"] == "method"

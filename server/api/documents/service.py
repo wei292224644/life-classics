@@ -79,6 +79,43 @@ class DocumentsService:
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
     @staticmethod
+    def update_document(doc_id: str, fields: dict[str, Any]) -> dict[str, Any]:
+        """
+        更新该文档所有 chunks 的指定 metadata 字段。
+        fields: 只包含要更新的键（title / standard_no / doc_type），不传的字段保持原值。
+        Raises ValueError if doc_id not found.
+        """
+        collection = get_collection()
+        result = collection.get(
+            where={"doc_id": {"$eq": doc_id}},
+            include=["metadatas"],
+        )
+        ids = result.get("ids") or []
+        metadatas = result.get("metadatas") or []
+
+        if not ids:
+            raise ValueError(f"Document '{doc_id}' not found")
+
+        updated_metadatas = []
+        for meta in metadatas:
+            new_meta = dict(meta)
+            for key, value in fields.items():
+                if value is not None:
+                    new_meta[key] = value
+            updated_metadatas.append(new_meta)
+
+        collection.update(ids=ids, metadatas=updated_metadatas)
+
+        first = updated_metadatas[0]
+        return {
+            "doc_id": doc_id,
+            "title": first.get("title", ""),
+            "standard_no": first.get("standard_no", ""),
+            "doc_type": first.get("doc_type", ""),
+            "chunks_count": len(ids),
+        }
+
+    @staticmethod
     def clear_all() -> dict[str, Any]:
         """
         清空所有文档和 chunks（ChromaDB + FTS）。
