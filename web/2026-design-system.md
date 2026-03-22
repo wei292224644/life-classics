@@ -51,9 +51,12 @@
 ### 2.3 强调色
 
 ```css
---accent-pink: #ec4899;        /* 暗色主按钮 */
+/* 暗色模式 */
+--accent-pink: #ec4899;
 --accent-pink-light: #f472b6;
---accent-pink: #db2777;         /* 亮色主按钮 */
+
+/* 亮色模式 */
+--accent-pink: #db2777;
 --accent-pink-light: #ec4899;
 ```
 
