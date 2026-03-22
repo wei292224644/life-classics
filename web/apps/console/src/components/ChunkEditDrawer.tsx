@@ -137,17 +137,19 @@ export function ChunkEditDrawer({ chunk, open, onClose, onSaved }: Props) {
           )}
 
           {/* doc metadata (read-only) */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground uppercase tracking-wide">
-              文档元数据（只读）
-            </label>
-            <div className="text-xs text-muted-foreground bg-muted rounded px-3 py-2 flex flex-col gap-1">
-              <div><span className="opacity-60">doc_id: </span>{chunk?.metadata.doc_id}</div>
-              <div><span className="opacity-60">title: </span>{chunk?.metadata.title || '—'}</div>
-              <div><span className="opacity-60">standard_no: </span>{chunk?.metadata.standard_no}</div>
-              <div><span className="opacity-60">doc_type: </span>{chunk?.metadata.doc_type}</div>
+          {chunk && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-muted-foreground uppercase tracking-wide">
+                文档元数据（只读）
+              </label>
+              <div className="text-xs text-muted-foreground bg-muted rounded px-3 py-2 flex flex-col gap-1">
+                <div><span className="opacity-60">doc_id: </span>{chunk.metadata.doc_id}</div>
+                <div><span className="opacity-60">title: </span>{chunk.metadata.title || '—'}</div>
+                <div><span className="opacity-60">standard_no: </span>{chunk.metadata.standard_no}</div>
+                <div><span className="opacity-60">doc_type: </span>{chunk.metadata.doc_type}</div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <SheetFooter>

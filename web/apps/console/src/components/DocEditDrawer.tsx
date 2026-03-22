@@ -27,6 +27,10 @@ export function DocEditDrawer({ doc, open, onClose, onSaved }: Props) {
       setTitle(doc.title)
       setStandardNo(doc.standard_no)
       setDocType(doc.doc_type)
+    } else {
+      setTitle('')
+      setStandardNo('')
+      setDocType('')
     }
   }, [doc])
 
