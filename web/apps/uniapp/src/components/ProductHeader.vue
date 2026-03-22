@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useSystemInfo } from "../../utils/system";
+import { useSystemInfo } from "../utils/system";
 
 interface Props {
   name: string;
@@ -83,7 +83,7 @@ function handleShare() {
 </script>
 
 <style lang="scss" scoped>
-@import "~/@/styles/design-system.scss";
+@import "@/styles/design-system.scss";
 
 .product-header {
   position: relative;

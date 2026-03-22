@@ -1,5 +1,5 @@
 <template>
-  <view class="product-page">
+  <view class="product-page light-mode">
     <!-- ProductHeader: status-bar (44px) + fixed header + banner (260px) -->
     <ProductHeader
       ref="headerRef"
@@ -155,7 +155,7 @@ const overallRiskLevel = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "~/@/styles/design-system.scss";
+@import "@/styles/design-system.scss";
 
 .product-page {
   min-height: 100vh;
