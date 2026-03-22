@@ -162,8 +162,9 @@ function goToDetail(id: number) {
 
 // ── 横向滚动 ──────────────────────────────────────────
 .ingredient-scroll {
-  width: 100%;
-
+  // 负边距让 scroll-view 延伸到父级 padding 边缘
+  margin: 0 -32rpx;
+  // 不能 overflow:hidden，否则会破坏滚动
   &::-webkit-scrollbar { display: none; }
 }
 
@@ -172,7 +173,8 @@ function goToDetail(id: number) {
   flex-direction: row;
   gap: 20rpx;
   width: max-content;
-  padding-bottom: 8rpx;
+  // 两侧 padding 补回父级 padding，末尾留出视觉呼吸
+  padding: 0 32rpx 8rpx;
 }
 
 // ── 配料卡片 ──────────────────────────────────────────
