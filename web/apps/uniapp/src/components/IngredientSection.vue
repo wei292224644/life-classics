@@ -162,9 +162,12 @@ function goToDetail(id: number) {
 
 // ── 横向滚动 ──────────────────────────────────────────
 .ingredient-scroll {
-  // 负边距让 scroll-view 延伸到父级 padding 边缘
-  margin: 0 -32rpx;
-  // 不能 overflow:hidden，否则会破坏滚动
+  // UniApp H5 的 uni-scroll-view 外层 wrapper 是 overflow:visible
+  // 用 :deep 强制 clip，使内容不溢出父级
+  :deep(.uni-scroll-view:first-child) {
+    overflow: hidden;
+  }
+
   &::-webkit-scrollbar { display: none; }
 }
 
@@ -173,8 +176,7 @@ function goToDetail(id: number) {
   flex-direction: row;
   gap: 20rpx;
   width: max-content;
-  // 两侧 padding 补回父级 padding，末尾留出视觉呼吸
-  padding: 0 32rpx 8rpx;
+  padding-bottom: 8rpx;
 }
 
 // ── 配料卡片 ──────────────────────────────────────────
