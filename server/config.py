@@ -95,6 +95,8 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = ""
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
+    POSTGRES_URL: str = ""  # 直接连接 URL，优先级高于上面的分项配置
+                             # 格式: postgresql+psycopg://user:password@host:port/dbname
 
     # ── 可观测性（OTel + 日志）────────────────────────────────────────────────
     OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4318"
