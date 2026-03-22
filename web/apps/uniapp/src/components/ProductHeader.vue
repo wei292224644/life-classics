@@ -96,6 +96,8 @@ function handleShare() {
   justify-content: center;
   background: transparent;
   border: none;
+  box-shadow: none;
+  outline: none;
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
