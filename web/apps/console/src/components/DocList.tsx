@@ -1,6 +1,5 @@
-// admin/src/components/DocList.tsx
 import { useState, useMemo } from 'react'
-import { Trash2, Loader2 } from 'lucide-react'
+import { Trash2, Loader2, Pencil, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,17 +15,21 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { DocumentInfo } from '@/api/types'
 
+const PAGE_SIZE = 20
+
 interface Props {
   documents: DocumentInfo[]
   loading: boolean
   selectedDocId: string | null
   onSelect: (docId: string) => void
   onDelete: (docId: string) => Promise<void>
+  onEdit: (doc: DocumentInfo) => void
   deletingDocId: string | null
 }
 
-export function DocList({ documents, loading, selectedDocId, onSelect, onDelete, deletingDocId }: Props) {
+export function DocList({ documents, loading, selectedDocId, onSelect, onDelete, onEdit, deletingDocId }: Props) {
   const [query, setQuery] = useState('')
+  const [page, setPage] = useState(1)
 
   const filtered = useMemo(() => {
     if (!query.trim()) return documents
@@ -35,9 +38,19 @@ export function DocList({ documents, loading, selectedDocId, onSelect, onDelete,
       d =>
         d.standard_no.toLowerCase().includes(q) ||
         d.doc_type.toLowerCase().includes(q) ||
-        d.doc_id.toLowerCase().includes(q),
+        d.doc_id.toLowerCase().includes(q) ||
+        (d.title || '').toLowerCase().includes(q),
     )
   }, [documents, query])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+  function handleQueryChange(value: string) {
+    setQuery(value)
+    setPage(1)
+  }
 
   return (
     <div className="flex flex-col h-full border-r border-border">
@@ -45,7 +58,7 @@ export function DocList({ documents, loading, selectedDocId, onSelect, onDelete,
         <Input
           placeholder="搜索文档..."
           value={query}
-          onChange={e => setQuery(e.target.value)}
+          onChange={e => handleQueryChange(e.target.value)}
           className="h-8 text-sm bg-secondary"
         />
       </div>
@@ -62,7 +75,7 @@ export function DocList({ documents, loading, selectedDocId, onSelect, onDelete,
           </p>
         ) : (
           <div className="p-2 flex flex-col gap-1">
-            {filtered.map(doc => {
+            {paged.map(doc => {
               const isDeleting = deletingDocId === doc.doc_id
               return (
                 <DocItem
@@ -72,12 +85,35 @@ export function DocList({ documents, loading, selectedDocId, onSelect, onDelete,
                   isDeleting={isDeleting}
                   onSelect={onSelect}
                   onDelete={onDelete}
+                  onEdit={onEdit}
                 />
               )
             })}
           </div>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="border-t border-border px-3 py-2 flex items-center justify-between text-xs text-muted-foreground">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="p-1 rounded hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="上一页"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </button>
+          <span>第 {currentPage} / {totalPages} 页</span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="p-1 rounded hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="下一页"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -88,9 +124,10 @@ interface DocItemProps {
   isDeleting: boolean
   onSelect: (docId: string) => void
   onDelete: (docId: string) => Promise<void>
+  onEdit: (doc: DocumentInfo) => void
 }
 
-function DocItem({ doc, selected, isDeleting, onSelect, onDelete }: DocItemProps) {
+function DocItem({ doc, selected, isDeleting, onSelect, onDelete, onEdit }: DocItemProps) {
   const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [hovered, setHovered] = useState(false)
@@ -113,7 +150,7 @@ function DocItem({ doc, selected, isDeleting, onSelect, onDelete }: DocItemProps
     >
       <button
         onClick={() => onSelect(doc.doc_id)}
-        className={`w-full text-left px-3 py-2 rounded-md transition-colors text-sm pr-8 ${
+        className={`w-full text-left px-3 py-2 rounded-md transition-colors text-sm pr-14 ${
           selected
             ? 'bg-accent/20 border-l-2 border-accent'
             : 'hover:bg-secondary'
@@ -130,6 +167,16 @@ function DocItem({ doc, selected, isDeleting, onSelect, onDelete }: DocItemProps
         </div>
       </button>
 
+      {/* 编辑按钮 */}
+      <button
+        onClick={e => { e.stopPropagation(); onEdit(doc) }}
+        className={`absolute right-7 top-1/2 -translate-y-1/2 p-1 rounded transition-opacity hover:bg-secondary ${hovered ? 'opacity-100' : 'opacity-0'}`}
+        aria-label="编辑文档"
+      >
+        <Pencil className="h-3.5 w-3.5" />
+      </button>
+
+      {/* 删除按钮 */}
       <button
         onClick={e => { e.stopPropagation(); setOpen(true) }}
         disabled={isDeleting}
