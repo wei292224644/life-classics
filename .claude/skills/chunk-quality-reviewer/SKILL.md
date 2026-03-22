@@ -11,19 +11,66 @@ description: 评估知识库 chunk 的质量——是否最大化检索有效信
 - **doc_id**（必填）：要评估的文档 ID，用于通过 API 获取该文档下的所有 chunks
 - **当前切分策略**（可选）：用户正在使用的策略名称（如 `heading_strategy`、`structured_strategy`）
 
-## Phase 1：读取数据
+## Phase 1：获取数据
 
-使用 `Read` tool 读取指定 JSON 文件。根据用户指定的字段路径，提取所有 chunks 的 `content` 和 `meta`（或用户指定的其他字段）。
+使用 `WebFetch` tool 调用本地 API 获取指定文档下的所有 chunks。
 
-字段路径支持两种格式：
-- 点分路径：`node_output.final_chunks` → 按层级逐级访问
-- 带 `[*]` 的数组展开：`node_output.final_chunks[*].content` → 提取数组中每个元素的指定字段
+服务地址固定为 `http://localhost:9999`，请求路径：`GET /api/chunks?doc_id=<doc_id>&limit=<limit>&offset=<offset>`
 
-若读取失败或路径不存在，告知用户：
-> "无法在文件中找到路径 `[路径]`，请检查路径是否正确。文件顶层字段为：[列出顶层 key]"
+响应结构：
+```json
+{
+  "chunks": [{ "id": "...", "content": "...", "metadata": {} }],
+  "total": 123,
+  "limit": 100,
+  "offset": 0
+}
+```
+
+`metadata` 包含字段：`doc_id`、`title`、`standard_no`、`doc_type`、`semantic_type`、`section_path`、`raw_content`
+
+### 错误处理
+
+**请求失败（非 200）：**
+> "服务请求失败（HTTP [状态码]），请确认服务是否正常运行于 localhost:9999。"
 然后停止。
 
-读取成功后，告知用户：
+**请求成功但 chunks 为空（total=0）：**
+> "doc_id `[doc_id]` 下没有 chunks，请确认该文档已上传并完成处理。"
+然后停止。
+
+### 执行路径
+
+**先发起一次请求**（`limit=100&offset=0`）读取 `total`，再根据 `total` 选择路径：
+
+**路径 A：抽样（total > 50）**
+
+不拉取全量，只发起两次请求：
+1. `GET /api/chunks?doc_id=<doc_id>&limit=20&offset=0`，取前 20 个 chunks
+2. `GET /api/chunks?doc_id=<doc_id>&limit=10&offset=<floor(total/2)>`，取中间段最多 10 个 chunks（超出范围时 API 自动截断返回剩余部分）
+
+合并两次结果，共最多 30 个 chunks。
+
+**路径 B：全量（total ≤ 50）**
+
+第一次请求已取得全部 chunks（total ≤ 50 ≤ limit=100），直接使用该结果。
+
+### chunk 字段映射
+
+| 用途 | 字段 |
+|------|------|
+| chunk 标识（在问题清单中标识 chunk） | `metadata.section_path`（如有）；否则用 `id` |
+| 分析正文 | `content` |
+| 辅助信息 | `metadata`（作为分析上下文的参考） |
+
+`metadata.semantic_type` 作为分析先验：类型为 `metadata` 的 chunk 通常信息密度低，在问题清单中注明"此 chunk 为文档元数据，信息密度低属预期行为"，而非视为缺陷。
+
+### 成功提示
+
+**抽样模式：**
+> "已抽样 Y 个 chunks（共 X 个）。在开始评估前，我需要了解两个问题以确定评估重点。"
+
+**全量模式：**
 > "已读取 X 个 chunks。在开始评估前，我需要了解两个问题以确定评估重点。"
 
 ## Phase 2：情境问诊
