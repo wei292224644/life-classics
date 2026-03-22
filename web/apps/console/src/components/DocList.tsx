@@ -156,7 +156,7 @@ function DocItem({ doc, selected, isDeleting, onSelect, onDelete, onEdit }: DocI
             : 'hover:bg-secondary'
         }`}
       >
-        <div className="font-medium text-foreground truncate">
+        <div className="font-medium text-foreground break-words leading-snug">
           {doc.title || doc.doc_id}
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
