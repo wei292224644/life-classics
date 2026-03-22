@@ -119,7 +119,7 @@ function handleShare() {
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: rgba(0, 0, 0, 0.3);
+  background: transparent;
   border: none;
   -webkit-appearance: none;
   appearance: none;

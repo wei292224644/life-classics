@@ -1,13 +1,17 @@
 // ============================================================
-// 2026 Design System — Global CSS Variables
+// 2026 Design System — CSS Variables
 // UniApp + Vue 3 + SCSS
+//
+// CSS variables are defined on `page` element.
+// Components use var(--xxx) to reference these.
+// Theme switching: add/remove .dark-mode class on page element.
+//
 // ============================================================
 
 // ============================================================
-// SCSS Variables (compile-time constants)
+// SCSS Variables (compile-time constants, output as-is)
 // ============================================================
 
-// Font family
 $font-family: 'DM Sans', -apple-system, sans-serif;
 
 // Spacing (4px grid)
@@ -30,14 +34,85 @@ $radius-phone: 44rpx;
 $ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
 // ============================================================
-// CSS Custom Properties — Dark Mode (default)
+// CSS Custom Properties — Light Mode (DEFAULT)
+// Defined on `page` element
 // ============================================================
 
 page {
   // Background
+  --bg-base: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f9fafb;
+
+  // Text
+  --text-primary: #111111;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+
+  // Border
+  --border-color: rgba(0, 0, 0, 0.06);
+
+  // Risk colors
+  --risk-t4: #dc2626;
+  --risk-t3: #ea580c;
+  --risk-t2: #ca8a04;
+  --risk-t0: #16a34a;
+  --risk-unknown: #9ca3af;
+
+  // Accent
+  --accent-pink: #db2777;
+  --accent-pink-light: #ec4899;
+
+  // Nutrition card
+  --nutrition-bg: rgba(34, 197, 94, 0.04);
+  --nutrition-border: rgba(34, 197, 94, 0.12);
+  --nutrition-glow: rgba(34, 197, 94, 0.2);
+
+  // Header
+  --header-bg: rgba(255, 255, 255, 0);
+  --header-scrolled-bg: rgba(255, 255, 255, 0.9);
+  --header-text: rgba(0, 0, 0, 0.8);
+
+  // Banner
+  --banner-bg: linear-gradient(145deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%);
+  --banner-label: #92400e;
+  --banner-badge-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.25));
+  --banner-badge-border: rgba(34, 197, 94, 0.25);
+  --banner-badge-shadow: 0 4px 20px rgba(34, 197, 94, 0.15);
+
+  // Status bar
+  --status-bar-bg: #ffffff;
+  --status-bar-border: rgba(0, 0, 0, 0.04);
+  --status-bar-text: #111111;
+
+  // Risk group backgrounds (light mode)
+  --risk-t4-bg: rgba(254, 226, 226);
+  --risk-t4-border: rgba(252, 165, 165, 0.3);
+  --risk-t3-bg: rgba(254, 235, 200);
+  --risk-t3-border: rgba(252, 196, 110, 0.4);
+  --risk-t2-bg: rgba(254, 249, 195);
+  --risk-t2-border: rgba(250, 240, 137, 0.4);
+  --risk-t0-bg: rgba(220, 252, 231);
+  --risk-t0-border: rgba(187, 247, 208, 0.5);
+  --risk-unknown-bg: rgba(229, 231, 235);
+  --risk-unknown-border: rgba(209, 213, 219, 0.5);
+
+  // Bottom bar
+  --bottom-bar-bg: rgba(255, 255, 255, 0.95);
+  --bottom-bar-border: rgba(0, 0, 0, 0.06);
+  --bottom-bar-shadow: 0 -8px 32px rgba(0, 0, 0, 0.06);
+}
+
+// ============================================================
+// CSS Custom Properties — Dark Mode
+// Add .dark-mode class to page element to activate
+// ============================================================
+
+page.dark-mode {
+  // Background
   --bg-base: #0f0f0f;
   --bg-card: #1a1a1a;
-  --bg-card-hover: #222;
+  --bg-card-hover: #222222;
 
   // Text
   --text-primary: #f5f5f5;
@@ -66,51 +141,36 @@ page {
   // Header
   --header-bg: rgba(15, 15, 15, 0);
   --header-scrolled-bg: rgba(20, 20, 20, 0.88);
+  --header-text: rgba(255, 255, 255, 0.9);
 
-  // Banner label
+  // Banner
+  --banner-bg: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%);
   --banner-label: #6b7280;
-}
+  --banner-badge-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.3));
+  --banner-badge-border: rgba(34, 197, 94, 0.3);
+  --banner-badge-shadow: 0 4px 20px rgba(34, 197, 94, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
-// ============================================================
-// CSS Custom Properties — Light Mode
-// ============================================================
+  // Status bar
+  --status-bar-bg: transparent;
+  --status-bar-border: transparent;
+  --status-bar-text: #ffffff;
 
-.light-mode {
-  // Background
-  --bg-base: #f5f5f5;
-  --bg-card: #ffffff;
-  --bg-card-hover: #f9fafb;
+  // Risk group backgrounds (dark mode)
+  --risk-t4-bg: rgba(239, 68, 68, 0.08);
+  --risk-t4-border: rgba(239, 68, 68, 0.15);
+  --risk-t3-bg: rgba(249, 115, 22, 0.08);
+  --risk-t3-border: rgba(249, 115, 22, 0.15);
+  --risk-t2-bg: rgba(234, 179, 8, 0.08);
+  --risk-t2-border: rgba(234, 179, 8, 0.15);
+  --risk-t0-bg: rgba(34, 197, 94, 0.08);
+  --risk-t0-border: rgba(34, 197, 94, 0.15);
+  --risk-unknown-bg: rgba(156, 163, 175, 0.08);
+  --risk-unknown-border: rgba(156, 163, 175, 0.15);
 
-  // Text
-  --text-primary: #111;
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
-
-  // Border
-  --border-color: rgba(0, 0, 0, 0.06);
-
-  // Risk colors
-  --risk-t4: #dc2626;
-  --risk-t3: #ea580c;
-  --risk-t2: #ca8a04;
-  --risk-t0: #16a34a;
-  --risk-unknown: #9ca3af;
-
-  // Accent
-  --accent-pink: #db2777;
-  --accent-pink-light: #ec4899;
-
-  // Nutrition card
-  --nutrition-bg: rgba(34, 197, 94, 0.04);
-  --nutrition-border: rgba(34, 197, 94, 0.12);
-  --nutrition-glow: rgba(34, 197, 94, 0.2);
-
-  // Header
-  --header-bg: rgba(255, 255, 255, 0);
-  --header-scrolled-bg: rgba(255, 255, 255, 0.9);
-
-  // Banner label
-  --banner-label: #92400e;
+  // Bottom bar
+  --bottom-bar-bg: rgba(15, 15, 15, 0.95);
+  --bottom-bar-border: rgba(255, 255, 255, 0.06);
+  --bottom-bar-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
 }
 
 // ============================================================
@@ -118,6 +178,10 @@ page {
 // ============================================================
 
 @keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16rpx);
+  }
   to {
     opacity: 1;
     transform: translateY(0);
@@ -125,9 +189,24 @@ page {
 }
 
 @keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes slideUpBadge {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -139,13 +218,10 @@ page {
   .banner-emoji,
   .nutrition-card,
   .health-card,
-  .advice-card {
+  .advice-card,
+  .banner-badge {
     animation: none !important;
-    opacity: 1;
-    transform: none;
-  }
-
-  * {
-    transition-duration: 0.01ms !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

@@ -46,19 +46,20 @@ const emit = defineEmits<{
   font-family: inherit;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 0;
+  border: none;
   -webkit-appearance: none;
   appearance: none;
+
+  &:active {
+    transform: scale(0.97);
+  }
 
   &:focus-visible {
     outline: 2px solid var(--accent-pink);
     outline-offset: 2px;
   }
 
-  &:active {
-    transform: scale(0.97);
-  }
-
+  // Primary: pink gradient
   &.primary {
     color: #fff;
     background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink));
@@ -70,13 +71,14 @@ const emit = defineEmits<{
     }
   }
 
+  // Secondary: transparent with border (v14 style)
   &.secondary {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f5f5f5;
 
     &:hover {
-      background: var(--bg-card-hover);
+      background: rgba(255, 255, 255, 0.06);
     }
   }
 }

@@ -127,6 +127,8 @@ export default {
   padding: 20rpx;
   background: transparent;
   border: none;
+  -webkit-appearance: none;
+  appearance: none;
   font-size: 26rpx;
   font-weight: 500;
   font-family: inherit;

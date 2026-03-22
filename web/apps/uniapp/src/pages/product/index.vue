@@ -17,13 +17,13 @@
     <!-- Not found state -->
     <view v-else-if="store.state === 'not_found'" class="status-center">
       <text class="status-text">该产品暂未收录</text>
-      <up-button size="small" @click="goBack">返回重新扫码</up-button>
+      <button class="retry-btn" @click="goBack">返回重新扫码</button>
     </view>
 
     <!-- Error state -->
     <view v-else-if="store.state === 'error'" class="status-center">
       <text class="status-text">{{ store.errorMessage || '网络请求失败' }}</text>
-      <up-button size="small" @click="load">重试</up-button>
+      <button class="retry-btn" @click="load">重试</button>
     </view>
 
     <!-- Success state: scrollable content -->
@@ -33,7 +33,7 @@
       scroll-y
       @scroll="onScroll"
     >
-      <!-- Product Banner (hero image) - inside scroll for full-screen effect -->
+      <!-- Product Banner (hero image) -->
       <view class="product-banner">
         <image v-if="store.product.image_url_list?.[0]" :src="store.product.image_url_list[0]" class="banner-img" mode="aspectFill" />
         <view v-else class="banner-placeholder">
@@ -175,7 +175,6 @@ const overallRiskLevel = computed(() => {
   background: var(--bg-base);
 }
 
-// Product hero banner - full width, inside scroll area
 .product-banner {
   width: 100%;
   height: 320px;
@@ -214,6 +213,8 @@ const overallRiskLevel = computed(() => {
   font-size: 120px;
   filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.4));
   animation: floatIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  position: relative;
+  z-index: 2;
 }
 
 .banner-badge {
@@ -259,12 +260,25 @@ const overallRiskLevel = computed(() => {
   color: var(--text-muted);
 }
 
+.retry-btn {
+  padding: 12rpx 32rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
 .scroll-area {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 1;
   background: var(--bg-base);
 }
 
