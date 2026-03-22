@@ -1,13 +1,12 @@
-<h2>产品详情页 — Header 效果调整</h2>
-<p class="subtitle">fixed 透明背景 → 滚动后显示 shadow（无毛玻璃）</p>
+<h2>产品详情页 — 完整版（含全部风险等级）</h2>
+<p class="subtitle">营养背景渐变 + 6级风险分组全部展示</p>
 
-<!-- 手机框架 -->
 <div style="display:flex; justify-content:center; margin-top:16px;">
 <div style="width:375px; background:#fff; border-radius:40px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.15); position:relative; height:700px;">
 
   
 
-  <!-- 固定 Header（透明背景，滚动后显示 shadow） -->
+  <!-- 固定 Header -->
   <div id="header" style="position:fixed; top:44px; left:0; right:0; z-index:50; background:rgba(255,255,255,0); padding:12px 16px; display:flex; align-items:center; gap:12px; transition:background 0.3s, box-shadow 0.3s;">
     <button style="width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.9); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
       <svg width="20" height="20" fill="none" stroke="#000" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
@@ -21,20 +20,25 @@
   <!-- 滚动内容区 -->
   <div id="scroll-area" style="height:calc(100% - 44px); overflow-y:auto;" onscroll="handleScroll(this)">
 
-    <!-- Banner（220px） -->
-    <div style="height:220px; background:linear-gradient(135deg,#fdba74,#fed7aa); display:flex; align-items:center; justify-content:center;">
+    <!-- Banner -->
+    <div style="height:220px; background:linear-gradient(135deg,#fdba74,#fed7aa); display:flex; align-items:center; justify-content:center; position:relative;">
       <div style="text-align:center;">
         <div style="font-size:64px; margin-bottom:8px;">🍎</div>
         <div style="font-size:14px; color:#78350f;">产品图片</div>
+      </div>
+      <!-- 风险徽章 -->
+      <div style="position:absolute; right:16px; bottom:16px; background:linear-gradient(135deg,#22c55e,#16a34a); border-radius:12px; padding:8px 14px; display:flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(34,197,94,0.4);">
+        <svg width="14" height="14" fill="#fff" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        <span style="font-size:12px; font-weight:600; color:#fff;">低风险</span>
       </div>
     </div>
 
     <div style="padding:16px;">
 
-      <!-- 营养成分卡片 -->
+      <!-- 营养成分卡片（带渐变背景） -->
       <div style="margin-bottom:20px;">
         <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">营养成分</h3>
-        <div style="background:linear-gradient(135deg,rgba(34,197,94,0.06),rgba(22,163,74,0.06)); border:1px solid rgba(34,197,94,0.15); border-radius:16px; padding:16px;">
+        <div style="background:linear-gradient(135deg,rgba(34,197,94,0.06),rgba(22,163,74,0.06)),#f9fafb; border:1px solid rgba(34,197,94,0.12); border-radius:16px; padding:16px;">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
             <div><div style="font-size:11px; color:#6b7280;">卡路里</div><div style="font-size:28px; font-weight:700;">52</div><div style="font-size:11px; color:#6b7280;">kcal</div></div>
             <div><div style="font-size:11px; color:#6b7280;">蛋白质</div><div style="font-size:28px; font-weight:700;">0.3</div><div style="font-size:11px; color:#6b7280;">g</div></div>
@@ -50,74 +54,109 @@
               <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:#6b7280;">膳食纤维</span><span style="font-weight:500;">2.4g</span></div>
               <div style="height:1px; background:#f0f0f0;"></div>
               <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:#6b7280;">糖分</span><span style="font-weight:500;">10.4g</span></div>
-              <div style="height:1px; background:#f0f0f0;"></div>
-              <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:#6b7280;">维生素C</span><span style="font-weight:500;">4.6mg</span></div>
-              <div style="height:1px; background:#f0f0f0;"></div>
-              <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:#6b7280;">钾</span><span style="font-weight:500;">107mg</span></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 配料信息 -->
+      <!-- 配料信息（6级风险） -->
       <div style="margin-bottom:20px;">
         <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">配料信息</h3>
 
-        <!-- 高风险 -->
+        <!-- 严重风险 -->
         <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:14px; padding:14px; margin-bottom:10px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-            <span style="width:8px; height:8px; border-radius:50%; background:#ef4444;"></span>
-            <span style="font-size:12px; font-weight:600; color:#dc2626; background:#fee2e2; padding:3px 10px; border-radius:6px;">高风险</span>
+            <span style="width:8px; height:8px; border-radius:50%; background:#dc2626;"></span>
+            <span style="font-size:12px; font-weight:600; color:#dc2626; background:#fee2e2; padding:3px 10px; border-radius:6px;">严重风险</span>
+            <span style="font-size:11px; color:#6b7280; margin-left:auto;">1 项</span>
           </div>
           <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;">
             <div style="flex:0 0 140px; background:#fff; border:1px solid #fecaca; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
-              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#ef4444;"></div>
+              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#dc2626;"></div>
               <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-                <svg width="14" height="14" fill="#ef4444" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <svg width="14" height="14" fill="#dc2626" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                 <span style="font-size:13px; font-weight:600;">亚硝酸钠</span>
               </div>
-              <div style="background:#fee2e2; color:#dc2626; font-size:10px; padding:3px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;">可能致癌</div>
+              <div style="background:#fee2e2; color:#dc2626; font-size:10px; padding:3px 6px; border-radius:4px;">可能致癌</div>
             </div>
-            <div style="flex:0 0 140px; background:#fff; border:1px solid #fecaca; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
-              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#ef4444;"></div>
+          </div>
+        </div>
+
+        <!-- 高风险 -->
+        <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:14px; padding:14px; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <span style="width:8px; height:8px; border-radius:50%; background:#f97316;"></span>
+            <span style="font-size:12px; font-weight:600; color:#c2410c; background:#ffedd5; padding:3px 10px; border-radius:6px;">高风险</span>
+            <span style="font-size:11px; color:#6b7280; margin-left:auto;">1 项</span>
+          </div>
+          <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;">
+            <div style="flex:0 0 140px; background:#fff; border:1px solid #fed7aa; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
+              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#f97316;"></div>
               <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-                <svg width="14" height="14" fill="#ef4444" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <svg width="14" height="14" fill="#f97316" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                 <span style="font-size:13px; font-weight:600;">焦糖色</span>
               </div>
-              <div style="background:#fee2e2; color:#dc2626; font-size:10px; padding:3px 6px; border-radius:4px;">潜在致癌</div>
+              <div style="background:#ffedd5; color:#c2410c; font-size:10px; padding:3px 6px; border-radius:4px;">潜在致癌</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 中高风险 -->
+        <div style="background:#fefce8; border:1px solid #fef08a; border-radius:14px; padding:14px; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <span style="width:8px; height:8px; border-radius:50%; background:#eab308;"></span>
+            <span style="font-size:12px; font-weight:600; color:#a16207; background:#fef9c3; padding:3px 10px; border-radius:6px;">中高风险</span>
+            <span style="font-size:11px; color:#6b7280; margin-left:auto;">2 项</span>
+          </div>
+          <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;">
+            <div style="flex:0 0 140px; background:#fff; border:1px solid #fde68a; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
+              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#eab308;"></div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <svg width="14" height="14" fill="#eab308" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span style="font-size:13px; font-weight:600;">阿斯巴甜</span>
+              </div>
+            </div>
+            <div style="flex:0 0 140px; background:#fff; border:1px solid #fde68a; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
+              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#eab308;"></div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <svg width="14" height="14" fill="#eab308" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span style="font-size:13px; font-weight:600;">山梨酸钾</span>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- 中风险 -->
-        <div style="background:#fefce8; border:1px solid #fef08a; border-radius:14px; padding:14px; margin-bottom:10px;">
+        <div style="background:#f0fdf4; border:1px solid #d9f99d; border-radius:14px; padding:14px; margin-bottom:10px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-            <span style="width:8px; height:8px; border-radius:50%; background:#eab308;"></span>
-            <span style="font-size:12px; font-weight:600; color:#a16207; background:#fef9c3; padding:3px 10px; border-radius:6px;">中风险</span>
+            <span style="width:8px; height:8px; border-radius:50%; background:#65a30d;"></span>
+            <span style="font-size:12px; font-weight:600; color:#4d7c0f; background:#ecfccb; padding:3px 10px; border-radius:6px;">中风险</span>
+            <span style="font-size:11px; color:#6b7280; margin-left:auto;">3 项</span>
           </div>
           <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;">
-            <div style="flex:0 0 140px; background:#fff; border:1px solid #fde68a; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
-              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#eab308;"></div>
+            <div style="flex:0 0 140px; background:#fff; border:1px solid #d9f99d; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
+              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#65a30d;"></div>
               <div style="display:flex; align-items:center; gap:6px;">
-                <svg width="14" height="14" fill="#eab308" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                <span style="font-size:13px; font-weight:600;">苯甲酸钠</span>
+                <svg width="14" height="14" fill="#65a30d" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span style="font-size:13px; font-weight:600;">卡拉胶</span>
               </div>
             </div>
-            <div style="flex:0 0 140px; background:#fff; border:1px solid #fde68a; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
-              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#eab308;"></div>
+            <div style="flex:0 0 140px; background:#fff; border:1px solid #d9f99d; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
+              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#65a30d;"></div>
               <div style="display:flex; align-items:center; gap:6px;">
-                <svg width="14" height="14" fill="#eab308" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                <span style="font-size:13px; font-weight:600;">卡拉胶</span>
+                <svg width="14" height="14" fill="#65a30d" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span style="font-size:13px; font-weight:600;">黄原胶</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- 低风险 -->
-        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:14px;">
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:14px; margin-bottom:10px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
             <span style="width:8px; height:8px; border-radius:50%; background:#22c55e;"></span>
             <span style="font-size:12px; font-weight:600; color:#15803d; background:#dcfce7; padding:3px 10px; border-radius:6px;">低风险</span>
+            <span style="font-size:11px; color:#6b7280; margin-left:auto;">2 项</span>
           </div>
           <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;">
             <div style="flex:0 0 140px; background:#fff; border:1px solid #bbf7d0; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
@@ -127,8 +166,34 @@
                 <span style="font-size:13px; font-weight:600;">天然香料</span>
               </div>
             </div>
+            <div style="flex:0 0 140px; background:#fff; border:1px solid #bbf7d0; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
+              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#22c55e;"></div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <svg width="14" height="14" fill="#22c55e" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                <span style="font-size:13px; font-weight:600;">复合调味料</span>
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- 未知 -->
+        <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:14px; padding:14px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <span style="width:8px; height:8px; border-radius:50%; background:#9ca3af;"></span>
+            <span style="font-size:12px; font-weight:600; color:#6b7280; background:#f3f4f6; padding:3px 10px; border-radius:6px;">未知</span>
+            <span style="font-size:11px; color:#6b7280; margin-left:auto;">1 项</span>
+          </div>
+          <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;">
+            <div style="flex:0 0 140px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:12px; position:relative; overflow:hidden;">
+              <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#9ca3af;"></div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <svg width="14" height="14" fill="#9ca3af" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                <span style="font-size:13px; font-weight:600;">淀粉</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- 健康益处 -->
@@ -138,11 +203,11 @@
           <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
             <li style="display:flex; align-items:flex-start; gap:10px;">
               <svg style="color:#22c55e; margin-top:2px; flex-shrink:0;" width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-              <span style="font-size:13px; line-height:1.5;">富含膳食纤维，有助于消化和维持肠道健康</span>
+              <span style="font-size:13px; line-height:1.5;">富含膳食纤维，有助于消化</span>
             </li>
             <li style="display:flex; align-items:flex-start; gap:10px;">
               <svg style="color:#22c55e; margin-top:2px; flex-shrink:0;" width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-              <span style="font-size:13px; line-height:1.5;">含有丰富的维生素C，有助于增强免疫力</span>
+              <span style="font-size:13px; line-height:1.5;">含有丰富的维生素C</span>
             </li>
           </ul>
         </div>
@@ -170,16 +235,16 @@
 
   <!-- Sticky 底部操作栏 -->
   <div style="position:sticky; bottom:0; background:#fff; border-top:1px solid #e5e7eb; padding:12px 16px; box-shadow:0 -4px 16px rgba(0,0,0,0.06); z-index:40;">
-    <div style="display:flex; gap:10px;">
-      <button style="flex:1; padding:14px; border:1px solid #d1d5db; border-radius:12px; background:#fff; font-size:14px; font-weight:500; cursor:pointer;">添加到记录</button>
-      <button style="flex:1; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 4px 12px rgba(34,197,94,0.3);">咨询 AI 助手</button>
+    <div style="display:flex; gap:12px;">
+      <button style="flex:1; padding:12px 16px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; font-size:14px; font-weight:500; cursor:pointer; color:#333;">添加到记录</button>
+      <button style="flex:1; padding:12px 16px; border:none; border-radius:12px; background:linear-gradient(135deg,#f472b6,#ec4899); color:#fff; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 4px 12px rgba(236,72,153,0.3);">咨询 AI 助手</button>
     </div>
   </div>
 
 </div>
 </div>
 
-<p style="margin-top:16px; text-align:center; color:#6b7280; font-size:13px;">👆 滚动内容区查看 Header 从透明变 shadow 的效果</p>
+<p style="margin-top:16px; text-align:center; color:#6b7280; font-size:13px;">v6: 完整6级风险分组 + 营养渐变背景</p>
 
 <script>
 var scrolled = false;

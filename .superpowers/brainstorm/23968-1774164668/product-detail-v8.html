@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>产品详情页 — v8 2026设计</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0f0f0f;
+  --bg-card: #1a1a1a;
+  --bg-card-hover: #222;
+  --text-primary: #f5f5f5;
+  --text-secondary: #a1a1a1;
+  --text-muted: #6b7280;
+  --border-color: rgba(255,255,255,0.08);
+  --risk-t4: #ef4444;
+  --risk-t3: #f97316;
+  --risk-t2: #eab308;
+  --risk-t1: #65a30d;
+  --risk-t0: #22c55e;
+  --risk-unknown: #9ca3af;
+  --accent-pink: #ec4899;
+  --accent-pink-light: #f472b6;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: #111;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  color: var(--text-primary);
+}
+
+.page-title {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  color: #666;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  z-index: 100;
+}
+
+/* 手机框架 */
+.phone {
+  width: 375px;
+  height: 812px;
+  background: linear-gradient(180deg, #141414 0%, #0a0a0a 100%);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 40px 80px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+  margin-top: 40px;
+}
+
+/* 状态栏 */
+.status-bar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 50;
+}
+.status-bar span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+/* 固定 Header — 玻璃态 */
+.header {
+  position: fixed;
+  width: 375px;
+  top: 44px;
+  left: 0;
+  z-index: 50;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15,15,15,0.0);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.header.scrolled {
+  background: rgba(20,20,20,0.85);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.06);
+  border-radius: 0 0 20px 20px;
+}
+.header-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.header-btn:active {
+  transform: scale(0.92);
+  background: rgba(255,255,255,0.12);
+}
+.header-btn svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 2; fill: none; }
+.header-title {
+  font-size: 17px;
+  font-weight: 600;
+  flex: 1;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: -0.02em;
+  transition: color 0.3s;
+}
+.header.scrolled .header-title { color: var(--text-primary); }
+
+/* 滚动内容 */
+.scroll-area {
+  position: absolute;
+  top: 44px;
+  bottom: 88px;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.scroll-area::-webkit-scrollbar { width: 0; }
+
+/* Banner */
+.banner {
+  height: 260px;
+  background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34,197,94,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(236,72,153,0.05) 0%, transparent 50%);
+}
+.banner-content {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.banner-emoji {
+  font-size: 80px;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
+  animation: floatIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  transform: scale(0.8);
+}
+.banner-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+/* Banner 风险徽章 */
+.banner-badge {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(22,163,74,0.3));
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 14px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(34,197,94,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+  animation: slideUp 0.6s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+.banner-badge svg { width: 14px; height: 14px; fill: var(--risk-t0); }
+.banner-badge span { font-size: 12px; font-weight: 600; color: var(--risk-t0); }
+
+/* 内容区 */
+.content {
+  padding: 24px 20px 40px;
+}
+
+/* 通用标题 */
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+  color: var(--text-primary);
+}
+
+/* 营养成分卡片 */
+.nutrition-card {
+  background: linear-gradient(145deg, rgba(34,197,94,0.06), rgba(22,163,74,0.04));
+  border: 1px solid rgba(34,197,94,0.1);
+  border-radius: 24px; /* 外层大圆角 */
+  padding: 20px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+  animation: slideUp 0.5s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  transform: translateY(16px);
+}
+.nutrition-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34,197,94,0.3), transparent);
+}
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.nutrition-item {}
+.nutrition-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+.nutrition-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.nutrition-unit {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.nutrition-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+.nutrition-toggle:hover { color: var(--text-secondary); background: rgba(255,255,255,0.04); }
+.nutrition-toggle svg { transition: transform 0.3s ease; }
+.nutrition-toggle.expanded svg { transform: rotate(180deg); }
+.nutrition-details {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 16px;
+  margin-top: 4px;
+  display: none;
+}
+.nutrition-details.show { display: block; }
+.nutrition-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.nutrition-row:last-child { border-bottom: none; }
+.nutrition-row span:first-child { color: var(--text-secondary); }
+.nutrition-row span:last-child { font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* 配料信息 */
+.ingredient-section { margin-bottom: 28px; }
+.risk-group {
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.risk-group.t4 { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.15); }
+.risk-group.t3 { background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.15); }
+.risk-group.t2 { background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.15); }
+.risk-group.t1 { background: rgba(101,163,13,0.08); border: 1px solid rgba(101,163,13,0.15); }
+.risk-group.t0 { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.15); }
+.risk-group.unknown { background: rgba(156,163,175,0.06); border: 1px solid rgba(156,163,175,0.12); }
+
+.risk-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.risk-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.t4 .risk-dot { background: var(--risk-t4); box-shadow: 0 0 8px var(--risk-t4); }
+.t3 .risk-dot { background: var(--risk-t3); box-shadow: 0 0 8px var(--risk-t3); }
+.t2 .risk-dot { background: var(--risk-t2); box-shadow: 0 0 8px var(--risk-t2); }
+.t1 .risk-dot { background: var(--risk-t1); box-shadow: 0 0 8px var(--risk-t1); }
+.t0 .risk-dot { background: var(--risk-t0); box-shadow: 0 0 8px var(--risk-t0); }
+.unknown .risk-dot { background: var(--risk-unknown); }
+
+.risk-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+.t4 .risk-badge { color: #fca5a5; background: rgba(239,68,68,0.15); }
+.t3 .risk-badge { color: #fdba74; background: rgba(249,115,22,0.15); }
+.t2 .risk-badge { color: #fde047; background: rgba(234,179,8,0.15); }
+.t1 .risk-badge { color: #a3e635; background: rgba(101,163,13,0.15); }
+.t0 .risk-badge { color: #86efac; background: rgba(34,197,94,0.15); }
+.unknown .risk-badge { color: #d1d5db; background: rgba(156,163,175,0.1); }
+
+.risk-count { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+
+/* 横向滚动 - scroll-snap */
+.ingredient-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.ingredient-scroll::-webkit-scrollbar { display: none; }
+.ingredient-card {
+  flex: 0 0 150px;
+  scroll-snap-align: start;
+  background: rgba(255,255,255,0.03);
+  border-radius: 16px;
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.ingredient-card:active {
+  transform: scale(0.96);
+  background: rgba(255,255,255,0.06);
+}
+.t4 .ingredient-card { border-color: rgba(239,68,68,0.15); }
+.t3 .ingredient-card { border-color: rgba(249,115,22,0.15); }
+.t2 .ingredient-card { border-color: rgba(234,179,8,0.15); }
+.t1 .ingredient-card { border-color: rgba(101,163,13,0.15); }
+.t0 .ingredient-card { border-color: rgba(34,197,94,0.15); }
+
+.ingredient-risk-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+.t4 .ingredient-risk-bar { background: var(--risk-t4); box-shadow: 0 0 8px var(--risk-t4); }
+.t3 .ingredient-risk-bar { background: var(--risk-t3); box-shadow: 0 0 8px var(--risk-t3); }
+.t2 .ingredient-risk-bar { background: var(--risk-t2); box-shadow: 0 0 8px var(--risk-t2); }
+.t1 .ingredient-risk-bar { background: var(--risk-t1); box-shadow: 0 0 8px var(--risk-t1); }
+.t0 .ingredient-risk-bar { background: var(--risk-t0); box-shadow: 0 0 8px var(--risk-t0); }
+
+.ingredient-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding-left: 8px;
+}
+.ingredient-name svg { width: 14px; height: 14px; }
+.t4 .ingredient-name svg { fill: var(--risk-t4); }
+.t3 .ingredient-name svg { fill: var(--risk-t3); }
+.t2 .ingredient-name svg { fill: var(--risk-t2); }
+.t1 .ingredient-name svg { fill: var(--risk-t1); }
+.t0 .ingredient-name svg { fill: var(--risk-t0); }
+
+.ingredient-name span { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.ingredient-reason {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-left: 8px;
+}
+.t4 .ingredient-reason { color: #fca5a5; background: rgba(239,68,68,0.12); }
+.t3 .ingredient-reason { color: #fdba74; background: rgba(249,115,22,0.12); }
+
+/* 健康益处 */
+.health-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 28px;
+  animation: slideUp 0.5s 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  transform: translateY(16px);
+}
+.health-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.health-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.health-item svg { width: 18px; height: 18px; fill: var(--risk-t0); flex-shrink: 0; margin-top: 1px; }
+.health-item span { font-size: 14px; line-height: 1.5; color: var(--text-secondary); }
+
+/* 食用建议 */
+.advice-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 28px;
+  animation: slideUp 0.5s 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  transform: translateY(16px);
+}
+.advice-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.advice-header svg { width: 18px; height: 18px; fill: #f59e0b; }
+.advice-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.advice-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.advice-item svg { width: 16px; height: 16px; fill: var(--text-muted); flex-shrink: 0; margin-top: 2px; }
+.advice-item span { font-size: 13px; line-height: 1.5; color: var(--text-secondary); }
+
+/* 底部操作栏 */
+.bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15,15,15,0.95);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 16px 20px;
+  display: flex;
+  gap: 12px;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
+  z-index: 40;
+}
+.action-btn {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: none;
+}
+.action-btn:active { transform: scale(0.97); }
+.action-btn.primary {
+  background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink));
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(236,72,153,0.3);
+}
+.action-btn.primary:hover {
+  box-shadow: 0 6px 28px rgba(236,72,153,0.4);
+  transform: translateY(-1px);
+}
+.action-btn.secondary {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-primary);
+}
+.action-btn.secondary:hover { background: rgba(255,255,255,0.1); }
+
+/* 动画 */
+@keyframes floatIn {
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 说明文字 */
+.desc {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #555;
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<div class="page-title">2026 Design — Product Detail</div>
+
+<div class="phone">
+
+
+  <!-- Header -->
+  <div class="header" id="header">
+    <button class="header-btn">
+      <svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+    </button>
+    <span class="header-title">苹果</span>
+    <button class="header-btn">
+      <svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+    </button>
+  </div>
+
+  <!-- 滚动区域 -->
+  <div class="scroll-area" id="scrollArea" onscroll="handleScroll()">
+
+    <!-- Banner -->
+    <div class="banner">
+      <div class="banner-content">
+        <div class="banner-emoji">🍎</div>
+        <div class="banner-label">产品图片</div>
+      </div>
+      <div class="banner-badge">
+        <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        <span>低风险</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- 营养成分 -->
+      <h3 class="section-title">营养成分</h3>
+      <div class="nutrition-card">
+        <div class="nutrition-grid">
+          <div class="nutrition-item">
+            <div class="nutrition-label">卡路里</div>
+            <div class="nutrition-value">52</div>
+            <div class="nutrition-unit">kcal</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="nutrition-label">蛋白质</div>
+            <div class="nutrition-value">0.3</div>
+            <div class="nutrition-unit">g</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="nutrition-label">脂肪</div>
+            <div class="nutrition-value">0.2</div>
+            <div class="nutrition-unit">g</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="nutrition-label">碳水</div>
+            <div class="nutrition-value">14</div>
+            <div class="nutrition-unit">g</div>
+          </div>
+        </div>
+        <button class="nutrition-toggle" id="nutrToggle" onclick="toggleNutrition()">
+          <span>查看详细营养成分</span>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="nutrition-details" id="nutrDetails">
+          <div class="nutrition-row"><span>膳食纤维</span><span>2.4g</span></div>
+          <div class="nutrition-row"><span>糖分</span><span>10.4g</span></div>
+          <div class="nutrition-row"><span>维生素C</span><span>4.6mg</span></div>
+          <div class="nutrition-row"><span>钾</span><span>107mg</span></div>
+          <div class="nutrition-row"><span>钙</span><span>6mg</span></div>
+        </div>
+      </div>
+
+      <!-- 配料信息 -->
+      <h3 class="section-title">配料信息</h3>
+      <div class="ingredient-section">
+
+        <!-- 严重风险 t4 -->
+        <div class="risk-group t4">
+          <div class="risk-header">
+            <span class="risk-dot"></span>
+            <span class="risk-badge">严重风险</span>
+            <span class="risk-count">1 项</span>
+          </div>
+          <div class="ingredient-scroll">
+            <div class="ingredient-card">
+              <div class="ingredient-risk-bar"></div>
+              <div class="ingredient-name">
+                <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span>亚硝酸钠</span>
+              </div>
+              <span class="ingredient-reason">可能致癌</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 高风险 t3 -->
+        <div class="risk-group t3">
+          <div class="risk-header">
+            <span class="risk-dot"></span>
+            <span class="risk-badge">高风险</span>
+            <span class="risk-count">1 项</span>
+          </div>
+          <div class="ingredient-scroll">
+            <div class="ingredient-card">
+              <div class="ingredient-risk-bar"></div>
+              <div class="ingredient-name">
+                <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span>焦糖色</span>
+              </div>
+              <span class="ingredient-reason">潜在致癌</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 中高风险 t2 -->
+        <div class="risk-group t2">
+          <div class="risk-header">
+            <span class="risk-dot"></span>
+            <span class="risk-badge">中高风险</span>
+            <span class="risk-count">2 项</span>
+          </div>
+          <div class="ingredient-scroll">
+            <div class="ingredient-card">
+              <div class="ingredient-risk-bar"></div>
+              <div class="ingredient-name">
+                <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span>阿斯巴甜</span>
+              </div>
+            </div>
+            <div class="ingredient-card">
+              <div class="ingredient-risk-bar"></div>
+              <div class="ingredient-name">
+                <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span>山梨酸钾</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 低风险 t0 -->
+        <div class="risk-group t0">
+          <div class="risk-header">
+            <span class="risk-dot"></span>
+            <span class="risk-badge">低风险</span>
+            <span class="risk-count">2 项</span>
+          </div>
+          <div class="ingredient-scroll">
+            <div class="ingredient-card">
+              <div class="ingredient-risk-bar"></div>
+              <div class="ingredient-name">
+                <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                <span>天然香料</span>
+              </div>
+            </div>
+            <div class="ingredient-card">
+              <div class="ingredient-risk-bar"></div>
+              <div class="ingredient-name">
+                <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                <span>复合调味料</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 健康益处 -->
+      <h3 class="section-title">健康益处</h3>
+      <div class="health-card">
+        <ul class="health-list">
+          <li class="health-item">
+            <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span>富含膳食纤维，有助于消化和维持肠道健康</span>
+          </li>
+          <li class="health-item">
+            <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span>含有丰富的维生素C，有助于增强免疫力</span>
+          </li>
+          <li class="health-item">
+            <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span>低热量，适合作为健康零食，有助于控制体重</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 食用建议 -->
+      <h3 class="section-title">食用建议</h3>
+      <div class="advice-card">
+        <div class="advice-header">
+          <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+          AI 健康建议
+        </div>
+        <ul class="advice-list">
+          <li class="advice-item">
+            <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span>建议每天食用1-2个苹果，作为健康零食</span>
+          </li>
+          <li class="advice-item">
+            <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span>最好在餐前30分钟食用，有助于控制血糖</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 底部操作栏 -->
+  <div class="bottom-bar">
+    <button class="action-btn secondary">添加到记录</button>
+    <button class="action-btn primary">咨询 AI 助手</button>
+  </div>
+
+</div>
+
+<div class="desc">
+  v8: 2026 Design — 玻璃态 · 层级圆角 · 暗色发光 · Spring动画 · Scroll-snap · Touch反馈
+</div>
+
+<script>
+var scrolled = false;
+function handleScroll() {
+  var area = document.getElementById('scrollArea');
+  var header = document.getElementById('header');
+  if (area.scrollTop > 60 && !scrolled) {
+    scrolled = true;
+    header.classList.add('scrolled');
+  } else if (area.scrollTop <= 60 && scrolled) {
+    scrolled = false;
+    header.classList.remove('scrolled');
+  }
+}
+function toggleNutrition() {
+  var details = document.getElementById('nutrDetails');
+  var toggle = document.getElementById('nutrToggle');
+  details.classList.toggle('show');
+  toggle.classList.toggle('expanded');
+  var text = toggle.querySelector('span');
+  text.textContent = details.classList.contains('show') ? '收起详细营养成分' : '查看详细营养成分';
+}
+</script>
+
+</body>
+</html>

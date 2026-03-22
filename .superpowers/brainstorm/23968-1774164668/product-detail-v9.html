@@ -2,19 +2,15 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0f0f0f">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>产品详情页 — 亮色 & 暗色双版本</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: rgba(0,0,0,0); }
-html { color-scheme: dark; }
-html:has(.light-mode) { color-scheme: light; }
+* { margin:0; padding:0; box-sizing:border-box; }
 
 body {
   font-family: 'DM Sans', -apple-system, sans-serif;
   background: #1a1a1a;
-  touch-action: manipulation;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -62,6 +58,7 @@ body {
   --risk-t4: #ef4444;
   --risk-t3: #f97316;
   --risk-t2: #eab308;
+  --risk-t1: #65a30d;
   --risk-t0: #22c55e;
   --risk-unknown: #9ca3af;
   --accent-pink: #ec4899;
@@ -96,6 +93,7 @@ body {
   --risk-t4: #dc2626;
   --risk-t3: #ea580c;
   --risk-t2: #ca8a04;
+  --risk-t1: #4d7c0f;
   --risk-t0: #16a34a;
   --risk-unknown: #9ca3af;
   --accent-pink: #db2777;
@@ -105,10 +103,6 @@ body {
   --nutrition-bg: rgba(34,197,94,0.04);
   --nutrition-border: rgba(34,197,94,0.12);
   --nutrition-glow: rgba(34,197,94,0.2);
-  --status-bar-bg: #fff;
-  --status-bar-border: rgba(0,0,0,0.04);
-  --status-bar-text: #111;
-  --banner-label: #92400e;
 }
 
 /* 通用 */
@@ -126,8 +120,7 @@ body {
   letter-spacing: 0.02em;
 }
 .dark-mode .status-bar span { color: #fff; }
-.light-mode .status-bar span { color: var(--status-bar-text); }
-.light-mode .status-bar { background: var(--status-bar-bg); border-bottom: 1px solid var(--status-bar-border); }
+.light-mode .status-bar span { color: #111; }
 
 .header {
   position: absolute;
@@ -166,7 +159,6 @@ body {
   border: none;
 }
 .header-btn:active { transform: scale(0.92); }
-.header-btn:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 2px; }
 .header-btn svg { width: 18px; height: 18px; stroke-width: 2; fill: none; }
 .dark-mode .header-btn svg { stroke: #fff; }
 .light-mode .header-btn svg { stroke: #111; }
@@ -229,12 +221,11 @@ body {
   animation: floatIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: scale(0.8);
-  transform-origin: center;
 }
 .light-mode .banner-emoji { filter: drop-shadow(0 8px 24px rgba(251,191,36,0.3)); }
 .banner-label { font-size: 13px; }
 .dark-mode .banner-label { color: var(--text-muted); letter-spacing: 0.1em; }
-.light-mode .banner-label { color: var(--banner-label); letter-spacing: 0.1em; }
+.light-mode .banner-label { color: #92400e; letter-spacing: 0.1em; }
 
 .banner-badge {
   position: absolute;
@@ -345,7 +336,6 @@ body {
 .nutrition-toggle svg { transition: transform 0.3s ease; }
 .dark-mode .nutrition-toggle svg { stroke: var(--text-muted); }
 .light-mode .nutrition-toggle svg { stroke: #6b7280; }
-.nutrition-toggle:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 2px; }
 .nutrition-toggle.expanded svg { transform: rotate(180deg); }
 .nutrition-details { border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 4px; display: none; }
 .nutrition-details.show { display: block; }
@@ -384,20 +374,16 @@ body {
 .light-mode .t3 .risk-dot { background: var(--risk-t3); }
 .light-mode .t2 .risk-dot { background: var(--risk-t2); }
 .light-mode .t0 .risk-dot { background: var(--risk-t0); }
-.dark-mode .unknown .risk-dot { background: var(--risk-unknown); box-shadow: 0 0 8px var(--risk-unknown); }
-.light-mode .unknown .risk-dot { background: var(--risk-unknown); }
 
 .risk-badge { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 8px; }
 .dark-mode .t4 .risk-badge { color: #fca5a5; background: rgba(239,68,68,0.15); }
 .dark-mode .t3 .risk-badge { color: #fdba74; background: rgba(249,115,22,0.15); }
 .dark-mode .t2 .risk-badge { color: #fde047; background: rgba(234,179,8,0.15); }
 .dark-mode .t0 .risk-badge { color: #86efac; background: rgba(34,197,94,0.15); }
-.dark-mode .unknown .risk-badge { color: #d1d5db; background: rgba(156,163,175,0.15); }
 .light-mode .t4 .risk-badge { color: #dc2626; background: rgba(220,38,38,0.1); }
 .light-mode .t3 .risk-badge { color: #ea580c; background: rgba(234,88,12,0.1); }
 .light-mode .t2 .risk-badge { color: #ca8a04; background: rgba(202,138,4,0.1); }
 .light-mode .t0 .risk-badge { color: #16a34a; background: rgba(22,163,74,0.1); }
-.light-mode .unknown .risk-badge { color: #6b7280; background: rgba(156,163,175,0.1); }
 .risk-count { font-size: 11px; margin-left: auto; }
 .dark-mode .risk-count { color: var(--text-muted); }
 .light-mode .risk-count { color: #9ca3af; }
@@ -418,8 +404,8 @@ body {
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-sizing: border-box;
 }
-.dark-mode .ingredient-card { background: rgba(255,255,255,0.03); border: 1px solid; border-color: rgba(255,255,255,0.06); }
-.light-mode .ingredient-card { background: rgba(255,255,255,0.8); border: 1px solid; border-color: rgba(0,0,0,0.06); }
+.dark-mode .ingredient-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+.light-mode .ingredient-card { background: rgba(255,255,255,0.8); border: 1px solid rgba(0,0,0,0.06); }
 .ingredient-card:active { transform: scale(0.96); }
 .dark-mode .ingredient-card:active { background: rgba(255,255,255,0.06); }
 .light-mode .ingredient-card:active { background: #fff; }
@@ -440,13 +426,15 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
 .dark-mode .t4 .ingredient-risk-bar { background: var(--risk-t4); box-shadow: 0 0 8px var(--risk-t4); }
 .dark-mode .t3 .ingredient-risk-bar { background: var(--risk-t3); box-shadow: 0 0 8px var(--risk-t3); }
 .dark-mode .t2 .ingredient-risk-bar { background: var(--risk-t2); box-shadow: 0 0 8px var(--risk-t2); }
+.dark-mode .t1 .ingredient-risk-bar { background: var(--risk-t1); box-shadow: 0 0 8px var(--risk-t1); }
 .dark-mode .t0 .ingredient-risk-bar { background: var(--risk-t0); box-shadow: 0 0 8px var(--risk-t0); }
 .dark-mode .unknown .ingredient-risk-bar { background: var(--risk-unknown); box-shadow: 0 0 8px var(--risk-unknown); }
-.light-mode .t4 .ingredient-risk-bar { background: var(--risk-t4); }
-.light-mode .t3 .ingredient-risk-bar { background: var(--risk-t3); }
-.light-mode .t2 .ingredient-risk-bar { background: var(--risk-t2); }
-.light-mode .t0 .ingredient-risk-bar { background: var(--risk-t0); }
-.light-mode .unknown .ingredient-risk-bar { background: var(--risk-unknown); }
+.light-mode .t4 .ingredient-risk-bar { background: var(--risk-t4); box-shadow: 0 0 8px var(--risk-t4); }
+.light-mode .t3 .ingredient-risk-bar { background: var(--risk-t3); box-shadow: 0 0 8px var(--risk-t3); }
+.light-mode .t2 .ingredient-risk-bar { background: var(--risk-t2); box-shadow: 0 0 8px var(--risk-t2); }
+.light-mode .t1 .ingredient-risk-bar { background: var(--risk-t1); box-shadow: 0 0 8px var(--risk-t1); }
+.light-mode .t0 .ingredient-risk-bar { background: var(--risk-t0); box-shadow: 0 0 8px var(--risk-t0); }
+.light-mode .unknown .ingredient-risk-bar { background: var(--risk-unknown); box-shadow: 0 0 8px var(--risk-unknown); }
 
 /* 卡片右上角装饰圆形 */
 .ingredient-card::before {
@@ -463,11 +451,13 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
 .dark-mode .t4 .ingredient-card::before { background: var(--risk-t4); }
 .dark-mode .t3 .ingredient-card::before { background: var(--risk-t3); }
 .dark-mode .t2 .ingredient-card::before { background: var(--risk-t2); }
+.dark-mode .t1 .ingredient-card::before { background: var(--risk-t1); }
 .dark-mode .t0 .ingredient-card::before { background: var(--risk-t0); }
 .dark-mode .unknown .ingredient-card::before { background: var(--risk-unknown); }
 .light-mode .t4 .ingredient-card::before { background: var(--risk-t4); }
 .light-mode .t3 .ingredient-card::before { background: var(--risk-t3); }
 .light-mode .t2 .ingredient-card::before { background: var(--risk-t2); }
+.light-mode .t1 .ingredient-card::before { background: var(--risk-t1); }
 .light-mode .t0 .ingredient-card::before { background: var(--risk-t0); }
 .light-mode .unknown .ingredient-card::before { background: var(--risk-unknown); }
 .ingredient-card:hover::before { opacity: 0.15; }
@@ -575,7 +565,6 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
   border: none;
 }
 .action-btn:active { transform: scale(0.97); }
-.action-btn:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 2px; }
 .action-btn.primary {
   color: #fff;
   box-shadow: 0 4px 20px rgba(236,72,153,0.3);
@@ -609,20 +598,6 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
   max-width: 400px;
   line-height: 1.6;
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .banner-emoji,
-  .nutrition-card,
-  .health-card,
-  .advice-card {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-  * {
-    transition-duration: 0.01ms !important;
-  }
-}
 </style>
 </head>
 <body>
@@ -635,11 +610,10 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
 <!-- 暗色模式 -->
 <div class="dark-mode">
 <div class="phone">
-  
   <div class="header" id="headerDark">
-    <button type="button" class="header-btn" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
+    <button class="header-btn"><svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
     <span class="header-title">苹果</span>
-    <button type="button" class="header-btn" aria-label="分享"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></button>
+    <button class="header-btn"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></button>
   </div>
   <div class="scroll-area" id="scrollDark" onscroll="handleScroll('Dark')">
     <div class="banner">
@@ -648,7 +622,7 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
         <div class="banner-label">产品图片</div>
       </div>
       <div class="banner-badge">
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
         <span>低风险</span>
       </div>
     </div>
@@ -661,7 +635,7 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
           <div><div class="nutrition-label">脂肪</div><div class="nutrition-value">0.2</div><div class="nutrition-unit">g</div></div>
           <div><div class="nutrition-label">碳水</div><div class="nutrition-value">14</div><div class="nutrition-unit">g</div></div>
         </div>
-        <button type="button" class="nutrition-toggle" id="nutrToggleDark" onclick="toggleNutrition('Dark')" aria-expanded="false" aria-controls="nutrDetailsDark"><span>查看详细营养成分</span><svg width="16" height="16" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg></button>
+        <button class="nutrition-toggle" id="nutrToggleDark" onclick="toggleNutrition('Dark')"><span>查看详细营养成分</span><svg width="16" height="16" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg></button>
         <div class="nutrition-details" id="nutrDetailsDark">
           <div class="nutrition-row"><span>膳食纤维</span><span>2.4g</span></div>
           <div class="nutrition-row"><span>糖分</span><span>10.4g</span></div>
@@ -672,47 +646,47 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
       <div class="risk-group t4">
         <div class="risk-header"><span class="risk-dot"></span><span class="risk-badge">严重风险</span><span class="risk-count">1 项</span></div>
         <div class="ingredient-scroll">
-          <a href="/ingredient/亚硝酸钠" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg><span>亚硝酸钠</span></div><span class="ingredient-reason">可能致癌</span></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="/ingredient/亚硝酸钠" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg><span>亚硝酸钠</span></div><span class="ingredient-reason">可能致癌</span></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
       </div>
       <div class="risk-group t3">
         <div class="risk-header"><span class="risk-dot"></span><span class="risk-badge">高风险</span><span class="risk-count">1 项</span></div>
         <div class="ingredient-scroll">
-          <a href="/ingredient/焦糖色" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg><span>焦糖色</span></div><span class="ingredient-reason">潜在致癌</span></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="/ingredient/焦糖色" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg><span>焦糖色</span></div><span class="ingredient-reason">潜在致癌</span></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
       </div>
       <div class="risk-group t0">
         <div class="risk-header"><span class="risk-dot"></span><span class="risk-badge">低风险</span><span class="risk-count">2 项</span></div>
         <div class="ingredient-scroll">
-          <a href="/ingredient/天然香料" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 21C3 17.5 3 12 6 8c2-2.5 5-4 8.5-4C18 4 21 7 21 10c0 2.5-1.5 4.5-3.5 5.5"/><path d="M12 22V12"/></svg><span>天然香料</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
-          <a href="/ingredient/复合调味料" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 21C3 17.5 3 12 6 8c2-2.5 5-4 8.5-4C18 4 21 7 21 10c0 2.5-1.5 4.5-3.5 5.5"/><path d="M12 22V12"/></svg><span>复合调味料</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="/ingredient/天然香料" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22V12M12 12C12 12 8 15 8 18M12 12C12 12 16 15 16 18"/><path d="M19 7C19 7 19 11 16 14M5 7C5 7 5 11 8 14"/><circle cx="12" cy="5" r="2"/></svg><span>天然香料</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="/ingredient/复合调味料" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22V12M12 12C12 12 8 15 8 18M12 12C12 12 16 15 16 18"/><path d="M19 7C19 7 19 11 16 14M5 7C5 7 5 11 8 14"/><circle cx="12" cy="5" r="2"/></svg><span>复合调味料</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
       </div>
       <div class="risk-group unknown">
         <div class="risk-header"><span class="risk-dot"></span><span class="risk-badge">未知</span><span class="risk-count">1 项</span></div>
         <div class="ingredient-scroll">
-          <a href="/ingredient/其他添加剂" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg><span>其他添加剂</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="/ingredient/其他添加剂" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg><span>其他添加剂</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
       </div>
       <h3 class="section-title">健康益处</h3>
       <div class="health-card">
         <ul class="health-list">
-          <li class="health-item"><svg viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>富含膳食纤维，有助于消化</span></li>
-          <li class="health-item"><svg viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>含有丰富的维生素C</span></li>
+          <li class="health-item"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>富含膳食纤维，有助于消化</span></li>
+          <li class="health-item"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>含有丰富的维生素C</span></li>
         </ul>
       </div>
       <h3 class="section-title">食用建议</h3>
       <div class="advice-card">
-        <div class="advice-header"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>AI 健康建议</div>
+        <div class="advice-header"><svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>AI 健康建议</div>
         <ul class="advice-list">
-          <li class="advice-item"><svg viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>建议每天食用1-2个苹果</span></li>
+          <li class="advice-item"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>建议每天食用1-2个苹果</span></li>
         </ul>
       </div>
     </div>
   </div>
   <div class="bottom-bar">
-    <button type="button" class="action-btn secondary">添加到记录</button>
-    <button type="button" class="action-btn primary" style="background:linear-gradient(135deg,var(--accent-pink-light),var(--accent-pink))">咨询 AI 助手</button>
+    <button class="action-btn secondary">添加到记录</button>
+    <button class="action-btn primary" style="background:linear-gradient(135deg,var(--accent-pink-light),var(--accent-pink))">咨询 AI 助手</button>
   </div>
 </div>
 </div>
@@ -720,11 +694,10 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
 <!-- 亮色模式 -->
 <div class="light-mode">
 <div class="phone">
-  
   <div class="header" id="headerLight">
-    <button type="button" class="header-btn" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
+    <button class="header-btn"><svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
     <span class="header-title">苹果</span>
-    <button type="button" class="header-btn" aria-label="分享"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></button>
+    <button class="header-btn"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></button>
   </div>
   <div class="scroll-area" id="scrollLight" onscroll="handleScroll('Light')">
     <div class="banner">
@@ -733,7 +706,7 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
         <div class="banner-label">产品图片</div>
       </div>
       <div class="banner-badge">
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
         <span>低风险</span>
       </div>
     </div>
@@ -746,7 +719,7 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
           <div><div class="nutrition-label">脂肪</div><div class="nutrition-value">0.2</div><div class="nutrition-unit">g</div></div>
           <div><div class="nutrition-label">碳水</div><div class="nutrition-value">14</div><div class="nutrition-unit">g</div></div>
         </div>
-        <button type="button" class="nutrition-toggle" id="nutrToggleLight" onclick="toggleNutrition('Light')" aria-expanded="false" aria-controls="nutrDetailsLight"><span>查看详细营养成分</span><svg width="16" height="16" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg></button>
+        <button class="nutrition-toggle" id="nutrToggleLight" onclick="toggleNutrition('Light')"><span>查看详细营养成分</span><svg width="16" height="16" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg></button>
         <div class="nutrition-details" id="nutrDetailsLight">
           <div class="nutrition-row"><span>膳食纤维</span><span>2.4g</span></div>
           <div class="nutrition-row"><span>糖分</span><span>10.4g</span></div>
@@ -757,47 +730,47 @@ a.ingredient-card { display: block; text-decoration: none; color: inherit; }
       <div class="risk-group t4">
         <div class="risk-header"><span class="risk-dot"></span><span class="risk-badge">严重风险</span><span class="risk-count">1 项</span></div>
         <div class="ingredient-scroll">
-          <a href="/ingredient/亚硝酸钠" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg><span>亚硝酸钠</span></div><span class="ingredient-reason">可能致癌</span></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="/ingredient/亚硝酸钠" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg><span>亚硝酸钠</span></div><span class="ingredient-reason">可能致癌</span></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
       </div>
       <div class="risk-group t3">
         <div class="risk-header"><span class="risk-dot"></span><span class="risk-badge">高风险</span><span class="risk-count">1 项</span></div>
         <div class="ingredient-scroll">
-          <a href="/ingredient/焦糖色" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg><span>焦糖色</span></div><span class="ingredient-reason">潜在致癌</span></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="/ingredient/焦糖色" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg><span>焦糖色</span></div><span class="ingredient-reason">潜在致癌</span></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
       </div>
       <div class="risk-group t0">
         <div class="risk-header"><span class="risk-dot"></span><span class="risk-badge">低风险</span><span class="risk-count">2 项</span></div>
         <div class="ingredient-scroll">
-          <a href="/ingredient/天然香料" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 21C3 17.5 3 12 6 8c2-2.5 5-4 8.5-4C18 4 21 7 21 10c0 2.5-1.5 4.5-3.5 5.5"/><path d="M12 22V12"/></svg><span>天然香料</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
-          <a href="/ingredient/复合调味料" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 21C3 17.5 3 12 6 8c2-2.5 5-4 8.5-4C18 4 21 7 21 10c0 2.5-1.5 4.5-3.5 5.5"/><path d="M12 22V12"/></svg><span>复合调味料</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="/ingredient/天然香料" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22V12M12 12C12 12 8 15 8 18M12 12C12 12 16 15 16 18"/><path d="M19 7C19 7 19 11 16 14M5 7C5 7 5 11 8 14"/><circle cx="12" cy="5" r="2"/></svg><span>天然香料</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="/ingredient/复合调味料" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22V12M12 12C12 12 8 15 8 18M12 12C12 12 16 15 16 18"/><path d="M19 7C19 7 19 11 16 14M5 7C5 7 5 11 8 14"/><circle cx="12" cy="5" r="2"/></svg><span>复合调味料</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
       </div>
       <div class="risk-group unknown">
         <div class="risk-header"><span class="risk-dot"></span><span class="risk-badge">未知</span><span class="risk-count">1 项</span></div>
         <div class="ingredient-scroll">
-          <a href="/ingredient/其他添加剂" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg><span>其他添加剂</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="/ingredient/其他添加剂" class="ingredient-card"><div class="ingredient-risk-bar"></div><div class="ingredient-content"><div class="ingredient-name"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg><span>其他添加剂</span></div></div><svg class="ingredient-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
       </div>
       <h3 class="section-title">健康益处</h3>
       <div class="health-card">
         <ul class="health-list">
-          <li class="health-item"><svg viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>富含膳食纤维，有助于消化</span></li>
-          <li class="health-item"><svg viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>含有丰富的维生素C</span></li>
+          <li class="health-item"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>富含膳食纤维，有助于消化</span></li>
+          <li class="health-item"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>含有丰富的维生素C</span></li>
         </ul>
       </div>
       <h3 class="section-title">食用建议</h3>
       <div class="advice-card">
-        <div class="advice-header"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>AI 健康建议</div>
+        <div class="advice-header"><svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>AI 健康建议</div>
         <ul class="advice-list">
-          <li class="advice-item"><svg viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>建议每天食用1-2个苹果</span></li>
+          <li class="advice-item"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>建议每天食用1-2个苹果</span></li>
         </ul>
       </div>
     </div>
   </div>
   <div class="bottom-bar">
-    <button type="button" class="action-btn secondary">添加到记录</button>
-    <button type="button" class="action-btn primary" style="background:linear-gradient(135deg,var(--accent-pink-light),var(--accent-pink))">咨询 AI 助手</button>
+    <button class="action-btn secondary">添加到记录</button>
+    <button class="action-btn primary" style="background:linear-gradient(135deg,var(--accent-pink-light),var(--accent-pink))">咨询 AI 助手</button>
   </div>
 </div>
 </div>
@@ -817,10 +790,9 @@ function handleScroll(suffix) {
 function toggleNutrition(suffix) {
   var details = document.getElementById('nutrDetails' + suffix);
   var toggle = document.getElementById('nutrToggle' + suffix);
-  var isExpanded = details.classList.toggle('show');
+  details.classList.toggle('show');
   toggle.classList.toggle('expanded');
-  toggle.setAttribute('aria-expanded', isExpanded);
-  toggle.querySelector('span').textContent = isExpanded ? '收起详细营养成分' : '查看详细营养成分';
+  toggle.querySelector('span').textContent = details.classList.contains('show') ? '收起详细营养成分' : '查看详细营养成分';
 }
 </script>
 

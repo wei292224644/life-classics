@@ -278,10 +278,6 @@ banner (260px) — image 或 emoji + badge
 ```vue
 <template>
   <view class="product-header">
-    <!-- Status Bar -->
-    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }">
-      <text class="status-time">9:41</text>
-    </view>
 
     <!-- Header -->
     <view :class="['header', { 'header--scrolled': isScrolled }]" :style="headerStyle">

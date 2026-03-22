@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>v14 对比分析</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'DM Sans', sans-serif;
+  background: #0f0f0f;
+  color: #f5f5f5;
+  padding: 32px 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.02em; }
+.subtitle { font-size: 14px; color: #6b7280; margin-bottom: 32px; }
+
+.area { margin-bottom: 32px; }
+.area-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6b7280;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.issue {
+  background: #1a1a1a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: 24px 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.issue.critical { border-left: 3px solid #ef4444; }
+.issue.moderate { border-left: 3px solid #eab308; }
+.issue.minor { border-left: 3px solid #6b7280; }
+
+.issue-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4b5563;
+  padding-top: 2px;
+}
+.issue-desc h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.issue-desc p { font-size: 12px; color: #9ca3af; line-height: 1.5; }
+
+.compare {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.compare-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.tag.v14 { background: rgba(34,197,94,0.15); color: #22c55e; }
+.tag.now { background: rgba(239,68,68,0.15); color: #ef4444; }
+.compare-val { font-size: 12px; color: #d1d5db; font-family: monospace; line-height: 1.5; }
+
+.legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  font-size: 12px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; color: #9ca3af; }
+.legend-dot { width: 12px; height: 3px; border-radius: 2px; }
+.critical-dot { background: #ef4444; }
+.moderate-dot { background: #eab308; }
+.minor-dot { background: #6b7280; }
+
+/* Phone mockup */
+.phones {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+  justify-content: center;
+}
+.phone-wrap { text-align: center; }
+.phone-label { font-size: 12px; color: #6b7280; margin-bottom: 8px; }
+.phone {
+  width: 200px;
+  height: 420px;
+  background: #141414;
+  border-radius: 28px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.08);
+  display: inline-block;
+}
+
+/* v14 Phone */
+.v14-phone .v14-header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 32px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  z-index: 10;
+}
+.v14-phone .v14-scroll {
+  position: absolute;
+  top: 24px; left: 0; right: 0; bottom: 44px;
+  overflow: hidden;
+}
+.v14-phone .v14-banner {
+  height: 138px; /* 260/375*200 = 138 */
+  background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.v14-phone .v14-banner-emoji { font-size: 42px; }
+.v14-phone .v14-badge {
+  position: absolute;
+  right: 8px; bottom: 8px;
+  background: rgba(34,197,94,0.2);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 8px;
+  color: #22c55e;
+  font-weight: 700;
+}
+.v14-phone .v14-content { padding: 12px 10px; }
+.v14-phone .v14-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f5f5f5;
+  margin-bottom: 8px;
+  margin-top: 6px;
+}
+.v14-phone .v14-nutr-card {
+  background: rgba(34,197,94,0.06);
+  border: 1px solid rgba(34,197,94,0.1);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+.v14-phone .v14-nutr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.v14-phone .v14-nutr-label { font-size: 6px; color: #6b7280; text-transform: uppercase; }
+.v14-phone .v14-nutr-val { font-size: 17px; font-weight: 700; color: #f5f5f5; }
+.v14-phone .v14-nutr-unit { font-size: 6px; color: #6b7280; }
+.v14-phone .v14-risk-group {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.15);
+  border-radius: 10px;
+  padding: 8px;
+  margin-bottom: 6px;
+}
+.v14-phone .v14-bottom-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 44px;
+  background: rgba(15,15,15,0.95);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 8px;
+}
+.v14-phone .v14-btn-sec {
+  flex: 1;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 8px;
+  color: #f5f5f5;
+  display: flex; align-items: center; justify-content: center;
+}
+.v14-phone .v14-btn-pri {
+  flex: 1;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f472b6, #ec4899);
+  font-size: 8px;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600;
+}
+
+/* Current Phone */
+.cur-phone .cur-header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 32px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  z-index: 10;
+}
+.cur-phone .cur-scroll {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+}
+.cur-phone .cur-banner {
+  height: 170px; /* 320px / 375px * 200 ≈ 170px */
+  background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.cur-phone .cur-banner-emoji { font-size: 64px; } /* too big */
+.cur-phone .cur-badge {
+  position: absolute;
+  right: 8px; bottom: 8px;
+  background: rgba(34,197,94,0.2);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 8px;
+  color: #22c55e;
+  font-weight: 700;
+}
+.cur-phone .cur-content { padding: 0 10px 20px; } /* no top padding */
+.cur-phone .cur-nutr-card {
+  background: rgba(34,197,94,0.06);
+  border: 1px solid rgba(34,197,94,0.1);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+.cur-phone .cur-section-title { /* this one looks OK when present */
+  font-size: 11px;
+  font-weight: 700;
+  color: #f5f5f5;
+  margin-bottom: 8px;
+  margin-top: 6px;
+}
+.cur-phone .cur-missing-title {
+  height: 6px;
+  background: rgba(239,68,68,0.3);
+  border: 1px dashed #ef4444;
+  border-radius: 3px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+}
+.cur-phone .cur-missing-title::after {
+  content: '← 缺少标题';
+  font-size: 6px;
+  color: #ef4444;
+}
+.cur-phone .cur-nutr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.cur-phone .cur-nutr-label { font-size: 6px; color: #6b7280; text-transform: uppercase; }
+.cur-phone .cur-nutr-val { font-size: 17px; font-weight: 700; color: #f5f5f5; }
+.cur-phone .cur-nutr-unit { font-size: 6px; color: #6b7280; }
+.cur-phone .cur-risk-group {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.15);
+  border-radius: 10px;
+  padding: 8px;
+  margin-bottom: 6px;
+}
+.cur-phone .cur-bottom-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 44px;
+  background: rgba(15,15,15,0.95);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 8px;
+}
+.cur-phone .cur-btn-sec {
+  flex: 1;
+  height: 28px;
+  border-radius: 8px;
+  background: transparent; /* wrong: should have faint bg */
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 8px;
+  color: #f5f5f5;
+  display: flex; align-items: center; justify-content: center;
+}
+.cur-phone .cur-btn-pri {
+  flex: 1;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f472b6, #ec4899);
+  font-size: 8px;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600;
+}
+
+/* Annotation arrows */
+.annotation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+.anno-line { width: 16px; height: 1px; background: #ef4444; }
+.anno-text { font-size: 9px; color: #ef4444; }
+</style>
+</head>
+<body>
+
+<h1>v14 设计稿 vs 当前实现 — 问题清单</h1>
+<p class="subtitle">已识别的主要视觉偏差，按区域分类</p>
+
+<!-- Phone comparison -->
+<div class="phones">
+  <div class="phone-wrap">
+    <div class="phone-label">✅ v14 设计稿</div>
+    <div class="phone v14-phone">
+      <div class="v14-header">
+        <span style="font-size:10px;color:#fff;">←</span>
+        <span style="font-size:10px;color:#fff;flex:1;text-align:center;">苹果</span>
+        <span style="font-size:10px;color:#fff;">⬆</span>
+      </div>
+      <div class="v14-scroll">
+        <div class="v14-banner">
+          <div>
+            <div class="v14-banner-emoji">🍎</div>
+            <div style="font-size:7px;color:#6b7280;text-align:center;">产品图片</div>
+          </div>
+          <div class="v14-badge">✓ 低风险</div>
+        </div>
+        <div class="v14-content">
+          <div class="v14-section-title">营养成分</div>
+          <div class="v14-nutr-card">
+            <div class="v14-nutr-grid">
+              <div><div class="v14-nutr-label">卡路里</div><div class="v14-nutr-val">52</div><div class="v14-nutr-unit">kcal</div></div>
+              <div><div class="v14-nutr-label">蛋白质</div><div class="v14-nutr-val">0.3</div><div class="v14-nutr-unit">g</div></div>
+            </div>
+            <div style="font-size:8px;color:#6b7280;text-align:center;padding-top:6px;">查看详细营养成分 ↓</div>
+          </div>
+          <div class="v14-section-title">配料信息</div>
+          <div class="v14-risk-group">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+              <span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:block;"></span>
+              <span style="font-size:8px;color:#ef4444;background:rgba(239,68,68,0.15);padding:2px 6px;border-radius:4px;font-weight:700;">严重风险</span>
+              <span style="font-size:8px;color:#6b7280;margin-left:auto;">1 项</span>
+            </div>
+            <div style="display:flex;gap:6px;overflow:hidden;">
+              <div style="min-width:80px;background:rgba(255,255,255,0.03);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:8px;position:relative;">
+                <div style="position:absolute;left:0;top:0;bottom:0;width:2px;background:#ef4444;border-radius:2px 0 0 2px;"></div>
+                <div style="font-size:8px;color:#f5f5f5;font-weight:600;padding-left:4px;">亚硝酸钠</div>
+                <div style="font-size:7px;color:#fca5a5;background:rgba(239,68,68,0.12);padding:2px 4px;border-radius:3px;margin-top:4px;display:inline-block;">可能致癌</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="v14-bottom-bar">
+        <div class="v14-btn-sec">添加到记录</div>
+        <div class="v14-btn-pri">咨询 AI 助手</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone-label">❌ 当前实现（问题标注）</div>
+    <div class="phone cur-phone">
+      <div class="cur-header">
+        <span style="font-size:10px;color:#fff;">←</span>
+        <span style="font-size:10px;color:#fff;flex:1;text-align:center;">苹果</span>
+        <span style="font-size:10px;color:#fff;">⬆</span>
+      </div>
+      <div class="cur-scroll">
+        <div class="cur-banner" style="outline: 2px dashed #ef4444;outline-offset:-2px;">
+          <div>
+            <div class="cur-banner-emoji">🍎</div>
+            <!-- too tall, emoji too big -->
+          </div>
+          <div class="cur-badge">✓ 低风险</div>
+          <div style="position:absolute;top:4px;left:4px;font-size:8px;color:#ef4444;background:rgba(0,0,0,0.7);padding:2px 4px;border-radius:3px;">Banner 太高 + Emoji 太大</div>
+        </div>
+        <div class="cur-content">
+          <!-- Missing 营养成分 title -->
+          <div class="cur-missing-title"></div>
+          <div class="cur-nutr-card">
+            <div class="cur-nutr-grid">
+              <div><div class="cur-nutr-label">能量</div><div class="cur-nutr-val">52</div><div class="cur-nutr-unit">kcal</div></div>
+              <div><div class="cur-nutr-label">蛋白质</div><div class="cur-nutr-val">0.3</div><div class="cur-nutr-unit">g</div></div>
+            </div>
+            <div style="font-size:8px;color:#6b7280;text-align:center;padding-top:6px;">查看详细营养成分 ↓</div>
+          </div>
+          <div class="cur-section-title">配料信息</div>
+          <div class="cur-risk-group" style="outline: 1px dashed #eab308;outline-offset:-1px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+              <span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:block;"></span>
+              <span style="font-size:8px;color:#ef4444;background:rgba(239,68,68,0.15);padding:2px 6px;border-radius:4px;font-weight:700;">严重风险</span>
+            </div>
+            <div style="font-size:7px;color:#eab308;">RiskGroup 用了 px 单位</div>
+          </div>
+        </div>
+      </div>
+      <div class="cur-bottom-bar">
+        <div class="cur-btn-sec" style="outline:1px dashed #eab308;">添加到记录</div>
+        <div class="cur-btn-pri">咨询 AI 助手</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Issues list -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot critical-dot"></div> 严重（视觉差异大）</div>
+  <div class="legend-item"><div class="legend-dot moderate-dot"></div> 中等（细节偏差）</div>
+  <div class="legend-item"><div class="legend-dot minor-dot"></div> 轻微（单位/规范问题）</div>
+</div>
+
+<div class="area">
+  <div class="area-title">📄 product/index.vue — 页面布局</div>
+
+  <div class="issue critical">
+    <div class="issue-num">#1</div>
+    <div class="issue-desc">
+      <h4>Banner 高度过大</h4>
+      <p>v14 设计稿 banner 高度为 260px（在 375px 宽手机上），当前实现为 320px，视觉上明显偏高。</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row"><span class="tag v14">v14</span><span class="compare-val">height: 260px → 520rpx</span></div>
+      <div class="compare-row"><span class="tag now">现在</span><span class="compare-val">height: 320px（偏大 23%）</span></div>
+    </div>
+  </div>
+
+  <div class="issue critical">
+    <div class="issue-num">#2</div>
+    <div class="issue-desc">
+      <h4>缺少"营养成分"章节标题</h4>
+      <p>v14 在 NutritionCard 前有 &lt;h3&gt; 营养成分 标题，当前页面没有。</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row"><span class="tag v14">v14</span><span class="compare-val">&lt;h3 class="section-title"&gt;营养成分&lt;/h3&gt;</span></div>
+      <div class="compare-row"><span class="tag now">现在</span><span class="compare-val">直接渲染 &lt;NutritionCard&gt;，无标题</span></div>
+    </div>
+  </div>
+
+  <div class="issue moderate">
+    <div class="issue-num">#3</div>
+    <div class="issue-desc">
+      <h4>内容区 padding-top 缺失</h4>
+      <p>v14 content 有 24px 顶部 padding，现在为 0，导致内容紧贴 banner。</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row"><span class="tag v14">v14</span><span class="compare-val">padding: 24px 20px 40px → 48rpx 40rpx</span></div>
+      <div class="compare-row"><span class="tag now">现在</span><span class="compare-val">padding: 0 40rpx 200rpx</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="area">
+  <div class="area-title">🖼 product-banner — Banner 区域</div>
+
+  <div class="issue critical">
+    <div class="issue-num">#4</div>
+    <div class="issue-desc">
+      <h4>占位 Emoji 尺寸过大</h4>
+      <p>v14 emoji 为 80px，当前 120px，在 banner 中过于突出。</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row"><span class="tag v14">v14</span><span class="compare-val">font-size: 80px → 160rpx</span></div>
+      <div class="compare-row"><span class="tag now">现在</span><span class="compare-val">font-size: 120px（偏大 50%）</span></div>
+    </div>
+  </div>
+
+  <div class="issue moderate">
+    <div class="issue-num">#5</div>
+    <div class="issue-desc">
+      <h4>Banner 缺少"产品图片"副标题文字</h4>
+      <p>v14 在 emoji 下方有 banner-label 文字"产品图片"，当前没有该文字。</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row"><span class="tag v14">v14</span><span class="compare-val">&lt;div class="banner-label"&gt;产品图片&lt;/div&gt;</span></div>
+      <div class="compare-row"><span class="tag now">现在</span><span class="compare-val">无此文字</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="area">
+  <div class="area-title">🃏 RiskGroup.vue — 风险分组</div>
+
+  <div class="issue moderate">
+    <div class="issue-num">#6</div>
+    <div class="issue-desc">
+      <h4>全部使用 px 单位（无响应式缩放）</h4>
+      <p>border-radius、padding、margin、font-size 全部用 px，不随屏幕缩放。</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row"><span class="tag v14">v14</span><span class="compare-val">20px → 40rpx, 16px → 32rpx</span></div>
+      <div class="compare-row"><span class="tag now">现在</span><span class="compare-val">border-radius: 20px; padding: 16px;</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="area">
+  <div class="area-title">💚 HealthBenefitCard.vue + AiAdviceCard.vue</div>
+
+  <div class="issue moderate">
+    <div class="issue-num">#7</div>
+    <div class="issue-desc">
+      <h4>HealthBenefitCard 内嵌了"健康益处"标题</h4>
+      <p>v14 中章节标题在卡片外，由页面统一管理。当前 HealthBenefitCard 内含 section-title，导致与其他章节样式不一致。</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row"><span class="tag v14">v14</span><span class="compare-val">&lt;h3&gt;健康益处&lt;/h3&gt; 在 health-card 外</span></div>
+      <div class="compare-row"><span class="tag now">现在</span><span class="compare-val">section-title 在 HealthBenefitCard 内部</span></div>
+    </div>
+  </div>
+
+  <div class="issue moderate">
+    <div class="issue-num">#8</div>
+    <div class="issue-desc">
+      <h4>全部使用 px 单位 + 卡片背景色不对（暗色）</h4>
+      <p>v14 暗色模式健康/建议卡背景是 rgba(255,255,255,0.02)（近透明），当前使用 var(--bg-card) = #1a1a1a（不透明深色），视觉差异明显。</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row"><span class="tag v14">v14</span><span class="compare-val">bg: rgba(255,255,255,0.02), border: rgba(255,255,255,0.06)</span></div>
+      <div class="compare-row"><span class="tag now">现在</span><span class="compare-val">bg: var(--bg-card) = #1a1a1a（太深）</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="area">
+  <div class="area-title">🔘 BottomBar.vue — 底部按钮栏</div>
+
+  <div class="issue minor">
+    <div class="issue-num">#9</div>
+    <div class="issue-desc">
+      <h4>次要按钮背景透明（应有淡白底）</h4>
+      <p>v14 暗色模式"添加到记录"按钮背景为 rgba(255,255,255,0.06)，当前为 transparent，有轻微区别。</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row"><span class="tag v14">v14</span><span class="compare-val">background: rgba(255,255,255,0.06)</span></div>
+      <div class="compare-row"><span class="tag now">现在</span><span class="compare-val">background: transparent</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="area">
+  <div class="area-title">🔝 ProductHeader.vue — 顶部导航</div>
+
+  <div class="issue minor">
+    <div class="issue-num">#10</div>
+    <div class="issue-desc">
+      <h4>图标颜色写死为 #fff，不跟随滚动状态变化</h4>
+      <p>v14 在 scrolled 状态下，图标应变为 var(--text-primary)（亮色模式为深色）。当前图标颜色始终为 #fff。</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row"><span class="tag v14">v14</span><span class="compare-val">scrolled 后 icon color: var(--header-text)</span></div>
+      <div class="compare-row"><span class="tag now">现在</span><span class="compare-val">固定 color="#fff"</span></div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 32px; padding: 16px; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+  <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">📋 问题汇总</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 12px;">
+    <div style="text-align:center;padding:12px;background:rgba(239,68,68,0.08);border-radius:8px;">
+      <div style="font-size:24px;font-weight:700;color:#ef4444;">4</div>
+      <div style="color:#9ca3af;margin-top:2px;">严重问题</div>
+    </div>
+    <div style="text-align:center;padding:12px;background:rgba(234,179,8,0.08);border-radius:8px;">
+      <div style="font-size:24px;font-weight:700;color:#eab308;">4</div>
+      <div style="color:#9ca3af;margin-top:2px;">中等问题</div>
+    </div>
+    <div style="text-align:center;padding:12px;background:rgba(156,163,175,0.08);border-radius:8px;">
+      <div style="font-size:24px;font-weight:700;color:#9ca3af;">2</div>
+      <div style="color:#9ca3af;margin-top:2px;">轻微问题</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
