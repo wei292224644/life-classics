@@ -7,10 +7,10 @@ const emit = defineEmits<{
 
 <template>
   <view class="bottom-bar">
-    <button type="button" class="action-btn secondary" @click="emit('add-record')">
+    <button type="button" class="action-btn action-btn--secondary" @click="emit('add-record')">
       添加到记录
     </button>
-    <button type="button" class="action-btn primary" @click="emit('chat')">
+    <button type="button" class="action-btn action-btn--primary" @click="emit('chat')">
       咨询 AI 助手
     </button>
   </view>
@@ -24,12 +24,11 @@ const emit = defineEmits<{
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 16px 20px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  padding: 32rpx 40rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
   display: flex;
-  gap: 12px;
+  gap: 24rpx;
   z-index: 40;
-
   background: var(--bottom-bar-bg);
   backdrop-filter: saturate(180%) blur(16px);
   -webkit-backdrop-filter: saturate(180%) blur(16px);
@@ -39,19 +38,17 @@ const emit = defineEmits<{
 
 .action-btn {
   flex: 1;
-  padding: 12px 16px;
-  border-radius: 14px;
-  font-size: 14px;
+  padding: 28rpx 32rpx;
+  border-radius: 28rpx;
+  font-size: 28rpx;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s $ease-spring;
   border: none;
   -webkit-appearance: none;
   appearance: none;
   line-height: 1.2;
-  min-height: 0;
-  box-sizing: border-box;
 
   &:active {
     transform: scale(0.97);
@@ -62,26 +59,25 @@ const emit = defineEmits<{
     outline-offset: 2px;
   }
 
-  // Primary: pink gradient
-  &.primary {
-    color: #fff !important;
-    background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink)) !important;
+  &--primary {
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink));
     box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
 
-    &:hover {
+    &:active {
       box-shadow: 0 6px 28px rgba(236, 72, 153, 0.4);
-      transform: translateY(-1px);
     }
   }
 
-  // Secondary: transparent with border (v14 style)
-  &.secondary {
-    background: transparent !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: #f5f5f5 !important;
+  &--secondary {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.06) !important;
+    // 亮色模式覆盖
+    .product-page:not(.dark-mode) & {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.08);
     }
   }
 }
