@@ -73,9 +73,12 @@ class FoodRepository:
         if food is None:
             return None
 
-        # 查询 food 级别的 analysis (food_id == food.id)
+        # 查询 food 级别的 analysis (target_id == food.id and analysis_target == 'food')
         analysis_result = await self._session.execute(
-            select(AnalysisDetail).where(AnalysisDetail.food_id == food.id)
+            select(AnalysisDetail).where(
+                AnalysisDetail.target_id == food.id,
+                AnalysisDetail.analysis_target == "food",
+            )
         )
         food_analyses = analysis_result.scalars().all()
 
@@ -85,13 +88,14 @@ class FoodRepository:
         if ingredient_ids:
             ing_analysis_result = await self._session.execute(
                 select(AnalysisDetail).where(
-                    AnalysisDetail.ingredient_id.in_(ingredient_ids),
+                    AnalysisDetail.target_id.in_(ingredient_ids),
+                    AnalysisDetail.analysis_target == "ingredient",
                     AnalysisDetail.analysis_type == "ingredient_summary",
                 )
             )
             for a in ing_analysis_result.scalars().all():
-                if a.ingredient_id is not None:
-                    ingredient_analysis_map[a.ingredient_id] = AnalysisSummary(
+                if a.target_id is not None:
+                    ingredient_analysis_map[a.target_id] = AnalysisSummary(
                         id=a.id,
                         analysis_type=a.analysis_type,
                         results=a.results,

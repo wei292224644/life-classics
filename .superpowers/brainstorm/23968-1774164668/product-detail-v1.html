@@ -1,0 +1,174 @@
+<h2>产品详情页 — 重构设计稿</h2>
+<p class="subtitle">对齐 Next.js 原版结构，包含所有核心功能区块</p>
+
+<div class="mockup">
+  <div class="mockup-header">设计稿预览（手机比例）</div>
+  <div class="mockup-body" style="background:#f5f5f5; font-family:-apple-system,sans-serif; max-width:375px; margin:0 auto; min-height:700px; position:relative; overflow:hidden;">
+
+    <!-- 固定 Header（滚动时变色） -->
+    <div style="position:sticky; top:0; z-index:40; background:#fff; border-bottom:1px solid #e5e7eb; padding:12px 16px; display:flex; align-items:center; gap:12px;">
+      <span style="font-size:20px;">←</span>
+      <span style="font-size:16px; font-weight:600;">商品名称</span>
+      <div style="flex:1"></div>
+      <span style="font-size:20px;">↗</span>
+    </div>
+
+    <!-- Hero 图片区域 -->
+    <div style="background:#e8f4ea; height:200px; position:relative; display:flex; align-items:center; justify-content:center; color:#888;">
+      <div style="text-align:center;">
+        <div style="font-size:48px; margin-bottom:8px;">🖼</div>
+        <div style="font-size:12px;">产品图片轮播</div>
+      </div>
+      <!-- 风险等级徽章 -->
+      <div style="position:absolute; right:12px; bottom:12px; background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:10px; padding:6px 10px; display:flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        <span style="width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span>
+        <span style="font-size:11px; font-weight:600; color:#92400e;">中风险</span>
+      </div>
+    </div>
+
+    <div style="padding:16px; background:#fff;">
+
+      <!-- 营养成分卡片 -->
+      <div style="margin-bottom:20px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">营养成分</h3>
+        <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:1px solid #86efac; border-radius:16px; padding:16px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+            <div>
+              <div style="font-size:11px; color:#6b7280;">能量</div>
+              <div style="font-size:28px; font-weight:700;">2156</div>
+              <div style="font-size:11px; color:#6b7280;">kJ/100g</div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:#6b7280;">蛋白质</div>
+              <div style="font-size:28px; font-weight:700;">8.2</div>
+              <div style="font-size:11px; color:#6b7280;">g/100g</div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:#6b7280;">脂肪</div>
+              <div style="font-size:28px; font-weight:700;">27.5</div>
+              <div style="font-size:11px; color:#6b7280;">g/100g</div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:#6b7280;">碳水</div>
+              <div style="font-size:28px; font-weight:700;">55.0</div>
+              <div style="font-size:11px; color:#6b7280;">g/100g</div>
+            </div>
+          </div>
+          <!-- 展开箭头 -->
+          <div style="text-align:center; margin-top:-4px;">
+            <span style="font-size:20px; color:#6b7280;">⌄</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 配料信息（风险分组） -->
+      <div style="margin-bottom:20px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">配料信息</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <!-- 高风险组 -->
+          <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:12px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+              <span style="width:8px; height:8px; border-radius:50%; background:#ef4444;"></span>
+              <span style="font-size:12px; font-weight:600; color:#dc2626; background:#fee2e2; padding:2px 8px; border-radius:6px;">高风险</span>
+            </div>
+            <div style="font-size:13px; color:#991b1b;">植脂末（精炼植物油、葡萄糖浆、乳粉...）</div>
+          </div>
+          <!-- 中风险组 -->
+          <div style="background:#fefce8; border:1px solid #fef08a; border-radius:12px; padding:12px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+              <span style="width:8px; height:8px; border-radius:50%; background:#eab308;"></span>
+              <span style="font-size:12px; font-weight:600; color:#a16207; background:#fef9c3; padding:2px 8px; border-radius:6px;">中风险</span>
+            </div>
+            <div style="font-size:13px; color:#713f12;">白砂糖、低聚果糖</div>
+          </div>
+          <!-- 低风险组 -->
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:12px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+              <span style="width:8px; height:8px; border-radius:50%; background:#22c55e;"></span>
+              <span style="font-size:12px; font-weight:600; color:#15803d; background:#dcfce7; padding:2px 8px; border-radius:6px;">低风险</span>
+            </div>
+            <div style="font-size:13px; color:#166534;">乳粉、食品添加剂</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 健康益处 -->
+      <div style="margin-bottom:16px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">健康益处</h3>
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px;">
+          <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px;">
+            <li style="display:flex; align-items:flex-start; gap:8px; font-size:13px; line-height:1.5;">
+              <span style="color:#22c55e; font-size:16px;">✓</span>
+              <span>含有优质蛋白质，可补充氨基酸</span>
+            </li>
+            <li style="display:flex; align-items:flex-start; gap:8px; font-size:13px; line-height:1.5;">
+              <span style="color:#22c55e; font-size:16px;">✓</span>
+              <span>钙质有助于骨骼健康</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 食用建议 -->
+      <div style="margin-bottom:16px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">食用建议</h3>
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px;">
+          <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px;">
+            <li style="display:flex; align-items:flex-start; gap:8px; font-size:13px; line-height:1.5;">
+              <span style="color:#6b7280; font-size:16px;">•</span>
+              <span>每日摄入量建议不超过 30g</span>
+            </li>
+            <li style="display:flex; align-items:flex-start; gap:8px; font-size:13px; line-height:1.5;">
+              <span style="color:#6b7280; font-size:16px;">•</span>
+              <span>糖尿病患者慎用</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 详情信息 -->
+      <div style="margin-bottom:16px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">详情信息</h3>
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; justify-content:space-between; font-size:13px;">
+            <span style="color:#6b7280;">生产商</span>
+            <span style="font-weight:500;">xxx食品有限公司</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;">
+            <span style="color:#6b7280;">产地</span>
+            <span style="font-weight:500;">山东省</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;">
+            <span style="color:#6b7280;">保质期</span>
+            <span style="font-weight:500;">12个月</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;">
+            <span style="color:#6b7280;">净含量</span>
+            <span style="font-weight:500;">500g</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sticky 底部操作栏 -->
+    <div style="position:sticky; bottom:0; z-index:30; background:#fff; border-top:1px solid #e5e7eb; padding:12px 16px; box-shadow:0 -4px 12px rgba(0,0,0,0.08); display:flex; gap:10px;">
+      <button style="flex:1; padding:12px; border:1px solid #d1d5db; border-radius:10px; background:#fff; font-size:14px; font-weight:500;">添加到记录</button>
+      <button style="flex:1; padding:12px; border:none; border-radius:10px; background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; font-size:14px; font-weight:500; box-shadow:0 2px 8px rgba(34,197,94,0.3);">咨询 AI 助手</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <h3>设计要点说明</h3>
+  <ul style="font-size:14px; line-height:1.8; color:#374151;">
+    <li><strong>固定 Header</strong> — 产品名 + 分享按钮，滚动时背景变色</li>
+    <li><strong>Hero 区域</strong> — 产品图片轮播 + 风险等级徽章（右下角叠加）</li>
+    <li><strong>营养成分</strong> — 2×2 网格大字体展示 top4，下方可展开全部</li>
+    <li><strong>配料分组</strong> — 按 WHO 风险等级（t4/t3/t2/t1/t0）用不同颜色区分</li>
+    <li><strong>健康益处/食用建议</strong> — 独立卡片，✓ 图标列表</li>
+    <li><strong>详情信息</strong> — 键值对网格（生产商、产地、许可证、保质期等）</li>
+    <li><strong>Sticky 底部栏</strong> — "添加到记录" + "咨询 AI 助手"</li>
+  </ul>
+</div>

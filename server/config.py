@@ -94,9 +94,9 @@ class Settings(BaseSettings):
     # ── PostgreSQL 连接 ────────────────────────────────────────────────────────
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str = ""
-    POSTGRES_PASSWORD: str = ""
-    POSTGRES_DB: str = ""
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "postgres"
     POSTGRES_URL: str = ""  # 直接连接 URL，优先级高于上面的分项配置
                              # 格式: postgresql+psycopg://user:password@host:port/dbname
 

@@ -20,7 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# Virtual environment
 venv/
 env/
 ENV/
@@ -37,21 +37,13 @@ ENV/
 .env
 .env.local
 
-# ChromaDB
+# Chroma / FTS / 本地 SQLite（与 config 默认 CHROMA_PERSIST_DIR、FTS_DB_PATH 一致）
 db/
 *.db
 *.sqlite
+*.sqlite3
 
-# Uploads
+# Uploads & logs
 uploads/
-# *.pdf
-*.docx
-*.pptx
-
-# Logs
 *.log
 logs/
-
-# Admin frontend
-admin/dist/
-admin/node_modules/

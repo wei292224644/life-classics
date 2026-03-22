@@ -12,6 +12,9 @@ node_modules
 dist
 *.local
 
+# UniApp / DCloud
+unpackage/
+
 # Editor directories and files
 .idea
 *.suo

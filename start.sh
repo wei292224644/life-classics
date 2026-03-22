@@ -29,9 +29,10 @@ fi
 
 echo -e "${BOLD}启动 dev 服务（tmux session: $SESSION）...${NC}"
 echo -e "  ${BLUE}[server]${NC}   http://localhost:9999"
-echo -e "  ${GREEN}[uniapp]${NC}  http://localhost:5173 (H5)"
-echo -e "  ${CYAN}[console]${NC} 管理后台"
+echo -e "  ${GREEN}[uniapp]${NC}  http://localhost:5174 (H5)"
+echo -e "  ${CYAN}[console]${NC} http://localhost:5173"
 echo ""
+echo "按 Ctrl+C 关闭所有服务"
 
 # 创建后台 session（左 pane = server）
 tmux new-session -d -s "$SESSION"
@@ -50,5 +51,12 @@ tmux send-keys -t "${SESSION}:0.2" "cd '$ROOT/web/apps/console' && pnpm dev" Ent
 # attach 时默认选中左侧 pane
 tmux select-pane -t "${SESSION}:0.0"
 
-# 进入 session
-exec tmux attach -t "$SESSION"
+# Ctrl+C 时关闭整个 session
+cleanup() {
+  tmux kill-session -t "$SESSION" 2>/dev/null
+  exit 0
+}
+trap cleanup INT TERM
+
+tmux attach -t "$SESSION"
+cleanup

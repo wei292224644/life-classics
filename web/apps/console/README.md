@@ -1,73 +1,41 @@
-# React + TypeScript + Vite
+# @acme/console
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+基于 **React 19**、**Vite**、**Tailwind CSS v4** 的知识库**管理台**：上传国标 Markdown、浏览与编辑 Chunk、简单对话等。面向内部或运营使用，生产构建可由后端 FastAPI 以静态资源形式挂载在 **`/admin`**。
 
-Currently, two official plugins are available:
+## 开发
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+在 monorepo 的 `web/` 目录安装依赖后：
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd web
+pnpm dev:console
+# 或
+cd apps/console && pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+默认开发地址：<http://localhost:5173>。
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## API 与代理
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+后端默认 <http://localhost:9999>。开发环境下 [vite.config.ts](./vite.config.ts) 将 **`/api`** 代理到 **`http://localhost:9999`**，前端使用相对路径 `/api/...` 即可，无需配置 CORS。
+
+## 页面概览（`src/pages/`）
+
+- **上传** — 文档入库（SSE 进度）
+- **Chunks** — 按文档筛选、查看与编辑 Chunk
+- **对话** — 与后端 RAG/聊天接口联调
+
+具体路由与组件以源码为准。
+
+## 构建
+
+```bash
+cd web
+pnpm build:console
 ```
+
+产物在 `apps/console/dist/`。后端若检测到该目录存在，会在 `server/api/main.py` 中挂载为 `/admin`。
+
+## 技术栈摘要
+
+React Router、Radix UI 风格组件（`src/components/ui/`）、react-markdown 等。代码风格与 ESLint 配置继承自 `web/tooling/`。
