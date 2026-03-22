@@ -49,6 +49,8 @@ const emit = defineEmits<{
   -webkit-appearance: none;
   appearance: none;
   line-height: 1.2;
+  min-height: 0;
+  box-sizing: border-box;
 
   &:active {
     transform: scale(0.97);
