@@ -278,12 +278,15 @@ function goToDetail(id: number) {
 
 // ── 原因标签 ──────────────────────────────────────────
 .ingredient-reason {
-  display: inline-flex;
-  align-items: center;
+  display: inline-block;
   font-size: 20rpx;
   padding: 8rpx 16rpx;
   border-radius: 12rpx;
   align-self: flex-start;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &.t4 { color: var(--risk-t4); background: rgba(239, 68, 68, 0.12); }
   &.t3 { color: var(--risk-t3); background: rgba(249, 115, 22, 0.12); }
