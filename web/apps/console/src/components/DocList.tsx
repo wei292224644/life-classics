@@ -94,23 +94,23 @@ export function DocList({ documents, loading, selectedDocId, onSelect, onDelete,
       </div>
 
       {totalPages > 1 && (
-        <div className="border-t border-border px-3 py-2 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="border-t border-border px-3 py-3 flex items-center justify-between text-xs text-muted-foreground">
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="p-1 rounded hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-2 rounded hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="上一页"
           >
-            <ChevronLeft className="h-3.5 w-3.5" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
           <span>第 {currentPage} / {totalPages} 页</span>
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="p-1 rounded hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-2 rounded hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="下一页"
           >
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-5 w-5" />
           </button>
         </div>
       )}
