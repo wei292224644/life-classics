@@ -17,7 +17,9 @@
     {
       "path": "pages/product/index",
       "style": {
-        "navigationBarTitleText": "产品详情"
+        "navigationStyle": "custom",
+        "statusBarStyle": "dark",
+        "statusBarHeight": "44px"
       }
     }
   ],
