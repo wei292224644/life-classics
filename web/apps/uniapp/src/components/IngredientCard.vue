@@ -58,7 +58,7 @@ function goToDetail(id: number) {
 </script>
 
 <style lang="scss" scoped>
-@import "~/@/styles/design-system.scss";
+@import "@/styles/design-system.scss";
 
 .ingredient-scroll {
   display: flex;
@@ -86,46 +86,22 @@ function goToDetail(id: number) {
   box-sizing: border-box;
   border: 1px solid transparent;
 
-  // Dark mode default background
-  :global(.dark-mode) & {
-    background: rgba(255, 255, 255, 0.03);
-    border-color: rgba(255, 255, 255, 0.06);
-  }
-
-  // Light mode default background
-  :global(.light-mode) & {
-    background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(0, 0, 0, 0.06);
-  }
+  background: var(--bg-card);
+  border-color: var(--border-color);
 
   &:active {
     transform: scale(0.96);
-
-    :global(.dark-mode) & {
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    :global(.light-mode) & {
-      background: #fff;
-    }
+    background: var(--bg-card-hover);
   }
 
-  // Risk border colors - dark mode
-  :global(.dark-mode) &--t4 { border-color: rgba(239, 68, 68, 0.2); }
-  :global(.dark-mode) &--t3 { border-color: rgba(249, 115, 22, 0.2); }
-  :global(.dark-mode) &--t2 { border-color: rgba(234, 179, 8, 0.2); }
-  :global(.dark-mode) &--t0 { border-color: rgba(34, 197, 94, 0.2); }
-  :global(.dark-mode) &--unknown {
-    border-color: rgba(156, 163, 175, 0.2);
-    background: rgba(156, 163, 175, 0.05);
+  &--t4 { border-color: var(--risk-t4-border); }
+  &--t3 { border-color: var(--risk-t3-border); }
+  &--t2 { border-color: var(--risk-t2-border); }
+  &--t0 { border-color: var(--risk-t0-border); }
+  &--unknown {
+    border-color: var(--risk-unknown-border);
+    background: var(--risk-unknown-bg);
   }
-
-  // Risk border colors - light mode
-  :global(.light-mode) &--t4 { border-color: rgba(252, 165, 165, 0.4); }
-  :global(.light-mode) &--t3 { border-color: rgba(252, 196, 110, 0.5); }
-  :global(.light-mode) &--t2 { border-color: rgba(250, 240, 137, 0.5); }
-  :global(.light-mode) &--t0 { border-color: rgba(187, 247, 208, 0.6); }
-  :global(.light-mode) &--unknown { border-color: rgba(156, 163, 175, 0.4); }
 
   // Decorative circle (top-right)
   &::before {
@@ -140,17 +116,11 @@ function goToDetail(id: number) {
     transition: opacity 0.3s ease;
   }
 
-  :global(.dark-mode) &--t4::before { background: var(--risk-t4); }
-  :global(.dark-mode) &--t3::before { background: var(--risk-t3); }
-  :global(.dark-mode) &--t2::before { background: var(--risk-t2); }
-  :global(.dark-mode) &--t0::before { background: var(--risk-t0); }
-  :global(.dark-mode) &--unknown::before { background: var(--risk-unknown); }
-
-  :global(.light-mode) &--t4::before { background: var(--risk-t4); }
-  :global(.light-mode) &--t3::before { background: var(--risk-t3); }
-  :global(.light-mode) &--t2::before { background: var(--risk-t2); }
-  :global(.light-mode) &--t0::before { background: var(--risk-t0); }
-  :global(.light-mode) &--unknown::before { background: var(--risk-unknown); }
+  &--t4::before { background: var(--risk-t4); }
+  &--t3::before { background: var(--risk-t3); }
+  &--t2::before { background: var(--risk-t2); }
+  &--t0::before { background: var(--risk-t0); }
+  &--unknown::before { background: var(--risk-unknown); }
 
   &:hover::before {
     opacity: 0.15;
@@ -165,32 +135,26 @@ function goToDetail(id: number) {
   bottom: 0;
   width: 6rpx;
 
-  :global(.dark-mode) &--t4 {
+  &--t4 {
     background: var(--risk-t4);
     box-shadow: 0 0 16rpx var(--risk-t4);
   }
-  :global(.dark-mode) &--t3 {
+  &--t3 {
     background: var(--risk-t3);
     box-shadow: 0 0 16rpx var(--risk-t3);
   }
-  :global(.dark-mode) &--t2 {
+  &--t2 {
     background: var(--risk-t2);
     box-shadow: 0 0 16rpx var(--risk-t2);
   }
-  :global(.dark-mode) &--t0 {
+  &--t0 {
     background: var(--risk-t0);
     box-shadow: 0 0 16rpx var(--risk-t0);
   }
-  :global(.dark-mode) &--unknown {
+  &--unknown {
     background: var(--risk-unknown);
     box-shadow: 0 0 16rpx var(--risk-unknown);
   }
-
-  :global(.light-mode) &--t4 { background: var(--risk-t4); }
-  :global(.light-mode) &--t3 { background: var(--risk-t3); }
-  :global(.light-mode) &--t2 { background: var(--risk-t2); }
-  :global(.light-mode) &--t0 { background: var(--risk-t0); }
-  :global(.light-mode) &--unknown { background: var(--risk-unknown); }
 }
 
 // Arrow (top-right)
@@ -202,9 +166,7 @@ function goToDetail(id: number) {
   height: 28rpx;
   opacity: 0.4;
   transition: all 0.2s ease;
-
-  :global(.dark-mode) & { color: #d1d5db; }
-  :global(.light-mode) & { color: #6b7280; }
+  color: var(--text-muted);
 
   .ingredient-card:hover & {
     opacity: 0.8;
@@ -240,23 +202,16 @@ function goToDetail(id: number) {
     flex-shrink: 0;
   }
 
-  :global(.dark-mode) &--t4 .icon-circle { fill: var(--risk-t4); }
-  :global(.dark-mode) &--t3 .icon-circle { fill: var(--risk-t3); }
-  :global(.dark-mode) &--t2 .icon-circle { fill: var(--risk-t2); }
-  :global(.dark-mode) &--t0 .icon-leaf { stroke: var(--risk-t0); }
-  :global(.dark-mode) &--unknown .icon-circle { fill: var(--risk-unknown); }
-
-  :global(.light-mode) &--t4 .icon-circle { fill: var(--risk-t4); }
-  :global(.light-mode) &--t3 .icon-circle { fill: var(--risk-t3); }
-  :global(.light-mode) &--t2 .icon-circle { fill: var(--risk-t2); }
-  :global(.light-mode) &--t0 .icon-leaf { stroke: var(--risk-t0); }
-  :global(.light-mode) &--unknown .icon-circle { fill: var(--risk-unknown); }
+  .ingredient-card--t4 & .icon-circle { fill: var(--risk-t4); }
+  .ingredient-card--t3 & .icon-circle { fill: var(--risk-t3); }
+  .ingredient-card--t2 & .icon-circle { fill: var(--risk-t2); }
+  .ingredient-card--t0 & .icon-leaf { stroke: var(--risk-t0); }
+  .ingredient-card--unknown & .icon-circle { fill: var(--risk-unknown); }
 
   span {
     font-size: 26rpx;
     font-weight: 600;
-    :global(.dark-mode) & { color: var(--text-primary); }
-    :global(.light-mode) & { color: #111; }
+    color: var(--text-primary);
   }
 }
 
@@ -270,45 +225,24 @@ function goToDetail(id: number) {
   border-radius: 12rpx;
   margin-left: 0;
 
-  :global(.dark-mode) &--t4 {
-    color: #fca5a5;
-    background: rgba(239, 68, 68, 0.12);
-  }
-  :global(.dark-mode) &--t3 {
-    color: #fdba74;
-    background: rgba(249, 115, 22, 0.12);
-  }
-  :global(.dark-mode) &--t2 {
-    color: #fde047;
-    background: rgba(234, 179, 8, 0.12);
-  }
-  :global(.dark-mode) &--t0 {
-    color: #86efac;
-    background: rgba(34, 197, 94, 0.12);
-  }
-  :global(.dark-mode) &--unknown {
-    color: #d1d5db;
-    background: rgba(156, 163, 175, 0.12);
-  }
-
-  :global(.light-mode) &--t4 {
-    color: #dc2626;
+  &--t4 {
+    color: var(--risk-t4);
     background: rgba(220, 38, 38, 0.1);
   }
-  :global(.light-mode) &--t3 {
-    color: #ea580c;
+  &--t3 {
+    color: var(--risk-t3);
     background: rgba(234, 88, 12, 0.1);
   }
-  :global(.light-mode) &--t2 {
-    color: #ca8a04;
+  &--t2 {
+    color: var(--risk-t2);
     background: rgba(234, 179, 8, 0.1);
   }
-  :global(.light-mode) &--t0 {
-    color: #16a34a;
+  &--t0 {
+    color: var(--risk-t0);
     background: rgba(34, 197, 94, 0.1);
   }
-  :global(.light-mode) &--unknown {
-    color: #6b7280;
+  &--unknown {
+    color: var(--risk-unknown);
     background: rgba(156, 163, 175, 0.1);
   }
 }

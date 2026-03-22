@@ -1,5 +1,5 @@
 <template>
-  <view class="product-page light-mode">
+  <view class="product-page dark-mode">
     <!-- ProductHeader: status-bar (44px) + fixed header + banner (260px) -->
     <ProductHeader
       ref="headerRef"
@@ -163,12 +163,17 @@ const overallRiskLevel = computed(() => {
 }
 
 .status-center {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 60vh;
-  gap: 24rpx;
+  gap: 48rpx;
+  z-index: 10;
 }
 
 .status-text {
@@ -182,10 +187,11 @@ const overallRiskLevel = computed(() => {
   left: 0;
   right: 0;
   bottom: 0;
+  background: var(--bg-base);
 }
 
 .content {
-  padding: 260px 40rpx 200rpx;
+  padding: calc(44px + 260px) 40rpx 200rpx;
 }
 
 .section-title {

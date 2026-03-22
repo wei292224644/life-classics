@@ -29,7 +29,7 @@ const levelLabel = LEVEL_LABELS[props.level] ?? "未知";
 </script>
 
 <style lang="scss" scoped>
-@import "~/@/styles/design-system.scss";
+@import "@/styles/design-system.scss";
 
 .risk-group {
   border-radius: 20px;
@@ -38,48 +38,25 @@ const levelLabel = LEVEL_LABELS[props.level] ?? "未知";
   position: relative;
   overflow: hidden;
 
-  // Dark mode backgrounds
-  :global(.dark-mode) &.t4 {
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.15);
+  &.t4 {
+    background: var(--risk-t4-bg);
+    border: 1px solid var(--risk-t4-border);
   }
-  :global(.dark-mode) &.t3 {
-    background: rgba(249, 115, 22, 0.08);
-    border: 1px solid rgba(249, 115, 22, 0.15);
+  &.t3 {
+    background: var(--risk-t3-bg);
+    border: 1px solid var(--risk-t3-border);
   }
-  :global(.dark-mode) &.t2 {
-    background: rgba(234, 179, 8, 0.08);
-    border: 1px solid rgba(234, 179, 8, 0.15);
+  &.t2 {
+    background: var(--risk-t2-bg);
+    border: 1px solid var(--risk-t2-border);
   }
-  :global(.dark-mode) &.t0 {
-    background: rgba(34, 197, 94, 0.08);
-    border: 1px solid rgba(34, 197, 94, 0.15);
+  &.t0 {
+    background: var(--risk-t0-bg);
+    border: 1px solid var(--risk-t0-border);
   }
-  :global(.dark-mode) &.unknown {
-    background: rgba(156, 163, 175, 0.08);
-    border: 1px solid rgba(156, 163, 175, 0.15);
-  }
-
-  // Light mode backgrounds
-  :global(.light-mode) &.t4 {
-    background: rgba(254, 226, 226);
-    border: 1px solid rgba(252, 165, 165, 0.3);
-  }
-  :global(.light-mode) &.t3 {
-    background: rgba(254, 235, 200);
-    border: 1px solid rgba(252, 196, 110, 0.4);
-  }
-  :global(.light-mode) &.t2 {
-    background: rgba(254, 249, 195);
-    border: 1px solid rgba(250, 240, 137, 0.4);
-  }
-  :global(.light-mode) &.t0 {
-    background: rgba(220, 252, 231);
-    border: 1px solid rgba(187, 247, 208, 0.5);
-  }
-  :global(.light-mode) &.unknown {
-    background: rgba(229, 231, 235);
-    border: 1px solid rgba(209, 213, 219, 0.5);
+  &.unknown {
+    background: var(--risk-unknown-bg);
+    border: 1px solid var(--risk-unknown-border);
   }
 }
 
@@ -95,32 +72,26 @@ const levelLabel = LEVEL_LABELS[props.level] ?? "未知";
   height: 8px;
   border-radius: 50%;
 
-  :global(.dark-mode) &.t4 {
+  &.t4 {
     background: var(--risk-t4);
     box-shadow: 0 0 8px var(--risk-t4);
   }
-  :global(.dark-mode) &.t3 {
+  &.t3 {
     background: var(--risk-t3);
     box-shadow: 0 0 8px var(--risk-t3);
   }
-  :global(.dark-mode) &.t2 {
+  &.t2 {
     background: var(--risk-t2);
     box-shadow: 0 0 8px var(--risk-t2);
   }
-  :global(.dark-mode) &.t0 {
+  &.t0 {
     background: var(--risk-t0);
     box-shadow: 0 0 8px var(--risk-t0);
   }
-  :global(.dark-mode) &.unknown {
+  &.unknown {
     background: var(--risk-unknown);
     box-shadow: 0 0 8px var(--risk-unknown);
   }
-
-  :global(.light-mode) &.t4 { background: var(--risk-t4); }
-  :global(.light-mode) &.t3 { background: var(--risk-t3); }
-  :global(.light-mode) &.t2 { background: var(--risk-t2); }
-  :global(.light-mode) &.t0 { background: var(--risk-t0); }
-  :global(.light-mode) &.unknown { background: var(--risk-unknown); }
 }
 
 .risk-badge {
@@ -129,45 +100,24 @@ const levelLabel = LEVEL_LABELS[props.level] ?? "未知";
   padding: 4px 10px;
   border-radius: 8px;
 
-  :global(.dark-mode) &.t4 {
-    color: #fca5a5;
-    background: rgba(239, 68, 68, 0.15);
-  }
-  :global(.dark-mode) &.t3 {
-    color: #fdba74;
-    background: rgba(249, 115, 22, 0.15);
-  }
-  :global(.dark-mode) &.t2 {
-    color: #fde047;
-    background: rgba(234, 179, 8, 0.15);
-  }
-  :global(.dark-mode) &.t0 {
-    color: #86efac;
-    background: rgba(34, 197, 94, 0.15);
-  }
-  :global(.dark-mode) &.unknown {
-    color: #d1d5db;
-    background: rgba(156, 163, 175, 0.15);
-  }
-
-  :global(.light-mode) &.t4 {
-    color: #dc2626;
+  &.t4 {
+    color: var(--risk-t4);
     background: rgba(220, 38, 38, 0.1);
   }
-  :global(.light-mode) &.t3 {
-    color: #ea580c;
+  &.t3 {
+    color: var(--risk-t3);
     background: rgba(234, 88, 12, 0.1);
   }
-  :global(.light-mode) &.t2 {
-    color: #ca8a04;
+  &.t2 {
+    color: var(--risk-t2);
     background: rgba(202, 138, 4, 0.1);
   }
-  :global(.light-mode) &.t0 {
-    color: #16a34a;
+  &.t0 {
+    color: var(--risk-t0);
     background: rgba(22, 163, 74, 0.1);
   }
-  :global(.light-mode) &.unknown {
-    color: #6b7280;
+  &.unknown {
+    color: var(--risk-unknown);
     background: rgba(156, 163, 175, 0.1);
   }
 }
@@ -175,12 +125,6 @@ const levelLabel = LEVEL_LABELS[props.level] ?? "未知";
 .risk-count {
   font-size: 11px;
   margin-left: auto;
-
-  :global(.dark-mode) & {
-    color: var(--text-muted);
-  }
-  :global(.light-mode) & {
-    color: #9ca3af;
-  }
+  color: var(--text-muted);
 }
 </style>

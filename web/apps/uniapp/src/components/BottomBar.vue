@@ -17,7 +17,7 @@ const emit = defineEmits<{
 </template>
 
 <style lang="scss" scoped>
-@import "~/@/styles/design-system.scss";
+@import "@/styles/design-system.scss";
 
 .bottom-bar {
   position: fixed;
@@ -30,21 +30,11 @@ const emit = defineEmits<{
   gap: 12px;
   z-index: 40;
 
-  .dark-mode & {
-    background: rgba(15, 15, 15, 0.95);
-    backdrop-filter: saturate(180%) blur(16px);
-    -webkit-backdrop-filter: saturate(180%) blur(16px);
-    border-color: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
-  }
-
-  .light-mode & {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: saturate(180%) blur(16px);
-    -webkit-backdrop-filter: saturate(180%) blur(16px);
-    border-color: rgba(0, 0, 0, 0.06);
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.06);
-  }
+  background: var(--bottom-bar-bg);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  border-top: 1px solid var(--bottom-bar-border);
+  box-shadow: var(--bottom-bar-shadow);
 }
 
 .action-btn {
@@ -69,15 +59,8 @@ const emit = defineEmits<{
 
   &.primary {
     color: #fff;
+    background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink));
     box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
-
-    .dark-mode & {
-      background: linear-gradient(135deg, #f472b6, #ec4899);
-    }
-
-    .light-mode & {
-      background: linear-gradient(135deg, #ec4899, #db2777);
-    }
 
     &:hover {
       box-shadow: 0 6px 28px rgba(236, 72, 153, 0.4);
@@ -86,20 +69,12 @@ const emit = defineEmits<{
   }
 
   &.secondary {
-    .dark-mode & {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: var(--text-primary);
-    }
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
 
-    .light-mode & {
-      background: rgba(0, 0, 0, 0.04);
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      color: #111;
-
-      &:hover {
-        background: rgba(0, 0, 0, 0.08);
-      }
+    &:hover {
+      background: var(--bg-card-hover);
     }
   }
 }

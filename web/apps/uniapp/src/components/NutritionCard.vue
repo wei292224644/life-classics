@@ -57,7 +57,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~/@/styles/design-system.scss";
+@import "@/styles/design-system.scss";
 
 .nutrition-card {
   position: relative;
@@ -69,7 +69,7 @@ export default {
   opacity: 0;
   transform: translateY(16px);
 
-  background: linear-gradient(145deg, var(--nutrition-bg), rgba(22, 163, 74, 0.04));
+  background: var(--nutrition-bg);
   border: 1px solid var(--nutrition-border);
 
   &::before {
@@ -80,15 +80,6 @@ export default {
     right: 0;
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--nutrition-glow), transparent);
-  }
-}
-
-.light-mode .nutrition-card {
-  background: linear-gradient(145deg, rgba(34, 197, 94, 0.04), rgba(22, 163, 74, 0.02));
-  border: 1px solid rgba(34, 197, 94, 0.12);
-
-  &::before {
-    background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.2), transparent);
   }
 }
 
@@ -159,18 +150,6 @@ export default {
 
   &.expanded svg {
     transform: rotate(180deg);
-  }
-}
-
-.light-mode .nutrition-toggle {
-  color: #6b7280;
-
-  &:hover {
-    background: rgba(128, 128, 128, 0.1);
-  }
-
-  svg {
-    stroke: #6b7280;
   }
 }
 

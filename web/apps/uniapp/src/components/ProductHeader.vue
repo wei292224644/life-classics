@@ -98,21 +98,14 @@ function handleShare() {
   justify-content: center;
   position: relative;
   z-index: 50;
+  background: var(--status-bar-bg);
+  border-bottom: 1px solid var(--status-bar-border);
 
   .status-time {
     font-size: 14px;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: #fff;
-  }
-
-  &.light-mode {
-    background: #fff;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-
-    .status-time {
-      color: #111;
-    }
+    color: var(--status-bar-text);
   }
 }
 
@@ -133,14 +126,7 @@ function handleShare() {
     background: var(--header-scrolled-bg);
     backdrop-filter: saturate(180%) blur(16px);
     -webkit-backdrop-filter: saturate(180%) blur(16px);
-
-    &.light-mode {
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(0, 0, 0, 0.04);
-    }
-
-    &:not(.light-mode) {
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06);
-    }
+    border-bottom: 1px solid var(--border-color);
   }
 }
 
@@ -172,14 +158,7 @@ function handleShare() {
   flex: 1;
   letter-spacing: -0.02em;
   transition: color 0.3s;
-
-  .light-mode & {
-    color: rgba(0, 0, 0, 0.8);
-  }
-
-  &:not(.light-mode) {
-    color: rgba(255, 255, 255, 0.9);
-  }
+  color: var(--header-text);
 }
 
 // Banner
@@ -190,29 +169,22 @@ function handleShare() {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-
-  &:not(.light-mode) {
-    background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%);
-
-    &::before {
-      background:
-        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34, 197, 94, 0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
-    }
-  }
-
-  &.light-mode {
-    background: linear-gradient(145deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%);
-
-    &::before {
-      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(251, 191, 36, 0.3) 0%, transparent 60%);
-    }
-  }
+  background: var(--banner-bg);
 
   &::before {
     content: '';
     position: absolute;
     inset: 0;
+  }
+
+  &.light-mode::before {
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(251, 191, 36, 0.3) 0%, transparent 60%);
+  }
+
+  &:not(.light-mode)::before {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34, 197, 94, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
   }
 }
 
@@ -247,14 +219,7 @@ function handleShare() {
 .banner-label {
   font-size: 13px;
   letter-spacing: 0.1em;
-
-  &:not(.light-mode) {
-    color: var(--text-muted);
-  }
-
-  .light-mode & {
-    color: var(--banner-label);
-  }
+  color: var(--banner-label);
 }
 
 // Banner Badge (低风险徽章)
@@ -273,17 +238,9 @@ function handleShare() {
   opacity: 0;
   transform: translateY(10px);
 
-  &:not(.light-mode) {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.3));
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  }
-
-  &.light-mode {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.25));
-    border: 1px solid rgba(34, 197, 94, 0.25);
-    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.15);
-  }
+  background: var(--banner-badge-bg);
+  border: 1px solid var(--banner-badge-border);
+  box-shadow: var(--banner-badge-shadow);
 }
 
 .banner-badge-text {
