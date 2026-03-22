@@ -346,14 +346,24 @@ const adviceItems = computed(() =>
 .badge-icon {
   width: 28rpx;
   height: 28rpx;
-  fill: var(--risk-t0);
   flex-shrink: 0;
+
+  .banner-badge.t4 & { fill: var(--risk-t4); }
+  .banner-badge.t3 & { fill: var(--risk-t3); }
+  .banner-badge.t2 & { fill: var(--risk-t2); }
+  .banner-badge.t0 & { fill: var(--risk-t0); }
+  .banner-badge.unknown & { fill: var(--risk-unknown); }
 }
 
 .badge-text {
   font-size: 24rpx;
   font-weight: 600;
-  color: var(--risk-t0);
+
+  .banner-badge.t4 & { color: var(--risk-t4); }
+  .banner-badge.t3 & { color: var(--risk-t3); }
+  .banner-badge.t2 & { color: var(--risk-t2); }
+  .banner-badge.t0 & { color: var(--risk-t0); }
+  .banner-badge.unknown & { color: var(--risk-unknown); }
 }
 
 // ── 内容区 ────────────────────────────────────────────
