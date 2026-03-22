@@ -13,7 +13,7 @@
         </view>
 
         <!-- 横向滚动配料卡 -->
-        <view class="ingredient-scroll">
+        <scroll-view scroll-x class="ingredient-scroll">
           <view
             v-for="item in groupedIngredients[levelKey]"
             :key="item.id"
@@ -53,7 +53,7 @@
               </view>
             </view>
           </view>
-        </view>
+        </scroll-view>
       </view>
     </template>
   </view>
