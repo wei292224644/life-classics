@@ -101,7 +101,7 @@ function handleShare() {
   cursor: pointer;
   flex-shrink: 0;
   color: #ffffff;
-  transition: all 0.2s ease;
+  transition: all 0.2s $ease-spring;
 
   .header--scrolled & {
     color: var(--text-primary);
@@ -129,9 +129,9 @@ function handleShare() {
   font-size: 34rpx;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: rgba(255, 255, 255, 0.9);
+  color: #ffffff;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  transition: color 0.3s, text-shadow 0.3s;
+  transition: color 0.3s $ease-spring, text-shadow 0.3s $ease-spring;
 
   .header--scrolled & {
     color: var(--text-primary);
