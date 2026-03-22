@@ -5,7 +5,6 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
-CYAN='\033[0;36m'
 RED='\033[0;31m'
 BOLD='\033[1m'
 NC='\033[0m'
@@ -28,9 +27,8 @@ if tmux has-session -t "$SESSION" 2>/dev/null; then
 fi
 
 echo -e "${BOLD}启动 dev 服务（tmux session: $SESSION）...${NC}"
-echo -e "  ${BLUE}[server]${NC}   http://localhost:9999"
-echo -e "  ${GREEN}[uniapp]${NC}  http://localhost:5173 (H5)"
-echo -e "  ${CYAN}[console]${NC} 管理后台"
+echo -e "  ${BLUE}[server]${NC}  http://localhost:9999"
+echo -e "  ${GREEN}[web]${NC}     turbo dev (nextjs + console + packages)"
 echo ""
 
 # 创建后台 session（左 pane = server）
@@ -39,13 +37,13 @@ tmux new-session -d -s "$SESSION"
 # 向右分裂出右半区
 tmux split-window -h -t "$SESSION"
 
-# 将右半区纵向分裂（上 = uniapp，下 = console）
+# 将右半区纵向分裂（上 = web，下 = 空闲）
 tmux split-window -v -t "${SESSION}:0.1"
 
 # 向各 pane 发送命令
 tmux send-keys -t "${SESSION}:0.0" "cd '$ROOT/server' && uv run python3 run.py" Enter
-tmux send-keys -t "${SESSION}:0.1" "cd '$ROOT/web/apps/uniapp' && pnpm dev:h5" Enter
-tmux send-keys -t "${SESSION}:0.2" "cd '$ROOT/web/apps/console' && pnpm dev" Enter
+tmux send-keys -t "${SESSION}:0.1" "cd '$ROOT/web' && pnpm dev" Enter
+tmux send-keys -t "${SESSION}:0.2" "cd '$ROOT'" Enter
 
 # attach 时默认选中左侧 pane
 tmux select-pane -t "${SESSION}:0.0"
