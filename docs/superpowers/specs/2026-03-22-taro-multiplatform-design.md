@@ -270,13 +270,15 @@ GET /api/product?barcode={barcode}
 
 | 关注点 | 选择 | 说明 |
 |---|---|---|
-| 多端框架 | uni-app（Vue 3 + Vite） | 覆盖微信/支付宝/抖音/H5，二期 App 用 uni-app x |
-| UI 组件库 | uView UI 3.x | 国内社区最大，专为 uni-app 设计，覆盖小程序 + H5 |
+| 多端框架 | uni-app（Vue 3 + Vite，CLI 模式） | CLI 模式可接入 pnpm workspace，区别于 HBuilderX 模式 |
+| UI 组件库 | `uview-plus`（Vue 3） | uView 的 Vue 3 社区 fork，原 uView 2.x 仅支持 Vue 2 |
 | 状态管理 | Pinia | Vue 3 官方推荐，替代 Vuex |
 | 请求封装 | `uni.request()` 封装 | 统一处理 baseURL / 错误 / loading |
-| 样式方案 | `<style scoped>` + scss | uni-app 原生支持，无 Tailwind |
+| 样式方案 | `<style scoped>` + SCSS | uni-app 原生支持，三端行为一致 |
+| Tailwind | **不使用** | `weapp-tailwindcss` 主要针对微信设计，支付宝/抖音兼容性不可靠 |
 | 路由 | `pages.json` 声明式路由 | uni-app 内置，无需额外路由库 |
 | 语言 | TypeScript + Vue 3 Composition API | |
+| 环境变量 | `.env.development` / `.env.production` | uni-app Vite 模式支持，`VITE_API_BASE_URL` 控制接口地址 |
 
 ### 页面设计
 
@@ -302,7 +304,7 @@ H5 端通过 `#ifdef H5` 条件编译隐藏扫码按钮，改为输入框。
 #### `pages/scan` — 扫码页
 
 - 调用 `uni.scanCode()`，获得 barcode → 跳转 product
-- 通过 `#ifndef H5` 条件编译，H5 不编译此页
+- 通过 `#ifndef H5` 条件编译，H5 不编译此页（`pages.json` 里同样用条件编译排除）
 - 扫码失败（用户取消）：静默返回首页
 
 #### `pages/product` — 产品详情页
@@ -448,7 +450,20 @@ export async function scanBarcode(): Promise<string> {
 
 ---
 
-## 六、超出本期范围
+## 六、上线前置条件
+
+以下事项不是代码工作，但必须在发布前完成：
+
+| 平台 | 需要做的事 |
+|---|---|
+| 微信小程序 | 注册微信小程序账号，获取 AppID，在 `manifest.json` 填入；后台配置业务域名白名单（FastAPI 域名） |
+| 支付宝小程序 | 注册支付宝开放平台，获取 AppID |
+| 抖音小程序 | 注册抖音开放平台，获取 AppID |
+| FastAPI 后端 | 配置 CORS，允许各小程序平台域名和 H5 域名访问 `/api/product` |
+
+---
+
+## 七、超出本期范围
 
 - 用户登录 / 鉴权（小程序 OAuth）
 - 历史扫码记录
@@ -459,7 +474,7 @@ export async function scanBarcode(): Promise<string> {
 
 ---
 
-## 七、关键决策记录
+## 八、关键决策记录
 
 | 决策 | 选择 | 理由 |
 |---|---|---|
