@@ -191,7 +191,7 @@ const overallRiskLevel = computed(() => {
   if (levels.includes("t4")) return "t4";
   if (levels.includes("t3")) return "t3";
   if (levels.includes("t2")) return "t2";
-  if (levels.includes("t0")) return "t0";
+  if (levels.includes("t0") || levels.includes("t1")) return "t0";
   return "unknown";
 });
 
