@@ -252,7 +252,7 @@ function goToDetail(id: number) {
   display: flex;
   flex-direction: column;
   padding-left: 16rpx;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .ingredient-name {
@@ -289,6 +289,7 @@ function goToDetail(id: number) {
   border-radius: 12rpx;
   align-self: flex-start;
   max-width: 100%;
+  box-sizing: border-box;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -1,5 +1,5 @@
 <template>
-  <view class="product-page dark-mode">
+  <view class="product-page">
     <ProductHeader
       ref="headerRef"
       :name="store.product?.name ?? ''"
