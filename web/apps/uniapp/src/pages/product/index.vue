@@ -1,88 +1,82 @@
 <template>
   <view class="product-page">
-    <!-- 加载中 -->
+    <!-- ProductHeader: status-bar (44px) + fixed header + banner (260px) -->
+    <ProductHeader
+      ref="headerRef"
+      :name="store.product?.name ?? ''"
+      :image-url="store.product?.image_url_list?.[0]"
+      :overall-risk-level="overallRiskLevel"
+    />
+
+    <!-- Loading state -->
     <view v-if="store.state === 'loading'" class="status-center">
       <up-loading-icon mode="circle" />
       <text class="status-text">查询中...</text>
     </view>
 
-    <!-- 未找到 -->
+    <!-- Not found state -->
     <view v-else-if="store.state === 'not_found'" class="status-center">
       <text class="status-text">该产品暂未收录</text>
       <up-button size="small" @click="goBack">返回重新扫码</up-button>
     </view>
 
-    <!-- 网络错误 -->
+    <!-- Error state -->
     <view v-else-if="store.state === 'error'" class="status-center">
-      <text class="status-text">{{ store.errorMessage || "网络请求失败" }}</text>
+      <text class="status-text">{{ store.errorMessage || '网络请求失败' }}</text>
       <up-button size="small" @click="load">重试</up-button>
     </view>
 
-    <!-- 产品详情 -->
-    <view v-else-if="store.product" class="content">
-      <!-- 基础信息 -->
-      <view class="product-header">
-        <text class="product-name">{{ store.product.name }}</text>
-        <view class="product-meta">
-          <text v-if="store.product.manufacturer">{{ store.product.manufacturer }}</text>
-          <text v-if="store.product.net_content"> · {{ store.product.net_content }}</text>
-          <text v-if="store.product.shelf_life"> · {{ store.product.shelf_life }}</text>
-        </view>
-      </view>
+    <!-- Success state: scrollable content -->
+    <scroll-view
+      v-else-if="store.product"
+      class="scroll-area"
+      scroll-y
+      @scroll="onScroll"
+    >
+      <view class="content">
+        <!-- Nutrition Card -->
+        <NutritionCard :nutritions="store.product.nutritions" />
 
-      <!-- Tab 切换 -->
-      <view class="tabs">
-        <text
-          v-for="tab in TABS"
-          :key="tab.key"
-          :class="['tab', activeTab === tab.key && 'tab--active']"
-          @click="activeTab = tab.key"
+        <!-- Ingredient Section Title -->
+        <view class="section-title">配料信息</view>
+
+        <!-- Risk Groups with Ingredient Cards -->
+        <RiskGroup
+          v-for="(group, level) in groupedIngredients"
+          :key="level"
+          :level="level"
+          :ingredients="group"
         >
-          {{ tab.label }}
-        </text>
-      </view>
+          <IngredientCard :ingredients="group" />
+        </RiskGroup>
 
-      <!-- Tab 内容 -->
-      <view class="tab-content">
-        <NutritionTable
-          v-if="activeTab === 'nutrition'"
-          :nutritions="store.product.nutritions"
-        />
-        <IngredientList
-          v-else-if="activeTab === 'ingredient'"
-          :ingredients="store.product.ingredients"
-        />
-        <view v-else-if="activeTab === 'analysis'">
-          <AnalysisCard
-            v-for="item in store.product.analysis"
-            :key="item.id"
-            :item="item"
-          />
-          <text v-if="store.product.analysis.length === 0" class="empty">暂无分析数据</text>
-        </view>
+        <!-- Health Benefit Card -->
+        <HealthBenefitCard :items="healthItems" />
+
+        <!-- AI Advice Card -->
+        <AiAdviceCard :items="adviceItems" />
       </view>
-    </view>
+    </scroll-view>
+
+    <!-- BottomBar: fixed bottom, z-index 40 -->
+    <BottomBar @add-record="handleAddRecord" @chat="handleChat" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useProductStore } from "../../store/product";
-import NutritionTable from "../../components/NutritionTable.vue";
-import IngredientList from "../../components/IngredientList.vue";
-import AnalysisCard from "../../components/AnalysisCard.vue";
-
-type TabKey = "nutrition" | "ingredient" | "analysis";
-
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "nutrition", label: "营养" },
-  { key: "ingredient", label: "配料" },
-  { key: "analysis", label: "分析" },
-];
+import type { IngredientDetail } from "../../types/product";
+import ProductHeader from "../../components/ProductHeader.vue";
+import NutritionCard from "../../components/NutritionCard.vue";
+import RiskGroup from "../../components/RiskGroup.vue";
+import IngredientCard from "../../components/IngredientCard.vue";
+import HealthBenefitCard from "../../components/HealthBenefitCard.vue";
+import AiAdviceCard from "../../components/AiAdviceCard.vue";
+import BottomBar from "../../components/BottomBar.vue";
 
 const store = useProductStore();
-const activeTab = ref<TabKey>("nutrition");
-
+const headerRef = ref<any>(null);
 const barcode = ref("");
 
 onMounted(() => {
@@ -101,10 +95,72 @@ function load() {
 function goBack() {
   uni.navigateBack();
 }
+
+function onScroll(e: { detail: { scrollTop: number } }) {
+  headerRef.value?.updateScroll(e.detail.scrollTop);
+}
+
+function handleAddRecord() {
+  uni.showToast({ title: "已添加到记录", icon: "success" });
+}
+
+function handleChat() {
+  const name = store.product?.name ?? "";
+  uni.navigateTo({ url: `/pages/chat/index?product=${encodeURIComponent(name)}` });
+}
+
+// Computed: group ingredients by risk level
+const groupedIngredients = computed(() => {
+  if (!store.product) return {};
+  const groups: Record<string, IngredientDetail[]> = {
+    t4: [],
+    t3: [],
+    t2: [],
+    t0: [],
+    unknown: [],
+  };
+  for (const ing of store.product.ingredients) {
+    const level = ing.analysis?.level ?? "unknown";
+    if (!groups[level]) groups[level] = [];
+    groups[level].push(ing);
+  }
+  return groups;
+});
+
+// Computed: health-related analysis items
+const healthItems = computed(() =>
+  (store.product?.analysis ?? []).filter(
+    (a) => a.analysis_type === "health_summary" || a.analysis_type === "health_benefits"
+  )
+);
+
+// Computed: advice-related analysis items
+const adviceItems = computed(() =>
+  (store.product?.analysis ?? []).filter(
+    (a) => a.analysis_type === "usage_advice_summary" || a.analysis_type === "advice"
+  )
+);
+
+// Computed: overall risk level based on ingredients
+const overallRiskLevel = computed(() => {
+  const levels = (store.product?.ingredients ?? [])
+    .map((i) => i.analysis?.level)
+    .filter(Boolean) as string[];
+  if (levels.includes("t4")) return "t4";
+  if (levels.includes("t3")) return "t3";
+  if (levels.includes("t2")) return "t2";
+  if (levels.includes("t0")) return "t0";
+  return "unknown";
+});
 </script>
 
 <style lang="scss" scoped>
-.product-page { padding-bottom: 40rpx; }
+@import "~/@/styles/design-system.scss";
+
+.product-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+}
 
 .status-center {
   display: flex;
@@ -115,46 +171,28 @@ function goBack() {
   gap: 24rpx;
 }
 
-.status-text { font-size: 30rpx; color: #888; }
-
-.product-header {
-  padding: 32rpx 32rpx 0;
-
-  .product-name {
-    font-size: 36rpx;
-    font-weight: bold;
-    color: #1a1a1a;
-    display: block;
-  }
-
-  .product-meta {
-    font-size: 26rpx;
-    color: #888;
-    margin-top: 8rpx;
-  }
+.status-text {
+  font-size: 30rpx;
+  color: var(--text-muted);
 }
 
-.tabs {
-  display: flex;
-  border-bottom: 1rpx solid #e5e7eb;
-  margin: 24rpx 0 0;
+.scroll-area {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
-.tab {
-  flex: 1;
-  text-align: center;
-  padding: 20rpx 0;
-  font-size: 28rpx;
-  color: #888;
-
-  &--active {
-    color: #1a1a1a;
-    font-weight: bold;
-    border-bottom: 4rpx solid #1a1a1a;
-  }
+.content {
+  padding: 260px 40rpx 200rpx;
 }
 
-.tab-content { padding: 24rpx 32rpx; }
-
-.empty { color: #aaa; font-size: 28rpx; }
+.section-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 28rpx;
+}
 </style>
