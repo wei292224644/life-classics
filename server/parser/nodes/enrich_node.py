@@ -49,6 +49,14 @@ _AMENDMENT_REF_PATTERN = re.compile(
     re.UNICODE,
 )
 
+# 匹配跨标准引用，如 "GB14881"、"GB/T 4789.1"、"GB 2762"
+# 规范化后去除标准号中的空格：GB/T 4789.1 → GB/T4789.1
+# 用 (?<![A-Za-z0-9]) 代替 \b，兼容中文字符后紧跟 GB 的情况（\b 在中文后失效）
+_STD_REF_PATTERN = re.compile(
+    r'(?<![A-Za-z0-9])GB(?:/T)?\s*(\d+(?:\.\d+)*(?:[—\-]\d+)?)',
+    re.UNICODE,
+)
+
 
 def _filter_table_refs(refs: List[str]) -> List[str]:
     """
@@ -90,6 +98,19 @@ def extract_table_refs(text: str) -> List[str]:
     """
     raw = ["表" + _normalize_label(m.group(1)) for m in _TABLE_REF_PATTERN.finditer(text)]
     return _filter_table_refs(raw)
+
+
+def extract_std_refs(text: str) -> List[str]:
+    """
+    从文本中提取跨标准引用的标准号列表（已规范化，去空格），如 ["GB14881", "GB/T4789.1"]。
+    """
+    results = []
+    for m in _STD_REF_PATTERN.finditer(text):
+        # 还原完整标准号：前缀 + 编号（无空格）
+        prefix = m.group(0)[: m.start(1) - m.start()].replace(" ", "")
+        number = m.group(1)
+        results.append(prefix + number)
+    return results
 
 
 def extract_amendment_refs(text: str) -> List[str]:
@@ -177,7 +198,8 @@ def enrich_node(state: WorkflowState) -> dict:
                 # 提取引用
                 table_refs = extract_table_refs(text)
                 other_refs = extract_other_refs(text)
-                all_refs = list(dict.fromkeys(table_refs + other_refs))  # 去重保序
+                std_refs = extract_std_refs(text)
+                all_refs = list(dict.fromkeys(table_refs + other_refs + std_refs))  # 去重保序
 
                 # 修改单专用：提取被修改的章节编号写入 cross_refs
                 if seg.get("semantic_type") == "amendment":

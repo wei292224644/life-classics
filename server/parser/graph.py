@@ -163,7 +163,11 @@ async def run_parser_workflow_stream(
                     # 在 "workflow_done" 事件中捕获最终 doc_type
                     if node_name == "merge_node":
                         output = event.get("data", {}).get("output") or {}
-                        result_doc_metadata = output.get("doc_metadata", {})
+                        result_doc_metadata = output.get("doc_metadata") or {}
+                        print(f"result_doc_metadata: {result_doc_metadata}")
+                        # 确保 doc_id 始终存在（防止 merge_node 输出未包含该字段）
+                        if not result_doc_metadata.get("doc_id"):
+                            result_doc_metadata = {**result_doc_metadata, "doc_id": doc_id}
                         doc_type = result_doc_metadata.get("doc_type", "unknown")
                         root_span.set_attribute("parser.doc_type", doc_type)
                         final_chunks = output.get("final_chunks", [])

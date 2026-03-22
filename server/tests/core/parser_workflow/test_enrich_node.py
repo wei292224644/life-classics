@@ -540,6 +540,62 @@ def test_extract_amendment_refs_returns_empty_for_table_ref():
     assert refs == []
 
 
+# ── extract_std_refs ────────────────────────────────────────────────
+
+
+def test_extract_std_refs_basic():
+    """'应符合GB14881的相关规定' 应提取 'GB14881'"""
+    from parser.nodes.enrich_node import extract_std_refs
+    refs = extract_std_refs("应符合GB14881的相关规定。")
+    assert "GB14881" in refs
+
+
+def test_extract_std_refs_gbt_format():
+    """'按照GB/T 4789.1规定的方法' 应提取 'GB/T4789.1'（规范化去空格）"""
+    from parser.nodes.enrich_node import extract_std_refs
+    refs = extract_std_refs("按照GB/T 4789.1规定的方法检验。")
+    assert any("4789" in r for r in refs)
+
+
+def test_extract_std_refs_multiple():
+    """多个标准引用应全部提取"""
+    from parser.nodes.enrich_node import extract_std_refs
+    refs = extract_std_refs("应符合GB 14881和GB/T 4789.1的规定。")
+    assert len(refs) == 2
+
+
+def test_extract_std_refs_no_match():
+    """无标准引用时返回空列表"""
+    from parser.nodes.enrich_node import extract_std_refs
+    refs = extract_std_refs("本节描述检测方法，见表1。")
+    assert refs == []
+
+
+def test_enrich_node_records_std_refs_in_cross_refs():
+    """含 GB 标准引用的 segment，cross_refs 中应包含该标准号"""
+    text = "5.1 基本要求 应符合GB14881的相关规定。"
+    raw: RawChunk = {"content": text, "section_path": ["5", "5.1"], "char_count": len(text)}
+    seg: TypedSegment = {
+        "content": text,
+        "structure_type": "paragraph",
+        "semantic_type": "scope",
+        "transform_params": {"strategy": "plain_embed", "prompt_template": ""},
+        "confidence": 0.9,
+        "escalated": False,
+        "cross_refs": [],
+        "ref_context": "",
+        "failed_table_refs": [],
+    }
+    cc = ClassifiedChunk(raw_chunk=raw, segments=[seg], has_unknown=False)
+    state = {
+        "md_content": "", "doc_metadata": {}, "config": {}, "rules_dir": "",
+        "raw_chunks": [raw], "classified_chunks": [cc], "final_chunks": [], "errors": [],
+    }
+    result = enrich_node(state)
+    cross_refs = result["classified_chunks"][0]["segments"][0]["cross_refs"]
+    assert any("GB14881" in r for r in cross_refs)
+
+
 # ── enrich_node amendment cross-refs ────────────────────────────────
 
 

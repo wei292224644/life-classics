@@ -98,30 +98,33 @@ def _make_state_for_transform(latex_text: str, section_path: list, standard_no: 
 
 
 @pytest.mark.asyncio
-async def test_transform_node_raw_content_matches_seg_content():
-    """transform_node 的 raw_content 应与 seg['content'] 一一对应，而非整个 chunk。"""
+async def test_transform_node_raw_content_is_raw_chunk_content():
+    """transform_node 的 raw_content 应为 raw_chunk["content"]（整节原文），而非 seg["content"]。
+    同一 raw_chunk 的多个 segment 产出的 chunks 共享同一 raw_content，
+    以便 merge_node 能正确识别同源 chunk 并合并。"""
     latex_text = "称取 $4\\mathrm{g}$ 试样于烧杯中"
     captured_args = []
 
     def capture_transform(content, transform_params, ref_context=""):
-        # 捕获位置参数：content 是 seg 经 _strip_md_headings 后的文本
         captured_args.append({"content": content, "transform_params": transform_params})
-        return content  # 直接返回原文（不做转换）
+        return content
 
     with patch("parser.nodes.transform_node._call_llm_transform", side_effect=capture_transform):
         state = _make_state_for_transform(latex_text, ["5.1"], "GB 5009.3")
         result = await transform_node(state)
 
-    # 两个 segment 各调用一次 transform，content 应各与对应 seg["content"] 相同
     assert len(captured_args) == 2
     assert captured_args[0]["content"] == _SEG1_CONTENT
     assert captured_args[1]["content"] == _SEG2_CONTENT
 
-    # 同时验证 DocumentChunk.raw_content 与 seg["content"] 一一对应
     chunks = result["final_chunks"]
     assert len(chunks) == 2
-    assert chunks[0]["raw_content"] == _SEG1_CONTENT
-    assert chunks[1]["raw_content"] == _SEG2_CONTENT
+    # raw_content = raw_chunk["content"]，两个 chunk 共享同一个值
+    assert chunks[0]["raw_content"] == latex_text
+    assert chunks[1]["raw_content"] == latex_text
+    # segment 各自的原始文本存放在 meta.segment_raw_content
+    assert chunks[0]["meta"]["segment_raw_content"] == _SEG1_CONTENT
+    assert chunks[1]["meta"]["segment_raw_content"] == _SEG2_CONTENT
 
 
 @pytest.mark.asyncio

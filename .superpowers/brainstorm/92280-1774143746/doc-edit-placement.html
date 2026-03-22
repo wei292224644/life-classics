@@ -1,0 +1,125 @@
+<h2>文档编辑界面：放在哪里？</h2>
+<p class="subtitle">点击文档的「编辑」按钮后，编辑界面应该出现在哪里？</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0f1117;">
+      <div style="display:flex;height:170px;gap:0;border:1px solid #2a2a3a;border-radius:6px;overflow:hidden;font-size:10px;">
+        <!-- sidebar with inline edit -->
+        <div style="width:130px;background:#0d0d1a;border-right:1px solid #2a2a3a;padding:6px;flex-shrink:0;">
+          <div style="background:#1a1a2e;height:18px;border-radius:3px;margin-bottom:6px;"></div>
+          <!-- normal item -->
+          <div style="padding:4px;margin-bottom:2px;border-radius:3px;">
+            <div style="background:#718096;height:7px;border-radius:2px;margin-bottom:2px;width:80%;"></div>
+            <div style="background:#4a5568;height:5px;border-radius:2px;width:50%;"></div>
+          </div>
+          <!-- expanded edit item -->
+          <div style="padding:6px;border-radius:4px;background:#1a1a2e;border:1px solid #6c63ff;margin-bottom:2px;">
+            <div style="color:#aaa;font-size:9px;margin-bottom:3px;">标题</div>
+            <div style="background:#0f1117;border:1px solid #3a3a5a;border-radius:3px;height:14px;margin-bottom:4px;padding:2px 4px;display:flex;align-items:center;">
+              <div style="background:#e2e8f0;height:6px;border-radius:1px;width:70%;"></div>
+            </div>
+            <div style="color:#aaa;font-size:9px;margin-bottom:3px;">文档类型</div>
+            <div style="background:#0f1117;border:1px solid #3a3a5a;border-radius:3px;height:14px;margin-bottom:4px;"></div>
+            <div style="display:flex;gap:3px;justify-content:flex-end;">
+              <div style="background:#6c63ff;border-radius:2px;padding:2px 5px;color:#fff;font-size:8px;">保存</div>
+              <div style="background:#2a2a3a;border-radius:2px;padding:2px 5px;color:#aaa;font-size:8px;">取消</div>
+            </div>
+          </div>
+          <!-- normal item -->
+          <div style="padding:4px;margin-bottom:2px;border-radius:3px;">
+            <div style="background:#718096;height:7px;border-radius:2px;margin-bottom:2px;width:65%;"></div>
+            <div style="background:#4a5568;height:5px;border-radius:2px;width:45%;"></div>
+          </div>
+        </div>
+        <!-- main content -->
+        <div style="flex:1;background:#0f1117;padding:8px;">
+          <div style="background:#1a1a2e;height:10px;border-radius:2px;margin-bottom:5px;width:80%;"></div>
+          <div style="background:#1a1a2e;height:10px;border-radius:2px;margin-bottom:5px;width:60%;"></div>
+          <div style="background:#1a1a2e;height:10px;border-radius:2px;width:70%;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>方案 A：内联展开编辑</h3>
+      <p>点击编辑后在列表项内直接展开表单，紧凑但空间有限，字段较多时会显得拥挤</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0f1117;">
+      <div style="display:flex;height:170px;gap:0;border:1px solid #2a2a3a;border-radius:6px;overflow:hidden;font-size:10px;position:relative;">
+        <!-- sidebar -->
+        <div style="width:90px;background:#0d0d1a;border-right:1px solid #2a2a3a;padding:6px;flex-shrink:0;filter:brightness(0.5);">
+          <div style="background:#1a1a2e;height:18px;border-radius:3px;margin-bottom:6px;"></div>
+          <div style="padding:4px;margin-bottom:2px;background:#1e1e3a;border-left:2px solid #6c63ff;border-radius:2px;">
+            <div style="background:#e2e8f0;height:7px;border-radius:2px;margin-bottom:2px;"></div>
+            <div style="background:#4a5568;height:5px;border-radius:2px;width:60%;"></div>
+          </div>
+          <div style="padding:4px;margin-bottom:2px;">
+            <div style="background:#718096;height:7px;border-radius:2px;margin-bottom:2px;"></div>
+            <div style="background:#4a5568;height:5px;border-radius:2px;width:50%;"></div>
+          </div>
+        </div>
+        <!-- main content dimmed -->
+        <div style="flex:1;background:#0f1117;padding:8px;filter:brightness(0.4);">
+          <div style="background:#1a1a2e;height:10px;border-radius:2px;margin-bottom:5px;"></div>
+        </div>
+        <!-- drawer overlay -->
+        <div style="position:absolute;right:0;top:0;bottom:0;width:160px;background:#13131f;border-left:1px solid #2a2a3a;padding:10px;box-shadow:-4px 0 12px rgba(0,0,0,0.5);">
+          <div style="color:#ccc;font-weight:600;margin-bottom:8px;font-size:11px;">编辑文档</div>
+          <div style="color:#777;font-size:9px;margin-bottom:2px;">标题</div>
+          <div style="background:#0f1117;border:1px solid #3a3a5a;border-radius:3px;height:16px;margin-bottom:6px;padding:2px 4px;display:flex;align-items:center;">
+            <div style="background:#e2e8f0;height:6px;border-radius:1px;width:80%;"></div>
+          </div>
+          <div style="color:#777;font-size:9px;margin-bottom:2px;">标准号</div>
+          <div style="background:#0f1117;border:1px solid #3a3a5a;border-radius:3px;height:16px;margin-bottom:6px;"></div>
+          <div style="color:#777;font-size:9px;margin-bottom:2px;">文档类型</div>
+          <div style="background:#0f1117;border:1px solid #3a3a5a;border-radius:3px;height:16px;margin-bottom:8px;"></div>
+          <div style="display:flex;gap:4px;">
+            <div style="background:#6c63ff;border-radius:3px;padding:3px 8px;color:#fff;font-size:9px;flex:1;text-align:center;">保存</div>
+            <div style="background:#2a2a3a;border-radius:3px;padding:3px 8px;color:#aaa;font-size:9px;flex:1;text-align:center;">取消</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>方案 B：右侧抽屉（推荐）</h3>
+      <p>与 Chunk 编辑一致的交互模式，右侧滑出 Sheet，空间充裕，体验统一</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0f1117;">
+      <div style="display:flex;height:170px;gap:0;border:1px solid #2a2a3a;border-radius:6px;overflow:hidden;font-size:10px;position:relative;">
+        <!-- bg dimmed -->
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);z-index:1;"></div>
+        <!-- modal -->
+        <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;background:#13131f;border:1px solid #2a2a3a;border-radius:6px;padding:12px;width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.6);">
+          <div style="color:#ccc;font-weight:600;margin-bottom:8px;font-size:11px;">编辑文档信息</div>
+          <div style="color:#777;font-size:9px;margin-bottom:2px;">标题</div>
+          <div style="background:#0f1117;border:1px solid #3a3a5a;border-radius:3px;height:16px;margin-bottom:5px;"></div>
+          <div style="color:#777;font-size:9px;margin-bottom:2px;">标准号</div>
+          <div style="background:#0f1117;border:1px solid #3a3a5a;border-radius:3px;height:16px;margin-bottom:5px;"></div>
+          <div style="color:#777;font-size:9px;margin-bottom:2px;">文档类型</div>
+          <div style="background:#0f1117;border:1px solid #3a3a5a;border-radius:3px;height:16px;margin-bottom:8px;"></div>
+          <div style="display:flex;gap:4px;">
+            <div style="background:#6c63ff;border-radius:3px;padding:3px 8px;color:#fff;font-size:9px;flex:1;text-align:center;">保存</div>
+            <div style="background:#2a2a3a;border-radius:3px;padding:3px 8px;color:#aaa;font-size:9px;flex:1;text-align:center;">取消</div>
+          </div>
+        </div>
+        <!-- sidebar bg -->
+        <div style="width:90px;background:#0d0d1a;border-right:1px solid #2a2a3a;padding:6px;flex-shrink:0;"></div>
+        <div style="flex:1;background:#0f1117;padding:8px;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>方案 C：弹出 Modal</h3>
+      <p>居中弹框，聚焦感强，但会遮挡整个界面，与 Chunk 编辑方式不一致</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px;padding:12px;background:#1a1a2e;border-radius:6px;color:#aaa;font-size:12px;">
+  💡 推荐方案 B（右侧抽屉）：与现有 Chunk 编辑体验一致，用户学习成本低
+</div>

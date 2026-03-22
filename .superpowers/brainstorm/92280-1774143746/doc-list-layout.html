@@ -1,0 +1,107 @@
+<h2>Doc 列表宽度方案</h2>
+<p class="subtitle">当前左侧 DocList 宽度为 240px，标题容易被截断。以下是三种调整方案：</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0f1117;">
+      <div style="display:flex;height:160px;gap:0;border:1px solid #2a2a3a;border-radius:6px;overflow:hidden;font-size:11px;">
+        <!-- sidebar -->
+        <div style="width:72px;background:#0d0d1a;border-right:1px solid #2a2a3a;padding:8px 6px;flex-shrink:0;">
+          <div style="background:#1a1a2e;height:20px;border-radius:3px;margin-bottom:4px;"></div>
+          <div style="padding:6px 4px;border-left:2px solid #6c63ff;margin-bottom:2px;">
+            <div style="background:#e2e8f0;height:8px;border-radius:2px;margin-bottom:3px;"></div>
+            <div style="background:#4a5568;height:6px;border-radius:2px;width:60%;"></div>
+          </div>
+          <div style="padding:6px 4px;margin-bottom:2px;">
+            <div style="background:#718096;height:8px;border-radius:2px;margin-bottom:3px;"></div>
+            <div style="background:#4a5568;height:6px;border-radius:2px;width:80%;"></div>
+          </div>
+          <div style="padding:6px 4px;margin-bottom:2px;">
+            <div style="background:#718096;height:8px;border-radius:2px;margin-bottom:3px;"></div>
+            <div style="background:#4a5568;height:6px;border-radius:2px;width:70%;"></div>
+          </div>
+        </div>
+        <!-- main -->
+        <div style="flex:1;background:#0f1117;padding:8px;">
+          <div style="background:#1a1a2e;height:12px;border-radius:2px;margin-bottom:6px;width:80%;"></div>
+          <div style="background:#1a1a2e;height:12px;border-radius:2px;margin-bottom:6px;width:60%;"></div>
+          <div style="background:#1a1a2e;height:12px;border-radius:2px;margin-bottom:6px;width:70%;"></div>
+        </div>
+      </div>
+      <div style="text-align:center;color:#888;font-size:10px;margin-top:6px;">宽约 240px（维持现状比例）</div>
+    </div>
+    <div class="card-body">
+      <h3>方案 A：固定宽度 320px</h3>
+      <p>从 240px 增加到 320px，保持简单，标题可以展示更多内容</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0f1117;">
+      <div style="display:flex;height:160px;gap:0;border:1px solid #2a2a3a;border-radius:6px;overflow:hidden;font-size:11px;">
+        <!-- sidebar wider -->
+        <div style="width:110px;background:#0d0d1a;border-right:1px solid #2a2a3a;padding:8px 6px;flex-shrink:0;">
+          <div style="background:#1a1a2e;height:20px;border-radius:3px;margin-bottom:4px;"></div>
+          <div style="padding:6px 4px;border-left:2px solid #6c63ff;margin-bottom:2px;">
+            <div style="background:#e2e8f0;height:8px;border-radius:2px;margin-bottom:3px;"></div>
+            <div style="background:#4a5568;height:6px;border-radius:2px;width:70%;"></div>
+          </div>
+          <div style="padding:6px 4px;margin-bottom:2px;">
+            <div style="background:#718096;height:8px;border-radius:2px;margin-bottom:3px;"></div>
+            <div style="background:#4a5568;height:6px;border-radius:2px;width:85%;"></div>
+          </div>
+          <div style="padding:6px 4px;margin-bottom:2px;">
+            <div style="background:#718096;height:8px;border-radius:2px;margin-bottom:3px;"></div>
+            <div style="background:#4a5568;height:6px;border-radius:2px;width:60%;"></div>
+          </div>
+        </div>
+        <!-- main -->
+        <div style="flex:1;background:#0f1117;padding:8px;">
+          <div style="background:#1a1a2e;height:12px;border-radius:2px;margin-bottom:6px;width:80%;"></div>
+          <div style="background:#1a1a2e;height:12px;border-radius:2px;margin-bottom:6px;width:60%;"></div>
+          <div style="background:#1a1a2e;height:12px;border-radius:2px;margin-bottom:6px;width:70%;"></div>
+        </div>
+      </div>
+      <div style="text-align:center;color:#888;font-size:10px;margin-top:6px;">宽约 360px（宽侧边栏）</div>
+    </div>
+    <div class="card-body">
+      <h3>方案 B：固定宽度 360px</h3>
+      <p>更宽的侧边栏，能展示更长的 GB 标准标题，但主内容区会相应缩小</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px;background:#0f1117;">
+      <div style="display:flex;height:160px;gap:0;border:1px solid #2a2a3a;border-radius:6px;overflow:hidden;font-size:11px;position:relative;">
+        <!-- sidebar -->
+        <div style="width:100px;background:#0d0d1a;border-right:2px dashed #6c63ff;padding:8px 6px;flex-shrink:0;position:relative;">
+          <div style="background:#1a1a2e;height:20px;border-radius:3px;margin-bottom:4px;"></div>
+          <div style="padding:6px 4px;border-left:2px solid #6c63ff;margin-bottom:2px;">
+            <div style="background:#e2e8f0;height:8px;border-radius:2px;margin-bottom:3px;"></div>
+            <div style="background:#4a5568;height:6px;border-radius:2px;width:70%;"></div>
+          </div>
+          <div style="padding:6px 4px;margin-bottom:2px;">
+            <div style="background:#718096;height:8px;border-radius:2px;margin-bottom:3px;"></div>
+            <div style="background:#4a5568;height:6px;border-radius:2px;width:85%;"></div>
+          </div>
+          <!-- resize handle -->
+          <div style="position:absolute;right:-4px;top:50%;transform:translateY(-50%);width:8px;height:24px;background:#6c63ff;border-radius:4px;cursor:col-resize;"></div>
+        </div>
+        <!-- main -->
+        <div style="flex:1;background:#0f1117;padding:8px;">
+          <div style="background:#1a1a2e;height:12px;border-radius:2px;margin-bottom:6px;width:80%;"></div>
+          <div style="background:#1a1a2e;height:12px;border-radius:2px;margin-bottom:6px;width:60%;"></div>
+        </div>
+      </div>
+      <div style="text-align:center;color:#888;font-size:10px;margin-top:6px;">可拖动分隔线调整宽度</div>
+    </div>
+    <div class="card-body">
+      <h3>方案 C：可调整宽度（resize）</h3>
+      <p>用户可拖动分隔线自由调整侧边栏宽度，灵活但实现略复杂</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px;padding:12px;background:#1a1a2e;border-radius:6px;color:#aaa;font-size:12px;">
+  💡 推荐方案 B（360px）：GB 标准标题通常较长（如"鸡可食性组织中地克珠利残留量的测定"），360px 能展示约 18 个汉字，效果明显好于 240px
+</div>

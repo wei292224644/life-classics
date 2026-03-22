@@ -85,42 +85,54 @@ def apply_strategy(
         if seg["structure_type"] == "header":
             continue
 
-        raw_content = seg["content"]
+        seg_content = seg["content"]
         ref_context = seg.get("ref_context", "")
         cross_refs = seg.get("cross_refs", [])
         failed_table_refs = seg.get("failed_table_refs", [])
 
         # 去除内容中残留的 Markdown 标题前缀（如修改单条目 "### 二、2.3 ..."）
-        content = _strip_md_headings(seg["content"])
+        content = _strip_md_headings(seg_content)
 
+        transform_fallback = False
         # 极短 segment 直接使用原文，跳过 LLM 避免幻觉
         if len(content) < 50:
             llm_text = content
         else:
-            llm_text = _call_llm_transform(
-                content, seg["transform_params"], ref_context
-            )
-            llm_calls_total.labels(node="transform_node", model=_transform_model()).inc()
+            try:
+                llm_text = _call_llm_transform(
+                    content, seg["transform_params"], ref_context
+                )
+                llm_calls_total.labels(node="transform_node", model=_transform_model()).inc()
+            except Exception as e:
+                _logger.warning(
+                    "transform_segment_llm_failed_fallback",
+                    section_path=raw_chunk["section_path"],
+                    error=str(e),
+                )
+                llm_text = content
+                transform_fallback = True
 
         results.append(
             DocumentChunk(
                 chunk_id=make_chunk_id(
                     doc_metadata.get("doc_id", ""),
                     raw_chunk["section_path"],
-                    llm_text,
+                    seg_content,  # 基于原始 segment 内容，跨重处理保持稳定
                 ),
                 doc_metadata=doc_metadata,
                 section_path=raw_chunk["section_path"],
                 structure_type=seg["structure_type"],
                 semantic_type=seg["semantic_type"],
                 content=llm_text,
-                raw_content=raw_content,
+                raw_content=raw_chunk["content"],  # 整节原始内容，供 merge_node 判断同源
                 meta={
                     "transform_strategy": seg["transform_params"]["strategy"],
-                    "segment_raw_content": seg["content"],
+                    "segment_raw_content": seg_content,  # segment 级别的原始文本
+                    **({"transform_fallback": True} if transform_fallback else {}),
                     "cross_refs": cross_refs,
                     "non_table_refs": [r for r in cross_refs if not r.startswith("表")],
                     "failed_table_refs": failed_table_refs,
+                    "cross_ref_standards": [r for r in cross_refs if r.startswith("GB")],
                 },
             )
         )

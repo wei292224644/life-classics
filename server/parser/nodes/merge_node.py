@@ -32,9 +32,10 @@ def _same_classification(a: DocumentChunk, b: DocumentChunk) -> bool:
 
 def _merge_two(a: DocumentChunk, b: DocumentChunk) -> DocumentChunk:
     """将两个 chunk 合并为一个"""
-    # content / raw_content / meta.segment_raw_content — \n\n 拼接
+    # content / meta.segment_raw_content — \n\n 拼接
     merged_content = f"{a['content']}\n\n{b['content']}"
-    merged_raw_content = f"{a['raw_content']}\n\n{b['raw_content']}"
+    # raw_content 来自同一 raw_chunk（相同），直接取第一个，避免重复拼接
+    merged_raw_content = a["raw_content"]
     merged_segment_raw_content = f"{a['meta'].get('segment_raw_content', '')}\n\n{b['meta'].get('segment_raw_content', '')}"
 
     # meta.cross_refs / meta.failed_table_refs — 取并集
@@ -82,7 +83,7 @@ def merge_node(state: WorkflowState) -> dict:
         if not chunks:
             chunks_out = 0
             span.set_attribute("parser.chunk_count.out", chunks_out)
-            return {"final_chunks": []}
+            return {"final_chunks": [], "doc_metadata": state.get("doc_metadata", {})}
 
         merged: List[DocumentChunk] = []
         i = 0
@@ -112,4 +113,4 @@ def merge_node(state: WorkflowState) -> dict:
         chunks_in=chunks_in,
         chunks_out=chunks_out,
     )
-    return {"final_chunks": merged}
+    return {"final_chunks": merged, "doc_metadata": state.get("doc_metadata", {})}

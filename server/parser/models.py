@@ -60,6 +60,6 @@ class WorkflowState(TypedDict):
 
 
 def make_chunk_id(doc_id: str, section_path: List[str], content: str) -> str:
-    key = f"{doc_id}|{'|'.join(section_path)}|{content[:100]}"
+    key = f"{doc_id}|{'|'.join(section_path)}|{content}"
     return hashlib.sha256(key.encode()).hexdigest()[:16]
 
