@@ -1,5 +1,5 @@
 {
-  "name": "create-t3-turbo",
+  "name": "life-classics-web",
   "private": true,
   "engines": {
     "node": "^22.21.0",
@@ -7,33 +7,19 @@
   },
   "packageManager": "pnpm@10.19.0",
   "scripts": {
-    "build": "turbo run build",
-    "clean": "git clean -xdf node_modules",
-    "clean:workspaces": "turbo run clean",
-    "auth:generate": "pnpm -F @acme/auth generate",
-    "db:push": "turbo -F @acme/db push",
-    "db:studio": "turbo -F @acme/db studio",
-    "db:seed": "turbo -F @acme/db-seed seed",
-    "dev": "turbo watch dev --continue",
-    "dev:console": "turbo watch dev -F @acme/console...",
-    "dev:taro": "turbo watch dev -F @acme/taro...",
-    "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",
-    "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
-    "lint": "turbo run lint --continue -- --cache --cache-location .cache/.eslintcache",
-    "lint:fix": "turbo run lint --continue -- --fix --cache --cache-location .cache/.eslintcache",
-    "lint:ws": "pnpm dlx sherif@latest",
-    "postinstall": "pnpm lint:ws",
-    "typecheck": "turbo run typecheck",
-    "ui-add": "turbo run ui-add",
-    "android": "expo run:android",
-    "ios": "expo run:ios"
+    "dev:console": "pnpm --filter @acme/console dev",
+    "build:console": "pnpm --filter @acme/console build",
+    "dev:uniapp:weapp": "pnpm --filter @acme/uniapp dev:mp-weixin",
+    "dev:uniapp:alipay": "pnpm --filter @acme/uniapp dev:mp-alipay",
+    "dev:uniapp:tt": "pnpm --filter @acme/uniapp dev:mp-toutiao",
+    "dev:uniapp:h5": "pnpm --filter @acme/uniapp dev:h5",
+    "build:uniapp:weapp": "pnpm --filter @acme/uniapp build:mp-weixin",
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format",
+    "typecheck": "pnpm -r run typecheck"
   },
   "devDependencies": {
-    "@acme/prettier-config": "workspace:*",
-    "@turbo/gen": "^2.5.8",
-    "dotenv-cli": "^10.0.0",
     "prettier": "catalog:",
-    "turbo": "^2.5.8",
     "typescript": "catalog:"
   },
   "prettier": "@acme/prettier-config"
