@@ -252,6 +252,7 @@ function goToDetail(id: number) {
   display: flex;
   flex-direction: column;
   padding-left: 16rpx;
+  overflow: hidden;
 }
 
 .ingredient-name {
