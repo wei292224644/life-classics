@@ -504,14 +504,13 @@ function goToProduct(barcode: string) {
 .risk-safe      { --risk-header-bg: var(--palette-green-50); --risk-header-border: var(--palette-green-200); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-50); --risk-border: var(--palette-green-200); }
 .risk-unknown   { --risk-header-bg: var(--palette-gray-50); --risk-header-border: var(--palette-gray-200); --risk-badge-bg: var(--palette-gray-500); --risk-bg: var(--palette-gray-50); --risk-border: var(--palette-gray-200); }
 
-.dark-mode {
-  .risk-critical { --risk-header-bg: var(--palette-red-900); --risk-header-border: var(--palette-red-800); --risk-badge-bg: var(--palette-red-500); --risk-bg: var(--palette-red-900); --risk-border: var(--palette-red-800); }
-  .risk-high      { --risk-header-bg: var(--palette-orange-900); --risk-header-border: var(--palette-orange-800); --risk-badge-bg: var(--palette-orange-500); --risk-bg: var(--palette-orange-900); --risk-border: var(--palette-orange-800); }
-  .risk-medium    { --risk-header-bg: var(--palette-yellow-900); --risk-header-border: var(--palette-yellow-800); --risk-badge-bg: var(--palette-yellow-500); --risk-bg: var(--palette-yellow-900); --risk-border: var(--palette-yellow-800); }
-  .risk-low       { --risk-header-bg: var(--palette-green-950); --risk-header-border: var(--palette-green-800); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-950); --risk-border: var(--palette-green-800); }
-  .risk-safe      { --risk-header-bg: var(--palette-green-950); --risk-header-border: var(--palette-green-700); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-950); --risk-border: var(--palette-green-700); }
-  .risk-unknown   { --risk-header-bg: var(--palette-gray-800); --risk-header-border: var(--palette-gray-600); --risk-badge-bg: var(--palette-gray-500); --risk-bg: var(--palette-gray-800); --risk-border: var(--palette-gray-600); }
-}
+// Dark mode — use :global() so .dark-mode (on App root) is recognized
+:global(.dark-mode) .risk-critical { --risk-header-bg: var(--palette-red-900); --risk-header-border: var(--palette-red-800); --risk-badge-bg: var(--palette-red-900); }
+:global(.dark-mode) .risk-high      { --risk-header-bg: var(--palette-orange-900); --risk-header-border: var(--palette-orange-800); --risk-badge-bg: var(--palette-orange-900); }
+:global(.dark-mode) .risk-medium    { --risk-header-bg: var(--palette-yellow-900); --risk-header-border: var(--palette-yellow-800); --risk-badge-bg: var(--palette-yellow-900); }
+:global(.dark-mode) .risk-low       { --risk-header-bg: var(--palette-green-950); --risk-header-border: var(--palette-green-800); --risk-badge-bg: var(--palette-green-950); }
+:global(.dark-mode) .risk-safe      { --risk-header-bg: var(--palette-green-950); --risk-header-border: var(--palette-green-700); --risk-badge-bg: var(--palette-green-950); }
+:global(.dark-mode) .risk-unknown   { --risk-header-bg: var(--palette-gray-800); --risk-header-border: var(--palette-gray-600); --risk-badge-bg: var(--palette-gray-800); }
 
 .ingredient-detail-page {
   height: 100vh;
