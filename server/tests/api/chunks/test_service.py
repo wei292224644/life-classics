@@ -108,3 +108,82 @@ def test_delete_chunk_calls_chroma_and_fts():
         ChunksService.delete_chunk("c1")
 
     mock_col.delete.assert_called_once_with(ids=["c1"])
+
+
+@pytest.mark.asyncio
+async def test_reparse_chunk_rebuilds_classified_and_reruns_transform():
+    """reparse_chunk 重建 ClassifiedChunk，重跑 transform_node → merge_node，upsert 回 ChromaDB + FTS"""
+    existing_meta = {
+        "doc_id": "d1",
+        "semantic_type": "scope",
+        "section_path": "1|1.1",
+        "standard_no": "GB 2762",
+        "doc_type": "food",
+        "raw_content": "原始markdown内容",
+        "segment_raw_content": "分类后的段落原始文本",
+        "structure_type": "paragraph",
+        "transform_strategy": "nl",
+        "prompt_template": "改写为自然语言",
+        "cross_refs": ["表1"],
+        "failed_table_refs": [],
+    }
+
+    mock_col = MagicMock()
+    mock_col.get.return_value = _make_col_result(
+        ["c1"],
+        ["transform后的内容"],
+        [existing_meta],
+    )
+
+    fake_embedding = [[0.1, 0.2]]
+    mock_transform_result = {
+        "final_chunks": [
+            {
+                "chunk_id": "new_c1_id",
+                "doc_metadata": {"doc_id": "d1", "standard_no": "GB 2762", "doc_type": "food"},
+                "section_path": ["1", "1.1"],
+                "structure_type": "paragraph",
+                "semantic_type": "scope",
+                "content": "transform后的内容",
+                "raw_content": "原始markdown内容",
+                "meta": {
+                    "transform_strategy": "nl",
+                    "segment_raw_content": "分类后的段落原始文本",
+                    "cross_refs": ["表1"],
+                    "failed_table_refs": [],
+                },
+            }
+        ],
+        "errors": [],
+    }
+    mock_merge_result = {
+        "final_chunks": mock_transform_result["final_chunks"],
+        "doc_metadata": {"doc_id": "d1", "standard_no": "GB 2762", "doc_type": "food"},
+    }
+
+    with patch("api.chunks.service.get_collection", return_value=mock_col), \
+         patch("api.chunks.service.embed_batch", AsyncMock(return_value=fake_embedding)), \
+         patch("api.chunks.service.transform_node", AsyncMock(return_value=mock_transform_result)) as mock_transform, \
+         patch("api.chunks.service.merge_node", return_value=mock_merge_result) as mock_merge, \
+         patch("api.chunks.service.fts_writer") as mock_fts, \
+         patch("api.chunks.service.settings") as mock_settings:
+        mock_settings.CHROMA_PERSIST_DIR = "./db"
+        from api.chunks.service import ChunksService
+        result = await ChunksService.reparse_chunk("c1")
+
+    # 验证 transform_node 被调用，且 classified_chunks 的 segment.content 等于 metadata["segment_raw_content"]
+    transform_call_args = mock_transform.call_args[0][0]
+    assert transform_call_args["classified_chunks"][0]["segments"][0]["content"] == existing_meta["segment_raw_content"]
+    assert transform_call_args["classified_chunks"][0]["segments"][0]["confidence"] == 1.0
+    assert transform_call_args["classified_chunks"][0]["segments"][0]["escalated"] is False
+
+    # 验证 merge_node 被调用
+    mock_merge.assert_called_once()
+
+    # 验证 upsert 的 documents 为新内容
+    upsert_kwargs = mock_col.upsert.call_args.kwargs
+    assert upsert_kwargs["documents"] == [mock_transform_result["final_chunks"][0]["content"]]
+    assert upsert_kwargs["metadatas"][0]["segment_raw_content"] == existing_meta["segment_raw_content"]
+
+    # 验证 FTS write 被调用
+    mock_fts.write.assert_called_once()
