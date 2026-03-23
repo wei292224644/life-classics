@@ -24,11 +24,46 @@
 
 | Tab | 页面路径 | 功能 |
 |-----|----------|------|
-| 首页 | `/pages/index` | 扫码 + 最近扫描 |
-| 搜索 | `/pages/search` | 食品/配料搜索 → 结果列表 |
-| 我的 | `/pages/profile` | 框架占位（后续扩展） |
+| 首页 | `pages/index/index` | 扫码 + 最近扫描 |
+| 搜索 | `pages/search/index` | 食品/配料搜索 → 结果列表 |
+| 我的 | `pages/profile/index` | 框架占位（后续扩展） |
 
 **Phase 1 不设 AI Tab** — AI 能力从产品详情页/配料详情页底部栏触发，避免用户过度使用付费能力。
+
+### 2.1 pages.json TabBar 配置
+
+```json
+{
+  "tabBar": {
+    "color": "var(--text-muted)",
+    "selectedColor": "var(--accent)",
+    "backgroundColor": "var(--bg-card)",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tab-home.png",
+        "selectedIconPath": "static/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/search/index",
+        "text": "搜索",
+        "iconPath": "static/tab-search.png",
+        "selectedIconPath": "static/tab-search-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "static/tab-profile.png",
+        "selectedIconPath": "static/tab-profile-active.png"
+      }
+    ]
+  }
+}
+```
+
+> **图标资源：** Phase 1 临时占位，需替换为真实图标文件（放置于 `static/tab-*.png`）。
 
 ---
 
@@ -93,10 +128,14 @@ uni.scanCode({
     // 写入最近扫描
     addToRecentScans({ barcode, name: '待获取', time: Date.now() })
     // 跳转产品页
-    uni.navigateTo({ url: `/pages/product?barcode=${barcode}` })
+    uni.navigateTo({ url: `/pages/product/index?barcode=${barcode}` })
   },
-  fail: () => {
-    uni.showToast({ title: '扫码失败', icon: 'error' })
+  fail: (err) => {
+    if (err.errMsg && err.errMsg.includes('auth deny')) {
+      uni.showToast({ title: '请允许摄像头权限', icon: 'none' })
+    } else {
+      uni.showToast({ title: '扫码失败', icon: 'error' })
+    }
   }
 })
 ```
@@ -105,14 +144,14 @@ uni.scanCode({
 搜索框点击
        │
        ▼
-uni.navigateTo({ url: '/pages/search' })
+uni.switchTab({ url: '/pages/search/index' })
 ```
 
 ```
 最近扫描项点击
        │
        ▼
-uni.navigateTo({ url: `/pages/product?barcode=${item.barcode}` })
+uni.navigateTo({ url: `/pages/product/index?barcode=${item.barcode}` })
 ```
 
 #### 3.1.4 样式规格
@@ -121,16 +160,18 @@ uni.navigateTo({ url: `/pages/product?barcode=${item.barcode}` })
 |------|--------|
 | 页面背景 | `--bg-base` |
 | Logo 字号 | 44rpx，font-weight: 700 |
-| 副标题字号 | 26rpx，color: `--text-muted` |
-| 主 CTA 背景 | `--accent-primary`（渐变色） |
-| 主 CTA 文字 | 36rpx，font-weight: 600，白色 |
+| 副标题字号 | `--text-lg`，color: `--text-muted` |
+| 主 CTA 背景 | `--accent`（品牌粉渐变） |
+| 主 CTA 文字 | `--text-4xl`，font-weight: 600，白色 |
 | 主 CTA 图标 | 56rpx |
 | 搜索框背景 | `--bg-card`，border: 1px solid `--border-color` |
-| 搜索框文字 | 28rpx，color: `--text-muted` |
-| 分隔标题字号 | 24rpx，color: `--text-muted` |
+| 搜索框文字 | `--text-md`，color: `--text-muted` |
+| 分隔标题字号 | `--text-sm`，color: `--text-muted` |
 | 列表项高度 | 100rpx |
 | 列表项背景 | `--bg-card` |
-| 列表项圆角 | 16rpx |
+| 列表项圆角 | `--radius-sm` |
+
+> **CSS 变量补充声明：** `--accent` 已定义；`--accent-blue`（配料标签）、`--accent-orange`（食品标签）需在 `design-system.scss` 中补充定义，建议分别映射为 `--palette-blue-500` 和 `--palette-orange-500`。
 
 ---
 
@@ -200,14 +241,16 @@ uni.navigateTo({ url: `/pages/product?barcode=${item.barcode}` })
 输入框输入 → 防抖 300ms → 调用搜索接口
        │
        ▼
-GET /api/search?q={keyword}
+GET /api/search?q={keyword}&limit=20
        │
        ▼
 返回结果列表 [{ type: 'product'|'ingredient', id, name, desc }, ...]
        │
        ▼
-渲染结果列表
+渲染结果列表（最多显示 20 条）
 ```
+
+> **分页策略：** Phase 1 不做分页，单次搜索最多返回 20 条结果，由后端控制上限。
 
 ```
 点击历史标签 → 填入输入框 → 触发搜索
@@ -223,9 +266,8 @@ type=      type=
 product    ingredient
   │         │
   ▼         ▼
-/product   /ingredient
-?barcode=  ?ingredientId=
- xxx        xxx
+/pages/product/index   /pages/ingredient/index
+?barcode=xxx          ?ingredientId=xxx
 ```
 
 **搜索历史存储：** 本地 `search_history`，最多 10 条，新搜索词插入顶部，去重。
@@ -235,19 +277,19 @@ product    ingredient
 | 元素 | 样式值 |
 |------|--------|
 | Header 背景 | `--bg-base` |
-| 返回按钮 | 60rpx × 60rpx，图标 32rpx |
-| 搜索框背景 | `--bg-card`，border-radius: 40rpx |
+| 返回按钮 | 60rpx × 60rpx，图标 `--icon-md` |
+| 搜索框背景 | `--bg-card`，border-radius: `--radius-xl` |
 | 搜索框高度 | 80rpx |
-| 搜索框图标 | 32rpx，color: `--text-muted` |
+| 搜索框图标 | `--icon-md`，color: `--text-muted` |
 | 历史标签背景 | `--bg-card`，border: 1px solid `--border-color` |
-| 历史标签字号 | 24rpx |
+| 历史标签字号 | `--text-sm` |
 | 结果项背景 | `--bg-card` |
-| 结果项圆角 | 20rpx |
-| 结果项内边距 | 28rpx |
-| 类型标签 | 背景色区分，配料用 `--accent-blue`，食品用 `--accent-orange` |
-| 类型标签字号 | 20rpx |
-| 结果名称字号 | 30rpx，font-weight: 600 |
-| 结果描述字号 | 24rpx，color: `--text-muted` |
+| 结果项圆角 | `--radius-md` |
+| 结果项内边距 | `--card-padding-lg` |
+| 类型标签 | 背景色区分，配料用 `--accent-blue`（需补充定义），食品用 `--accent-orange`（需补充定义） |
+| 类型标签字号 | `--text-xs` |
+| 结果名称字号 | `--text-2xl`，font-weight: 600 |
+| 结果描述字号 | `--text-sm`，color: `--text-muted` |
 
 ---
 
@@ -270,8 +312,8 @@ product    ingredient
 
 | 来源 | 目标 | 触发条件 |
 |------|------|----------|
-| 配料列表项 | `/pages/ingredient` | 点击任意配料行 |
-| 底部栏"查看相关食品" | `/pages/search` | 传入 ingredientId 参数 |
+| 配料列表项 | `pages/ingredient/index` | 点击任意配料行 |
+| 底部栏"查看相关食品" | `pages/search/index` | 传入 ingredientId 参数 |
 
 ---
 
@@ -295,9 +337,9 @@ product    ingredient
 
 | 来源 | 目标 | 触发条件 |
 |------|------|----------|
-| 相关产品卡片 | `/pages/product` | 点击产品卡片 |
-| 底部栏"咨询 AI" | `/pages/chat` | 传入配料名 context |
-| 底部栏"查看相关食品" | `/pages/search` | 传入 ingredientId 参数 |
+| 相关产品卡片 | `pages/product/index` | 点击产品卡片 |
+| 底部栏"咨询 AI" | `pages/chat/index` | 传入配料名 context |
+| 底部栏"查看相关食品" | `pages/search/index` | 传入 ingredientId 参数 |
 
 ---
 
@@ -341,7 +383,7 @@ product    ingredient
 
 ```
 点击登录卡片 → uni.showToast({ title: '即将上线', icon: 'none' })
-点击扫描记录 → uni.navigateTo({ url: '/pages/scan-history' })  // Phase 2
+点击扫描记录 → uni.navigateTo({ url: '/pages/scan-history/index' })  // Phase 2
 点击其他菜单 → uni.showToast({ title: '即将上线', icon: 'none' })
 ```
 
@@ -365,15 +407,15 @@ product    ingredient
 
 | 来源 | 目标 | 参数 |
 |------|------|------|
-| 首页扫码 | `/pages/product` | `barcode` |
-| 首页搜索入口 | `/pages/search` | — |
-| 搜索结果-食品 | `/pages/product` | `barcode` |
-| 搜索结果-配料 | `/pages/ingredient` | `ingredientId` |
-| 产品页点击配料 | `/pages/ingredient` | `ingredientId` |
-| 配料页点击相关产品 | `/pages/product` | `barcode` |
-| 首页最近扫描 | `/pages/product` | `barcode` |
+| 首页扫码 | `pages/product/index` | `barcode` |
+| 首页搜索入口 | `pages/search/index`（switchTab） | — |
+| 搜索结果-食品 | `pages/product/index` | `barcode` |
+| 搜索结果-配料 | `pages/ingredient/index` | `ingredientId` |
+| 产品页点击配料 | `pages/ingredient/index` | `ingredientId` |
+| 配料页点击相关产品 | `pages/product/index` | `barcode` |
+| 首页最近扫描 | `pages/product/index` | `barcode` |
 | 搜索历史标签 | 触发搜索 | — |
-| 我的-扫描记录 | `/pages/scan-history` | Phase 2 |
+| 我的-扫描记录 | `pages/scan-history/index` | Phase 2 |
 
 ---
 
@@ -429,11 +471,16 @@ interface SearchResponse {
 
 | 页面 | 操作 | 说明 |
 |------|------|------|
-| `/pages/index` | 调整 | 添加搜索入口 + 最近扫描 |
-| `/pages/search` | 新建 | 通用搜索页 |
-| `/pages/profile` | 新建 | Tab 框架占位（UI 先做，内容后续） |
-| `/pages/product` | 不变 | 已有功能 |
-| `/pages/ingredient` | 路径重命名 | 原 `/pages/ingredient-detail` |
+| `pages/index/index` | **重新实现** | 替换现有首页，添加搜索入口 + 最近扫描 + TabBar 图标 |
+| `pages/search/index` | 新建 | 通用搜索页（含搜索历史） |
+| `pages/profile/index` | 新建 | Tab 框架占位（UI 先做，内容后续） |
+| `pages/product/index` | 不变 | 已有功能 |
+| `pages/ingredient/index` | 路径重命名 | 原 `pages/ingredient-detail/index`，需同步修改 `pages.json`、跳转引用、`IngredientSection.vue` 等 |
+
+**受影响的已有文件（路径重命名联动）：**
+- `web/apps/uniapp/src/pages.json` — 将 `pages/ingredient-detail/index` 改为 `pages/ingredient/index`
+- `web/apps/uniapp/src/components/IngredientSection.vue` — 将跳转路径 `/pages/ingredient-detail/index` 改为 `/pages/ingredient/index`
+- `web/apps/uniapp/src/pages/ingredient-detail/` — 目录重命名为 `ingredient`
 
 ---
 
