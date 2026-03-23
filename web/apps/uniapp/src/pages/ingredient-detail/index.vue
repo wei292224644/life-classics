@@ -237,15 +237,17 @@ const fromProductName = computed(() => ingStore.fromProductName)
 // ── 暗色模式 ─────────────────────────────────────────────
 const isDark = ref(false)
 
+const handleThemeChange = ({ theme }: { theme: string }) => {
+  isDark.value = theme === "dark"
+}
+
 onMounted(() => {
   isDark.value = uni.getSystemInfoSync().theme === "dark"
-  uni.onThemeChange(({ theme }) => {
-    isDark.value = theme === "dark"
-  })
+  uni.onThemeChange(handleThemeChange)
 })
 
 onUnmounted(() => {
-  uni.offThemeChange()
+  uni.offThemeChange(handleThemeChange)
 })
 
 // ── 风险等级 ─────────────────────────────────────────────
@@ -299,7 +301,11 @@ const spectrumOpacityStyle = computed(() =>
 // ── 解析 analysis.results ────────────────────────────────
 function safeResults(analysis: IngredientAnalysis | undefined): Record<string, unknown> {
   if (!analysis?.results) return {}
-  if (typeof analysis.results === "object" && analysis.results !== null) {
+  if (
+    typeof analysis.results === "object" &&
+    analysis.results !== null &&
+    !Array.isArray(analysis.results)
+  ) {
     return analysis.results as Record<string, unknown>
   }
   return {}
@@ -396,7 +402,7 @@ function goToSearch() {
 }
 
 function goToProduct(barcode: string) {
-  uni.navigateTo({ url: `/pages/product/index?barcode=${barcode}` })
+  uni.navigateTo({ url: `/pages/product/index?barcode=${encodeURIComponent(barcode)}` })
 }
 </script>
 
@@ -404,11 +410,12 @@ function goToProduct(barcode: string) {
 @import "@/styles/design-system.scss";
 
 .ingredient-detail-page {
-  min-height: 100vh;
+  height: 100vh;
   background: var(--bg-base);
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
 }
 
 // ── Header ──────────────────────────────────────────────
@@ -506,6 +513,7 @@ function goToProduct(barcode: string) {
 // ── 滚动区 ───────────────────────────────────────────────
 .scroll-area {
   flex: 1;
+  overflow: hidden;
   padding: 24rpx 24rpx 0;
 }
 
@@ -581,8 +589,8 @@ function goToProduct(barcode: string) {
 }
 
 // ── Hero 风险卡 ──────────────────────────────────────────
-.hero-card {
-  border-radius: $radius-xl !important;
+.section-card.hero-card {
+  border-radius: $radius-xl;
 }
 
 .hero-top {
@@ -861,7 +869,6 @@ function goToProduct(barcode: string) {
   gap: 12rpx;
   font-size: 26rpx;
   font-weight: 600;
-  border: none;
   padding: 0;
 
   &:active { opacity: 0.8; }
@@ -879,13 +886,14 @@ function goToProduct(barcode: string) {
 
 .bar-btn-ghost {
   background: var(--bg-card);
-  border: 1px solid var(--border-color) !important;
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
 }
 
 .bar-btn-primary {
   background: #111111;
   color: #ffffff;
+  border: none;
 
   .dark-mode & {
     background: #f5f5f5;
