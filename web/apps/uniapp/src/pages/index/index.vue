@@ -2,7 +2,7 @@
   <view
     class="index-page h-screen bg-[var(--bg-base)] flex flex-col overflow-hidden"
     :class="{ 'dark': themeStore.isDark }"
-    :style="{ paddingBottom: 'calc(var(--space-20) + env(safe-area-inset-bottom))' }"
+    :style="{ paddingBottom: 'calc(80rpx + env(safe-area-inset-bottom))' }"
   >
     <!-- ── 状态栏占位 ─────────────────────────── -->
     <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
@@ -159,19 +159,19 @@ function handleRecentClick(item: RecentScan) {
 
 // ── Logo ────────────────────────────────────────────────
 .logo-emoji {
-  font-size: var(--text-6xl);
+  font-size: 52rpx;
   line-height: 1;
 }
 
 .logo-title {
-  font-size: var(--text-3xl);
+  font-size: 34rpx;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
 .logo-sub {
-  font-size: var(--text-md);
+  font-size: 24rpx;
   color: var(--text-muted);
 }
 
@@ -185,7 +185,7 @@ function handleRecentClick(item: RecentScan) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-3);
+  gap: 12rpx;
   box-shadow: 0 16rpx 80rpx rgba(236, 72, 153, 0.4);
   cursor: pointer;
   position: relative;
@@ -206,8 +206,8 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .scan-cta-icon {
-  width: var(--space-18);
-  height: var(--space-18);
+  width: 72rpx;
+  height: 72rpx;
 }
 
 .scan-cta-text {
@@ -240,7 +240,7 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .section-label-text {
-  font-size: var(--text-base);
+  font-size: 20rpx;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -250,9 +250,9 @@ function handleRecentClick(item: RecentScan) {
 .scan-count {
   background: var(--palette-red-50);
   color: var(--palette-red-500);
-  font-size: var(--text-sm);
+  font-size: 20rpx;
   font-weight: 700;
-  padding: var(--space-1) var(--space-3);
+  padding: 4rpx 12rpx;
   border-radius: 9999rpx;
 }
 
@@ -263,7 +263,7 @@ function handleRecentClick(item: RecentScan) {
 
 // ── Scan Item ───────────────────────────────────────────
 .scan-item {
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
   transition: transform 0.15s ease;
 
   &:active {
@@ -272,14 +272,14 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .scan-icon {
-  width: var(--space-20);
-  height: var(--space-20);
+  width: 80rpx;
+  height: 80rpx;
   background: var(--bg-base);
   border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-5xl);
+  font-size: 40rpx;
   flex-shrink: 0;
 }
 
@@ -290,24 +290,24 @@ function handleRecentClick(item: RecentScan) {
 
 .scan-name {
   display: block;
-  font-size: var(--text-xl);
+  font-size: 28rpx;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
-  margin-bottom: var(--space-1);
+  margin-bottom: 4rpx;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .scan-time {
-  font-size: var(--text-md);
+  font-size: 24rpx;
   color: var(--text-muted);
 }
 
 .scan-arrow {
-  width: var(--space-8);
-  height: var(--space-8);
+  width: 32rpx;
+  height: 32rpx;
   color: var(--text-muted);
   opacity: 0.4;
   flex-shrink: 0;
@@ -315,11 +315,11 @@ function handleRecentClick(item: RecentScan) {
 
 .scan-empty {
   text-align: center;
-  padding: var(--space-12) 0;
+  padding: 48rpx 0;
 }
 
 .scan-empty-text {
-  font-size: var(--text-base);
+  font-size: 20rpx;
   color: var(--text-muted);
 }
 

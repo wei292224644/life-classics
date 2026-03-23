@@ -519,8 +519,8 @@ function goToProduct(barcode: string) {
   appearance: none;
 
   svg {
-    width: var(--space-9);
-    height: var(--space-9);
+    width: 36rpx;
+    height: 36rpx;
     stroke-width: 2;
     color: var(--risk-btn-color);
     stroke: var(--risk-btn-color);
@@ -533,38 +533,38 @@ function goToProduct(barcode: string) {
 }
 
 .header-title {
-  font-size: var(--text-3xl);
+  font-size: 34rpx;
   font-weight: 700;
   color: var(--risk-title-color);
   line-height: 1.2;
 }
 
 .header-subtitle {
-  font-size: var(--text-md);
+  font-size: 24rpx;
   color: var(--risk-sub-color);
   line-height: 1.3;
 }
 
 // ── 加载态 ───────────────────────────────────────────────
 .loading-text {
-  font-size: var(--text-xl);
+  font-size: 28rpx;
   color: var(--text-muted);
 }
 
 // ── 错误态 ───────────────────────────────────────────────
 .error-text {
-  font-size: var(--text-xl);
+  font-size: 28rpx;
   color: var(--text-secondary);
   text-align: center;
 }
 
 .retry-btn {
-  padding: var(--space-5) var(--space-12);
-  border-radius: var(--radius-md);
+  padding: 20rpx 48rpx;
+  border-radius: 32rpx;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  font-size: var(--text-xl);
+  font-size: 28rpx;
 }
 
 // ── 滚动区 ───────────────────────────────────────────────
@@ -580,18 +580,18 @@ function goToProduct(barcode: string) {
 .hero-top {
   background: linear-gradient(135deg, var(--risk-header-bg) 60%, transparent 100%);
   border-bottom: 1px solid var(--risk-header-border);
-  padding: var(--space-6) var(--space-6) var(--space-5);
+  padding: 24rpx 24rpx 20rpx;
 }
 
 .hero-name {
-  font-size: var(--text-4xl);
+  font-size: 36rpx;
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1.2;
 }
 
 .hero-code {
-  font-size: var(--text-base);
+  font-size: 20rpx;
   color: var(--text-secondary);
   font-weight: 400;
 }
@@ -601,11 +601,11 @@ function goToProduct(barcode: string) {
 }
 
 .badge-icon {
-  font-size: var(--text-md);
+  font-size: 24rpx;
 }
 
 .badge-text {
-  font-size: var(--text-base);
+  font-size: 20rpx;
   font-weight: 700;
   color: #fff;
 }
@@ -613,12 +613,12 @@ function goToProduct(barcode: string) {
 // ── 风险谱条 ─────────────────────────────────────────────
 .spectrum-wrap {
   position: relative;
-  margin: var(--space-1) 0 var(--space-2);
+  margin: 4rpx 0 8rpx;
 }
 
 .spectrum-bar {
-  height: var(--space-3);
-  border-radius: var(--space-2);
+  height: 12rpx;
+  border-radius: 8rpx;
   background: linear-gradient(to right,
     var(--palette-green-500) 0%,
     var(--palette-green-300) 20%,
@@ -634,8 +634,8 @@ function goToProduct(barcode: string) {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: var(--space-7);
-  height: var(--space-7);
+  width: 28rpx;
+  height: 28rpx;
   border-radius: 50%;
   background: var(--bg-card);
   border: 5rpx solid var(--risk-t4);
@@ -645,21 +645,21 @@ function goToProduct(barcode: string) {
 .spectrum-labels {
   display: flex;
   justify-content: space-between;
-  margin-top: var(--space-1);
+  margin-top: 4rpx;
 }
 
 .spec-label-safe,
 .spec-label-mid,
 .spec-label-danger {
-  font-size: var(--text-xs);
+  font-size: 18rpx;
   color: var(--text-secondary);
 }
 
 // ── Chips ────────────────────────────────────────────────
 .chip {
-  font-size: var(--text-sm);
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--space-3);
+  font-size: 20rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 12rpx;
   font-weight: 500;
 
   &.chip-func {
@@ -682,14 +682,14 @@ function goToProduct(barcode: string) {
 
 // ── KV 表格 ──────────────────────────────────────────────
 .kv-key {
-  font-size: var(--text-md);
+  font-size: 24rpx;
   color: var(--text-muted);
   width: 200rpx;
-  padding-top: var(--space-1);
+  padding-top: 4rpx;
 }
 
 .kv-value {
-  font-size: var(--text-lg);
+  font-size: 26rpx;
   color: var(--text-primary);
   flex: 1;
   line-height: 1.5;
@@ -701,16 +701,16 @@ function goToProduct(barcode: string) {
 
 // ── 列表项（风险分析 / 使用建议） ───────────────────────────
 .list-item-icon {
-  width: var(--icon-lg);
-  height: var(--icon-lg);
+  width: 40rpx;
+  height: 40rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-sm);
+  font-size: 20rpx;
   font-weight: 700;
   flex-shrink: 0;
-  margin-top: var(--space-1);
+  margin-top: 4rpx;
 
   &.icon-x {
     background: color-mix(in oklch, var(--palette-red-500) 12%, transparent);
@@ -729,7 +729,7 @@ function goToProduct(barcode: string) {
 }
 
 .list-item-text {
-  font-size: var(--text-lg);
+  font-size: 26rpx;
   color: var(--text-secondary);
   line-height: 1.6;
   flex: 1;
@@ -754,11 +754,11 @@ function goToProduct(barcode: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-7xl);
+  font-size: 44rpx;
 }
 
 .related-name {
-  font-size: var(--text-base);
+  font-size: 20rpx;
   color: var(--text-secondary);
   text-align: center;
   line-height: 1.3;
@@ -770,9 +770,9 @@ function goToProduct(barcode: string) {
 }
 
 .related-risk-tag {
-  font-size: var(--text-xs);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--space-2);
+  font-size: 18rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
   font-weight: 500;
   display: inline-block;
 
@@ -789,26 +789,26 @@ function goToProduct(barcode: string) {
 
 // ── 底部操作栏 ───────────────────────────────────────────
 .bottom-bar {
-  padding-bottom: max(var(--space-12), constant(safe-area-inset-bottom));
-  padding-bottom: max(var(--space-12), env(safe-area-inset-bottom));
+  padding-bottom: max(48rpx, constant(safe-area-inset-bottom));
+  padding-bottom: max(48rpx, env(safe-area-inset-bottom));
   box-shadow: var(--bottom-bar-shadow);
 }
 
 .bar-btn {
-  height: var(--btn-height-xl);
-  font-size: var(--text-lg);
+  height: 88rpx;
+  font-size: 26rpx;
   font-weight: 600;
 
   &:active { opacity: 0.8; }
 
   text {
-    font-size: var(--text-lg);
+    font-size: 26rpx;
   }
 }
 
 .bar-icon {
-  width: var(--icon-md);
-  height: var(--icon-md);
+  width: 32rpx;
+  height: 32rpx;
   fill: currentColor;
 }
 
