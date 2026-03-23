@@ -65,7 +65,7 @@ function handleShare() {
   position: fixed;
   left: 0;
   right: 0;
-  padding: var(--space-4) var(--space-8);
+  padding: 16rpx 32rpx;
   background: transparent;
   transition: background 0.4s $ease-spring, box-shadow 0.4s $ease-spring;
   pointer-events: auto;
@@ -85,8 +85,8 @@ function handleShare() {
 }
 
 .header-btn {
-  width: var(--space-20);
-  height: var(--space-20);
+  width: 80rpx;
+  height: 80rpx;
   border-radius: 24rpx;
   background: transparent;
   border: none;
@@ -113,14 +113,14 @@ function handleShare() {
   }
 
   svg {
-    width: var(--space-9);
-    height: var(--space-9);
+    width: 36rpx;
+    height: 36rpx;
     stroke-width: 2;
   }
 }
 
 .header-title {
-  font-size: var(--text-3xl);
+  font-size: 34rpx;
   font-weight: 600;
   letter-spacing: -0.02em;
   color: #ffffff;

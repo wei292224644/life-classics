@@ -237,14 +237,14 @@ const adviceItems = computed(() =>
 }
 
 .status-text {
-  font-size: var(--text-2xl);
+  font-size: 30rpx;
   color: var(--text-muted);
 }
 
 .retry-btn {
-  padding: var(--space-6) var(--space-16);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xl);
+  padding: 24rpx 64rpx;
+  border-radius: 24rpx;
+  font-size: 28rpx;
   font-weight: 500;
   font-family: inherit;
   background: var(--bg-card);
@@ -284,14 +284,14 @@ const adviceItems = computed(() =>
 }
 
 .banner-label {
-  font-size: var(--text-lg);
+  font-size: 26rpx;
   color: var(--banner-label);
   letter-spacing: 0.1em;
 }
 
 .banner-badge {
-  border-radius: var(--radius-sm);
-  padding: var(--space-5) var(--space-8);
+  border-radius: 24rpx;
+  padding: 20rpx 32rpx;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   background: var(--banner-badge-bg);
@@ -303,8 +303,8 @@ const adviceItems = computed(() =>
 }
 
 .badge-icon {
-  width: var(--space-7);
-  height: var(--space-7);
+  width: 28rpx;
+  height: 28rpx;
   flex-shrink: 0;
 
   .banner-badge.t4 & { fill: var(--risk-t4); }
@@ -315,7 +315,7 @@ const adviceItems = computed(() =>
 }
 
 .badge-text {
-  font-size: var(--text-md);
+  font-size: 24rpx;
   font-weight: 600;
 
   .banner-badge.t4 & { color: var(--risk-t4); }
@@ -334,7 +334,7 @@ const adviceItems = computed(() =>
 }
 
 .section-title {
-  font-size: var(--text-5xl);
+  font-size: 40rpx;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -367,7 +367,7 @@ const adviceItems = computed(() =>
 }
 
 .nutrition-label {
-  font-size: var(--text-base);
+  font-size: 28rpx;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 8rpx;
@@ -375,7 +375,7 @@ const adviceItems = computed(() =>
 }
 
 .nutrition-value {
-  font-size: var(--text-5xl);
+  font-size: 40rpx;
   font-weight: 700;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -385,21 +385,21 @@ const adviceItems = computed(() =>
 }
 
 .nutrition-unit {
-  font-size: var(--text-base);
+  font-size: 28rpx;
   margin-top: 8rpx;
   color: var(--text-muted);
 }
 
 .nutrition-toggle {
-  padding: var(--space-5);
+  padding: 20rpx;
   background: transparent;
   border: none;
   -webkit-appearance: none;
   appearance: none;
-  font-size: var(--text-lg);
+  font-size: 26rpx;
   font-weight: 500;
   font-family: inherit;
-  border-radius: var(--radius-sm);
+  border-radius: 24rpx;
   color: var(--text-muted);
   cursor: pointer;
   transition: background 0.2s;
@@ -426,7 +426,7 @@ const adviceItems = computed(() =>
 .nutrition-row {
   padding: 40rpx 0;
   border-bottom: 1px solid var(--border-color);
-  font-size: var(--text-xl);
+  font-size: 28rpx;
 
   &:last-child { border-bottom: none; }
 
@@ -436,7 +436,7 @@ const adviceItems = computed(() =>
 
 // ── 健康益处 / 食用建议卡片 ────────────────────────────
 .analysis-card {
-  border-radius: var(--radius-lg);
+  border-radius: 40rpx;
   padding: 72rpx;
   margin-bottom: 0;
   animation: slideUp 0.5s 0.3s $ease-spring forwards;
@@ -451,19 +451,19 @@ const adviceItems = computed(() =>
   .product-page:not(.dark) & {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
   }
 }
 
 .advice-header {
   margin-bottom: 56rpx;
-  font-size: var(--text-2xl);
+  font-size: 30rpx;
   font-weight: 600;
   color: var(--text-primary);
 
   .star-icon {
-    width: var(--icon-lg);
-    height: var(--icon-lg);
+    width: 36rpx;
+    height: 36rpx;
     fill: var(--palette-yellow-500);
     flex-shrink: 0;
   }
@@ -474,8 +474,8 @@ const adviceItems = computed(() =>
 
 .analysis-item {
   .item-icon {
-    width: var(--icon-lg);
-    height: var(--icon-lg);
+    width: 36rpx;
+    height: 36rpx;
     flex-shrink: 0;
     margin-top: 8rpx;
 
@@ -484,7 +484,7 @@ const adviceItems = computed(() =>
   }
 
   .item-text {
-    font-size: var(--text-xl);
+    font-size: 28rpx;
     line-height: 1.5;
     color: var(--text-secondary);
     flex: 1;
@@ -492,7 +492,7 @@ const adviceItems = computed(() =>
 }
 
 .empty-text {
-  font-size: var(--text-xl);
+  font-size: 28rpx;
   color: var(--text-muted);
 }
 

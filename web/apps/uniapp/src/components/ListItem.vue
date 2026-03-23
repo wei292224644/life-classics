@@ -25,15 +25,15 @@ defineProps<{
 @import "@/styles/design-system.scss";
 
 .list-item-icon {
-  width: var(--icon-lg);
-  height: var(--icon-lg);
+  width: 36rpx;
+  height: 36rpx;
   border-radius: 50%;
-  font-size: var(--text-sm);
+  font-size: 20rpx;
   font-weight: 700;
 
   svg {
-    width: var(--icon-xs);
-    height: var(--icon-xs);
+    width: 24rpx;
+    height: 24rpx;
   }
 
   &.icon-x { background: color-mix(in oklch, var(--risk-t4) 12%, transparent); color: var(--risk-t4); }
@@ -42,7 +42,7 @@ defineProps<{
 }
 
 .list-item-text {
-  font-size: var(--text-lg);
+  font-size: 26rpx;
   color: var(--text-secondary);
   line-height: 1.6;
 }

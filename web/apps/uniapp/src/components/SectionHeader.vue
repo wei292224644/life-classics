@@ -24,9 +24,9 @@ defineProps<{
 }
 
 .section-icon-wrap {
-  width: var(--icon-lg);
-  height: var(--icon-lg);
-  border-radius: var(--radius-sm);
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -40,16 +40,16 @@ defineProps<{
 }
 
 .section-title {
-  font-size: var(--text-lg);
+  font-size: 26rpx;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .ai-label {
-  font-size: var(--text-xs);
+  font-size: 20rpx;
   font-weight: 700;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
+  padding: 4rpx 12rpx;
+  border-radius: 24rpx;
   background: var(--ai-label-bg);
   color: #fff;
 }

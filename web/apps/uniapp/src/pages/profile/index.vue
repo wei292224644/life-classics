@@ -132,17 +132,17 @@ function goBack() {
   background: transparent;
   border: none;
   padding: 0;
-  border-radius: var(--radius-md);
+  border-radius: 32rpx;
 
   svg {
-    width: var(--space-9);
-    height: var(--space-9);
+    width: 36rpx;
+    height: 36rpx;
     color: var(--text-primary);
   }
 }
 
 .header-title {
-  font-size: var(--text-md);
+  font-size: 24rpx;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
@@ -162,7 +162,7 @@ function goBack() {
 // ── Login Card ──────────────────────────────────────────
 .login-card {
   background: linear-gradient(135deg, var(--palette-pink-50) 0%, var(--palette-pink-100) 100%);
-  border-radius: var(--radius-lg);
+  border-radius: 40rpx;
   margin-bottom: 48rpx;
   border: 1px solid color-mix(in oklch, var(--palette-pink-200) 50%, transparent);
 }
@@ -175,17 +175,17 @@ function goBack() {
 .login-avatar {
   border-radius: 50%;
   background: var(--bg-card);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 
   svg {
-    width: var(--space-12);
-    height: var(--space-12);
+    width: 48rpx;
+    height: 48rpx;
     color: var(--text-muted);
   }
 }
 
 .login-text {
-  font-size: var(--text-base);
+  font-size: 28rpx;
   color: var(--text-muted);
 }
 
@@ -193,7 +193,7 @@ function goBack() {
 .menu-list {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: 40rpx;
 }
 
 .menu-item {
@@ -225,7 +225,7 @@ function goBack() {
 }
 
 .menu-text {
-  font-size: var(--text-base);
+  font-size: 28rpx;
   color: var(--text-primary);
 }
 

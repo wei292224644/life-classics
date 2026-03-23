@@ -240,7 +240,7 @@ function goBack() {
   background: transparent;
   border: none;
   padding: 0;
-  border-radius: var(--radius-md);
+  border-radius: 32rpx;
 
   svg {
     width: 36rpx;
@@ -250,7 +250,7 @@ function goBack() {
 }
 
 .header-title {
-  font-size: var(--text-md);
+  font-size: 24rpx;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
@@ -268,7 +268,7 @@ function goBack() {
 .search-input-box {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
+  border-radius: 48rpx;
 }
 
 .search-icon {
@@ -276,7 +276,7 @@ function goBack() {
 }
 
 .search-input {
-  font-size: var(--text-base);
+  font-size: 28rpx;
   color: var(--text-primary);
   background: transparent;
   border: none;
@@ -302,40 +302,40 @@ function goBack() {
 }
 
 .results-count {
-  font-size: var(--text-sm);
+  font-size: 20rpx;
   color: var(--text-muted);
 }
 
 .result-item {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  border-radius: 32rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .result-icon {
-  border-radius: var(--radius-md);
+  border-radius: 32rpx;
   background: var(--bg-base);
-  font-size: var(--text-4xl);
+  font-size: 36rpx;
 }
 
 .result-type-tag {
   display: inline-block;
-  font-size: var(--text-xs);
-  padding: var(--space-px) 24rpx;
-  border-radius: var(--radius-full);
+  font-size: 20rpx;
+  padding: 0 24rpx;
+  border-radius: 9999rpx;
 }
 
 .result-name {
   display: block;
-  font-size: var(--text-lg);
+  font-size: 26rpx;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
 .result-desc {
-  font-size: var(--text-sm);
+  font-size: 20rpx;
   color: var(--text-muted);
 }
 
@@ -349,7 +349,7 @@ function goBack() {
 }
 
 .empty-text {
-  font-size: var(--text-base);
+  font-size: 28rpx;
   color: var(--text-muted);
 }
 
@@ -361,13 +361,13 @@ function goBack() {
 }
 
 .history-title {
-  font-size: var(--text-base);
+  font-size: 28rpx;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .clear-history-btn {
-  font-size: var(--text-sm);
+  font-size: 20rpx;
   color: var(--text-muted);
   background: transparent;
   border: none;
@@ -377,8 +377,8 @@ function goBack() {
 .history-tag {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
+  border-radius: 9999rpx;
+  font-size: 20rpx;
   color: var(--text-secondary);
 }
 
@@ -387,7 +387,7 @@ function goBack() {
 }
 
 .history-empty-text {
-  font-size: var(--text-sm);
+  font-size: 20rpx;
   color: var(--text-muted);
 }
 </style>

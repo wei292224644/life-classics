@@ -13,9 +13,9 @@ defineProps<{
 @import "@/styles/design-system.scss";
 
 .info-chip {
-  font-size: var(--text-sm);
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--radius-sm);
+  font-size: 20rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 24rpx;
   font-weight: 500;
   box-sizing: border-box;
   white-space: nowrap;

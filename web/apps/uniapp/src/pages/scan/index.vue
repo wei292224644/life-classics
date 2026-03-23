@@ -26,6 +26,6 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .hint {
   color: #888;
-  font-size: var(--text-xl);
+  font-size: 28rpx;
 }
 </style>

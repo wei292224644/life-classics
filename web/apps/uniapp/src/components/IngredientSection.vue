@@ -116,9 +116,9 @@ function goToDetail(id: number) {
 
 // ── 风险分组容器 ──────────────────────────────────────
 .risk-group {
-  border-radius: var(--radius-lg);
-  padding: var(--space-8);
-  margin-bottom: var(--space-6);
+  border-radius: 40rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
   position: relative;
   overflow: hidden;
 
@@ -132,8 +132,8 @@ function goToDetail(id: number) {
 
 // ── 组头 ──────────────────────────────────────────────
 .risk-dot {
-  width: var(--space-4);
-  height: var(--space-4);
+  width: 16rpx;
+  height: 16rpx;
   border-radius: 50%;
   flex-shrink: 0;
 
@@ -146,10 +146,10 @@ function goToDetail(id: number) {
 }
 
 .risk-badge {
-  font-size: var(--text-md);
+  font-size: 24rpx;
   font-weight: 600;
-  padding: var(--space-2) var(--space-5);
-  border-radius: var(--radius-sm);
+  padding: 8rpx 20rpx;
+  border-radius: 24rpx;
 
   .t4 & { color: var(--risk-t4); background: color-mix(in oklch, var(--risk-t4) 15%, transparent); }
   .t3 & { color: var(--risk-t3); background: color-mix(in oklch, var(--risk-t3) 15%, transparent); }
@@ -160,7 +160,7 @@ function goToDetail(id: number) {
 }
 
 .risk-count {
-  font-size: var(--text-base);
+  font-size: 28rpx;
   color: var(--text-muted);
 }
 
@@ -179,8 +179,8 @@ function goToDetail(id: number) {
 .ingredient-card {
   flex: 0 0 auto;
   width: 280rpx;
-  border-radius: var(--radius-md);
-  padding: var(--space-7);
+  border-radius: 32rpx;
+  padding: 28rpx;
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -236,21 +236,21 @@ function goToDetail(id: number) {
 // ── 右上角箭头 ────────────────────────────────────────
 .ingredient-arrow {
   position: absolute;
-  right: var(--space-3);
-  top: var(--space-3);
-  width: var(--space-7);
-  height: var(--space-7);
+  right: 12rpx;
+  top: 12rpx;
+  width: 28rpx;
+  height: 28rpx;
   opacity: 0.4;
   color: var(--text-muted);
 
-  svg { width: var(--icon-sm); height: var(--icon-sm); }
+  svg { width: 28rpx; height: 28rpx; }
 }
 
 // ── 内容区 ────────────────────────────────────────────
 .ingredient-name {
   .icon {
-    width: var(--space-7);
-    height: var(--space-7);
+    width: 28rpx;
+    height: 28rpx;
     flex-shrink: 0;
   }
 
@@ -264,7 +264,7 @@ function goToDetail(id: number) {
 }
 
 .ingredient-name-text {
-  font-size: var(--text-lg);
+  font-size: 26rpx;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -272,9 +272,9 @@ function goToDetail(id: number) {
 // ── 原因标签 ──────────────────────────────────────────
 .ingredient-reason {
   display: inline-block;
-  font-size: var(--text-sm);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--space-3);
+  font-size: 20rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 12rpx;
   align-self: flex-start;
   max-width: 100%;
   box-sizing: border-box;

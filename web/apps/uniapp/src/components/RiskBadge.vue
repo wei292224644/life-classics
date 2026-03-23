@@ -28,9 +28,9 @@ const label = computed(() => props.whoLevel ?? "未知");
 @import "@/styles/design-system.scss";
 
 .risk-badge {
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--space-2);
-  font-size: var(--text-base);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
 
   &--critical { background: var(--risktag-t4-bg); color: var(--risk-t4); }
   &--high     { background: var(--risktag-t3-bg); color: var(--risk-t3); }

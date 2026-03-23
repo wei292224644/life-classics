@@ -45,9 +45,9 @@ function extractSummary(results: unknown): string {
 
 .analysis-card {
   background: var(--bg-card);
-  border-radius: var(--space-4);
-  padding: var(--space-7);
-  margin-bottom: var(--space-5);
+  border-radius: 16rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
   border-left: 6rpx solid var(--border-color);
 
   &--t4 { border-left-color: var(--risk-t4); }
@@ -59,15 +59,15 @@ function extractSummary(results: unknown): string {
 
 
 .card-title {
-  font-size: var(--text-2xl);
+  font-size: 30rpx;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .level-badge {
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--text-base);
+  padding: 4rpx 16rpx;
+  border-radius: 9999rpx;
+  font-size: 28rpx;
 
   &--t4 {
     background: var(--risktag-t4-bg);
@@ -96,7 +96,7 @@ function extractSummary(results: unknown): string {
 }
 
 .card-content {
-  font-size: var(--text-xl);
+  font-size: 28rpx;
   color: var(--text-secondary);
   line-height: 1.6;
 }

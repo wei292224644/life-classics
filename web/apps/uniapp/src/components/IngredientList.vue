@@ -37,28 +37,28 @@ function isHighRisk(whoLevel: string | null): boolean {
 .ingredient-list { width: 100%; }
 
 .ingredient-item {
-  padding: var(--space-5) 0;
+  padding: 20rpx 0;
   border-bottom: 1rpx solid var(--border-color);
 
-  &--risk { background: color-mix(in oklch, var(--risk-t4) 4%, transparent); border-radius: var(--space-2); padding: var(--space-4); }
+  &--risk { background: color-mix(in oklch, var(--risk-t4) 4%, transparent); border-radius: 8rpx; padding: 16rpx; }
 }
 
 
-.ingredient-name { font-size: var(--text-2xl); color: var(--text-primary); }
+.ingredient-name { font-size: 30rpx; color: var(--text-primary); }
 
 .ingredient-meta {
   display: block;
-  font-size: var(--text-md);
+  font-size: 24rpx;
   color: var(--text-muted);
-  margin-top: var(--space-2);
+  margin-top: 8rpx;
 }
 
 .ingredient-allergen {
   display: block;
-  font-size: var(--text-md);
+  font-size: 24rpx;
   color: var(--risk-t4);
-  margin-top: var(--space-2);
+  margin-top: 8rpx;
 }
 
-.empty { color: var(--text-muted); font-size: var(--text-xl); }
+.empty { color: var(--text-muted); font-size: 28rpx; }
 </style>

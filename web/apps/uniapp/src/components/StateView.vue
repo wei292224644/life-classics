@@ -38,15 +38,15 @@ defineEmits<{ (e: "retry"): void }>();
 
 .state-view {
   &__message {
-    font-size: var(--text-lg);
+    font-size: 26rpx;
     color: var(--text-muted);
     text-align: center;
   }
 
   &__action {
-    padding: var(--space-3) var(--space-8);
-    border-radius: var(--radius-md);
-    font-size: var(--text-lg);
+    padding: 12rpx 32rpx;
+    border-radius: 32rpx;
+    font-size: 26rpx;
     font-weight: 500;
     font-family: inherit;
     background: var(--bg-card);

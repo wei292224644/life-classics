@@ -24,8 +24,8 @@ const emit = defineEmits<{
   bottom: 0;
   left: 0;
   right: 0;
-  padding: var(--space-8) var(--space-10);
-  padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom));
+  padding: 32rpx 40rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
   z-index: 40;
   background: var(--bottom-bar-bg);
   backdrop-filter: saturate(180%) blur(16px);
@@ -36,9 +36,9 @@ const emit = defineEmits<{
 
 .action-btn {
   flex: 1;
-  padding: var(--space-7) var(--btn-padding-x);
-  border-radius: var(--btn-radius);
-  font-size: var(--text-xl);
+  padding: 28rpx 32rpx;
+  border-radius: 28rpx;
+  font-size: 28rpx;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;

@@ -55,23 +55,23 @@ const grouped = computed(() => {
 .nutrition-table {
   width: 100%;
 
-  .group { margin-bottom: var(--space-8); }
+  .group { margin-bottom: 32rpx; }
 
   .group-label {
-    font-size: var(--text-lg);
+    font-size: 26rpx;
     color: #888;
   }
 
   .row {
-    padding: var(--space-4) 0;
+    padding: 16rpx 0;
     border-bottom: 1rpx solid #f0f0f0;
 
     &.header { font-weight: bold; }
   }
 
-  .col-name { font-size: var(--text-xl); color: #333; }
-  .col-value { font-size: var(--text-xl); color: #555; }
+  .col-name { font-size: 28rpx; color: #333; }
+  .col-value { font-size: 28rpx; color: #555; }
 
-  .empty { color: #aaa; font-size: var(--text-xl); }
+  .empty { color: #aaa; font-size: 28rpx; }
 }
 </style>

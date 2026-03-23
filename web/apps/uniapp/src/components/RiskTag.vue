@@ -24,14 +24,14 @@ const config = computed(() => getRiskConfig(props.level));
 @import "@/styles/design-system.scss";
 
 .risk-tag {
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
+  padding: 4rpx 16rpx;
+  border-radius: 9999rpx;
+  font-size: 20rpx;
   font-weight: 600;
 
   &--sm {
-    font-size: var(--text-xs);
-    padding: var(--space-1) var(--space-3);
+    font-size: 20rpx;
+    padding: 4rpx 12rpx;
   }
 
   // Colors reference CSS vars, auto dark mode
