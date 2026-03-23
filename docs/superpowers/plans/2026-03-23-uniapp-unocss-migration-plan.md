@@ -638,8 +638,11 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 2. `color`、`background`、`border` 中使用 CSS 变量保留（`var(--accent)`、`var(--bg-card)`）
 3. 动画关键帧保留在 SCSS 中
 4. BEM 修饰类中的工具样式直接用原子类替换
+5. **重要**：`design-system.scss` 中已删除的 `--btn-*`、`--header-*`、`--card-padding-*`、`--space-*`、`--text-*` 等变量，在迁移组件时一律用 **硬编码 rpx 值** 替换（不要引用已删除的变量）
 
-**Spacing 换算对照（基于 4rpx = 2px 基准）:**
+**Spacing 换算对照（基准：4rpx = 2px）:**
+
+> 注：Tailwind `gap-1` = 4px = 8rpx，对应 `--space-2`（8rpx）。`--space-1`（4rpx）没有直接对应的 UnoCSS class，需要用 `style="gap: 4rpx"` 或自定义 rule。
 
 | UnoCSS class | px值 | rpx值 | 对应旧 var |
 |---|---|---|---|
