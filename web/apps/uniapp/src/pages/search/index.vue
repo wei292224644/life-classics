@@ -1,39 +1,39 @@
 <template>
   <view
-    class="search-page"
-    :class="{ 'dark-mode': themeStore.isDark }"
+    class="search-page flex flex-col"
+    :class="{ 'dark': themeStore.isDark }"
   >
     <!-- ── Header ──────────────────────────── -->
     <view class="search-header" :style="headerStyle">
       <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
-      <view class="header-content">
-        <button class="header-btn" @click="goBack">
+      <view class="header-content flex items-center h-[88rpx] px-[32rpx] gap-[24rpx]">
+        <button class="header-btn w-[60rpx] h-[60rpx] flex items-center justify-center" @click="goBack">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </button>
-        <text class="header-title">搜索食品或配料</text>
-        <view class="header-spacer" />
+        <text class="header-title flex-1 text-center">搜索食品或配料</text>
+        <view class="header-spacer w-[60rpx]" />
       </view>
     </view>
 
     <!-- ── 搜索框 ─────────────────────────── -->
-    <view class="search-input-wrap">
-      <view class="search-input-box">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <view class="search-input-wrap px-[48rpx] py-[32rpx]">
+      <view class="search-input-box flex items-center h-[80rpx] px-[32rpx] gap-[24rpx]">
+        <svg class="search-icon w-[32rpx] h-[32rpx] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/>
           <path d="M21 21l-4.35-4.35" stroke-linecap="round"/>
         </svg>
         <input
           v-model="keyword"
-          class="search-input"
+          class="search-input flex-1"
           type="text"
           placeholder="搜索食品或配料"
           confirm-type="search"
           @confirm="handleSearch"
           @input="handleInput"
         />
-        <button v-if="keyword" class="clear-btn" @click="clearKeyword">
+        <button v-if="keyword" class="clear-btn w-[40rpx] h-[40rpx] flex items-center justify-center" @click="clearKeyword">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
@@ -42,48 +42,48 @@
     </view>
 
     <!-- ── 搜索结果 ─────────────────────────── -->
-    <scroll-view v-if="keyword" scroll-y class="results-scroll">
-      <view class="results-content">
-        <view class="results-count">搜索结果（共 {{ results.length }} 条）</view>
+    <scroll-view v-if="keyword" scroll-y class="results-scroll flex-1">
+      <view class="results-content p-[48rpx]">
+        <view class="results-count mb-[16rpx]">搜索结果（共 {{ results.length }} 条）</view>
         <view
           v-for="item in results"
           :key="item.id"
-          class="result-item"
+          class="result-item flex items-center bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg mb-[24rpx] gap-[16rpx]"
           @click="handleResultClick(item)"
         >
-          <view class="result-icon">{{ item.emoji }}</view>
-          <view class="result-info">
-            <view class="result-type-tag" :style="typeTagStyle(item.type)">{{ item.type === 'product' ? '食品' : '配料' }}</view>
+          <view class="result-icon w-[72rpx] h-[72rpx] rounded-lg flex items-center justify-center flex-shrink-0">{{ item.emoji }}</view>
+          <view class="result-info flex-1 min-w-0">
+            <view class="result-type-tag mb-[8rpx]" :style="typeTagStyle(item.type)">{{ item.type === 'product' ? '食品' : '配料' }}</view>
             <text class="result-name">{{ item.name }}</text>
             <text class="result-desc">{{ item.description }}</text>
           </view>
-          <svg class="result-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="result-arrow w-[32rpx] h-[32rpx] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 18l6-6-6-6"/>
           </svg>
         </view>
-        <view v-if="results.length === 0" class="empty-results">
+        <view v-if="results.length === 0" class="empty-results py-[64rpx]">
           <text class="empty-text">未找到相关结果</text>
         </view>
       </view>
     </scroll-view>
 
     <!-- ── 搜索历史 ─────────────────────────── -->
-    <view v-else class="history-section">
-      <view class="history-header">
+    <view v-else class="history-section p-[48rpx]">
+      <view class="history-header flex items-center justify-between mb-[16rpx]">
         <text class="history-title">搜索历史</text>
         <button v-if="searchHistory.length" class="clear-history-btn" @click="clearHistory">清空全部</button>
       </view>
-      <view class="history-tags">
+      <view class="history-tags flex flex-wrap gap-[24rpx]">
         <view
           v-for="(tag, index) in searchHistory"
           :key="index"
-          class="history-tag"
+          class="history-tag h-[56rpx] px-[48rpx] flex items-center"
           @click="handleHistoryClick(tag)"
         >
           {{ tag }}
         </view>
       </view>
-      <view v-if="!searchHistory.length" class="history-empty">
+      <view v-if="!searchHistory.length" class="history-empty py-[40rpx]">
         <text class="history-empty-text">暂无搜索历史</text>
       </view>
     </view>
@@ -229,8 +229,6 @@ function goBack() {
 .search-page {
   min-height: 100vh;
   background: var(--bg-base);
-  display: flex;
-  flex-direction: column;
 }
 
 // ── Header ─────────────────────────────────────────────
@@ -240,19 +238,10 @@ function goBack() {
 }
 
 .header-content {
-  display: flex;
-  align-items: center;
   height: var(--space-22);
-  padding: 0 var(--space-4);
-  gap: var(--space-3);
 }
 
 .header-btn {
-  width: var(--space-15);
-  height: var(--space-15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: transparent;
   border: none;
   padding: 0;
@@ -266,8 +255,6 @@ function goBack() {
 }
 
 .header-title {
-  flex: 1;
-  text-align: center;
   font-size: var(--text-md);
   font-weight: 600;
   color: var(--text-primary);
@@ -276,36 +263,24 @@ function goBack() {
 }
 
 .header-spacer {
-  width: var(--space-15);
 }
 
 // ── Search Input ───────────────────────────────────────
 .search-input-wrap {
-  padding: var(--space-4) var(--space-6);
   background: var(--bg-base);
 }
 
 .search-input-box {
-  display: flex;
-  align-items: center;
-  height: var(--space-20);
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  padding: 0 var(--space-4);
-  gap: var(--space-3);
 }
 
 .search-icon {
-  width: var(--space-8);
-  height: var(--space-8);
   color: var(--text-muted);
-  flex-shrink: 0;
 }
 
 .search-input {
-  flex: 1;
-  height: 100%;
   font-size: var(--text-base);
   color: var(--text-primary);
   background: transparent;
@@ -318,65 +293,42 @@ function goBack() {
 }
 
 .clear-btn {
-  width: var(--space-10);
-  height: var(--space-10);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: transparent;
   border: none;
   padding: 0;
 
   svg {
-    width: var(--space-8);
-    height: var(--space-8);
     color: var(--text-muted);
   }
 }
 
 // ── Results ────────────────────────────────────────────
 .results-scroll {
-  flex: 1;
   height: calc(100vh - var(--space-22) - var(--space-20) - var(--space-20));
 }
 
 .results-content {
-  padding: var(--space-4) var(--space-6);
 }
 
 .results-count {
   font-size: var(--text-sm);
   color: var(--text-muted);
-  margin-bottom: var(--space-4);
 }
 
 .result-item {
-  display: flex;
-  align-items: center;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: var(--card-padding-md);
-  margin-bottom: var(--space-3);
-  gap: var(--space-4);
   box-shadow: var(--shadow-sm);
 }
 
 .result-icon {
-  width: var(--space-18);
-  height: var(--space-18);
   border-radius: var(--radius-md);
   background: var(--bg-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: var(--text-4xl);
-  flex-shrink: 0;
 }
 
 .result-info {
-  flex: 1;
-  min-width: 0;
 }
 
 .result-type-tag {
@@ -384,7 +336,6 @@ function goBack() {
   font-size: var(--text-xs);
   padding: var(--space-px) var(--space-3);
   border-radius: var(--radius-full);
-  margin-bottom: var(--space-1);
 }
 
 .result-name {
@@ -393,7 +344,6 @@ function goBack() {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
-  margin-bottom: var(--space-px);
 }
 
 .result-desc {
@@ -402,16 +352,12 @@ function goBack() {
 }
 
 .result-arrow {
-  width: var(--space-8);
-  height: var(--space-8);
   color: var(--text-muted);
   opacity: 0.4;
-  flex-shrink: 0;
 }
 
 .empty-results {
   text-align: center;
-  padding: var(--space-16) 0;
 }
 
 .empty-text {
@@ -421,14 +367,9 @@ function goBack() {
 
 // ── History ─────────────────────────────────────────────
 .history-section {
-  padding: var(--space-6);
 }
 
 .history-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
 }
 
 .history-title {
@@ -446,26 +387,18 @@ function goBack() {
 }
 
 .history-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
 }
 
 .history-tag {
-  height: var(--space-14);
-  padding: 0 var(--space-6);
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
   font-size: var(--text-sm);
   color: var(--text-secondary);
-  display: flex;
-  align-items: center;
 }
 
 .history-empty {
   text-align: center;
-  padding: var(--space-10) 0;
 }
 
 .history-empty-text {
