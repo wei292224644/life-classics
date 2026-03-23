@@ -114,7 +114,7 @@ export default defineConfig({
     'icon-bg-blue', 'icon-bg-red', 'icon-bg-purple', 'icon-bg-green', 'icon-bg-orange',
     'chip-func', 'chip-warn', 'chip-neu',
     'list-item-icon', 'icon-x', 'icon-check-green', 'icon-check-yellow',
-    'risk-high', 'risk-med'
+    'risk-med'
   ],
 
   shortcuts: {
