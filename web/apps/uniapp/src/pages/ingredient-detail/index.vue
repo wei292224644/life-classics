@@ -6,8 +6,8 @@
   >
     <!-- ── 自定义 Header ──────────────────────────── -->
     <view class="ing-header" :style="headerStyle">
-      <!-- 状态栏占位 -->
-      <view class="status-bar-placeholder" />
+      <!-- 状态栏占位（动态高度） -->
+      <view :style="{ height: statusBarHeight + 'px' }" />
       <view class="header-content">
         <button class="header-btn back-btn" @click="goBack">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -18,55 +18,72 @@
           <text class="header-title">配料详情</text>
           <text class="header-subtitle">{{ headerSubtitle }}</text>
         </view>
-        <view class="header-spacer" />
+        <button class="header-btn share-btn" @click="shareToFriend">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8.684 13.342C8.886 12.938 9 12 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+          </svg>
+        </button>
       </view>
     </view>
 
+    <!-- ── 加载态 ──────────────────────────────── -->
+    <view v-if="isLoading" class="loading-state">
+      <text class="loading-text">加载中...</text>
+    </view>
+
     <!-- ── 无数据错误态 ──────────────────────────── -->
-    <view v-if="!ingredient" class="error-state">
+    <view v-else-if="!ingredient" class="error-state">
       <text class="error-text">数据加载失败，请返回重试</text>
       <button class="retry-btn" @click="goBack">返回</button>
     </view>
 
     <!-- ── 内容区 ────────────────────────────────── -->
     <scroll-view v-else scroll-y class="scroll-area">
+    <view class="scroll-content">
 
       <!-- Hero 风险卡 -->
       <view class="section-card hero-card" :style="heroCardStyle">
-        <view class="hero-top">
-          <text class="hero-name">{{ ingredient.name }}</text>
-          <view class="risk-badge" :style="badgeStyle">
-            <text class="badge-icon">{{ riskConf.icon }}</text>
-            <text class="badge-text">{{ riskConf.badge }}</text>
+        <view class="hero-top" :style="heroTopStyle">
+          <view class="hero-name-row">
+            <view class="hero-name-wrap">
+              <text class="hero-name">{{ ingredient.name }}</text>
+              <text v-if="ingredient.additive_code" class="hero-code">{{ ingredient.additive_code }} · 食品添加剂</text>
+            </view>
+            <view class="risk-badge" :style="badgeStyle">
+              <text class="badge-icon">{{ riskConf.icon }}</text>
+              <text class="badge-text">{{ riskConf.badge }}</text>
+            </view>
+          </view>
+
+          <!-- 风险谱条 -->
+          <view class="spectrum-wrap">
+            <view class="spectrum-bar" :style="spectrumOpacityStyle">
+              <!-- 色阶渐变已通过 CSS 实现 -->
+            </view>
+            <view
+              v-if="riskConf.needleLeft !== null"
+              class="spectrum-needle"
+              :style="{ right: needleRight }"
+            />
+          </view>
+          <view class="spectrum-labels">
+            <text class="spec-label-safe">低风险</text>
+            <text class="spec-label-mid">中等</text>
+            <text class="spec-label-danger">高风险</text>
           </view>
         </view>
 
-        <!-- 风险谱条 -->
-        <view class="spectrum-wrap">
-          <view class="spectrum-bar" :style="spectrumOpacityStyle">
-            <!-- 色阶渐变已通过 CSS 实现 -->
-          </view>
-          <view
-            v-if="riskConf.needleLeft !== null"
-            class="spectrum-needle"
-            :style="{ left: riskConf.needleLeft }"
-          />
-        </view>
-        <view class="spectrum-labels">
-          <text class="spec-label-safe">安全</text>
-          <text class="spec-label-danger">极高风险</text>
-        </view>
 
         <!-- Chips -->
         <view class="chips-row">
-          <text v-if="ingredient.additive_code" class="chip chip-danger">{{ ingredient.additive_code }}</text>
-          <text v-if="ingredient.function_type" class="chip chip-danger">{{ ingredient.function_type }}</text>
-          <!-- 来源 chip：规格要求"来源 chip（灰色中性）"，但 IngredientDetail 类型中尚无对应字段，
-               backend schema 待扩展后补充（不阻塞本次实现）-->
+          <text v-if="ingredient.additive_code" class="chip chip-func">{{ ingredient.additive_code }}</text>
+          <text v-if="ingredient.function_type" class="chip chip-func">{{ ingredient.function_type }}</text>
+          <!-- 来源 chip：暂用假数据（后端扩展 IngredientDetail schema 后更新）-->
+          <text v-if="source" class="chip chip-neu">{{ source }}</text>
           <!-- 孕妇警告 chip：字段名暂定，后端确认 schema 后更新 -->
-          <text v-if="pregnancyWarning" class="chip chip-warning">{{ pregnancyWarning }}</text>
+          <text v-if="pregnancyWarning" class="chip chip-warn">{{ pregnancyWarning }}</text>
           <template v-if="ingredient.alias?.length">
-            <text v-for="alias in ingredient.alias" :key="alias" class="chip chip-neutral">{{ alias }}</text>
+            <text v-for="alias in ingredient.alias" :key="alias" class="chip chip-neu">别名：{{ alias }}</text>
           </template>
         </view>
       </view>
@@ -117,12 +134,12 @@
         <view class="kv-table">
           <view v-if="ingredient.who_level" class="kv-row">
             <text class="kv-key">WHO 致癌等级</text>
-            <text class="kv-value">{{ ingredient.who_level }}</text>
+            <text class="kv-value kv-value-red">{{ ingredient.who_level }}</text>
           </view>
           <!-- 母婴等级、使用限量、适用区域：字段名暂定，待后端 IngredientDetail 类型扩展后更新 -->
           <view v-if="maternalLevel" class="kv-row">
             <text class="kv-key">母婴等级</text>
-            <text class="kv-value">{{ maternalLevel }}</text>
+            <text class="kv-value kv-value-red">{{ maternalLevel }}</text>
           </view>
           <view v-if="usageLimit" class="kv-row">
             <text class="kv-key">使用限量</text>
@@ -175,7 +192,7 @@
           </view>
           <text class="section-title">含此配料的产品</text>
         </view>
-        <scroll-view scroll-x class="related-scroll">
+        <scroll-view scroll-x enable-flex class="related-scroll">
           <view class="related-inner">
             <view
               v-for="p in relatedProducts"
@@ -190,9 +207,10 @@
                   class="related-img"
                   mode="aspectFill"
                 />
-                <view v-else class="related-img-placeholder">🍎</view>
+                <view v-else class="related-img-placeholder">{{ p.emoji }}</view>
               </view>
               <text class="related-name">{{ p.name }}</text>
+              <text v-if="p.riskTag" :class="['related-risk-tag', p.riskTag === '高风险' ? 'risk-high' : 'risk-med']">{{ p.riskTag }}</text>
             </view>
           </view>
         </scroll-view>
@@ -200,6 +218,7 @@
 
       <!-- 底部安全距离 -->
       <view class="bottom-spacer" />
+      </view>
     </scroll-view>
 
     <!-- ── 底部操作栏 ──────────────────────────────── -->
@@ -222,6 +241,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue"
+import { onLoad } from "@dcloudio/uni-app"
 import { useIngredientStore } from "../../store/ingredient"
 import { useProductStore } from "../../store/product"
 import { getRiskConfig } from "../../utils/riskLevel"
@@ -234,6 +254,53 @@ const productStore = useProductStore()
 const ingredient = computed(() => ingStore.current)
 const fromProductName = computed(() => ingStore.fromProductName)
 
+// ── 加载态 ───────────────────────────────────────────────
+const isLoading = ref(false)
+
+// ── URL 路由参数（ingredientId 为必传，fromProductName 可选） ──
+onLoad(async (options) => {
+  const id = options?.ingredientId ? Number(options.ingredientId) : null
+  const fpn = options?.fromProductName ? decodeURIComponent(options.fromProductName) : null
+
+  if (ingStore.current) {
+    // 已有 Pinia 数据（从产品页下钻而来），URL 的 fromProductName 覆盖之
+    if (fpn) ingStore.set(ingStore.current, fpn)
+    return
+  }
+
+  if (!id) return
+
+  // 独立访问：先从当前产品 store 匹配，未找到则调 API
+  const fromProduct = productStore.product?.ingredients?.find(i => i.id === id)
+  if (fromProduct) {
+    ingStore.set(fromProduct, fpn ?? productStore.product?.name)
+    return
+  }
+
+  // 调后端独立配料接口
+  isLoading.value = true
+  try {
+    const res = await new Promise<UniApp.RequestSuccessCallbackResult>((resolve, reject) => {
+      uni.request({
+        url: `${import.meta.env.VITE_API_BASE_URL}/api/ingredient/${id}`,
+        success: resolve,
+        fail: reject,
+      })
+    })
+    if (res.statusCode === 200 && res.data) {
+      const data = res.data as Record<string, unknown>
+      ingStore.set(data as any, fpn ?? null)
+    }
+  } catch {
+    // 静默失败，error-state 会兜底显示
+  } finally {
+    isLoading.value = false
+  }
+})
+
+// ── 状态栏高度（动态读取，适配各机型） ──────────────────────
+const statusBarHeight = ref(0)
+
 // ── 暗色模式 ─────────────────────────────────────────────
 const isDark = ref(false)
 
@@ -242,7 +309,9 @@ const handleThemeChange = ({ theme }: { theme: string }) => {
 }
 
 onMounted(() => {
-  isDark.value = uni.getSystemInfoSync().theme === "dark"
+  const info = uni.getSystemInfoSync()
+  statusBarHeight.value = info.statusBarHeight ?? 0
+  isDark.value = info.theme === "dark"
   uni.onThemeChange(handleThemeChange)
 })
 
@@ -263,21 +332,28 @@ const headerSubtitle = computed(() => {
 // ── Inline CSS Vars（风险色调 Header） ───────────────────
 const pageStyle = computed(() => {
   const c = riskConf.value
-  return isDark.value
-    ? {
-        "--risk-bg": c.headerBgDark,
-        "--risk-border": c.headerBorderDark,
-        "--risk-title": c.headerTitleDark,
-        "--risk-sub": c.headerSubDark,
-        "--risk-btn": c.headerBtnDark,
-      }
-    : {
-        "--risk-bg": c.headerBgLight,
-        "--risk-border": c.headerBorderLight,
-        "--risk-title": c.headerTitleLight,
-        "--risk-sub": c.headerSubLight,
-        "--risk-btn": c.headerBtnLight,
-      }
+  const isD = isDark.value
+  return {
+    "--fg": isD ? "oklch(0.9788 0.0057 308.3962)" : "oklch(0.2277 0.0105 312.0161)",
+    "--muted-fg": isD ? "oklch(0.6288 0.0177 309.9946)" : "oklch(0.5653 0.021 306.4429)",
+    "--card-bg": isD ? "oklch(0.1836 0.0111 311.9111)" : "#ffffff",
+    "--border-color": isD ? "oklch(0.2941 0.0175 310.1142)" : "oklch(0.9419 0.016 310.0997)",
+    "--risk-bg": isD ? c.headerBgDark : c.headerBgLight,
+    "--risk-border": isD ? c.headerBorderDark : c.headerBorderLight,
+    "--risk-red": isD ? "#f87171" : "#dc2626",
+    "--risk-title": isD ? c.headerTitleDark : c.headerTitleLight,
+    "--risk-sub": isD ? c.headerSubDark : c.headerSubLight,
+    "--risk-btn": isD ? c.headerBtnDark : c.headerBtnLight,
+    "--chip-red-bg": isD ? "rgba(248,113,113,0.15)" : "rgba(239,68,68,0.08)",
+    "--chip-red-c": isD ? "#fca5a5" : "#dc2626",
+    "--chip-red-b": isD ? "transparent" : "rgba(239,68,68,0.2)",
+    "--chip-warn-bg": isD ? "#3b1a00" : "rgba(234,179,8,0.1)",
+    "--chip-warn-c": isD ? "#fcd34d" : "#a16207",
+    "--chip-warn-b": isD ? "transparent" : "rgba(234,179,8,0.25)",
+    "--chip-neu-bg": isD ? "oklch(0.2941 0.0175 310.1142)" : "oklch(0.967 0.0106 316.4921)",
+    "--chip-neu-c": isD ? "oklch(0.721 0.0184 308.1777)" : "oklch(0.4536 0.0226 309.5036)",
+    "--kv-val-red": isD ? "#f87171" : "#dc2626",
+  }
 })
 
 const headerStyle = computed(() => ({
@@ -286,8 +362,14 @@ const headerStyle = computed(() => ({
 }))
 
 const heroCardStyle = computed(() => ({
-  background: "var(--risk-bg)",
-  border: `1px solid var(--risk-border)`,
+  background: "var(--bg-card)",
+  border: "1px solid var(--border-color)",
+  boxShadow: "0 2rpx 8rpx rgba(0,0,0,0.05)",
+}))
+
+const heroTopStyle = computed(() => ({
+  background: `linear-gradient(135deg, var(--risk-bg) 60%, transparent 100%)`,
+  borderBottom: "1px solid var(--risk-border)",
 }))
 
 const badgeStyle = computed(() => ({
@@ -297,6 +379,14 @@ const badgeStyle = computed(() => ({
 const spectrumOpacityStyle = computed(() =>
   riskConf.value.needleLeft === null ? { opacity: "0.4" } : {}
 )
+
+// 谱条指针从右侧计算（设计稿使用 right: 14% 等）
+const needleRight = computed(() => {
+  const left = riskConf.value.needleLeft
+  if (left === null) return null
+  // 将 left 百分比转换为 right 百分比（假设指针宽度约 14px 占谱条 4%）
+  return `${100 - parseFloat(left) - 4}%`
+})
 
 // ── 解析 analysis.results ────────────────────────────────
 function safeResults(analysis: IngredientAnalysis | undefined): Record<string, unknown> {
@@ -311,10 +401,28 @@ function safeResults(analysis: IngredientAnalysis | undefined): Record<string, u
   return {}
 }
 
-const results = computed(() => safeResults(ingredient.value?.analysis))
+// Mock 兜底数据：真实 analysis.results 中无内容时使用，待后端数据完善后可移除
+const MOCK_RESULTS = {
+  summary: "香草精是一种广泛使用的食品香料，主要成分为香兰素（vanillin），可天然提取自香草豆荚，也可人工合成。常用于烘焙食品、甜点、饮料、冰淇淋等中增香。天然香草精含有超过200种风味化合物，香气更为复杂细腻。",
+  risk_factors: [
+    "市售香草精多为人工合成香兰素，与天然香草精成分存在差异",
+    "长期大量摄入人工合成香兰素可能对肝脏产生轻微影响",
+    "极少数人群可能出现过敏反应，表现为皮肤瘙痒或消化不适"
+  ],
+  suggestions: [
+    { text: "正常烹饪用量（每次数滴）在成人中是安全的", type: "positive" },
+    { text: "购买时注意区分天然香草精（vanilla extract）与人工香草精（artificial vanilla）", type: "conditional" },
+    { text: "婴幼儿辅食建议使用天然来源香料并控制用量", type: "conditional" }
+  ]
+}
 
-// 规格信息架构章节写 `results.description`，数据接口章节写 `results.summary`；
-// 以数据接口章节为准（`description` 为笔误），使用 `results.summary`。
+const results = computed(() => {
+  const raw = safeResults(ingredient.value?.analysis)
+  const hasRealData = raw.summary || raw.risk_factors || raw.suggestions
+  return hasRealData ? raw : MOCK_RESULTS
+})
+
+// 以数据接口章节为准（信息架构中的 `description` 为笔误），使用 `results.summary`
 const summary = computed(() => {
   const s = results.value.summary
   return typeof s === "string" ? s : null
@@ -324,6 +432,12 @@ const summary = computed(() => {
 const pregnancyWarning = computed(() => {
   const w = results.value.pregnancy_warning
   return typeof w === "string" ? w : null
+})
+
+// 来源 chip：暂用假数据（后端扩展 IngredientDetail schema 后更新）
+const source = computed(() => {
+  const s = results.value.source
+  return typeof s === "string" ? s : "化学合成"
 })
 
 // 以下三个字段在当前 IngredientDetail 类型中不存在，暂时从 analysis.results 读取；
@@ -376,19 +490,42 @@ const hasRiskMgmt = computed(() =>
 
 // ── 含此配料的相关产品 ────────────────────────────────────
 // [已知降级] 规格要求从"全局产品列表"过滤，但全局产品列表 store 尚未实现。
-// 当前降级策略：仅从当前已加载的单个产品中过滤。
+// 当前降级策略：使用假数据模拟多个产品卡片。
 // 后续扩展：实现全局产品列表 store 后，将此处改为从全局列表过滤。
+// 假数据格式
+interface RelatedProduct {
+  id: number
+  name: string
+  barcode: string
+  emoji: string
+  riskTag?: string
+  image_url_list?: string[]
+}
+
+const MOCK_RELATED_PRODUCTS: RelatedProduct[] = [
+  { id: 1, name: "午餐肉罐头", barcode: "6901234567890", emoji: "🥫", riskTag: "高风险" },
+  { id: 2, name: "火腿肠", barcode: "6901234567891", emoji: "🌭", riskTag: "高风险" },
+  { id: 3, name: "培根片", barcode: "6901234567892", emoji: "🥩", riskTag: "中等风险" },
+  { id: 4, name: "烤肠", barcode: "6901234567893", emoji: "🍖", riskTag: "高风险" },
+]
+
 const relatedProducts = computed(() => {
-  if (!ingredient.value || !productStore.product) return []
-  const ingId = ingredient.value.id
-  const prod = productStore.product
-  const hasIng = prod.ingredients.some((i) => i.id === ingId)
-  return hasIng ? [prod] : []
+  if (!ingredient.value) return []
+  // 暂时返回假数据，后续接入全局产品列表后改为过滤逻辑
+  return MOCK_RELATED_PRODUCTS
 })
 
 // ── 导航 ─────────────────────────────────────────────────
 function goBack() {
   uni.navigateBack()
+}
+
+function shareToFriend() {
+  if (!ingredient.value) return
+  uni.showShareMenu({
+    withShareTicket: true,
+    menus: ["shareAppMessage", "shareTimeline"],
+  })
 }
 
 function goToAI() {
@@ -427,21 +564,17 @@ function goToProduct(barcode: string) {
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
-.status-bar-placeholder {
-  height: 88rpx; // 约 44px 状态栏
-}
-
 .header-content {
   display: flex;
   align-items: center;
-  padding: 20rpx 24rpx 24rpx;
-  gap: 16rpx;
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  gap: var(--space-4);
 }
 
 .header-btn {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 50%;
+  width: var(--header-btn-size);
+  height: var(--header-btn-size);
+  border-radius: var(--space-4);
   background: var(--risk-btn);
   border: none;
   display: flex;
@@ -452,8 +585,8 @@ function goToProduct(barcode: string) {
   margin: 0;
 
   svg {
-    width: 40rpx;
-    height: 40rpx;
+    width: var(--icon-md);
+    height: var(--icon-md);
     color: var(--risk-title);
   }
 
@@ -464,24 +597,37 @@ function goToProduct(barcode: string) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
+  gap: var(--space-1);
 }
 
 .header-title {
-  font-size: 34rpx;
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: var(--risk-title);
   line-height: 1.2;
 }
 
 .header-subtitle {
-  font-size: 24rpx;
+  font-size: var(--text-md);
   color: var(--risk-sub);
   line-height: 1.3;
 }
 
 .header-spacer {
   width: 72rpx; // 与 back-btn 等宽，保持标题居中
+}
+
+// ── 加载态 ───────────────────────────────────────────────
+.loading-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-text {
+  font-size: var(--text-xl);
+  color: var(--text-muted);
 }
 
 // ── 错误态 ───────────────────────────────────────────────
@@ -491,30 +637,35 @@ function goToProduct(barcode: string) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 32rpx;
-  padding: 80rpx 48rpx;
+  gap: var(--space-8);
+  padding: var(--space-20) var(--space-12);
 }
 
 .error-text {
-  font-size: 28rpx;
+  font-size: var(--text-xl);
   color: var(--text-secondary);
   text-align: center;
 }
 
 .retry-btn {
-  padding: 20rpx 48rpx;
-  border-radius: $radius-md;
+  padding: var(--space-5) var(--space-12);
+  border-radius: var(--radius-md);
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  font-size: 28rpx;
+  font-size: var(--text-xl);
 }
 
 // ── 滚动区 ───────────────────────────────────────────────
 .scroll-area {
   flex: 1;
   overflow: hidden;
-  padding: 24rpx 24rpx 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.scroll-content {
+  padding: var(--space-6) var(--space-6) 0;
 }
 
 .bottom-spacer {
@@ -524,106 +675,132 @@ function goToProduct(barcode: string) {
 // ── Section Card 通用 ────────────────────────────────────
 .section-card {
   background: var(--bg-card);
-  border-radius: $radius-lg;
-  padding: 32rpx;
-  margin-bottom: 24rpx;
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  margin-bottom: var(--space-6);
   border: 1px solid var(--border-color);
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .section-header {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .section-icon-wrap {
-  width: 40rpx;
-  height: 40rpx;
-  border-radius: 12rpx;
+  width: var(--icon-xl);
+  height: var(--icon-xl);
+  border-radius: var(--space-3);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
-  &.icon-bg-blue { background: rgba(59, 130, 246, 0.12); }
-  &.icon-bg-red { background: rgba(239, 68, 68, 0.12); }
-  &.icon-bg-purple { background: rgba(139, 92, 246, 0.12); }
-  &.icon-bg-green { background: rgba(34, 197, 94, 0.12); }
-  &.icon-bg-orange { background: rgba(249, 115, 22, 0.12); }
+  &.icon-bg-blue { background: color-mix(in oklch, var(--palette-blue-500) 12%, transparent); }
+  &.icon-bg-red { background: color-mix(in oklch, var(--palette-red-500) 12%, transparent); }
+  &.icon-bg-purple { background: color-mix(in oklch, var(--palette-purple-500) 12%, transparent); }
+  &.icon-bg-green { background: color-mix(in oklch, var(--palette-green-500) 12%, transparent); }
+  &.icon-bg-orange { background: color-mix(in oklch, var(--palette-orange-400) 12%, transparent); }
 }
 
 .section-icon {
-  width: 24rpx;
-  height: 24rpx;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
   fill: currentColor;
 }
 
-.icon-bg-blue .section-icon { color: #3b82f6; }
-.icon-bg-red .section-icon { color: #ef4444; }
-.icon-bg-purple .section-icon { color: #8b5cf6; }
-.icon-bg-green .section-icon { color: #22c55e; }
-.icon-bg-orange .section-icon { color: #f97316; }
+.icon-bg-blue .section-icon { color: var(--palette-blue-500); }
+.icon-bg-red .section-icon { color: var(--palette-red-500); }
+.icon-bg-purple .section-icon { color: var(--palette-purple-500); }
+.icon-bg-green .section-icon { color: var(--palette-green-500); }
+.icon-bg-orange .section-icon { color: var(--palette-orange-400); }
 
 .section-title {
-  font-size: 26rpx;
+  font-size: var(--text-lg);
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--fg);
   flex: 1;
 }
 
 .ai-label {
-  font-size: 20rpx;
+  font-size: var(--text-sm);
   font-weight: 700;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--space-2);
+  background: var(--ai-label-bg);
   color: #fff;
   letter-spacing: 0.05em;
 }
 
 .section-body {
-  font-size: 26rpx;
-  color: var(--text-secondary);
+  font-size: var(--text-md);
+  color: var(--muted-fg);
   line-height: 1.7;
 }
 
 // ── Hero 风险卡 ──────────────────────────────────────────
 .section-card.hero-card {
-  border-radius: $radius-xl;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  padding: 0;
 }
 
 .hero-top {
+  background: linear-gradient(135deg, var(--risk-bg) 60%, transparent 100%);
+  border-bottom: 1px solid var(--risk-border);
+  padding: var(--space-6) var(--space-6) var(--space-5);
+}
+
+.hero-name-row {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16rpx;
-  margin-bottom: 32rpx;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.hero-name-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
 .hero-name {
-  font-size: 40rpx;
+  font-size: var(--text-4xl);
   font-weight: 800;
-  color: var(--risk-title);
+  color: var(--fg);
   line-height: 1.2;
-  flex: 1;
+}
+
+.hero-code {
+  font-size: var(--text-base);
+  color: var(--muted-fg);
+  font-weight: 400;
 }
 
 .risk-badge {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  padding: 10rpx 20rpx;
-  border-radius: 24rpx;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 
 .badge-icon {
-  font-size: 24rpx;
+  font-size: var(--text-md);
 }
 
 .badge-text {
-  font-size: 22rpx;
+  font-size: var(--text-base);
   font-weight: 700;
   color: #fff;
 }
@@ -631,77 +808,78 @@ function goToProduct(barcode: string) {
 // ── 风险谱条 ─────────────────────────────────────────────
 .spectrum-wrap {
   position: relative;
-  margin-bottom: 12rpx;
+  margin: var(--space-1) 0 var(--space-2);
 }
 
 .spectrum-bar {
-  height: 16rpx;
-  border-radius: 8rpx;
+  height: var(--space-3);
+  border-radius: var(--space-2);
   background: linear-gradient(to right,
-    #10b981 0%,
-    #22c55e 20%,
-    #eab308 45%,
-    #f97316 70%,
-    #ef4444 85%,
-    #dc2626 100%
+    var(--palette-green-500) 0%,
+    var(--palette-green-300) 20%,
+    var(--palette-yellow-500) 45%,
+    var(--palette-orange-400) 65%,
+    var(--palette-red-500) 82%,
+    var(--palette-red-500) 100%
   );
   transition: opacity 0.3s ease;
 }
 
 .spectrum-needle {
   position: absolute;
+  right: 14%;
   top: 50%;
-  transform: translate(-50%, -50%);
-  width: 24rpx;
-  height: 24rpx;
+  transform: translateY(-50%);
+  width: var(--space-7);
+  height: var(--space-7);
   border-radius: 50%;
-  background: #fff;
-  border: 4rpx solid var(--text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  transition: left 0.4s $ease-spring;
+  background: var(--bg-card);
+  border: 5rpx solid var(--risk-red);
+  box-shadow: 0 2rpx 6rpx color-mix(in oklch, var(--palette-red-500) 35%, transparent);
 }
 
 .spectrum-labels {
   display: flex;
   justify-content: space-between;
+  margin-top: var(--space-1);
 }
 
 .spec-label-safe,
+.spec-label-mid,
 .spec-label-danger {
-  font-size: 20rpx;
-  color: var(--text-muted);
+  font-size: var(--text-xs);
+  color: var(--muted-fg);
 }
 
 // ── Chips ────────────────────────────────────────────────
 .chips-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
-  margin-top: 24rpx;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6) var(--space-5);
 }
 
 .chip {
-  font-size: 22rpx;
-  padding: 8rpx 20rpx;
-  border-radius: 16rpx;
+  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--space-3);
   font-weight: 500;
 
-  &.chip-danger {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
+  &.chip-func {
+    color: var(--chip-red-c);
+    background: var(--chip-red-bg);
+    border: 1px solid var(--chip-red-b);
   }
 
-  &.chip-warning {
-    color: #a16207;
-    background: rgba(234, 179, 8, 0.1);
-    border: 1px solid rgba(234, 179, 8, 0.25);
+  &.chip-warn {
+    color: var(--chip-warn-c);
+    background: var(--chip-warn-bg);
+    border: 1px solid var(--chip-warn-b);
   }
 
-  &.chip-neutral {
-    color: var(--text-secondary);
-    background: var(--bg-base);
-    border: 1px solid var(--border-color);
+  &.chip-neu {
+    color: var(--chip-neu-c);
+    background: var(--chip-neu-bg);
   }
 }
 
@@ -709,73 +887,77 @@ function goToProduct(barcode: string) {
 .kv-table {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: var(--space-4);
 }
 
 .kv-row {
   display: flex;
   align-items: flex-start;
-  gap: 16rpx;
+  gap: var(--space-4);
 }
 
 .kv-key {
-  font-size: 24rpx;
+  font-size: var(--text-md);
   color: var(--text-muted);
   width: 200rpx;
   flex-shrink: 0;
-  padding-top: 2rpx;
+  padding-top: var(--space-1);
 }
 
 .kv-value {
-  font-size: 26rpx;
+  font-size: var(--text-lg);
   color: var(--text-primary);
   flex: 1;
   line-height: 1.5;
+
+  &.kv-value-red {
+    color: var(--kv-val-red);
+  }
 }
 
 // ── 列表项（风险分析 / 使用建议） ───────────────────────────
 .list-items {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: var(--space-4);
 }
 
 .list-item {
   display: flex;
   align-items: flex-start;
-  gap: 16rpx;
+  gap: var(--space-4);
 }
 
 .list-item-icon {
-  width: 36rpx;
-  height: 36rpx;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20rpx;
+  font-size: var(--text-sm);
   font-weight: 700;
   flex-shrink: 0;
-  margin-top: 4rpx;
+  margin-top: var(--space-1);
 
   &.icon-x {
-    background: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
+    background: color-mix(in oklch, var(--palette-red-500) 12%, transparent);
+    color: var(--palette-red-500);
   }
 
   &.icon-check-green {
-    background: rgba(34, 197, 94, 0.12);
-    color: #22c55e;
+    background: color-mix(in oklch, var(--palette-green-500) 12%, transparent);
+    color: var(--palette-green-500);
   }
 
   &.icon-check-yellow {
-    background: rgba(234, 179, 8, 0.12);
-    color: #eab308;
+    background: color-mix(in oklch, var(--palette-yellow-500) 12%, transparent);
+    color: var(--palette-yellow-500);
   }
 }
 
 .list-item-text {
-  font-size: 26rpx;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   line-height: 1.6;
   flex: 1;
@@ -792,9 +974,9 @@ function goToProduct(barcode: string) {
 .related-inner {
   display: flex;
   flex-direction: row;
-  gap: 20rpx;
+  gap: var(--space-5);
   width: max-content;
-  padding-bottom: 8rpx;
+  padding-bottom: var(--space-2);
 }
 
 .related-card {
@@ -803,7 +985,7 @@ function goToProduct(barcode: string) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
+  gap: var(--space-3);
   cursor: pointer;
 
   &:active { opacity: 0.7; }
@@ -812,7 +994,7 @@ function goToProduct(barcode: string) {
 .related-img-wrap {
   width: 172rpx;
   height: 172rpx;
-  border-radius: $radius-md;
+  border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--bg-base);
   border: 1px solid var(--border-color);
@@ -833,7 +1015,7 @@ function goToProduct(barcode: string) {
 }
 
 .related-name {
-  font-size: 22rpx;
+  font-size: var(--text-base);
   color: var(--text-secondary);
   text-align: center;
   line-height: 1.3;
@@ -844,43 +1026,63 @@ function goToProduct(barcode: string) {
   width: 100%;
 }
 
+.related-risk-tag {
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--space-2);
+  font-weight: 500;
+  display: inline-block;
+
+  &.risk-high {
+    color: var(--chip-red-c);
+    background: var(--chip-red-bg);
+  }
+
+  &.risk-med {
+    color: var(--chip-warn-c);
+    background: var(--chip-warn-bg);
+  }
+}
+
 // ── 底部操作栏 ───────────────────────────────────────────
 .bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 20rpx 24rpx 48rpx;
+  padding: var(--space-5) var(--space-6) var(--space-12);
+  padding-bottom: max(var(--space-12), constant(safe-area-inset-bottom));
+  padding-bottom: max(var(--space-12), env(safe-area-inset-bottom));
   background: var(--bottom-bar-bg);
   border-top: 1px solid var(--bottom-bar-border);
   box-shadow: var(--bottom-bar-shadow);
   display: flex;
-  gap: 16rpx;
+  gap: var(--space-4);
   z-index: 100;
 }
 
 .bar-btn {
   flex: 1;
-  height: 88rpx;
-  border-radius: $radius-md;
+  height: var(--btn-height-xl);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
-  font-size: 26rpx;
+  gap: var(--space-3);
+  font-size: var(--text-lg);
   font-weight: 600;
   padding: 0;
 
   &:active { opacity: 0.8; }
 
   text {
-    font-size: 26rpx;
+    font-size: var(--text-lg);
   }
 }
 
 .bar-icon {
-  width: 32rpx;
-  height: 32rpx;
+  width: var(--icon-md);
+  height: var(--icon-md);
   fill: currentColor;
 }
 
@@ -891,13 +1093,13 @@ function goToProduct(barcode: string) {
 }
 
 .bar-btn-primary {
-  background: #111111;
+  background: var(--accent);
   color: #ffffff;
   border: none;
 
   .dark-mode & {
-    background: #f5f5f5;
-    color: #111111;
+    background: var(--accent);
+    color: #ffffff;
   }
 }
 </style>
