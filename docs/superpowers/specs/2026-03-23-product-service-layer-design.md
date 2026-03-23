@@ -173,11 +173,12 @@ class IngredientDetail:  # IngredientRepository 专用，完整版
 
 ### `api/product/service.py`（新建）
 
+两个独立的 Service 类，各自对应一个 domain：
+
 ```python
 class ProductService:
-    def __init__(self, food_repo: FoodRepository, ingredient_repo: IngredientRepository):
+    def __init__(self, food_repo: FoodRepository):
         self._food_repo = food_repo
-        self._ingredient_repo = ingredient_repo
 
     async def get_product_by_barcode(self, barcode: str) -> ProductResponse | None:
         detail = await self._food_repo.fetch_by_barcode(barcode)
@@ -185,13 +186,19 @@ class ProductService:
             return None
         return self._to_product_response(detail)
 
+    def _to_product_response(self, d: FoodDetail) -> ProductResponse: ...
+
+
+class IngredientService:
+    def __init__(self, ingredient_repo: IngredientRepository):
+        self._ingredient_repo = ingredient_repo
+
     async def get_ingredient_by_id(self, ingredient_id: int) -> IngredientResponse | None:
         detail = await self._ingredient_repo.fetch_by_id(ingredient_id)
         if detail is None:
             return None
         return self._to_ingredient_response(detail)
 
-    def _to_product_response(self, d: FoodDetail) -> ProductResponse: ...
     def _to_ingredient_response(self, d: IngredientDetail) -> IngredientResponse: ...
 ```
 
@@ -218,11 +225,11 @@ async def get_product(..., svc: ProductService = Depends(get_product_service)):
 依赖注入工厂：
 
 ```python
-def get_product_service(
-    food_repo: FoodRepository = Depends(get_food_repository),
-    ingredient_repo: IngredientRepository = Depends(get_ingredient_repository),
-) -> ProductService:
-    return ProductService(food_repo, ingredient_repo)
+def get_product_service(food_repo: FoodRepository = Depends(get_food_repository)) -> ProductService:
+    return ProductService(food_repo)
+
+def get_ingredient_service(ingredient_repo: IngredientRepository = Depends(get_ingredient_repository)) -> IngredientService:
+    return IngredientService(ingredient_repo)
 ```
 
 ## 测试改造
