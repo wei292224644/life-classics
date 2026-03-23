@@ -1,6 +1,6 @@
 <template>
   <view
-    class="profile-page flex flex-col"
+    class="profile-page flex flex-col min-h-screen"
     :class="{ 'dark': themeStore.isDark }"
   >
     <!-- ── Header ──────────────────────────── -->
@@ -119,7 +119,6 @@ function goBack() {
 @import '@/styles/design-system.scss';
 
 .profile-page {
-  min-height: 100vh;
   background: var(--bg-base);
 }
 
@@ -127,10 +126,6 @@ function goBack() {
 .profile-header {
   background: var(--bg-base);
   border-bottom: 1px solid var(--border-color);
-}
-
-.header-content {
-  height: var(--space-22);
 }
 
 .header-btn {
@@ -151,7 +146,7 @@ function goBack() {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
-  margin-right: var(--space-15);
+  margin-right: 120rpx;
 }
 
 .header-spacer {
@@ -159,7 +154,6 @@ function goBack() {
 
 // ── Content ─────────────────────────────────────────────
 .content-scroll {
-  height: calc(100vh - 88rpx);
 }
 
 .content {
@@ -169,7 +163,7 @@ function goBack() {
 .login-card {
   background: linear-gradient(135deg, var(--palette-pink-50) 0%, var(--palette-pink-100) 100%);
   border-radius: var(--radius-lg);
-  margin-bottom: var(--space-6);
+  margin-bottom: 48rpx;
   border: 1px solid color-mix(in oklch, var(--palette-pink-200) 50%, transparent);
 }
 
@@ -225,8 +219,8 @@ function goBack() {
 }
 
 .menu-icon {
-  width: var(--space-10);
-  height: var(--space-10);
+  width: 80rpx;
+  height: 80rpx;
   color: var(--text-secondary);
 }
 
@@ -236,8 +230,8 @@ function goBack() {
 }
 
 .menu-arrow {
-  width: var(--space-8);
-  height: var(--space-8);
+  width: 64rpx;
+  height: 64rpx;
   color: var(--text-muted);
   opacity: 0.4;
 }
