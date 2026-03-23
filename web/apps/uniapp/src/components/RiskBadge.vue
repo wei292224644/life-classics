@@ -25,16 +25,18 @@ const label = computed(() => props.whoLevel ?? "未知");
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/design-system.scss";
+
 .risk-badge {
   display: inline-flex;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  font-size: 22rpx;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--space-2);
+  font-size: var(--text-base);
 
-  &--critical { background: #fee2e2; color: #dc2626; }
-  &--high     { background: #ffedd5; color: #ea580c; }
-  &--medium   { background: #fef9c3; color: #ca8a04; }
-  &--low      { background: #dcfce7; color: #16a34a; }
-  &--unknown  { background: #f3f4f6; color: #6b7280; }
+  &--critical { background: var(--risktag-t4-bg); color: var(--risk-t4); }
+  &--high     { background: var(--risktag-t3-bg); color: var(--risk-t3); }
+  &--medium   { background: var(--risktag-t2-bg); color: var(--risk-t2); }
+  &--low      { background: var(--risktag-t1-bg); color: var(--risk-t1); }
+  &--unknown  { background: var(--risktag-unknown-bg); color: var(--risk-unknown); }
 }
 </style>
