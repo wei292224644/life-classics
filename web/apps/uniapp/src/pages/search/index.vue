@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed,onMounted } from 'vue'
 import { useThemeStore } from "../../store/theme"
 
 // ── Types ─────────────────────────────────────────────
