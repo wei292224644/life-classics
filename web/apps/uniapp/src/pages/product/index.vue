@@ -1,5 +1,5 @@
 <template>
-  <view class="product-page">
+  <view class="product-page min-h-screen">
     <ProductHeader
       ref="headerRef"
       :name="store.product?.name ?? ''"
@@ -7,19 +7,19 @@
     />
 
     <!-- 加载中 -->
-    <view v-if="store.state === 'loading'" class="status-center">
+    <view v-if="store.state === 'loading'" class="status-center fixed inset-0 flex flex-col items-center justify-center gap-[48rpx] z-10 bg-[var(--bg-base)]">
       <up-loading-icon mode="circle" />
       <text class="status-text">查询中...</text>
     </view>
 
     <!-- 未找到 -->
-    <view v-else-if="store.state === 'not_found'" class="status-center">
+    <view v-else-if="store.state === 'not_found'" class="status-center fixed inset-0 flex flex-col items-center justify-center gap-[48rpx] z-10 bg-[var(--bg-base)]">
       <text class="status-text">该产品暂未收录</text>
       <button type="button" class="retry-btn" @click="goBack">返回重新扫码</button>
     </view>
 
     <!-- 错误 -->
-    <view v-else-if="store.state === 'error'" class="status-center">
+    <view v-else-if="store.state === 'error'" class="status-center fixed inset-0 flex flex-col items-center justify-center gap-[48rpx] z-10 bg-[var(--bg-base)]">
       <text class="status-text">{{ store.errorMessage || '网络请求失败' }}</text>
       <button type="button" class="retry-btn" @click="load">重试</button>
     </view>
@@ -27,23 +27,23 @@
     <!-- 成功 -->
     <scroll-view
       v-else-if="store.product"
-      class="scroll-area"
+      class="scroll-area fixed inset-0 z-1"
       scroll-y
       @scroll="onScroll"
     >
       <!-- ── Banner ─────────────────────────────────── -->
-      <view class="banner">
+      <view class="banner relative overflow-hidden bg-[var(--banner-bg)] flex items-center justify-center w-full h-[520rpx]">
         <image
           v-if="store.product.image_url_list?.[0]"
           :src="store.product.image_url_list[0]"
-          class="banner-img"
+          class="banner-img absolute inset-0 w-full h-full"
           mode="aspectFill"
         />
-        <view v-else class="banner-placeholder">
+        <view v-else class="banner-placeholder relative z-2 flex flex-col items-center justify-center gap-[32rpx]">
           <text class="banner-emoji">🍎</text>
           <text class="banner-label">产品图片</text>
         </view>
-        <view class="banner-badge" :class="overallRiskLevel">
+        <view class="banner-badge absolute z-2" :class="overallRiskLevel" style="right: 80rpx; bottom: 80rpx;">
           <svg viewBox="0 0 20 20" class="badge-icon" aria-hidden="true">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
           </svg>
@@ -52,13 +52,13 @@
       </view>
 
       <!-- ── 内容区 ────────────────────────────────── -->
-      <view class="content">
+      <view class="content px-[48rpx]">
 
         <!-- 营养成分 -->
-        <text class="section-title">营养成分</text>
-        <view class="nutrition-card">
-          <view class="nutrition-grid">
-            <view v-for="item in primaryNutritions" :key="item.name" class="nutrition-cell">
+        <text class="section-title block mt-[56rpx] mb-[28rpx]">营养成分</text>
+        <view class="nutrition-card relative overflow-hidden rounded-[24rpx]">
+          <view class="nutrition-grid grid grid-cols-2 gap-[80rpx] mb-[40rpx]">
+            <view v-for="item in primaryNutritions" :key="item.name" class="nutrition-cell flex flex-col">
               <text class="nutrition-label">{{ item.name }}</text>
               <text class="nutrition-value">{{ item.value }}</text>
               <text class="nutrition-unit">{{ item.value_unit }}</text>
@@ -66,7 +66,7 @@
           </view>
           <button
             type="button"
-            class="nutrition-toggle"
+            class="nutrition-toggle w-full flex items-center justify-center"
             :class="{ expanded: nutrExpanded }"
             :aria-expanded="nutrExpanded"
             @click="nutrExpanded = !nutrExpanded"
@@ -76,8 +76,8 @@
               <path d="M19 9l-7 7-7-7"/>
             </svg>
           </button>
-          <view v-show="nutrExpanded" class="nutrition-details">
-            <view v-for="item in detailNutritions" :key="item.name" class="nutrition-row">
+          <view v-show="nutrExpanded" class="nutrition-details border-t pt-[32rpx] mt-[8rpx]">
+            <view v-for="item in detailNutritions" :key="item.name" class="nutrition-row flex justify-between">
               <text class="row-label">{{ item.name }}</text>
               <text class="row-value">{{ item.value }}{{ item.value_unit }}</text>
             </view>
@@ -85,14 +85,14 @@
         </view>
 
         <!-- 配料信息 -->
-        <text class="section-title">配料信息</text>
+        <text class="section-title block mt-[56rpx] mb-[28rpx]">配料信息</text>
         <IngredientSection :ingredients="store.product.ingredients" />
 
         <!-- 健康益处 -->
-        <text class="section-title">健康益处</text>
-        <view class="analysis-card">
-          <view v-if="healthItems.length > 0" class="analysis-list">
-            <view v-for="item in healthItems" :key="item.id" class="analysis-item">
+        <text class="section-title block mt-[56rpx] mb-[28rpx]">健康益处</text>
+        <view class="analysis-card rounded-[16rpx]">
+          <view v-if="healthItems.length > 0" class="analysis-list flex flex-col gap-[28rpx]">
+            <view v-for="item in healthItems" :key="item.id" class="analysis-item flex items-start gap-[24rpx]">
               <svg viewBox="0 0 20 20" class="item-icon item-icon--check" aria-hidden="true">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
@@ -103,16 +103,16 @@
         </view>
 
         <!-- 食用建议 -->
-        <text class="section-title">食用建议</text>
-        <view class="analysis-card">
-          <view class="advice-header">
+        <text class="section-title block mt-[56rpx] mb-[28rpx]">食用建议</text>
+        <view class="analysis-card rounded-[16rpx]">
+          <view class="advice-header flex items-center gap-[16rpx] mb-[28rpx]">
             <svg viewBox="0 0 20 20" class="star-icon" aria-hidden="true">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
             </svg>
             <text>AI 健康建议</text>
           </view>
-          <view v-if="adviceItems.length > 0" class="analysis-list">
-            <view v-for="item in adviceItems" :key="item.id" class="analysis-item">
+          <view v-if="adviceItems.length > 0" class="analysis-list flex flex-col gap-[28rpx]">
+            <view v-for="item in adviceItems" :key="item.id" class="analysis-item flex items-start gap-[24rpx]">
               <svg viewBox="0 0 20 20" class="item-icon item-icon--dot" aria-hidden="true">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
@@ -224,31 +224,16 @@ const adviceItems = computed(() =>
 
 // ── 页面基础 ──────────────────────────────────────────
 .product-page {
-  min-height: 100vh;
   background: var(--bg-base);
 }
 
 .scroll-area {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
   background: var(--bg-base);
 }
 
 // ── 状态页 ────────────────────────────────────────────
 .status-center {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-12);
   z-index: 10;
-  background: var(--bg-base);
 }
 
 .status-text {
@@ -269,15 +254,6 @@ const adviceItems = computed(() =>
 
 // ── Banner ────────────────────────────────────────────
 .banner {
-  width: 100%;
-  height: 520rpx;
-  position: relative;
-  overflow: hidden;
-  background: var(--banner-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   &::before {
     content: '';
     position: absolute;
@@ -285,7 +261,7 @@ const adviceItems = computed(() =>
     z-index: 1;
   }
 
-  .dark-mode &::before {
+  .dark &::before {
     background:
       radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in oklch, var(--risk-t0) 8%, transparent) 0%, transparent 60%),
       radial-gradient(ellipse 60% 40% at 80% 80%, color-mix(in oklch, var(--accent) 5%, transparent) 0%, transparent 50%);
@@ -293,20 +269,9 @@ const adviceItems = computed(() =>
 }
 
 .banner-img {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
 }
 
 .banner-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  position: relative;
-  z-index: 2;
 }
 
 .banner-emoji {
@@ -325,17 +290,10 @@ const adviceItems = computed(() =>
 }
 
 .banner-badge {
-  position: absolute;
-  right: var(--space-10);
-  bottom: var(--space-10);
   border-radius: var(--radius-sm);
   padding: var(--space-5) var(--space-8);
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  z-index: 2;
   background: var(--banner-badge-bg);
   border: 1px solid var(--banner-badge-border);
   box-shadow: var(--banner-badge-shadow);
@@ -369,7 +327,6 @@ const adviceItems = computed(() =>
 
 // ── 内容区 ────────────────────────────────────────────
 .content {
-  padding: var(--space-6) var(--space-6) 0;
 }
 
 .bottom-spacer {
@@ -377,26 +334,15 @@ const adviceItems = computed(() =>
 }
 
 .section-title {
-  display: block;
   font-size: var(--text-5xl);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-primary);
-  margin-top: var(--space-14);
-  margin-bottom: var(--space-7);
-
-  &:first-child {
-    margin-top: 0;
-  }
 }
 
 // ── 营养卡片 ──────────────────────────────────────────
 .nutrition-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-xl);
-  padding: var(--space-10);
-  margin-bottom: 0;
+  padding: 80rpx;
   animation: slideUp 0.5s 0.1s $ease-spring forwards;
   opacity: 0;
   transform: translateY(16px);
@@ -415,22 +361,16 @@ const adviceItems = computed(() =>
 }
 
 .nutrition-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-10);
-  margin-bottom: var(--space-10);
 }
 
 .nutrition-cell {
-  display: flex;
-  flex-direction: column;
 }
 
 .nutrition-label {
   font-size: var(--text-base);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: var(--space-1);
+  margin-bottom: 8rpx;
   color: var(--text-muted);
 }
 
@@ -441,21 +381,16 @@ const adviceItems = computed(() =>
   font-variant-numeric: tabular-nums;
   line-height: 1;
   color: var(--text-primary);
-  margin-top: var(--space-1);
+  margin-top: 8rpx;
 }
 
 .nutrition-unit {
   font-size: var(--text-base);
-  margin-top: var(--space-1);
+  margin-top: 8rpx;
   color: var(--text-muted);
 }
 
 .nutrition-toggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
   padding: var(--space-5);
   background: transparent;
   border: none;
@@ -473,8 +408,6 @@ const adviceItems = computed(() =>
   &:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .chevron {
-    width: var(--icon-md);
-    height: var(--icon-md);
     transition: transform 0.3s ease;
     stroke: var(--text-muted);
   }
@@ -486,14 +419,12 @@ const adviceItems = computed(() =>
 
 .nutrition-details {
   border-top: 1px solid var(--border-color);
-  padding-top: var(--space-8);
-  margin-top: var(--space-2);
+  padding-top: 64rpx;
+  margin-top: 16rpx;
 }
 
 .nutrition-row {
-  display: flex;
-  justify-content: space-between;
-  padding: var(--space-5) 0;
+  padding: 40rpx 0;
   border-bottom: 1px solid var(--border-color);
   font-size: var(--text-xl);
 
@@ -506,7 +437,7 @@ const adviceItems = computed(() =>
 // ── 健康益处 / 食用建议卡片 ────────────────────────────
 .analysis-card {
   border-radius: var(--radius-lg);
-  padding: var(--space-9);
+  padding: 72rpx;
   margin-bottom: 0;
   animation: slideUp 0.5s 0.3s $ease-spring forwards;
   opacity: 0;
@@ -517,7 +448,7 @@ const adviceItems = computed(() =>
   border: 1px solid color-mix(in oklch, #ffffff 6%, transparent);
 
   // 亮色
-  .product-page:not(.dark-mode) & {
+  .product-page:not(.dark) & {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
@@ -525,10 +456,7 @@ const adviceItems = computed(() =>
 }
 
 .advice-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-7);
+  margin-bottom: 56rpx;
   font-size: var(--text-2xl);
   font-weight: 600;
   color: var(--text-primary);
@@ -542,21 +470,14 @@ const adviceItems = computed(() =>
 }
 
 .analysis-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-7);
 }
 
 .analysis-item {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-6);
-
   .item-icon {
     width: var(--icon-lg);
     height: var(--icon-lg);
     flex-shrink: 0;
-    margin-top: var(--space-1);
+    margin-top: 8rpx;
 
     &--check { fill: var(--risk-t0); }
     &--dot { fill: var(--text-muted); }
