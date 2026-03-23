@@ -87,10 +87,11 @@ GET /api/product?barcode=xxx
 }
 ```
 
-**前端渲染策略：**
-- `results.summary` → 渲染为"描述"section 的正文
-- AI 风险分析和使用建议列表：如后端 `results` 中存在 `risk_factors: string[]` 和 `suggestions: {text: string, type: "positive"|"conditional"}[]` 字段，则按结构渲染；否则将 `summary` 整段展示于描述 section，风险分析和建议 section 隐藏（`v-if`）
-- **此字段结构需与后端确认后补充**，本规格以已知字段为准
+**前端渲染策略（以下字段名为暂定，需与后端确认后更新）：**
+- `results.summary` → 渲染为"描述"section 的正文；缺失则隐藏描述 section
+- `results.risk_factors: string[]` → AI 风险分析列表；字段不存在或空数组则隐藏该 section
+- `results.suggestions: { text: string, type: "positive" | "conditional" | unknown }[]` → AI 使用建议列表；`type` 未知值或缺失时按 `conditional`（黄色 ✓）处理；字段不存在或空数组则隐藏该 section
+- **所有 `results` 字段均为 provisional，后端确认 schema 后更新本规格**
 
 ### 所需新接口（本次范围外，但需规划）
 
@@ -136,11 +137,11 @@ AI 使用建议（section card）
 
 含此配料的产品（section card）
 └── 从 Pinia 全局产品列表中过滤含此 ingredientId 的产品
-    └── 无匹配时隐藏整个 section（不显示空占位）
+    └── 结果为空数组、null 或加载失败时，v-if 隐藏整个 section（不显示空占位）
 
 底部 sticky bar
 ├── 咨询 AI 助手 → 跳转 `/pages/chat/index`，携带 query: { context: ingredient.name }
-└── 查看相关食品 → 跳转 `/pages/search/index`，携带 query: { ingredientId }
+└── 查看相关食品 → 跳转 `/pages/search/index`，携带 query: { ingredientId: IngredientResponse.id }（数据库主键）
 ```
 
 ---
@@ -163,7 +164,9 @@ CSS custom properties 在组件级覆盖，不污染全局变量。
 
 ### 风险谱条指示针位置
 
-谱条方向：**左端 = 低风险（绿），右端 = 高风险（红）**，指示针用 `left%` 定位：
+谱条方向：**左端 = 低风险（绿），右端 = 高风险（红）**。
+
+指示针用绝对定位，`left%` 表示**针中心点**相对于谱条容器宽度的百分比（`transform: translateX(-50%)` 修正自身宽度偏移）：
 
 | 视觉等级 | left | 说明 |
 |---------|------|------|
@@ -172,6 +175,8 @@ CSS custom properties 在组件级覆盖，不污染全局变量。
 | `high`（t3/t4） | `82%` | 靠近右侧红区 |
 
 前端使用 computed property 将 `analysis.level`（t0-t4）映射到上表 `left` 值，**不使用 `right`**。
+
+`analysis` 对象整体为 null 时（接口返回无分析数据），视觉等级默认为 `low`。
 
 ### 图标语义（统一定义）
 
@@ -215,7 +220,7 @@ CSS custom properties 在组件级覆盖，不污染全局变量。
 - **数据传递：** 从产品详情页跳转时，将 `IngredientResponse` 存入 Pinia `ingredientStore.current`，避免重复请求
 - **风险谱条：** 指示针用 computed 映射 `level → right%`，使用绝对定位
 - **横向滚动：** `<scroll-view scroll-x enable-flex>`，子元素 `white-space: nowrap` 或 flex 布局
-- **暗色模式：** 通过 `uni.getSystemInfoSync().theme` 判断，切换 CSS custom property 值
+- **暗色模式：** 初始化时通过 `uni.getSystemInfoSync().theme` 判断，同时注册 `uni.onThemeChange()` 监听器以响应运行时主题切换，组件销毁时调用 `uni.offThemeChange()` 清除
 - **Chips 渲染：** 每个 chip 字段单独 `v-if` 控制，为 null/空数组时不渲染
 
 ---
