@@ -224,12 +224,16 @@ async def test_reparse_chunk_transform_returns_empty():
         }],
     }
 
+    async def mock_transform_fn(*args, **kwargs):
+        return {"final_chunks": [], "errors": []}
+
     with patch("api.chunks.service.get_collection", return_value=mock_col), \
          patch("api.chunks.service.embed_batch", AsyncMock(return_value=[[0.1, 0.2]])), \
          patch("api.chunks.service.transform_node", new_callable=AsyncMock) as mock_transform, \
          patch("api.chunks.service.merge_node", return_value={"final_chunks": [], "doc_metadata": {}}), \
          patch("api.chunks.service.fts_writer") as mock_fts, \
          patch("api.chunks.service.settings") as mock_settings:
+        mock_transform.side_effect = mock_transform_fn
         mock_settings.CHROMA_PERSIST_DIR = "./db"
 
         from api.chunks.service import ChunksService
