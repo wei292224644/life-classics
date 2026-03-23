@@ -1,11 +1,11 @@
 <template>
   <view
     class="profile-page"
-    :class="{ 'dark-mode': isDark }"
+    :class="{ 'dark-mode': themeStore.isDark }"
   >
     <!-- ── Header ──────────────────────────── -->
-    <view class="profile-header" :style="headerStyle">
-      <view :style="{ height: statusBarHeight + 'px' }" />
+    <view class="profile-header">
+      <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
       <view class="header-content">
         <button class="header-btn" @click="goBack">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -93,31 +93,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { useThemeStore } from "../../store/theme"
 
-// ── Dark Mode ───────────────────────────────────────────
-const isDark = ref(false)
-const statusBarHeight = ref(0)
-
-const handleThemeChange = ({ theme }: { theme: string }) => {
-  isDark.value = theme === 'dark'
-}
+const themeStore = useThemeStore()
 
 onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = info.statusBarHeight ?? 0
-  isDark.value = info.theme === 'dark'
-  uni.onThemeChange(handleThemeChange)
+  // Theme is now handled by themeStore
 })
-
-onUnmounted(() => {
-  uni.offThemeChange(handleThemeChange)
-})
-
-// ── Header Style ────────────────────────────────────────
-const headerStyle = computed(() => ({
-  '--header-bg': isDark.value ? 'var(--bg-card)' : 'var(--bg-base)',
-}))
 
 // ── Actions ─────────────────────────────────────────────
 function handleLogin() {
