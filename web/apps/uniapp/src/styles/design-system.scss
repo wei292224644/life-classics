@@ -2,6 +2,7 @@
 // 2026 Design System — CSS Variables
 // UniApp + Vue 3 + SCSS
 //
+// 所有数值必须定义为 CSS 变量，组件中禁止硬编码数值。
 // CSS variables are defined on `page` element.
 // Components use var(--xxx) to reference these.
 // Theme switching: add/remove .dark-mode class on page element.
@@ -10,35 +11,97 @@
 
 // ============================================================
 // SCSS Variables (compile-time constants, output as-is)
+// 用于 SCSS mixin/function，不直接用于组件样式
 // ============================================================
 
 $font-family: 'DM Sans', -apple-system, sans-serif;
 
-// Spacing (4px grid)
-$space-1: 4rpx;
-$space-2: 8rpx;
-$space-3: 12rpx;
-$space-4: 16rpx;
-$space-5: 20rpx;
-$space-6: 24rpx;
-$space-7: 28rpx;
-
-// Border radius
-$radius-sm: 24rpx;   // 12px → 24rpx
-$radius-md: 32rpx;   // 16px → 32rpx
-$radius-lg: 40rpx;   // 20px → 40rpx
-$radius-xl: 48rpx;   // 24px → 48rpx
-$radius-phone: 44rpx;
+// Border radius（组件使用 CSS 变量 --radius-*）
+$radius-sm: 24rpx;
+$radius-md: 32rpx;
+$radius-lg: 40rpx;
+$radius-xl: 48rpx;
 
 // Easing
 $ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
 // ============================================================
-// CSS Custom Properties — Light Mode (DEFAULT)
-// Defined on `page` element
+// CSS Custom Properties — SPACING（间距 token）
+// 组件中必须使用这些变量，禁止硬编码数值
 // ============================================================
 
 page {
+  // ── 间距 ────────────────────────────────────────────────
+  // 原则：4px 网格 (4/8/12/16/20/24/28/32/40/48/56/64/80)
+  --space-1: 4rpx;
+  --space-2: 8rpx;
+  --space-3: 12rpx;
+  --space-4: 16rpx;
+  --space-5: 20rpx;
+  --space-6: 24rpx;
+  --space-7: 28rpx;
+  --space-8: 32rpx;
+  --space-10: 40rpx;
+  --space-12: 48rpx;
+  --space-14: 56rpx;
+  --space-16: 64rpx;
+  --space-20: 80rpx;
+
+  // ── 圆角 ────────────────────────────────────────────────
+  --radius-sm: 24rpx;
+  --radius-md: 32rpx;
+  --radius-lg: 40rpx;
+  --radius-xl: 48rpx;
+  --radius-full: 9999rpx;
+
+  // ── 字体大小 ─────────────────────────────────────────────
+  --text-xs: 18rpx;
+  --text-sm: 20rpx;
+  --text-base: 22rpx;
+  --text-md: 24rpx;
+  --text-lg: 26rpx;
+  --text-xl: 28rpx;
+  --text-2xl: 30rpx;
+  --text-3xl: 34rpx;
+  --text-4xl: 36rpx;
+  --text-5xl: 40rpx;
+  --text-6xl: 52rpx;
+
+  // ── 图标尺寸 ─────────────────────────────────────────────
+  --icon-xs: 24rpx;
+  --icon-sm: 28rpx;
+  --icon-md: 32rpx;
+  --icon-lg: 36rpx;
+  --icon-xl: 40rpx;
+
+  // ── 卡片内边距 ───────────────────────────────────────────
+  --card-padding-sm: 20rpx;
+  --card-padding-md: 24rpx;
+  --card-padding-lg: 28rpx;
+  --card-padding-xl: 32rpx;
+  --card-padding-2xl: 36rpx;
+  --card-padding-3xl: 40rpx;
+
+  // ── 按钮尺寸 ─────────────────────────────────────────────
+  --btn-height-sm: 64rpx;
+  --btn-height-md: 72rpx;
+  --btn-height-lg: 80rpx;
+  --btn-height-xl: 88rpx;
+  --btn-padding-x: 32rpx;
+  --btn-radius: 28rpx;
+
+  // ── 头部 ────────────────────────────────────────────────
+  --header-btn-size: 72rpx;
+  --header-icon-size: 36rpx;
+  --header-padding-x: 24rpx;
+  --header-padding-y: 20rpx;
+
+  // ── 阴影 ────────────────────────────────────────────────
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16rpx rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32rpx rgba(0, 0, 0, 0.12);
+
+  // ── 颜色 ────────────────────────────────────────────────
   // Background
   --bg-base: #f5f5f5;
   --bg-card: #ffffff;
@@ -104,6 +167,33 @@ page {
   --bottom-bar-bg: rgba(255, 255, 255, 0.95);
   --bottom-bar-border: rgba(0, 0, 0, 0.06);
   --bottom-bar-shadow: 0 -8px 32px rgba(0, 0, 0, 0.06);
+
+  // ── RiskTag 专用 ───────────────────────────────────────
+  --risktag-t4-bg: rgba(239, 68, 68, 0.15);
+  --risktag-t4-c: var(--risk-t4);
+  --risktag-t3-bg: rgba(249, 115, 22, 0.15);
+  --risktag-t3-c: var(--risk-t3);
+  --risktag-t2-bg: rgba(234, 179, 8, 0.15);
+  --risktag-t2-c: var(--risk-t2);
+  --risktag-t1-bg: rgba(74, 222, 128, 0.15);
+  --risktag-t1-c: var(--risk-t1);
+  --risktag-t0-bg: rgba(34, 197, 94, 0.15);
+  --risktag-t0-c: var(--risk-t0);
+  --risktag-unknown-bg: rgba(156, 163, 175, 0.15);
+  --risktag-unknown-c: var(--risk-unknown);
+
+  // ── Chip 专用 ──────────────────────────────────────────
+  --chip-risk-bg: rgba(239, 68, 68, 0.12);
+  --chip-risk-c: #dc2626;
+  --chip-risk-b: rgba(239, 68, 68, 0.2);
+  --chip-warn-bg: rgba(234, 179, 8, 0.1);
+  --chip-warn-c: #a16207;
+  --chip-warn-b: rgba(234, 179, 8, 0.25);
+  --chip-neu-bg: rgba(0, 0, 0, 0.04);
+  --chip-neu-c: var(--text-secondary);
+
+  // ── AI 标签 ─────────────────────────────────────────────
+  --ai-label-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
 }
 
 // ============================================================
@@ -177,6 +267,33 @@ page {
   --bottom-bar-bg: rgba(15, 15, 15, 0.95);
   --bottom-bar-border: rgba(255, 255, 255, 0.06);
   --bottom-bar-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
+
+  // ── RiskTag 暗色 ───────────────────────────────────────
+  --risktag-t4-bg: rgba(248, 113, 113, 0.15);
+  --risktag-t4-c: #fca5a5;
+  --risktag-t3-bg: rgba(251, 146, 60, 0.15);
+  --risktag-t3-c: #fdba74;
+  --risktag-t2-bg: rgba(234, 179, 8, 0.15);
+  --risktag-t2-c: #fde68a;
+  --risktag-t1-bg: rgba(74, 222, 128, 0.15);
+  --risktag-t1-c: #86efac;
+  --risktag-t0-bg: rgba(34, 197, 94, 0.15);
+  --risktag-t0-c: #6ee7b7;
+  --risktag-unknown-bg: rgba(156, 163, 175, 0.15);
+  --risktag-unknown-c: #9ca3af;
+
+  // ── Chip 暗色 ──────────────────────────────────────────
+  --chip-risk-bg: rgba(248, 113, 113, 0.15);
+  --chip-risk-c: #fca5a5;
+  --chip-risk-b: transparent;
+  --chip-warn-bg: rgba(251, 191, 36, 0.15);
+  --chip-warn-c: #fcd34d;
+  --chip-warn-b: transparent;
+  --chip-neu-bg: rgba(255, 255, 255, 0.08);
+  --chip-neu-c: #9ca3af;
+
+  // ── AI 标签（暗色不变）─────────────────────────────────
+  --ai-label-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
 }
 
 // ============================================================
