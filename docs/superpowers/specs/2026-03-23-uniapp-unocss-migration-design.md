@@ -301,12 +301,12 @@ export default defineConfig({
 
 ```json
 {
-  "unocss": "TBD",
-  "@unocss/preset-uno": "TBD",
-  "@unocss/preset-icons": "TBD",
-  "@unocss/preset-attributify": "TBD",
-  "postcss-rpx-transform": "TBD"
+  "unocss": "^66.x",
+  "@unocss/preset-uno": "^66.x",
+  "@unocss/preset-icons": "^66.x",
+  "@unocss/preset-attributify": "^66.x",
+  "postcss-rpx-transform": "^1.x"
 }
 ```
 
-> 版本号在 Phase 1 实施时确定，建议使用最新稳定版。
+> UnoCSS 0.66.x 为当前最新稳定版（2026-03）。
