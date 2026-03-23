@@ -245,20 +245,20 @@ const adviceItems = computed(() =>
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 48rpx;
+  gap: var(--space-12);
   z-index: 10;
   background: var(--bg-base);
 }
 
 .status-text {
-  font-size: 30rpx;
+  font-size: var(--text-2xl);
   color: var(--text-muted);
 }
 
 .retry-btn {
-  padding: 24rpx 64rpx;
-  border-radius: 24rpx;
-  font-size: 28rpx;
+  padding: var(--space-6) var(--space-16);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xl);
   font-weight: 500;
   font-family: inherit;
   background: var(--bg-card);
@@ -286,8 +286,8 @@ const adviceItems = computed(() =>
 
   .dark-mode &::before {
     background:
-      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34, 197, 94, 0.08) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+      radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in oklch, var(--risk-t0) 8%, transparent) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, color-mix(in oklch, var(--accent) 5%, transparent) 0%, transparent 50%);
   }
 }
 
@@ -303,7 +303,7 @@ const adviceItems = computed(() =>
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
+  gap: var(--space-4);
   position: relative;
   z-index: 2;
 }
@@ -318,20 +318,20 @@ const adviceItems = computed(() =>
 }
 
 .banner-label {
-  font-size: 26rpx;
+  font-size: var(--text-lg);
   color: var(--banner-label);
   letter-spacing: 0.1em;
 }
 
 .banner-badge {
   position: absolute;
-  right: 40rpx;
-  bottom: 40rpx;
-  border-radius: 28rpx;
-  padding: 20rpx 32rpx;
+  right: var(--space-10);
+  bottom: var(--space-10);
+  border-radius: var(--radius-sm);
+  padding: var(--space-5) var(--space-8);
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: var(--space-4);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 2;
@@ -344,8 +344,8 @@ const adviceItems = computed(() =>
 }
 
 .badge-icon {
-  width: 28rpx;
-  height: 28rpx;
+  width: var(--space-7);
+  height: var(--space-7);
   flex-shrink: 0;
 
   .banner-badge.t4 & { fill: var(--risk-t4); }
@@ -356,7 +356,7 @@ const adviceItems = computed(() =>
 }
 
 .badge-text {
-  font-size: 24rpx;
+  font-size: var(--text-md);
   font-weight: 600;
 
   .banner-badge.t4 & { color: var(--risk-t4); }
@@ -368,17 +368,17 @@ const adviceItems = computed(() =>
 
 // ── 内容区 ────────────────────────────────────────────
 .content {
-  padding: 48rpx 40rpx 200rpx;
+  padding: var(--space-12) var(--space-10) 200rpx;
 }
 
 .section-title {
   display: block;
-  font-size: 40rpx;
+  font-size: var(--text-5xl);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-primary);
-  margin-top: 56rpx;
-  margin-bottom: 28rpx;
+  margin-top: var(--space-14);
+  margin-bottom: var(--space-7);
 
   &:first-child {
     margin-top: 0;
@@ -389,8 +389,8 @@ const adviceItems = computed(() =>
 .nutrition-card {
   position: relative;
   overflow: hidden;
-  border-radius: $radius-xl;
-  padding: 40rpx;
+  border-radius: var(--radius-xl);
+  padding: var(--space-10);
   margin-bottom: 0;
   animation: slideUp 0.5s 0.1s $ease-spring forwards;
   opacity: 0;
@@ -412,8 +412,8 @@ const adviceItems = computed(() =>
 .nutrition-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 40rpx;
-  margin-bottom: 40rpx;
+  gap: var(--space-10);
+  margin-bottom: var(--space-10);
 }
 
 .nutrition-cell {
@@ -422,25 +422,26 @@ const adviceItems = computed(() =>
 }
 
 .nutrition-label {
-  font-size: 22rpx;
+  font-size: var(--text-base);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 4rpx;
+  margin-bottom: var(--space-1);
   color: var(--text-muted);
 }
 
 .nutrition-value {
-  font-size: 64rpx;
+  font-size: var(--text-5xl);
   font-weight: 700;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   color: var(--text-primary);
+  margin-top: var(--space-1);
 }
 
 .nutrition-unit {
-  font-size: 22rpx;
-  margin-top: 4rpx;
+  font-size: var(--text-base);
+  margin-top: var(--space-1);
   color: var(--text-muted);
 }
 
@@ -449,26 +450,26 @@ const adviceItems = computed(() =>
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
-  padding: 20rpx;
+  gap: var(--space-4);
+  padding: var(--space-5);
   background: transparent;
   border: none;
   -webkit-appearance: none;
   appearance: none;
-  font-size: 26rpx;
+  font-size: var(--text-lg);
   font-weight: 500;
   font-family: inherit;
-  border-radius: 24rpx;
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
   cursor: pointer;
   transition: background 0.2s;
 
-  &:active { background: rgba(128, 128, 128, 0.1); }
-  &:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 2px; }
+  &:active { background: color-mix(in oklch, var(--palette-gray-500) 10%, transparent); }
+  &:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .chevron {
-    width: 32rpx;
-    height: 32rpx;
+    width: var(--icon-md);
+    height: var(--icon-md);
     transition: transform 0.3s ease;
     stroke: var(--text-muted);
   }
@@ -480,16 +481,16 @@ const adviceItems = computed(() =>
 
 .nutrition-details {
   border-top: 1px solid var(--border-color);
-  padding-top: 32rpx;
-  margin-top: 8rpx;
+  padding-top: var(--space-8);
+  margin-top: var(--space-2);
 }
 
 .nutrition-row {
   display: flex;
   justify-content: space-between;
-  padding: 20rpx 0;
+  padding: var(--space-5) 0;
   border-bottom: 1px solid var(--border-color);
-  font-size: 28rpx;
+  font-size: var(--text-xl);
 
   &:last-child { border-bottom: none; }
 
@@ -499,38 +500,38 @@ const adviceItems = computed(() =>
 
 // ── 健康益处 / 食用建议卡片 ────────────────────────────
 .analysis-card {
-  border-radius: 40rpx;
-  padding: 36rpx;
+  border-radius: var(--radius-lg);
+  padding: var(--space-9);
   margin-bottom: 0;
   animation: slideUp 0.5s 0.3s $ease-spring forwards;
   opacity: 0;
   transform: translateY(16px);
 
   // 暗色
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: color-mix(in oklch, var(--bg-card) 2%, transparent);
+  border: 1px solid color-mix(in oklch, #ffffff 6%, transparent);
 
   // 亮色
   .product-page:not(.dark-mode) & {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
   }
 }
 
 .advice-header {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 28rpx;
-  font-size: 30rpx;
+  gap: var(--space-4);
+  margin-bottom: var(--space-7);
+  font-size: var(--text-2xl);
   font-weight: 600;
   color: var(--text-primary);
 
   .star-icon {
-    width: 36rpx;
-    height: 36rpx;
-    fill: #f59e0b;
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+    fill: var(--palette-yellow-500);
     flex-shrink: 0;
   }
 }
@@ -538,26 +539,26 @@ const adviceItems = computed(() =>
 .analysis-list {
   display: flex;
   flex-direction: column;
-  gap: 28rpx;
+  gap: var(--space-7);
 }
 
 .analysis-item {
   display: flex;
   align-items: flex-start;
-  gap: 24rpx;
+  gap: var(--space-6);
 
   .item-icon {
-    width: 36rpx;
-    height: 36rpx;
+    width: var(--icon-lg);
+    height: var(--icon-lg);
     flex-shrink: 0;
-    margin-top: 2rpx;
+    margin-top: var(--space-1);
 
     &--check { fill: var(--risk-t0); }
     &--dot { fill: var(--text-muted); }
   }
 
   .item-text {
-    font-size: 28rpx;
+    font-size: var(--text-xl);
     line-height: 1.5;
     color: var(--text-secondary);
     flex: 1;
@@ -565,7 +566,7 @@ const adviceItems = computed(() =>
 }
 
 .empty-text {
-  font-size: 28rpx;
+  font-size: var(--text-xl);
   color: var(--text-muted);
 }
 
