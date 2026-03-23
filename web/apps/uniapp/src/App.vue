@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-onLaunch(() => {
-  console.log("App Launch");
-});
-onShow(() => {
-  console.log("App Show");
-});
-onHide(() => {
-  console.log("App Hide");
-});
+import { onMounted, onUnmounted } from "vue"
+import { useThemeStore } from "./store/theme"
+
+const themeStore = useThemeStore()
+onMounted(() => themeStore.init())
+onUnmounted(() => themeStore.cleanup())
 </script>
+
+<template>
+  <view :class="{ 'dark-mode': themeStore.isDark }">
+    <slot />
+  </view>
+</template>
+
 <style lang="scss">
 @import 'uview-plus/index.scss';
 </style>
