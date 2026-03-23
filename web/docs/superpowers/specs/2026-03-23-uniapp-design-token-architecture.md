@@ -33,8 +33,8 @@ ThemeStore（新增 stores/theme.ts）
 design-system.scss
   ├── palette-*    — 基础色调（已有）
   ├── semantic-*   — 语义色，亮/暗两套（已有）
-  ├── risk-header-* — 风险 Header 专用色（新增）
   └── component-*  — 组件色（已有）
+  ⚠️ 风险 Header 颜色不由 design-system.scss 定义，由 ingredient-detail 组件内 scoped CSS 定义
 
 riskLevel.ts（改造）
   ├── RISK_CONFIG — 只保留 badge/icon/needleLeft
@@ -46,90 +46,107 @@ riskLevel.ts（改造）
   └── 颜色全部通过 class + var(--xxx) 获取
 ```
 
-## 3. 新增 Token 定义
+## 3. 风险 Header 颜色（组件内定义）
 
-在 `design-system.scss` 的 `.dark-mode` 之前、`page` 层级的 COMPONENT 段之后，新增 `RISK HEADER` 语义色段落。
+风险 Header 颜色不在 `design-system.scss` 定义，而是在 `ingredient-detail/index.vue` 的 scoped `<style>` 中通过 CSS class 定义。
 
-### 亮色模式
+原因：这些颜色仅被 ingredient-detail 页面使用，不需要成为全局设计 token。
 
-```scss
-// Risk Header 语义色 — 亮色
---risk-critical-header-bg: var(--palette-red-50);      // #fef2f2
---risk-critical-header-border: var(--palette-red-200); // #fecaca
---risk-critical-header-title: var(--palette-red-800);   // #7f1d1d
---risk-critical-header-sub: var(--palette-red-600);     // #b91c1c
---risk-critical-header-btn: color-mix(in oklch, var(--palette-red-500) 15%, transparent);
-
---risk-high-header-bg: var(--palette-orange-50);       // #fff7ed
---risk-high-header-border: var(--palette-orange-200);   // #fed7aa
---risk-high-header-title: var(--palette-orange-800);    // #9a3412
---risk-high-header-sub: var(--palette-orange-600);      // #ea580c
---risk-high-header-btn: color-mix(in oklch, var(--palette-orange-500) 15%, transparent);
-
---risk-medium-header-bg: var(--palette-yellow-50);      // #fefce8
---risk-medium-header-border: var(--palette-yellow-200);  // #fef08a
---risk-medium-header-title: var(--palette-yellow-800);   // #713f12
---risk-medium-header-sub: var(--palette-yellow-700);    // #a16207
---risk-medium-header-btn: color-mix(in oklch, var(--palette-yellow-500) 15%, transparent);
-
---risk-low-header-bg: var(--palette-green-50);          // #f0fdf4
---risk-low-header-border: var(--palette-green-200);     // #bbf7d0
---risk-low-header-title: var(--palette-green-800);     // #14532d
---risk-low-header-sub: var(--palette-green-600);       // #16a34a
---risk-low-header-btn: color-mix(in oklch, var(--palette-green-500) 15%, transparent);
-
---risk-safe-header-bg: var(--palette-green-50);         // #f0fdf4
---risk-safe-header-border: var(--palette-green-200);   // #bbf7d0
---risk-safe-header-title: var(--palette-green-800);    // #14532d
---risk-safe-header-sub: var(--palette-green-600);      // #16a34a
---risk-safe-header-btn: color-mix(in oklch, var(--palette-green-500) 15%, transparent);
-
---risk-unknown-header-bg: var(--palette-gray-50);      // #f9fafb
---risk-unknown-header-border: var(--palette-gray-200);  // #e5e7eb
---risk-unknown-header-title: var(--palette-gray-600);  // #4b5563
---risk-unknown-header-sub: var(--palette-gray-500);    // #6b7280
---risk-unknown-header-btn: color-mix(in oklch, var(--palette-gray-400) 15%, transparent);
-```
-
-### 暗色模式（.dark-mode 内覆盖）
+CSS class 与 palette 色值对应关系：
 
 ```scss
+// 通用 header 变量（.ing-header 使用这些）
+$header-bg: var(--risk-header-bg);
+$header-border: var(--risk-header-border);
+
+// 风险等级 class — 每个 class 定义一套 CSS 变量
+.risk-critical {
+  --risk-header-bg: var(--palette-red-50);
+  --risk-header-border: var(--palette-red-200);
+  --risk-header-title: var(--palette-red-800);
+  --risk-header-sub: var(--palette-red-600);
+  --risk-header-btn: color-mix(in oklch, var(--palette-red-500) 15%, transparent);
+}
+.risk-high {
+  --risk-header-bg: var(--palette-orange-50);
+  --risk-header-border: var(--palette-orange-200);
+  --risk-header-title: var(--palette-orange-800);
+  --risk-header-sub: var(--palette-orange-600);
+  --risk-header-btn: color-mix(in oklch, var(--palette-orange-500) 15%, transparent);
+}
+.risk-medium {
+  --risk-header-bg: var(--palette-yellow-50);
+  --risk-header-border: var(--palette-yellow-200);
+  --risk-header-title: var(--palette-yellow-800);
+  --risk-header-sub: var(--palette-yellow-700);
+  --risk-header-btn: color-mix(in oklch, var(--palette-yellow-500) 15%, transparent);
+}
+.risk-low {
+  --risk-header-bg: var(--palette-green-50);
+  --risk-header-border: var(--palette-green-200);
+  --risk-header-title: var(--palette-green-800);
+  --risk-header-sub: var(--palette-green-600);
+  --risk-header-btn: color-mix(in oklch, var(--palette-green-500) 15%, transparent);
+}
+.risk-safe {
+  --risk-header-bg: var(--palette-green-50);
+  --risk-header-border: var(--palette-green-200);
+  --risk-header-title: var(--palette-green-800);
+  --risk-header-sub: var(--palette-green-600);
+  --risk-header-btn: color-mix(in oklch, var(--palette-green-500) 15%, transparent);
+}
+.risk-unknown {
+  --risk-header-bg: var(--palette-gray-50);
+  --risk-header-border: var(--palette-gray-200);
+  --risk-header-title: var(--palette-gray-600);
+  --risk-header-sub: var(--palette-gray-500);
+  --risk-header-btn: color-mix(in oklch, var(--palette-gray-400) 15%, transparent);
+}
+
+// 暗色模式：同一套 class，在 .dark-mode 下覆盖变量值
 .dark-mode {
-  --risk-critical-header-bg: var(--palette-red-900);       // #450a0a
-  --risk-critical-header-border: var(--palette-red-800);   // #7f1d1d
-  --risk-critical-header-title: var(--palette-red-200);   // #fecaca
-  --risk-critical-header-sub: var(--palette-red-400);     // #f87171
-  --risk-critical-header-btn: color-mix(in oklch, var(--palette-red-400) 20%, transparent);
-
-  --risk-high-header-bg: var(--palette-orange-900);        // #431407
-  --risk-high-header-border: var(--palette-orange-800);    // #9a3412
-  --risk-high-header-title: var(--palette-orange-200);    // #fed7aa
-  --risk-high-header-sub: var(--palette-orange-400);      // #fb923c
-  --risk-high-header-btn: color-mix(in oklch, var(--palette-orange-400) 20%, transparent);
-
-  --risk-medium-header-bg: var(--palette-yellow-900);      // #422006
-  --risk-medium-header-border: var(--palette-yellow-800); // #713f12
-  --risk-medium-header-title: var(--palette-yellow-200);  // #fef08a
-  --risk-medium-header-sub: var(--palette-yellow-400);    // #facc15
-  --risk-medium-header-btn: color-mix(in oklch, var(--palette-yellow-400) 20%, transparent);
-
-  --risk-low-header-bg: var(--palette-green-950);          // #022c22
-  --risk-low-header-border: var(--palette-green-800);     // #14532d
-  --risk-low-header-title: var(--palette-green-200);      // #bbf7d0
-  --risk-low-header-sub: var(--palette-green-400);        // #4ade80
-  --risk-low-header-btn: color-mix(in oklch, var(--palette-green-400) 20%, transparent);
-
-  --risk-safe-header-bg: var(--palette-green-950);         // #022c22
-  --risk-safe-header-border: var(--palette-green-700);   // #15803d
-  --risk-safe-header-title: var(--palette-green-200);    // #bbf7d0
-  --risk-safe-header-sub: var(--palette-green-400);       // #4ade80
-  --risk-safe-header-btn: color-mix(in oklch, var(--palette-green-400) 20%, transparent);
-
-  --risk-unknown-header-bg: var(--palette-gray-800);      // #1f2937
-  --risk-unknown-header-border: var(--palette-gray-600); // #4b5563
-  --risk-unknown-header-title: var(--palette-gray-300);  // #d1d5db
-  --risk-unknown-header-sub: var(--palette-gray-500);    // #6b7280
-  --risk-unknown-header-btn: color-mix(in oklch, var(--palette-gray-400) 20%, transparent);
+  .risk-critical {
+    --risk-header-bg: var(--palette-red-900);
+    --risk-header-border: var(--palette-red-800);
+    --risk-header-title: var(--palette-red-200);
+    --risk-header-sub: var(--palette-red-400);
+    --risk-header-btn: color-mix(in oklch, var(--palette-red-400) 20%, transparent);
+  }
+  .risk-high {
+    --risk-header-bg: var(--palette-orange-900);
+    --risk-header-border: var(--palette-orange-800);
+    --risk-header-title: var(--palette-orange-200);
+    --risk-header-sub: var(--palette-orange-400);
+    --risk-header-btn: color-mix(in oklch, var(--palette-orange-400) 20%, transparent);
+  }
+  .risk-medium {
+    --risk-header-bg: var(--palette-yellow-900);
+    --risk-header-border: var(--palette-yellow-800);
+    --risk-header-title: var(--palette-yellow-200);
+    --risk-header-sub: var(--palette-yellow-400);
+    --risk-header-btn: color-mix(in oklch, var(--palette-yellow-400) 20%, transparent);
+  }
+  .risk-low {
+    --risk-header-bg: var(--palette-green-950);
+    --risk-header-border: var(--palette-green-800);
+    --risk-header-title: var(--palette-green-200);
+    --risk-header-sub: var(--palette-green-400);
+    --risk-header-btn: color-mix(in oklch, var(--palette-green-400) 20%, transparent);
+  }
+  .risk-safe {
+    --risk-header-bg: var(--palette-green-950);
+    --risk-header-border: var(--palette-green-700);
+    --risk-header-title: var(--palette-green-200);
+    --risk-header-sub: var(--palette-green-400);
+    --risk-header-btn: color-mix(in oklch, var(--palette-green-400) 20%, transparent);
+  }
+  .risk-unknown {
+    --risk-header-bg: var(--palette-gray-800);
+    --risk-header-border: var(--palette-gray-600);
+    --risk-header-title: var(--palette-gray-300);
+    --risk-header-sub: var(--palette-gray-500);
+    --risk-header-btn: color-mix(in oklch, var(--palette-gray-400) 20%, transparent);
+  }
 }
 ```
 
@@ -235,21 +252,9 @@ export interface RiskLevelConfig {
 CSS 样式：
 ```scss
 .ing-header {
-  background: var(--risk-critical-header-bg);
-  border-bottom: 1px solid var(--risk-critical-header-border);
+  background: var(--risk-header-bg);
+  border-bottom: 1px solid var(--risk-header-border);
 }
-```
-
-> 注意：`--risk-critical-header-*` 中的 `critical` 为占位符，实际使用 `.risk-critical` class 时 CSS 变量会通过 class 选择器指向对应变量，因此需要为每个 risk class 定义对应的 CSS 变量集合。
-
-风险等级 class 与 CSS 变量对应关系：
-```scss
-.risk-critical { --risk-header-bg: var(--risk-critical-header-bg); --risk-header-border: var(--risk-critical-header-border); /* ... */ }
-.risk-high      { --risk-header-bg: var(--risk-high-header-bg); --risk-header-border: var(--risk-high-header-border); /* ... */ }
-.risk-medium    { --risk-header-bg: var(--risk-medium-header-bg); --risk-header-border: var(--risk-medium-header-border); /* ... */ }
-.risk-low       { --risk-header-bg: var(--risk-low-header-bg); --risk-header-border: var(--risk-low-header-border); /* ... */ }
-.risk-safe      { --risk-header-bg: var(--risk-safe-header-bg); --risk-header-border: var(--risk-safe-header-border); /* ... */ }
-.risk-unknown   { --risk-header-bg: var(--risk-unknown-header-bg); --risk-header-border: var(--risk-unknown-header-border); /* ... */ }
 ```
 
 ### index/index.vue / search/index.vue / profile/index.vue
@@ -272,9 +277,8 @@ const themeStore = useThemeStore()
 |------|------|
 | `src/stores/theme.ts` | 新增 |
 | `src/App.vue` | 绑定 dark-mode class |
-| `src/styles/design-system.scss` | 新增 risk-header-* semantic tokens |
 | `src/utils/riskLevel.ts` | 删除颜色字段，新增 visualKey |
-| `src/pages/ingredient-detail/index.vue` | 删除 pageStyle + local isDark，改用 riskClass + CSS 变量 |
+| `src/pages/ingredient-detail/index.vue` | 删除 pageStyle + local isDark，改用 riskClass + 组件内 scoped CSS class |
 | `src/pages/index/index.vue` | 删除 local isDark，改用 themeStore |
 | `src/pages/search/index.vue` | 删除 local isDark，改用 themeStore |
 | `src/pages/profile/index.vue` | 删除 local isDark，改用 themeStore |
