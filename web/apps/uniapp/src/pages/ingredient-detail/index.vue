@@ -3,7 +3,7 @@
     <!-- ── 自定义 Header ──────────────────────────── -->
     <view class="ing-header" :class="riskClass">
       <!-- 状态栏占位（动态高度） -->
-      <view :style="{ height: statusBarHeight + 'px' }" />
+      <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
       <view class="header-content">
         <button class="header-btn back-btn" @click="goBack">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -236,16 +236,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue"
+import { ref, computed } from "vue"
 import { onLoad } from "@dcloudio/uni-app"
 import { useIngredientStore } from "../../store/ingredient"
 import { useProductStore } from "../../store/product"
+import { useThemeStore } from "../../store/theme"
 import { getRiskConfig } from "../../utils/riskLevel"
 import type { IngredientAnalysis } from "../../types/product"
 
 // ── Store ────────────────────────────────────────────────
 const ingStore = useIngredientStore()
 const productStore = useProductStore()
+const themeStore = useThemeStore()
 
 const ingredient = computed(() => ingStore.current)
 const fromProductName = computed(() => ingStore.fromProductName)
@@ -294,14 +296,6 @@ onLoad(async (options) => {
   }
 })
 
-// ── 状态栏高度（动态读取，适配各机型） ──────────────────────
-const statusBarHeight = ref(0)
-
-onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = info.statusBarHeight ?? 0
-})
-
 // ── 风险等级 ─────────────────────────────────────────────
 const riskLevel = computed(() => ingredient.value?.analysis?.level ?? null)
 const riskConf = computed(() => getRiskConfig(riskLevel.value))
@@ -322,8 +316,8 @@ const heroCardStyle = computed(() => ({
 }))
 
 const heroTopStyle = computed(() => ({
-  background: `linear-gradient(135deg, var(--risk-bg) 60%, transparent 100%)`,
-  borderBottom: "1px solid var(--risk-border)",
+  background: `linear-gradient(135deg, var(--risk-header-bg) 60%, transparent 100%)`,
+  borderBottom: "1px solid var(--risk-header-border)",
 }))
 
 const spectrumOpacityStyle = computed(() =>
@@ -497,20 +491,12 @@ function goToProduct(barcode: string) {
 @import "@/styles/design-system.scss";
 
 // Risk level color classes — scoped to this component
-.risk-critical { --risk-header-bg: var(--palette-red-50); --risk-header-border: var(--palette-red-200); --risk-badge-bg: var(--palette-red-500); --risk-bg: var(--palette-red-50); --risk-border: var(--palette-red-200); }
-.risk-high      { --risk-header-bg: var(--palette-orange-50); --risk-header-border: var(--palette-orange-200); --risk-badge-bg: var(--palette-orange-500); --risk-bg: var(--palette-orange-50); --risk-border: var(--palette-orange-200); }
-.risk-medium    { --risk-header-bg: var(--palette-yellow-50); --risk-header-border: var(--palette-yellow-200); --risk-badge-bg: var(--palette-yellow-500); --risk-bg: var(--palette-yellow-50); --risk-border: var(--palette-yellow-200); }
-.risk-low       { --risk-header-bg: var(--palette-green-50); --risk-header-border: var(--palette-green-200); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-50); --risk-border: var(--palette-green-200); }
-.risk-safe      { --risk-header-bg: var(--palette-green-50); --risk-header-border: var(--palette-green-200); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-50); --risk-border: var(--palette-green-200); }
-.risk-unknown   { --risk-header-bg: var(--palette-gray-50); --risk-header-border: var(--palette-gray-200); --risk-badge-bg: var(--palette-gray-500); --risk-bg: var(--palette-gray-50); --risk-border: var(--palette-gray-200); }
-
-// Dark mode — use :global() so .dark-mode (on App root) is recognized
-:global(.dark-mode) .risk-critical { --risk-header-bg: var(--palette-red-900); --risk-header-border: var(--palette-red-800); --risk-badge-bg: var(--palette-red-900); }
-:global(.dark-mode) .risk-high      { --risk-header-bg: var(--palette-orange-900); --risk-header-border: var(--palette-orange-800); --risk-badge-bg: var(--palette-orange-900); }
-:global(.dark-mode) .risk-medium    { --risk-header-bg: var(--palette-yellow-900); --risk-header-border: var(--palette-yellow-800); --risk-badge-bg: var(--palette-yellow-900); }
-:global(.dark-mode) .risk-low       { --risk-header-bg: var(--palette-green-950); --risk-header-border: var(--palette-green-800); --risk-badge-bg: var(--palette-green-950); }
-:global(.dark-mode) .risk-safe      { --risk-header-bg: var(--palette-green-950); --risk-header-border: var(--palette-green-700); --risk-badge-bg: var(--palette-green-950); }
-:global(.dark-mode) .risk-unknown   { --risk-header-bg: var(--palette-gray-800); --risk-header-border: var(--palette-gray-600); --risk-badge-bg: var(--palette-gray-800); }
+.risk-critical { --risk-header-bg: var(--palette-red-50); --risk-header-border: var(--palette-red-200); --risk-badge-bg: var(--palette-red-500); --risk-bg: var(--palette-red-50); --risk-border: var(--palette-red-200); --risk-btn-bg: var(--risk-t4-bg); --risk-btn-color: var(--risk-t4); --risk-title-color: var(--palette-red-800); --risk-sub-color: var(--risk-t4); }
+.risk-high      { --risk-header-bg: var(--palette-orange-50); --risk-header-border: var(--palette-orange-200); --risk-badge-bg: var(--palette-orange-500); --risk-bg: var(--palette-orange-50); --risk-border: var(--palette-orange-200); --risk-btn-bg: var(--risk-t3-bg); --risk-btn-color: var(--risk-t3); --risk-title-color: var(--palette-orange-800); --risk-sub-color: var(--risk-t3); }
+.risk-medium    { --risk-header-bg: var(--palette-yellow-50); --risk-header-border: var(--palette-yellow-200); --risk-badge-bg: var(--palette-yellow-500); --risk-bg: var(--palette-yellow-50); --risk-border: var(--palette-yellow-200); --risk-btn-bg: var(--risk-t2-bg); --risk-btn-color: var(--risk-t2); --risk-title-color: var(--palette-yellow-800); --risk-sub-color: var(--risk-t2); }
+.risk-low       { --risk-header-bg: var(--palette-green-50); --risk-header-border: var(--palette-green-200); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-50); --risk-border: var(--palette-green-200); --risk-btn-bg: var(--risk-t1-bg); --risk-btn-color: var(--risk-t1); --risk-title-color: var(--palette-green-800); --risk-sub-color: var(--risk-t1); }
+.risk-safe      { --risk-header-bg: var(--palette-green-50); --risk-header-border: var(--palette-green-200); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-50); --risk-border: var(--palette-green-200); --risk-btn-bg: var(--risk-t0-bg); --risk-btn-color: var(--risk-t0); --risk-title-color: var(--palette-green-800); --risk-sub-color: var(--risk-t0); }
+.risk-unknown   { --risk-header-bg: var(--palette-gray-50); --risk-header-border: var(--palette-gray-200); --risk-badge-bg: var(--palette-gray-500); --risk-bg: var(--palette-gray-50); --risk-border: var(--palette-gray-200); --risk-btn-bg: var(--risk-unknown-bg); --risk-btn-color: var(--risk-unknown); --risk-title-color: var(--palette-gray-600); --risk-sub-color: var(--risk-unknown); }
 
 .ingredient-detail-page {
   height: 100vh;
@@ -519,6 +505,7 @@ function goToProduct(barcode: string) {
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  --bottom-bar-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.06);
 }
 
 // ── Header ──────────────────────────────────────────────
@@ -543,7 +530,7 @@ function goToProduct(barcode: string) {
   width: var(--space-20);
   height: var(--space-20);
   border-radius: 24rpx;
-  background: transparent;
+  background: var(--risk-btn-bg);
   border: none;
   display: flex;
   align-items: center;
@@ -551,7 +538,7 @@ function goToProduct(barcode: string) {
   flex-shrink: 0;
   padding: 0;
   margin: 0;
-  color: #ffffff;
+  color: var(--risk-btn-color);
   transition: all 0.2s $ease-spring;
   outline: none;
   -webkit-appearance: none;
@@ -561,12 +548,13 @@ function goToProduct(barcode: string) {
     width: var(--space-9);
     height: var(--space-9);
     stroke-width: 2;
-    color: #ffffff;
+    color: var(--risk-btn-color);
+    stroke: var(--risk-btn-color);
   }
 
   &:active {
     transform: scale(0.92);
-    background: rgba(128, 128, 128, 0.15);
+    opacity: 0.8;
   }
 }
 
@@ -580,13 +568,13 @@ function goToProduct(barcode: string) {
 .header-title {
   font-size: var(--text-3xl);
   font-weight: 700;
-  color: var(--risk-title);
+  color: var(--risk-title-color);
   line-height: 1.2;
 }
 
 .header-subtitle {
   font-size: var(--text-md);
-  color: var(--risk-sub);
+  color: var(--risk-sub-color);
   line-height: 1.3;
 }
 
@@ -702,7 +690,7 @@ function goToProduct(barcode: string) {
 .section-title {
   font-size: var(--text-lg);
   font-weight: 700;
-  color: var(--fg);
+  color: var(--text-primary);
   flex: 1;
 }
 
@@ -718,7 +706,7 @@ function goToProduct(barcode: string) {
 
 .section-body {
   font-size: var(--text-md);
-  color: var(--muted-fg);
+  color: var(--text-secondary);
   line-height: 1.7;
 }
 
@@ -730,8 +718,8 @@ function goToProduct(barcode: string) {
 }
 
 .hero-top {
-  background: linear-gradient(135deg, var(--risk-bg) 60%, transparent 100%);
-  border-bottom: 1px solid var(--risk-border);
+  background: linear-gradient(135deg, var(--risk-header-bg) 60%, transparent 100%);
+  border-bottom: 1px solid var(--risk-header-border);
   padding: var(--space-6) var(--space-6) var(--space-5);
 }
 
@@ -753,13 +741,13 @@ function goToProduct(barcode: string) {
 .hero-name {
   font-size: var(--text-4xl);
   font-weight: 800;
-  color: var(--fg);
+  color: var(--text-primary);
   line-height: 1.2;
 }
 
 .hero-code {
   font-size: var(--text-base);
-  color: var(--muted-fg);
+  color: var(--text-secondary);
   font-weight: 400;
 }
 
@@ -805,14 +793,13 @@ function goToProduct(barcode: string) {
 
 .spectrum-needle {
   position: absolute;
-  right: 14%;
   top: 50%;
   transform: translateY(-50%);
   width: var(--space-7);
   height: var(--space-7);
   border-radius: 50%;
   background: var(--bg-card);
-  border: 5rpx solid var(--risk-red);
+  border: 5rpx solid var(--risk-t4);
   box-shadow: 0 2rpx 6rpx color-mix(in oklch, var(--palette-red-500) 35%, transparent);
 }
 
@@ -826,7 +813,7 @@ function goToProduct(barcode: string) {
 .spec-label-mid,
 .spec-label-danger {
   font-size: var(--text-xs);
-  color: var(--muted-fg);
+  color: var(--text-secondary);
 }
 
 // ── Chips ────────────────────────────────────────────────
@@ -844,19 +831,19 @@ function goToProduct(barcode: string) {
   font-weight: 500;
 
   &.chip-func {
-    color: var(--chip-red-c);
-    background: var(--chip-red-bg);
-    border: 1px solid var(--chip-red-b);
+    color: var(--chip-risk-text);
+    background: var(--chip-risk-bg);
+    border: 1px solid var(--chip-risk-border);
   }
 
   &.chip-warn {
-    color: var(--chip-warn-c);
+    color: var(--chip-warn-text);
     background: var(--chip-warn-bg);
-    border: 1px solid var(--chip-warn-b);
+    border: 1px solid var(--chip-warn-border);
   }
 
   &.chip-neu {
-    color: var(--chip-neu-c);
+    color: var(--chip-neu-text);
     background: var(--chip-neu-bg);
   }
 }
@@ -889,7 +876,7 @@ function goToProduct(barcode: string) {
   line-height: 1.5;
 
   &.kv-value-red {
-    color: var(--kv-val-red);
+    color: var(--risk-t4);
   }
 }
 
@@ -1012,12 +999,12 @@ function goToProduct(barcode: string) {
   display: inline-block;
 
   &.risk-high {
-    color: var(--chip-red-c);
-    background: var(--chip-red-bg);
+    color: var(--chip-risk-text);
+    background: var(--chip-risk-bg);
   }
 
   &.risk-med {
-    color: var(--chip-warn-c);
+    color: var(--chip-warn-text);
     background: var(--chip-warn-bg);
   }
 }
