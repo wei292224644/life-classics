@@ -219,13 +219,13 @@
 
     <!-- ── 底部操作栏 ──────────────────────────────── -->
     <view v-if="ingredient" class="bottom-bar fixed bottom-0 left-0 right-0 px-6 pt-5 pb-12 bg-[var(--bottom-bar-bg)] border-t border-[var(--bottom-bar-border)] shadow flex gap-4 z-100">
-      <button class="bar-btn flex-1 h-[88rpx] rounded-lg flex items-center justify-center gap-3" @click="goToAI">
+      <button :class="['bar-btn', 'bar-btn-ghost', 'flex-1', 'h-[88rpx]', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'gap-3']" @click="goToAI">
         <svg viewBox="0 0 20 20" class="bar-icon" aria-hidden="true">
           <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
         </svg>
         <text>咨询 AI 助手</text>
       </button>
-      <button class="bar-btn flex-1 h-[88rpx] rounded-lg flex items-center justify-center gap-3" @click="goToSearch">
+      <button :class="['bar-btn', 'bar-btn-primary', 'flex-1', 'h-[88rpx]', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'gap-3']" @click="goToSearch">
         <svg viewBox="0 0 20 20" class="bar-icon" aria-hidden="true">
           <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
         </svg>
