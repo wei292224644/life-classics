@@ -119,9 +119,11 @@ export default defineConfig({
 
   shortcuts: {
     // 组件级快捷类
+    // 注意：shortcuts 中使用 var() 引用的 CSS 变量（icon-size、shadow-*）属于 icon-size/semantic vars，
+    // 不在 Phase 1 删除范围内（Phase 1 仅删除 spacing/text/size layout tokens）
     'card': 'bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl shadow-[var(--shadow-sm)]',
     'section-title': 'text-[var(--text-primary)] font-semibold text-lg',
-    'icon-wrap': 'w-[var(--icon-xl)] h-[var(--icon-xl)] rounded-[var(--space-3)] flex items-center justify-center',
+    'icon-wrap': 'w-[40rpx] h-[40rpx] rounded-[var(--space-3)] flex items-center justify-center',
   }
 })
 ```
@@ -130,55 +132,75 @@ export default defineConfig({
 
 ## 4. 深色模式方案
 
-**使用 `prefers-color-scheme` 媒体查询 + JS 降级：**
+**使用 JS 检测系统偏好 + `dark:` 变体：**
 
 ```typescript
 // uno.config.ts
-dark: 'html:not(.light-mode)'
+dark: ':root.dark, html.dark'
 ```
 
-**页面根节点设置类：**
+**页面根节点设置类（App.vue 或页面入口）：**
 
 ```typescript
-// App.vue 或页面入口
 import { ref, onMounted } from 'vue'
 
 const isDark = ref(false)
 
 onMounted(() => {
-  // 小程序
+  // 小程序：优先读取 theme 字段（微信 2.9+），不支持时降级
   const systemInfo = uni.getSystemInfoSync()
-  isDark.value = systemInfo.theme === 'dark'
+  const theme = systemInfo.theme
+  if (theme === 'dark' || theme === 'light') {
+    isDark.value = theme === 'dark'
+  } else {
+    // 不支持的平台 fallback 到 H5 API
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+    }
+  }
 
-  // H5
-  if (typeof window !== 'undefined') {
+  // H5：监听系统主题变化
+  if (typeof window !== 'undefined' && window.matchMedia) {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    isDark.value = mq.matches
-    mq.addEventListener('change', (e) => { isDark.value = e.matches })
+    const handler = (e) => { isDark.value = e.matches }
+    if (mq.addEventListener) {
+      mq.addEventListener('change', handler)
+    } else {
+      mq.addListener(handler) // 旧版浏览器兼容
+    }
   }
 })
 ```
 
 ```vue
+<!-- App.vue -->
+<script setup lang="ts">
+// 如上逻辑，isDark 应用在根元素上
+</script>
+
 <template>
-  <view :class="isDark ? 'dark' : 'light'">
+  <!-- 小程序页面：page 节点设置 dark 类 -->
+  <view :class="['page-root', isDark ? 'dark' : 'light']">
     <!-- 页面内容 -->
   </view>
 </template>
-```
 
-**CSS 变量.dark 覆盖：**
-
-```scss
-// design-system.scss
-html.dark {
+<style>
+/* 全局样式：dark 类在 page/root 元素上时生效 */
+html.dark, .dark {
   --text-primary: var(--palette-gray-100);
   --text-secondary: var(--palette-gray-400);
   --bg-base: #0f0f0f;
   --bg-card: #1a1a1a;
-  // ... 其他语义色
+  /* ... 其他语义色（复用 design-system.scss 中 .dark-mode 的定义） */
 }
+</style>
 ```
+
+**说明**：
+- UnoCSS 的 `dark:` 变体通过 `dark: ':root.dark, html.dark'` 选择器生效
+- 小程序根节点是 `<page>`（微信）或等价元素，`dark` 类设置在根 view 上即可
+- H5 端通过 `html.dark` 生效
 
 ---
 
@@ -198,15 +220,18 @@ export default defineConfig({
   css: {
     postcss: {
       plugins: [
-        // postcss-rpx-transform 或 autoprefixer + postcss-rpx-transform
-        // viewportWidth: 750 匹配设计稿
+        // rpx 转换：设计稿 750，转 px → rpx
+        // 具体插件根据实际测试选择，以下为示意配置
+        // transformRpx({ viewportWidth: 750, mode: 'rpx' })
       ]
     }
   }
 })
 ```
 
-**rpx 转换**：通过 `postcss-rpx-transform` 插件实现，UnoCSS 写 px 值（如 `p-4` = 16px），构建时自动转为 `32rpx`。
+**rpx 转换**：
+- UnoCSS 写 px 值（如 `p-4` = 16px），构建时通过 PostCSS 插件自动转为 `32rpx`（750 设计稿下 16px × 2 = 32rpx）
+- 实际插件选型（`postcss-rpx-transform` / `postcss-px-to-viewport-8pt` 等）在 Phase 1 实施时根据构建测试确定
 
 ---
 
@@ -276,10 +301,12 @@ export default defineConfig({
 
 ```json
 {
-  "unocss": "^0.x",
-  "@unocss/preset-uno": "^0.x",
-  "@unocss/preset-icons": "^0.x",
-  "@unocss/preset-attributify": "^0.x",
-  "postcss-rpx-transform": "^0.x"
+  "unocss": "TBD",
+  "@unocss/preset-uno": "TBD",
+  "@unocss/preset-icons": "TBD",
+  "@unocss/preset-attributify": "TBD",
+  "postcss-rpx-transform": "TBD"
 }
 ```
+
+> 版本号在 Phase 1 实施时确定，建议使用最新稳定版。
