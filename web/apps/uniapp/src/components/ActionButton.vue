@@ -1,6 +1,6 @@
 <template>
   <button
-    :class="['action-btn', `action-btn--${variant}`, `action-btn--${size}`]"
+    :class="['action-btn', `action-btn--${variant}`, `action-btn--${size}`, 'inline-flex', 'items-center', 'justify-center', 'gap-2']"
     :disabled="disabled || loading"
     @click="$emit('click')"
   >
@@ -32,10 +32,6 @@ defineEmits<{ (e: "click"): void }>();
 @import "@/styles/design-system.scss";
 
 .action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
   width: 100%;
   border: none;
   font-family: inherit;
@@ -45,26 +41,26 @@ defineEmits<{ (e: "click"): void }>();
 
   // size
   &--lg {
-    height: var(--btn-height-xl);
-    padding: 0 var(--btn-padding-x);
-    font-size: var(--text-xl);
-    border-radius: var(--btn-radius);
+    height: 88rpx;
+    padding: 0 32rpx;
+    font-size: 28rpx;
+    border-radius: 28rpx;
   }
   &--md {
-    height: var(--btn-height-md);
-    padding: 0 var(--space-6);
-    font-size: var(--text-lg);
-    border-radius: var(--radius-md);
+    height: 72rpx;
+    padding: 0 24rpx;
+    font-size: 26rpx;
+    border-radius: 32rpx;
   }
 
   // primary
   &--primary {
-    background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink));
+    background: linear-gradient(135deg, var(--accent-light), var(--accent));
     color: #fff;
-    box-shadow: 0 4rpx 20rpx color-mix(in oklch, var(--accent-pink) 30%, transparent);
+    box-shadow: 0 4rpx 20rpx color-mix(in oklch, var(--accent) 30%, transparent);
 
     &:active { transform: scale(0.97); }
-    &:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 2px; }
+    &:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   }
 
@@ -75,7 +71,7 @@ defineEmits<{ (e: "click"): void }>();
     color: var(--text-primary);
 
     &:active { background: var(--bg-card-hover); }
-    &:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 2px; }
+    &:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     &:disabled { opacity: 0.5; cursor: not-allowed; }
   }
 
@@ -85,14 +81,14 @@ defineEmits<{ (e: "click"): void }>();
     color: var(--text-primary);
 
     &:active { background: color-mix(in oklch, var(--text-primary) 8%, transparent); }
-    &:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 2px; }
+    &:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     &:disabled { opacity: 0.5; cursor: not-allowed; }
   }
 
   &__loading,
   &__icon {
-    width: var(--icon-sm);
-    height: var(--icon-sm);
+    width: 28rpx;
+    height: 28rpx;
   }
 }
 </style>
