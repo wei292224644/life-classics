@@ -572,10 +572,10 @@ function goToProduct(barcode: string) {
 }
 
 .header-btn {
-  width: var(--header-btn-size);
-  height: var(--header-btn-size);
-  border-radius: var(--space-4);
-  background: var(--risk-btn);
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 24rpx;
+  background: transparent;
   border: none;
   display: flex;
   align-items: center;
@@ -583,14 +583,23 @@ function goToProduct(barcode: string) {
   flex-shrink: 0;
   padding: 0;
   margin: 0;
+  color: #ffffff;
+  transition: all 0.2s $ease-spring;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
 
   svg {
-    width: var(--icon-md);
-    height: var(--icon-md);
-    color: var(--risk-title);
+    width: 36rpx;
+    height: 36rpx;
+    stroke-width: 2;
+    color: #ffffff;
   }
 
-  &:active { opacity: 0.7; }
+  &:active {
+    transform: scale(0.92);
+    background: rgba(128, 128, 128, 0.15);
+  }
 }
 
 .header-text {
