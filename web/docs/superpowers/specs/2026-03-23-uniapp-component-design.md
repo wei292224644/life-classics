@@ -22,12 +22,36 @@
 
 **唯一例外**：非设计标的的精确数值（如 scroll-view 固定高度 520rpx）除外。
 
-### 1.2 Design Token 分层
+### 1.2 Color Token 分层（shadcn/ui 风格）
 
 ```
-SCSS 变量 ($radius-md)  →  SCSS mixin/extend 用，不直接用于 Vue
-CSS 变量 (--radius-md)  →  组件直接引用
+PALETTE（调色板）→ 固定纯色值，两模式共用
+    ↓ 引用
+SEMANTIC（语义色）→ 引用调色板，两模式值不同
+    ↓ 引用
+COMPONENT（组件色）→ 引用语义色 + color-mix 透明混合
 ```
+
+**示例**：
+
+```scss
+// PALETTE — 固定值，两个模式共用同一套
+--palette-red-500: #dc2626;
+
+// SEMANTIC — 引用调色板，亮/暗模式值不同
+// 亮: --risk-t4: var(--palette-red-500) → #dc2626
+// 暗: --risk-t4: var(--palette-red-400) → #f87171
+
+// COMPONENT — 引用语义色，color-mix 混合透明
+--risktag-t4-bg: color-mix(in oklch, var(--risk-t4) 15%, transparent);
+// 亮: color-mix(in oklch, #dc2626 15%, transparent)
+// 暗: color-mix(in oklch, #f87171 15%, transparent)
+```
+
+**规则**：
+- Palette 色值**永远不直接在组件中使用**
+- 组件色必须通过 `color-mix(in oklch, var(--semantic-color) xx%, transparent)` 生成
+- 组件中**禁止出现 `#dc2626` / `#f87171` 等硬编码颜色**
 
 ---
 
@@ -108,17 +132,23 @@ CSS 变量 (--radius-md)  →  组件直接引用
 **样式规则**：
 
 ```scss
+// 颜色通过 CSS 变量按等级引用
+// 亮/暗模式由 --risktag-t4-bg / --risktag-t4-text 等变量自动切换
+
 .risk-tag {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-1) var(--space-4); // sm: 4rpx 16rpx
+  padding: var(--space-1) var(--space-4);
   border-radius: var(--radius-full);
-  font-size: var(--text-sm); // sm: var(--text-xs)
+  font-size: var(--text-sm);
   font-weight: 600;
 
-  // 颜色通过 CSS 变量 --risktag-{level}-bg / --risktag-{level}-c
-  background: var(--risktag-bg);
-  color: var(--risktag-c);
+  &.level-t4 { background: var(--risktag-t4-bg); color: var(--risktag-t4-text); }
+  &.level-t3 { background: var(--risktag-t3-bg); color: var(--risktag-t3-text); }
+  &.level-t2 { background: var(--risktag-t2-bg); color: var(--risktag-t2-text); }
+  &.level-t1 { background: var(--risktag-t1-bg); color: var(--risktag-t1-text); }
+  &.level-t0 { background: var(--risktag-t0-bg); color: var(--risktag-t0-text); }
+  &.level-unknown { background: var(--risktag-unknown-bg); color: var(--risktag-unknown-text); }
 }
 ```
 
@@ -243,21 +273,24 @@ CSS 变量 (--radius-md)  →  组件直接引用
 }
 
 .section-icon-wrap {
-  width: 40rpx;
-  height: 40rpx;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
 
-  &.icon-bg-blue { background: rgba(59, 130, 246, 0.12); }
-  &.icon-bg-red { background: rgba(239, 68, 68, 0.12); }
-  // ...
+  // 图标颜色引用 palette + color-mix，组件中禁止写死 rgba
+  &.icon-bg-blue { background: color-mix(in oklch, var(--palette-blue-500) 12%, transparent); }
+  &.icon-bg-red { background: color-mix(in oklch, var(--risk-t4) 12%, transparent); }
+  &.icon-bg-purple { background: color-mix(in oklch, var(--palette-purple-500) 12%, transparent); }
+  &.icon-bg-green { background: color-mix(in oklch, var(--palette-green-500) 12%, transparent); }
+  &.icon-bg-orange { background: color-mix(in oklch, var(--risk-t3) 12%, transparent); }
 }
 
 .section-icon {
-  width: 24rpx;
-  height: 24rpx;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
   fill: currentColor;
 }
 
@@ -294,15 +327,15 @@ CSS 变量 (--radius-md)  →  组件直接引用
   font-weight: 500;
 
   &.chip-risk {
-    color: var(--chip-risk-c);
+    color: var(--chip-risk-text);
     background: var(--chip-risk-bg);
-    border: 1px solid var(--chip-risk-b);
+    border: 1px solid var(--chip-risk-border);
   }
 
   &.chip-warn {
-    color: var(--chip-warn-c);
+    color: var(--chip-warn-text);
     background: var(--chip-warn-bg);
-    border: 1px solid var(--chip-warn-b);
+    border: 1px solid var(--chip-warn-border);
   }
 
   &.chip-neutral {
@@ -335,8 +368,8 @@ CSS 变量 (--radius-md)  →  组件直接引用
 }
 
 .list-item-icon {
-  width: 36rpx;
-  height: 36rpx;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -346,9 +379,10 @@ CSS 变量 (--radius-md)  →  组件直接引用
   flex-shrink: 0;
   margin-top: var(--space-1);
 
-  &.icon-x { background: rgba(239, 68, 68, 0.12); color: var(--risk-t4); }
-  &.icon-check-green { background: rgba(34, 197, 94, 0.12); color: var(--risk-t0); }
-  &.icon-check-yellow { background: rgba(234, 179, 8, 0.12); color: var(--risk-t2); }
+  // 禁止硬编码 rgba，统一用 color-mix 引用语义色
+  &.icon-x { background: color-mix(in oklch, var(--risk-t4) 12%, transparent); color: var(--risk-t4); }
+  &.icon-check-green { background: color-mix(in oklch, var(--risk-t0) 12%, transparent); color: var(--risk-t0); }
+  &.icon-check-yellow { background: color-mix(in oklch, var(--risk-t2) 12%, transparent); color: var(--risk-t2); }
 }
 
 .list-item-text {
@@ -411,42 +445,45 @@ CSS 变量 (--radius-md)  →  组件直接引用
 **CSS 变量速查表**：
 
 ```scss
-// 间距
+// ── Palette（固定纯色，不直接在组件中使用）─────────────
+var(--palette-gray-50 ~ --palette-gray-900)
+var(--palette-red-50 ~ --palette-red-900)
+var(--palette-orange-50 ~ --palette-orange-900)
+var(--palette-yellow-50 ~ --palette-yellow-900)
+var(--palette-green-50 ~ --palette-green-900)
+var(--palette-purple-50/100/300/400/500/600/700/800)
+var(--palette-blue-50/100/300/400/500/600)
+var(--palette-pink-300/400/500/600)
+
+// ── Semantic（引用 Palette，两个模式值不同）────────────
+var(--text-primary/secondary/muted)
+var(--border-color)
+var(--bg-base/card/card-hover)
+var(--accent/accent-light)
+var(--risk-t0/t1/t2/t3/t4/unknown)
+
+// ── Component（引用 Semantic，用 color-mix 混合）────────
+var(--risk-t0-bg/border ~ --risk-t4-bg/border)
+var(--risktag-t0-bg/t0-text ~ --risktag-t4-bg/t4-text)
+var(--chip-risk-bg/text/border)
+var(--chip-warn-bg/text/border)
+var(--chip-neu-bg/text)
+var(--ai-label-bg)
+var(--header-scrolled-bg/text)
+var(--bottom-bar-bg/border)
+var(--nutrition-bg/border)
+
+// ── Layout / Typography ─────────────────────────────────
 var(--space-1 ~ --space-20)
-
-// 字体
 var(--text-xs ~ --text-6xl)
-
-// 圆角
 var(--radius-sm/md/lg/xl/full)
-
-// 图标
 var(--icon-xs/sm/md/lg/xl)
-
-// 卡片内边距
 var(--card-padding-sm/md/lg/xl/2xl/3xl)
-
-// 按钮
 var(--btn-height-sm/md/lg/xl)
 var(--btn-padding-x)
 var(--btn-radius)
-
-// 头部
-var(--header-btn-size)
-var(--header-icon-size)
-var(--header-padding-x/y)
-
-// 阴影
+var(--header-btn-size/icon-size/padding-x/padding-y)
 var(--shadow-sm/md/lg)
-
-// 风险色（通过 RiskTag / riskLevel.ts 使用）
-var(--risk-t0/t1/t2/t3/t4/unknown)
-
-// Chip
-var(--chip-risk-bg/c/warn-bg/c/neu-bg/c)
-
-// AI 标签
-var(--ai-label-bg)
 ```
 
 ---
