@@ -64,27 +64,31 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { IngredientDetail } from "../types/product";
+import { useIngredientStore } from "../store/ingredient";
+import { useProductStore } from "../store/product";
 
 const props = defineProps<{ ingredients: IngredientDetail[] }>();
+const ingStore = useIngredientStore();
+const productStore = useProductStore();
 
-const LEVEL_ORDER = ["t4", "t3", "t2", "t0", "unknown"] as const;
+const LEVEL_ORDER = ["t4", "t3", "t2", "t1", "t0", "unknown"] as const;
 
 const LEVEL_LABELS: Record<string, string> = {
-  t4: "严重风险",
+  t4: "极高风险",
   t3: "高风险",
-  t2: "中风险",
-  t0: "低风险",
-  unknown: "未知",
+  t2: "中等风险",
+  t1: "低风险",
+  t0: "安全",
+  unknown: "暂无评级",
 };
 
 const groupedIngredients = computed(() => {
   const groups: Record<string, IngredientDetail[]> = {
-    t4: [], t3: [], t2: [], t0: [], unknown: [],
+    t4: [], t3: [], t2: [], t1: [], t0: [], unknown: [],
   };
   for (const ing of props.ingredients) {
     const level = ing.analysis?.level ?? "unknown";
-    const key = level === "t1" ? "t0" : level; // t1 归入 t0
-    if (groups[key]) groups[key].push(ing);
+    if (groups[level] !== undefined) groups[level].push(ing);
     else groups["unknown"].push(ing);
   }
   return groups;
@@ -98,7 +102,11 @@ function getReason(item: IngredientDetail): string {
 }
 
 function goToDetail(id: number) {
-  uni.navigateTo({ url: `/pages/ingredient/detail?id=${id}` });
+  const ing = props.ingredients.find((i) => i.id === id);
+  if (!ing) return;
+  const productName = productStore.product?.name;
+  ingStore.set(ing, productName);
+  uni.navigateTo({ url: "/pages/ingredient-detail/index" });
 }
 </script>
 
@@ -116,6 +124,7 @@ function goToDetail(id: number) {
   &.t4 { background: var(--risk-t4-bg); border: 1px solid var(--risk-t4-border); }
   &.t3 { background: var(--risk-t3-bg); border: 1px solid var(--risk-t3-border); }
   &.t2 { background: var(--risk-t2-bg); border: 1px solid var(--risk-t2-border); }
+  &.t1 { background: var(--risk-t1-bg); border: 1px solid var(--risk-t1-border); }
   &.t0 { background: var(--risk-t0-bg); border: 1px solid var(--risk-t0-border); }
   &.unknown { background: var(--risk-unknown-bg); border: 1px solid var(--risk-unknown-border); }
 }
@@ -137,6 +146,7 @@ function goToDetail(id: number) {
   &.t4 { background: var(--risk-t4); box-shadow: 0 0 8px var(--risk-t4); }
   &.t3 { background: var(--risk-t3); box-shadow: 0 0 8px var(--risk-t3); }
   &.t2 { background: var(--risk-t2); box-shadow: 0 0 8px var(--risk-t2); }
+  &.t1 { background: var(--risk-t1); box-shadow: 0 0 8px var(--risk-t1); }
   &.t0 { background: var(--risk-t0); box-shadow: 0 0 8px var(--risk-t0); }
   &.unknown { background: var(--risk-unknown); }
 }
@@ -150,6 +160,7 @@ function goToDetail(id: number) {
   .t4 & { color: var(--risk-t4); background: rgba(239, 68, 68, 0.15); }
   .t3 & { color: var(--risk-t3); background: rgba(249, 115, 22, 0.15); }
   .t2 & { color: var(--risk-t2); background: rgba(234, 179, 8, 0.15); }
+  .t1 & { color: var(--risk-t1); background: rgba(74, 222, 128, 0.15); }
   .t0 & { color: var(--risk-t0); background: rgba(34, 197, 94, 0.15); }
   .unknown & { color: var(--risk-unknown); background: rgba(156, 163, 175, 0.15); }
 }
@@ -196,6 +207,7 @@ function goToDetail(id: number) {
   &.t4 { border-color: var(--risk-t4-border); }
   &.t3 { border-color: var(--risk-t3-border); }
   &.t2 { border-color: var(--risk-t2-border); }
+  &.t1 { border-color: var(--risk-t1-border); }
   &.t0 { border-color: var(--risk-t0-border); }
   &.unknown { border-color: var(--risk-unknown-border); }
 
@@ -215,6 +227,7 @@ function goToDetail(id: number) {
   &.t4::before { background: var(--risk-t4); }
   &.t3::before { background: var(--risk-t3); }
   &.t2::before { background: var(--risk-t2); }
+  &.t1::before { background: var(--risk-t1); }
   &.t0::before { background: var(--risk-t0); }
   &.unknown::before { background: var(--risk-unknown); }
 }
@@ -230,6 +243,7 @@ function goToDetail(id: number) {
   .t4 & { background: var(--risk-t4); box-shadow: 0 0 16rpx var(--risk-t4); }
   .t3 & { background: var(--risk-t3); box-shadow: 0 0 16rpx var(--risk-t3); }
   .t2 & { background: var(--risk-t2); box-shadow: 0 0 16rpx var(--risk-t2); }
+  .t1 & { background: var(--risk-t1); box-shadow: 0 0 16rpx var(--risk-t1); }
   .t0 & { background: var(--risk-t0); box-shadow: 0 0 16rpx var(--risk-t0); }
   .unknown & { background: var(--risk-unknown); }
 }
@@ -271,6 +285,7 @@ function goToDetail(id: number) {
   .t4 & .icon { fill: var(--risk-t4); }
   .t3 & .icon { fill: var(--risk-t3); }
   .t2 & .icon { fill: var(--risk-t2); }
+  .t1 & .icon { stroke: var(--risk-t1); fill: none; }
   .t0 & .icon { stroke: var(--risk-t0); fill: none; }
   .unknown & .icon { fill: var(--risk-unknown); }
 }
@@ -297,6 +312,7 @@ function goToDetail(id: number) {
   &.t4 { color: var(--risk-t4); background: rgba(239, 68, 68, 0.12); }
   &.t3 { color: var(--risk-t3); background: rgba(249, 115, 22, 0.12); }
   &.t2 { color: var(--risk-t2); background: rgba(234, 179, 8, 0.12); }
+  &.t1 { color: var(--risk-t1); background: rgba(74, 222, 128, 0.12); }
   &.t0 { color: var(--risk-t0); background: rgba(34, 197, 94, 0.12); }
   &.unknown { color: var(--risk-unknown); background: rgba(156, 163, 175, 0.12); }
 }
