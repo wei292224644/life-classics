@@ -8,20 +8,6 @@ from database.models import AnalysisDetail, Food, FoodIngredient, FoodNutritionE
 
 
 @dataclass
-class IngredientDetail:
-    id: int
-    name: str
-    alias: list[str]
-    is_additive: bool
-    additive_code: str | None
-    who_level: str | None
-    allergen_info: str | None
-    function_type: str | None
-    standard_code: str | None
-    analysis: dict | None  # first ingredient_summary analysis or None
-
-
-@dataclass
 class NutritionDetail:
     name: str
     alias: list[str]
@@ -29,6 +15,22 @@ class NutritionDetail:
     value_unit: str
     reference_type: str
     reference_unit: str
+
+
+@dataclass
+class ProductIngredientAnalysisDetail:
+    level: str
+    reason: str | None
+
+
+@dataclass
+class ProductIngredientDetail:
+    id: int
+    name: str
+    who_level: str | None
+    function_type: str | None
+    allergen_info: str | None
+    analysis: "ProductIngredientAnalysisDetail | None"
 
 
 @dataclass
@@ -50,7 +52,7 @@ class FoodDetail:
     net_content: str | None
     image_url_list: list[str]
     nutritions: list[NutritionDetail]
-    ingredients: list[IngredientDetail]
+    ingredients: list[ProductIngredientDetail]
     analysis: list[AnalysisSummary]
 
 
@@ -102,23 +104,28 @@ class FoodRepository:
                         level=a.level,
                     )
 
-        ingredients = [
-            IngredientDetail(
+        ingredients = []
+        for fi in food.food_ingredients:
+            ing_analysis = ingredient_analysis_map.get(fi.ingredient.id)
+            if ing_analysis:
+                # 提取 reason（从 results dict 中取，若无则 None）
+                raw_results = ing_analysis.results
+                reason = raw_results.get("reason") if isinstance(raw_results, dict) else None
+                analysis = ProductIngredientAnalysisDetail(
+                    level=ing_analysis.level,
+                    reason=reason,
+                )
+            else:
+                analysis = None
+
+            ingredients.append(ProductIngredientDetail(
                 id=fi.ingredient.id,
                 name=fi.ingredient.name,
-                alias=fi.ingredient.alias or [],
-                is_additive=fi.ingredient.is_additive or False,
-                additive_code=fi.ingredient.additive_code,
                 who_level=fi.ingredient.who_level,
-                allergen_info=fi.ingredient.allergen_info,
                 function_type=fi.ingredient.function_type,
-                standard_code=fi.ingredient.standard_code,
-                analysis=ingredient_analysis_map.get(fi.ingredient.id).__dict__
-                if ingredient_analysis_map.get(fi.ingredient.id)
-                else None,
-            )
-            for fi in food.food_ingredients
-        ]
+                allergen_info=fi.ingredient.allergen_info,
+                analysis=analysis,
+            ))
 
         nutritions = [
             NutritionDetail(
