@@ -5,12 +5,8 @@
       <svg v-if="icon === 'x'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
         <path d="M18 6L6 18M6 6l12 12"/>
       </svg>
-      <!-- check-green icon -->
-      <svg v-else-if="icon === 'check-green'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-        <path d="M20 6L9 17l-5-5"/>
-      </svg>
-      <!-- check-yellow icon -->
-      <svg v-else-if="icon === 'check-yellow'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+      <!-- check icon (check-green / check-yellow share the same path) -->
+      <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
         <path d="M20 6L9 17l-5-5"/>
       </svg>
     </view>
@@ -19,13 +15,10 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(
-  defineProps<{
-    icon: 'x' | 'check-green' | 'check-yellow';
-    text: string;
-  }>(),
-  {}
-);
+defineProps<{
+  icon: 'x' | 'check-green' | 'check-yellow';
+  text: string;
+}>();
 </script>
 
 <style lang="scss" scoped>
@@ -50,8 +43,8 @@ withDefaults(
   margin-top: var(--space-1);
 
   svg {
-    width: 20rpx;
-    height: 20rpx;
+    width: var(--icon-xs);
+    height: var(--icon-xs);
   }
 
   &.icon-x { background: color-mix(in oklch, var(--risk-t4) 12%, transparent); color: var(--risk-t4); }
