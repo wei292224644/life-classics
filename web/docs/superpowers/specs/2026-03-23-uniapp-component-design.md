@@ -339,7 +339,7 @@ COMPONENT（组件色）→ 引用语义色 + color-mix 透明混合
   }
 
   &.chip-neutral {
-    color: var(--chip-neu-c);
+    color: var(--chip-neu-text);
     background: var(--chip-neu-bg);
   }
 }

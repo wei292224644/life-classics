@@ -41,40 +41,69 @@ function extractSummary(results: unknown): string {
 </script>
 
 <style lang="scss" scoped>
-.analysis-card {
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 28rpx;
-  margin-bottom: 20rpx;
-  border-left: 6rpx solid #e5e7eb;
+@import "@/styles/design-system.scss";
 
-  &--t4 { border-left-color: #dc2626; }
-  &--t3 { border-left-color: #ea580c; }
-  &--t2 { border-left-color: #ca8a04; }
-  &--t1 { border-left-color: #16a34a; }
-  &--t0 { border-left-color: #22c55e; }
+.analysis-card {
+  background: var(--bg-card);
+  border-radius: var(--space-4);
+  padding: var(--space-7);
+  margin-bottom: var(--space-5);
+  border-left: 6rpx solid var(--border-color);
+
+  &--t4 { border-left-color: var(--risk-t4); }
+  &--t3 { border-left-color: var(--risk-t3); }
+  &--t2 { border-left-color: var(--risk-t2); }
+  &--t1 { border-left-color: var(--risk-t1); }
+  &--t0 { border-left-color: var(--risk-t0); }
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--space-4);
 }
 
-.card-title { font-size: 30rpx; font-weight: bold; color: #1a1a1a; }
+.card-title {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
+}
 
 .level-badge {
-  padding: 4rpx 16rpx;
-  border-radius: 100rpx;
-  font-size: 22rpx;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-base);
 
-  &--t4 { background: #fee2e2; color: #dc2626; }
-  &--t3 { background: #ffedd5; color: #ea580c; }
-  &--t2 { background: #fef9c3; color: #ca8a04; }
-  &--t1, &--t0 { background: #dcfce7; color: #16a34a; }
-  &--unknown { background: #f3f4f6; color: #6b7280; }
+  &--t4 {
+    background: var(--risktag-t4-bg);
+    color: var(--risk-t4);
+  }
+  &--t3 {
+    background: var(--risktag-t3-bg);
+    color: var(--risk-t3);
+  }
+  &--t2 {
+    background: var(--risktag-t2-bg);
+    color: var(--risk-t2);
+  }
+  &--t1 {
+    background: var(--risktag-t1-bg);
+    color: var(--risk-t1);
+  }
+  &--t0 {
+    background: var(--risktag-t1-bg);
+    color: var(--risk-t1);
+  }
+  &--unknown {
+    background: var(--risktag-unknown-bg);
+    color: var(--risk-unknown);
+  }
 }
 
-.card-content { font-size: 28rpx; color: #555; line-height: 1.6; }
+.card-content {
+  font-size: var(--text-xl);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
 </style>

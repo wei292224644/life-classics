@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>首页 · 最终设计稿</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, 'Inter', sans-serif;
+  background: #0a0a0f;
+  min-height: 100vh;
+  padding: 40px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+h1 { color: white; font-size: 22px; font-weight: 700; text-align: center; }
+.page-sub { color: rgba(255,255,255,0.45); font-size: 13px; text-align: center; margin-top: 4px; }
+
+.phones-row {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.phone-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.mode-badge {
+  font-size: 12px; font-weight: 600;
+  padding: 4px 14px; border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+.mode-light { background: #f3f4f6; color: #374151; }
+.mode-dark  { background: #1f2937; color: #9ca3af; }
+
+.phone-shell {
+  background: #141414;
+  border-radius: 52px;
+  padding: 12px;
+  width: 399px;
+  box-shadow: 0 0 0 1px #2a2a2a, 0 32px 64px rgba(0,0,0,0.7), inset 0 0 0 2px #1a1a1a;
+}
+.phone-notch {
+  background: #141414;
+  width: 90px; height: 22px;
+  border-radius: 0 0 16px 16px;
+  margin: 0 auto -5px;
+  position: relative; z-index: 2;
+}
+.phone-screen {
+  border-radius: 40px;
+  overflow: hidden;
+  height: 812px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  position: relative;
+}
+.phone-screen::-webkit-scrollbar { display: none; }
+
+/* ═══════ LIGHT ═══════ */
+.screen-l {
+  background: #f5f5f5;
+  --bg-base: #f5f5f5;
+  --bg-card: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --border-color: rgba(0,0,0,0.06);
+  --accent-pink: #db2777;
+  --accent-pink-light: #ec4899;
+  --accent-btn-bg: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  --tab-inactive: #d1d5db;
+  --scan-count-bg: #fef2f2;
+  --scan-count-fg: #dc2626;
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-btn: 0 8px 40px rgba(236,72,153,0.4);
+  --shadow-bottombar: 0 -8px 32px rgba(0,0,0,0.06);
+}
+
+/* ═══════ DARK ═══════ */
+.screen-d {
+  background: #0f0f0f;
+  --bg-base: #0f0f0f;
+  --bg-card: #1a1a1a;
+  --text-primary: #f5f5f5;
+  --text-secondary: #a1a1a1;
+  --text-muted: #6b7280;
+  --border-color: rgba(255,255,255,0.08);
+  --accent-pink: #ec4899;
+  --accent-pink-light: #f472b6;
+  --accent-btn-bg: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  --tab-inactive: #4b5563;
+  --scan-count-bg: #2d1a1a;
+  --scan-count-fg: #f87171;
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-btn: 0 8px 40px rgba(236,72,153,0.4);
+  --shadow-bottombar: 0 -8px 32px rgba(0,0,0,0.4);
+}
+
+/* ─── Page ─── */
+.page {
+  background: var(--bg-base);
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 80px;
+}
+
+/* ─── Scan Hero ─── */
+.scan-hero {
+  background: var(--bg-card);
+  padding: 40px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.logo-emoji { font-size: 26px; line-height: 1; }
+.logo-title { font-size: 17px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+.logo-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 28px; }
+
+/* 圆形 CTA — 核心焦点 */
+.scan-cta-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.scan-cta {
+  width: 140px;
+  height: 140px;
+  background: var(--accent-btn-bg);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: var(--shadow-btn);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease;
+  position: relative;
+}
+.scan-cta::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(236,72,153,0.25);
+  animation: pulse-ring 2s ease-out infinite;
+}
+.scan-cta:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 48px rgba(236,72,153,0.5);
+}
+.scan-cta:active {
+  transform: scale(0.95);
+}
+.scan-cta-text {
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.scan-cta svg { flex-shrink: 0; }
+
+/* ─── Recent Scans ─── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 24px 12px;
+}
+.divider-line { flex: 1; height: 1px; background: var(--border-color); }
+.section-label { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.section-label-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.scan-count {
+  background: var(--scan-count-bg);
+  color: var(--scan-count-fg);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 9999px;
+}
+
+.scan-list {
+  padding: 0 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.scan-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.scan-item:hover { transform: translateY(-1px); }
+.scan-item:active { transform: scale(0.98); }
+.scan-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.scan-info { flex: 1; min-width: 0; }
+.scan-name {
+  font-size: 14px; font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.scan-time { font-size: 12px; color: var(--text-muted); }
+.scan-arrow { color: var(--text-muted); flex-shrink: 0; opacity: 0.4; }
+
+/* ─── TabBar ─── */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 80px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+  box-shadow: var(--shadow-bottombar);
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+}
+.tab-item {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  padding: 6px 20px;
+  cursor: pointer; min-width: 64px;
+}
+.tab-item svg { width: 22px; height: 22px; }
+.tab-item span { font-size: 10px; font-weight: 600; }
+.tab-home svg { fill: var(--accent-pink); }
+.tab-home span { color: var(--accent-pink); }
+.tab-inactive svg { fill: none; stroke: var(--tab-inactive); stroke-width: 2; }
+.tab-inactive span { color: var(--tab-inactive); }
+
+/* ─── Accessibility ─── */
+.scan-cta:focus-visible,
+.tab-item:focus-visible,
+.scan-item:focus-visible {
+  outline: 2px solid var(--accent-pink);
+  outline-offset: 2px;
+}
+
+/* ─── Animation ─── */
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  70% { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-cta { transition: none; }
+  .scan-cta::before { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<div>
+  <h1>首页 · 最终设计稿</h1>
+  <p class="page-sub">圆形扫一扫按钮 · 375px · 亮色 + 暗色</p>
+</div>
+
+<div class="phones-row">
+
+  <!-- ─── LIGHT ─── -->
+  <div class="phone-col">
+    <div class="mode-badge mode-light">☀ 亮色模式</div>
+    <div class="phone-shell">
+      <div class="phone-notch"></div>
+      <div class="phone-screen screen-l">
+        <div class="page">
+
+          <div class="scan-hero">
+            <div class="logo-row">
+              <span class="logo-emoji">🍎</span>
+              <span class="logo-title">食品安全助手</span>
+            </div>
+            <div class="logo-sub">扫码查配料 · 了解你吃的每一口</div>
+
+            <div class="scan-cta-wrap">
+              <div class="scan-cta" role="button" tabindex="0" aria-label="扫一扫">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/>
+                  <line x1="7" y1="12" x2="17" y2="12"/>
+                </svg>
+                <span class="scan-cta-text">扫一扫</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-divider">
+            <div class="divider-line"></div>
+            <div class="section-label">
+              <span class="section-label-text">最近扫描</span>
+              <span class="scan-count">3</span>
+            </div>
+            <div class="divider-line"></div>
+          </div>
+
+          <div class="scan-list">
+            <div class="scan-item" role="button" tabindex="0" aria-label="午餐肉罐头，2分钟前">
+              <div class="scan-icon">🥫</div>
+              <div class="scan-info">
+                <div class="scan-name">午餐肉罐头</div>
+                <div class="scan-time">2分钟前</div>
+              </div>
+              <svg class="scan-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div class="scan-item" role="button" tabindex="0" aria-label="康师傅方便面，昨天">
+              <div class="scan-icon">🍝</div>
+              <div class="scan-info">
+                <div class="scan-name">康师傅方便面</div>
+                <div class="scan-time">昨天</div>
+              </div>
+              <svg class="scan-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div class="scan-item" role="button" tabindex="0" aria-label="可口可乐，3天前">
+              <div class="scan-icon">🥤</div>
+              <div class="scan-info">
+                <div class="scan-name">可口可乐</div>
+                <div class="scan-time">3天前</div>
+              </div>
+              <svg class="scan-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="tabbar">
+          <div class="tab-item tab-home" role="tab" aria-selected="true" tabindex="0">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span>首页</span>
+          </div>
+          <div class="tab-item tab-inactive" role="tab" aria-selected="false" tabindex="0">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+            <span>搜索</span>
+          </div>
+          <div class="tab-item tab-inactive" role="tab" aria-selected="false" tabindex="0">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>我的</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── DARK ─── -->
+  <div class="phone-col">
+    <div class="mode-badge mode-dark">🌙 暗色模式</div>
+    <div class="phone-shell">
+      <div class="phone-notch"></div>
+      <div class="phone-screen screen-d">
+        <div class="page">
+
+          <div class="scan-hero">
+            <div class="logo-row">
+              <span class="logo-emoji">🍎</span>
+              <span class="logo-title">食品安全助手</span>
+            </div>
+            <div class="logo-sub">扫码查配料 · 了解你吃的每一口</div>
+
+            <div class="scan-cta-wrap">
+              <div class="scan-cta" role="button" tabindex="0" aria-label="扫一扫">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/>
+                  <line x1="7" y1="12" x2="17" y2="12"/>
+                </svg>
+                <span class="scan-cta-text">扫一扫</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-divider">
+            <div class="divider-line"></div>
+            <div class="section-label">
+              <span class="section-label-text">最近扫描</span>
+              <span class="scan-count">3</span>
+            </div>
+            <div class="divider-line"></div>
+          </div>
+
+          <div class="scan-list">
+            <div class="scan-item" role="button" tabindex="0" aria-label="午餐肉罐头，2分钟前">
+              <div class="scan-icon">🥫</div>
+              <div class="scan-info">
+                <div class="scan-name">午餐肉罐头</div>
+                <div class="scan-time">2分钟前</div>
+              </div>
+              <svg class="scan-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div class="scan-item" role="button" tabindex="0" aria-label="康师傅方便面，昨天">
+              <div class="scan-icon">🍝</div>
+              <div class="scan-info">
+                <div class="scan-name">康师傅方便面</div>
+                <div class="scan-time">昨天</div>
+              </div>
+              <svg class="scan-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div class="scan-item" role="button" tabindex="0" aria-label="可口可乐，3天前">
+              <div class="scan-icon">🥤</div>
+              <div class="scan-info">
+                <div class="scan-name">可口可乐</div>
+                <div class="scan-time">3天前</div>
+              </div>
+              <svg class="scan-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="tabbar">
+          <div class="tab-item tab-home" role="tab" aria-selected="true" tabindex="0">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span>首页</span>
+          </div>
+          <div class="tab-item tab-inactive" role="tab" aria-selected="false" tabindex="0">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+            <span>搜索</span>
+          </div>
+          <div class="tab-item tab-inactive" role="tab" aria-selected="false" tabindex="0">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>我的</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

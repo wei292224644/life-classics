@@ -167,14 +167,14 @@ function handleRecentClick(item: RecentScan) {
   background: var(--bg-base);
   display: flex;
   flex-direction: column;
-  padding-bottom: calc(80rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--space-20) + env(safe-area-inset-bottom));
   overflow: hidden;
 }
 
 // ── Hero ───────────────────────────────────────────────
 .hero {
   background: var(--bg-card);
-  padding: 80rpx 48rpx 64rpx;
+  padding: var(--space-20) var(--space-12) var(--space-16);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -184,8 +184,8 @@ function handleRecentClick(item: RecentScan) {
 .logo-row {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 8rpx;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
 }
 
 .logo-emoji {
@@ -210,7 +210,7 @@ function handleRecentClick(item: RecentScan) {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 80rpx 0 64rpx;
+  padding: var(--space-20) 0 var(--space-16);
 }
 
 .scan-cta {
@@ -222,7 +222,7 @@ function handleRecentClick(item: RecentScan) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
+  gap: var(--space-3);
   box-shadow: 0 16rpx 80rpx rgba(236, 72, 153, 0.4);
   cursor: pointer;
   position: relative;
@@ -273,8 +273,8 @@ function handleRecentClick(item: RecentScan) {
 .section-divider {
   display: flex;
   align-items: center;
-  gap: 24rpx;
-  padding: 0 48rpx 24rpx;
+  gap: var(--space-6);
+  padding: 0 var(--space-12) var(--space-6);
 }
 
 .divider-line {
@@ -286,7 +286,7 @@ function handleRecentClick(item: RecentScan) {
 .section-label {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: var(--space-4);
   flex-shrink: 0;
 }
 
@@ -303,7 +303,7 @@ function handleRecentClick(item: RecentScan) {
   color: var(--palette-red-500);
   font-size: 20rpx;
   font-weight: 700;
-  padding: 4rpx 12rpx;
+  padding: var(--space-1) var(--space-3);
   border-radius: 9999rpx;
 }
 
@@ -315,10 +315,10 @@ function handleRecentClick(item: RecentScan) {
 // ── Scan List ───────────────────────────────────────────
 .scan-list {
   flex: 1;
-  padding: 0 48rpx 40rpx;
+  padding: 0 var(--space-12) var(--space-10);
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: var(--space-4);
   overflow-y: auto;
   min-height: 0; /* flex child overflow scroll requires this */
 }
@@ -326,11 +326,11 @@ function handleRecentClick(item: RecentScan) {
 .scan-item {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 28rpx;
-  padding: 28rpx 32rpx;
+  border-radius: var(--space-7);
+  padding: var(--space-7) var(--space-8);
   display: flex;
   align-items: center;
-  gap: 24rpx;
+  gap: var(--space-6);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition: transform 0.15s ease;
@@ -364,7 +364,7 @@ function handleRecentClick(item: RecentScan) {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
-  margin-bottom: 4rpx;
+  margin-bottom: var(--space-1);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -385,7 +385,7 @@ function handleRecentClick(item: RecentScan) {
 
 .scan-empty {
   text-align: center;
-  padding: 48rpx 0;
+  padding: var(--space-12) 0;
 }
 
 .scan-empty-text {

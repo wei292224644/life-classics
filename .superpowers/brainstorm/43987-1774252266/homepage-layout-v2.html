@@ -1,0 +1,153 @@
+<h2>三个方案视觉对比</h2>
+<p class="subtitle">点击选择你倾向的方案</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="a" onclick="toggleSelect(this)" style="margin-bottom:24px">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>上下三段式（推荐）</h3>
+      <p>Logo → 主 CTA → 搜索入口 → 最近扫描列表，垂直堆叠</p>
+    </div>
+    <div class="mockup" style="margin-top:12px">
+      <div class="mockup-body" style="background:#f3f4f6; padding:12px; font-family:system-ui,sans-serif; max-width:320px; margin:0 auto; border-radius:20px; min-height:480px; display:flex; flex-direction:column; gap:10px; position:relative; font-size:12px">
+
+        <div style="text-align:center; padding-top:12px">
+          <div style="font-weight:700">🍎 食品安全助手</div>
+          <div style="color:#9ca3af; font-size:11px">扫码查配料</div>
+        </div>
+
+        <div style="background:linear-gradient(135deg,#ec4899,#db2777); border-radius:12px; padding:28px; display:flex; align-items:center; justify-content:center; gap:8px">
+          <span>📷</span><span style="color:white; font-weight:600">扫一扫</span>
+        </div>
+
+        <div style="background:white; border-radius:10px; padding:18px; display:flex; align-items:center; gap:6px; border:1px solid #e5e7eb">
+          <span style="color:#9ca3af">🔍</span>
+          <span style="color:#9ca3af">搜索食品或配料</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px; padding:0 4px">
+          <div style="flex:1; height:1px; background:#e5e7eb"></div>
+          <span style="font-size:10px; color:#9ca3af">最近扫描</span>
+          <div style="flex:1; height:1px; background:#e5e7eb"></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px">
+          <div style="background:white; border-radius:8px; padding:14px; display:flex; align-items:center; gap:8px; border:1px solid #e5e7eb">
+            <span>🥫</span>
+            <div style="flex:1">
+              <div style="font-weight:600">午餐肉</div>
+              <div style="color:#9ca3af; font-size:10px">2分钟前</div>
+            </div>
+          </div>
+          <div style="background:white; border-radius:8px; padding:14px; display:flex; align-items:center; gap:8px; border:1px solid #e5e7eb">
+            <span>🍝</span>
+            <div style="flex:1">
+              <div style="font-weight:600">方便面</div>
+              <div style="color:#9ca3af; font-size:10px">昨天</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="position:absolute; bottom:0; left:0; right:0; height:44px; background:white; border-top:1px solid #e5e7eb; display:flex; justify-content:space-around; align-items:center">
+          <div style="text-align:center"><span>🏠</span><div style="font-size:9px; color:#db2777">首页</div></div>
+          <div style="text-align:center"><span>🔍</span><div style="font-size:9px; color:#9ca3af">搜索</div></div>
+          <div style="text-align:center"><span>👤</span><div style="font-size:9px; color:#9ca3af">我的</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)" style="margin-bottom:24px">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>卡片网格式</h3>
+      <p>主 CTA 和搜索入口并排为双卡片，最近扫描放下方的横向滚动</p>
+    </div>
+    <div class="mockup" style="margin-top:12px">
+      <div class="mockup-body" style="background:#f3f4f6; padding:12px; font-family:system-ui,sans-serif; max-width:320px; margin:0 auto; border-radius:20px; min-height:480px; display:flex; flex-direction:column; gap:10px; position:relative; font-size:12px">
+
+        <div style="text-align:center; padding-top:12px">
+          <div style="font-weight:700">🍎 食品安全助手</div>
+          <div style="color:#9ca3af; font-size:11px">扫码查配料</div>
+        </div>
+
+        <!-- 双卡片并排 -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+          <div style="background:linear-gradient(135deg,#ec4899,#db2777); border-radius:12px; padding:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(219,39,119,0.25)">
+            <span style="font-size:24px">📷</span>
+            <span style="color:white; font-weight:600; font-size:13px">扫一扫</span>
+          </div>
+          <div style="background:white; border-radius:12px; padding:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; border:1px solid #e5e7eb">
+            <span style="font-size:24px">🔍</span>
+            <span style="color:#6b7280; font-size:13px">搜索</span>
+          </div>
+        </div>
+
+        <!-- 最近扫描 - 横向滚动 -->
+        <div style="display:flex; align-items:center; gap:8px; padding:0 4px">
+          <div style="flex:1; height:1px; background:#e5e7eb"></div>
+          <span style="font-size:10px; color:#9ca3af">最近扫描</span>
+          <div style="flex:1; height:1px; background:#e5e7eb"></div>
+        </div>
+
+        <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:4px">
+          <div style="background:white; border-radius:10px; padding:14px; min-width:120px; border:1px solid #e5e7eb; text-align:center">
+            <span style="font-size:28px">🥫</span>
+            <div style="font-weight:600; font-size:11px; margin-top:4px">午餐肉</div>
+            <div style="color:#9ca3af; font-size:9px">2分钟前</div>
+          </div>
+          <div style="background:white; border-radius:10px; padding:14px; min-width:120px; border:1px solid #e5e7eb; text-align:center">
+            <span style="font-size:28px">🍝</span>
+            <div style="font-weight:600; font-size:11px; margin-top:4px">方便面</div>
+            <div style="color:#9ca3af; font-size:9px">昨天</div>
+          </div>
+          <div style="background:white; border-radius:10px; padding:14px; min-width:120px; border:1px solid #e5e7eb; text-align:center">
+            <span style="font-size:28px">🥤</span>
+            <div style="font-weight:600; font-size:11px; margin-top:4px">可乐</div>
+            <div style="color:#9ca3af; font-size:9px">3天前</div>
+          </div>
+        </div>
+
+        <div style="position:absolute; bottom:0; left:0; right:0; height:44px; background:white; border-top:1px solid #e5e7eb; display:flex; justify-content:space-around; align-items:center">
+          <div style="text-align:center"><span>🏠</span><div style="font-size:9px; color:#db2777">首页</div></div>
+          <div style="text-align:center"><span>🔍</span><div style="font-size:9px; color:#9ca3af">搜索</div></div>
+          <div style="text-align:center"><span>👤</span><div style="font-size:9px; color:#9ca3af">我的</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>极简单屏式</h3>
+      <p>只保留 Logo + 主 CTA，最近扫描完全隐藏，扫码即走不留恋</p>
+    </div>
+    <div class="mockup" style="margin-top:12px">
+      <div class="mockup-body" style="background:#f3f4f6; padding:12px; font-family:system-ui,sans-serif; max-width:320px; margin:0 auto; border-radius:20px; min-height:480px; display:flex; flex-direction:column; gap:10px; position:relative; font-size:12px">
+
+        <div style="text-align:center; padding-top:40px; flex:1; display:flex; flex-direction:column; justify-content:center">
+          <div style="font-size:36px; margin-bottom:12px">🍎</div>
+          <div style="font-weight:700; font-size:18px">食品安全助手</div>
+          <div style="color:#9ca3af; font-size:12px; margin-top:4px">扫码查配料 · 了解你吃的每一口</div>
+        </div>
+
+        <div style="background:linear-gradient(135deg,#ec4899,#db2777); border-radius:16px; padding:40px; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 6px 20px rgba(219,39,119,0.35)">
+          <span style="font-size:32px">📷</span>
+          <span style="color:white; font-weight:700; font-size:20px">扫一扫</span>
+        </div>
+
+        <!-- 极小的底部提示 -->
+        <div style="text-align:center; padding:8px">
+          <span style="font-size:10px; color:#9ca3af">扫码历史在「我的」中查看</span>
+        </div>
+
+        <div style="position:absolute; bottom:0; left:0; right:0; height:44px; background:white; border-top:1px solid #e5e7eb; display:flex; justify-content:space-around; align-items:center">
+          <div style="text-align:center"><span>🏠</span><div style="font-size:9px; color:#db2777">首页</div></div>
+          <div style="text-align:center"><span>🔍</span><div style="font-size:9px; color:#9ca3af">搜索</div></div>
+          <div style="text-align:center"><span>👤</span><div style="font-size:9px; color:#9ca3af">我的</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
