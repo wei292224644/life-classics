@@ -24,10 +24,10 @@ const emit = defineEmits<{
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 32rpx 40rpx;
-  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  padding: var(--space-8) var(--space-10);
+  padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom));
   display: flex;
-  gap: 24rpx;
+  gap: var(--space-6);
   z-index: 40;
   background: var(--bottom-bar-bg);
   backdrop-filter: saturate(180%) blur(16px);
@@ -38,9 +38,9 @@ const emit = defineEmits<{
 
 .action-btn {
   flex: 1;
-  padding: 28rpx 32rpx;
-  border-radius: 28rpx;
-  font-size: 28rpx;
+  padding: var(--space-7) var(--btn-padding-x);
+  border-radius: var(--btn-radius);
+  font-size: var(--text-xl);
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -57,29 +57,29 @@ const emit = defineEmits<{
   }
 
   &:focus-visible {
-    outline: 2px solid var(--accent-pink);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 
   &--primary {
     color: #fff;
-    background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink));
-    box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
+    background: linear-gradient(135deg, var(--accent-light), var(--accent));
+    box-shadow: 0 4px 20rpx color-mix(in oklch, var(--accent) 30%, transparent);
 
     &:active {
-      box-shadow: 0 6px 28px rgba(236, 72, 153, 0.4);
+      box-shadow: 0 6px 28rpx color-mix(in oklch, var(--accent) 40%, transparent);
     }
   }
 
   &--secondary {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: color-mix(in oklch, #ffffff 6%, transparent);
+    border: 1px solid color-mix(in oklch, #ffffff 10%, transparent);
     color: var(--text-primary);
 
     // 亮色模式覆盖
     .product-page:not(.dark-mode) & {
-      background: rgba(0, 0, 0, 0.04);
-      border-color: rgba(0, 0, 0, 0.08);
+      background: color-mix(in oklch, var(--palette-gray-900) 4%, transparent);
+      border-color: color-mix(in oklch, var(--palette-gray-900) 8%, transparent);
     }
   }
 }
