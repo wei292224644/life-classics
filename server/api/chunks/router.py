@@ -61,3 +61,14 @@ def delete_chunk(chunk_id: str):
         ChunksService.delete_chunk(chunk_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{chunk_id}/reparse", response_model=ChunkResponse)
+async def reparse_chunk(chunk_id: str):
+    try:
+        result = await ChunksService.reparse_chunk(chunk_id)
+        return ChunkResponse(**result)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
