@@ -187,3 +187,10 @@ async def test_reparse_chunk_rebuilds_classified_and_reruns_transform():
 
     # 验证 FTS write 被调用
     mock_fts.write.assert_called_once()
+
+    # 验证 upsert 被调用
+    mock_col.upsert.assert_called_once()
+
+    # 验证返回的 metadata 字段
+    assert result["metadata"]["semantic_type"] == "scope"
+    assert result["metadata"]["section_path"] == "1|1.1"

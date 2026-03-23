@@ -200,6 +200,7 @@ class ChunksService:
         # upsert 回 ChromaDB
         new_meta = {
             **old_meta,
+            "raw_content": raw_content,  # 显式保留
             "semantic_type": merged["semantic_type"],
             "section_path": "|".join(merged["section_path"]),
         }
