@@ -43,7 +43,7 @@
     },
     "h5": {
         "devServer": {
-            "port": 5173,
+            "port": 5174,
             "disableHostCheck": true
         },
         "router": {

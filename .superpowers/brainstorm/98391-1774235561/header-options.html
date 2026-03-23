@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Header 方案对比</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, 'Inter', sans-serif;
+  background: #0f1117;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px;
+}
+
+h1 { color: white; font-size: 22px; font-weight: 700; text-align: center; }
+.subtitle-main { color: rgba(255,255,255,0.55); font-size: 13px; text-align: center; margin-top: 4px; }
+
+/* ── Phone grid ── */
+.phone-grid {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.phone-col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.phone-option-label {
+  font-size: 13px; font-weight: 600;
+  padding: 4px 14px; border-radius: 20px;
+  letter-spacing: 0.01em;
+}
+.label-a { background: #1e293b; color: #94a3b8; }
+.label-b { background: #1e3a2e; color: #4ade80; border: 1.5px solid #166534; }
+.label-c { background: #1e2a3e; color: #60a5fa; }
+
+/* ── Phone Shell ── */
+.phone-pair { display: flex; gap: 16px; }
+.phone-shell {
+  background: #1a1a1a;
+  border-radius: 40px;
+  padding: 10px;
+  width: 155px;
+  box-shadow: 0 0 0 1px #2a2a2a, 0 20px 40px rgba(0,0,0,0.5);
+}
+.phone-notch {
+  background: #1a1a1a;
+  width: 60px; height: 18px;
+  border-radius: 0 0 12px 12px;
+  margin: 0 auto -4px;
+  position: relative; z-index: 2;
+}
+.phone-screen {
+  border-radius: 30px;
+  overflow: hidden;
+  height: 280px;
+}
+
+/* ── Mode tags ── */
+.mode-tag {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.05em;
+  padding: 2px 6px; border-radius: 4px;
+  text-align: center; margin-bottom: 4px;
+}
+.light-tag { background: #f3f4f6; color: #6b7280; }
+.dark-tag { background: #374151; color: #9ca3af; }
+
+/* ── LIGHT SCREENS ── */
+.screen-light { background: #f9fafb; }
+.screen-dark { background: #111827; }
+
+/* Shared body padding */
+.s-body { padding: 10px; }
+.s-section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 7px;
+}
+.s-section-dark {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 7px;
+}
+.s-risk-bar { height: 5px; border-radius: 3px; background: linear-gradient(to right,#22c55e,#facc15,#ef4444); margin: 4px 0; position:relative; }
+.s-needle { position:absolute; right:14%; top:-3px; width:10px; height:10px; border-radius:50%; background:white; border:2px solid #dc2626; }
+.s-needle-dark { position:absolute; right:14%; top:-3px; width:10px; height:10px; border-radius:50%; background:#1f2937; border:2px solid #f87171; }
+.s-name { font-size: 11px; font-weight: 700; }
+.s-name-light { color: #111827; }
+.s-name-dark { color: #f9fafb; }
+.s-meta { font-size: 8px; margin-top: 2px; }
+.s-meta-light { color: #6b7280; }
+.s-meta-dark { color: #9ca3af; }
+.s-badge { font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display:inline-block; }
+.s-badge-red { background: #ef4444; color: white; }
+.s-badge-red-dark { background: #991b1b; color: #fca5a5; }
+.s-row { display:flex; justify-content:space-between; font-size: 7.5px; padding: 3px 0; border-bottom: 1px solid #f3f4f6; }
+.s-row-dark { display:flex; justify-content:space-between; font-size: 7.5px; padding: 3px 0; border-bottom: 1px solid #374151; }
+.s-row-l { color: #9ca3af; }
+.s-row-r { color: #111827; font-weight:500; }
+.s-row-r-dark { color: #f3f4f6; font-weight:500; }
+.s-row-r-red { color: #dc2626; font-weight:500; }
+.s-row-r-red-dark { color: #f87171; font-weight:500; }
+.s-chip { font-size:7px; padding:1.5px 5px; border-radius:4px; display:inline-block; margin:1px; }
+.s-chip-red-l { background:#fff0f0; color:#dc2626; border:1px solid #fecaca; }
+.s-chip-red-d { background:#450a0a; color:#f87171; }
+.s-chip-gray-l { background:#f3f4f6; color:#374151; }
+.s-chip-gray-d { background:#374151; color:#d1d5db; }
+
+/* ═══════════════════════════
+   OPTION A: Glassmorphism
+   ═══════════════════════════ */
+.hdr-glass-light {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  padding: 10px 10px 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.hdr-glass-dark {
+  background: rgba(17,24,39,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 10px 10px 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.hdr-btn-glass-l {
+  width:26px; height:26px; border-radius:8px;
+  background: rgba(0,0,0,0.06);
+  display:flex; align-items:center; justify-content:center;
+}
+.hdr-btn-glass-d {
+  width:26px; height:26px; border-radius:8px;
+  background: rgba(255,255,255,0.1);
+  display:flex; align-items:center; justify-content:center;
+}
+.hdr-btn-glass-l svg { width:12px; height:12px; stroke:#374151; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.hdr-btn-glass-d svg { width:12px; height:12px; stroke:#d1d5db; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.hdr-title-l { font-size:12px; font-weight:700; color:#111827; flex:1; }
+.hdr-title-d { font-size:12px; font-weight:700; color:#f9fafb; flex:1; }
+.hdr-sub-l { font-size:8px; color:#6b7280; display:block; }
+.hdr-sub-d { font-size:8px; color:#9ca3af; display:block; }
+
+/* ═══════════════════════════
+   OPTION B: Risk-tinted solid
+   ═══════════════════════════ */
+.hdr-risk-light {
+  background: #fff1f2;
+  border-bottom: 2px solid #fecaca;
+  padding: 10px 10px 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.hdr-risk-dark {
+  background: #1a0a0a;
+  border-bottom: 2px solid #7f1d1d;
+  padding: 10px 10px 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.hdr-btn-risk-l {
+  width:26px; height:26px; border-radius:8px;
+  background: rgba(239,68,68,0.12);
+  display:flex; align-items:center; justify-content:center;
+}
+.hdr-btn-risk-d {
+  width:26px; height:26px; border-radius:8px;
+  background: rgba(239,68,68,0.2);
+  display:flex; align-items:center; justify-content:center;
+}
+.hdr-btn-risk-l svg { width:12px; height:12px; stroke:#dc2626; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.hdr-btn-risk-d svg { width:12px; height:12px; stroke:#f87171; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.hdr-title-risk-l { font-size:12px; font-weight:700; color:#7f1d1d; flex:1; }
+.hdr-title-risk-d { font-size:12px; font-weight:700; color:#fca5a5; flex:1; }
+.hdr-sub-risk-l { font-size:8px; color:#ef4444; display:block; font-weight:600; }
+.hdr-sub-risk-d { font-size:8px; color:#f87171; display:block; font-weight:600; }
+
+/* ═══════════════════════════
+   OPTION C: Neutral dark
+   ═══════════════════════════ */
+.hdr-neutral-light {
+  background: #111827;
+  padding: 10px 10px 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.hdr-neutral-dark {
+  background: #030712;
+  border-bottom: 1px solid #1f2937;
+  padding: 10px 10px 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.hdr-btn-neutral {
+  width:26px; height:26px; border-radius:8px;
+  background: rgba(255,255,255,0.1);
+  display:flex; align-items:center; justify-content:center;
+}
+.hdr-btn-neutral svg { width:12px; height:12px; stroke:#d1d5db; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.hdr-title-neutral { font-size:12px; font-weight:700; color:#f9fafb; flex:1; }
+.hdr-sub-neutral { font-size:8px; color:#9ca3af; display:block; }
+
+/* verdict */
+.verdict-wrap {
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 14px;
+  padding: 18px 20px;
+  max-width: 580px;
+  width: 100%;
+}
+.verdict-wrap h3 { color: #60a5fa; font-size: 14px; margin-bottom: 10px; }
+.verdict-item { display:flex; gap:10px; padding: 5px 0; }
+.verdict-item + .verdict-item { border-top: 1px solid #1e2d3d; }
+.verdict-letter { width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
+.vl-a { background:#1e293b; color:#94a3b8; border:1px solid #334155; }
+.vl-b { background:#166534; color:#4ade80; }
+.vl-c { background:#1e3a5f; color:#60a5fa; }
+.verdict-text { font-size:12px; color:#cbd5e1; line-height:1.5; }
+.verdict-text strong { color:#f1f5f9; }
+</style>
+</head>
+<body>
+
+<div>
+  <h1>Header 方案对比</h1>
+  <p class="subtitle-main">亮色模式 + 暗色模式同时预览</p>
+</div>
+
+<div class="phone-grid">
+
+  <!-- ── OPTION A: Glassmorphism ── -->
+  <div class="phone-col">
+    <div class="phone-option-label label-a">A · 磨砂玻璃</div>
+    <div class="phone-pair">
+      <!-- Light -->
+      <div>
+        <div class="mode-tag light-tag">☀ 亮色</div>
+        <div class="phone-shell">
+          <div class="phone-notch"></div>
+          <div class="phone-screen screen-light">
+            <div class="hdr-glass-light">
+              <div class="hdr-btn-glass-l"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+              <div style="flex:1">
+                <span class="hdr-title-l">配料详情</span>
+                <span class="hdr-sub-l">来自：午餐肉罐头</span>
+              </div>
+              <div class="hdr-btn-glass-l"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
+            </div>
+            <div class="s-body">
+              <div class="s-section">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+                  <div><div class="s-name s-name-light">亚硝酸钠</div><div class="s-meta s-meta-light">E250 · 食品添加剂</div></div>
+                  <span class="s-badge s-badge-red">高风险</span>
+                </div>
+                <div class="s-risk-bar"><div class="s-needle"></div></div>
+                <div style="display:flex;gap:3px;margin-top:5px;flex-wrap:wrap">
+                  <span class="s-chip s-chip-red-l">防腐剂</span>
+                  <span class="s-chip s-chip-red-l">护色剂</span>
+                  <span class="s-chip s-chip-gray-l">化学合成</span>
+                  <span class="s-chip" style="background:#fefce8;color:#a16207;border:1px solid #fde68a;font-size:7px;padding:1.5px 5px;border-radius:4px;">⚠ 孕妇禁用</span>
+                </div>
+              </div>
+              <div class="s-section">
+                <div class="s-row"><span class="s-row-l">WHO 致癌等级</span><span class="s-row-r-red">Group 2A</span></div>
+                <div class="s-row"><span class="s-row-l">母婴等级</span><span class="s-row-r-red">孕妇禁用</span></div>
+                <div class="s-row" style="border:none"><span class="s-row-l">使用限量</span><span class="s-row-r">≤ 0.15g/kg</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Dark -->
+      <div>
+        <div class="mode-tag dark-tag">🌙 暗色</div>
+        <div class="phone-shell">
+          <div class="phone-notch"></div>
+          <div class="phone-screen screen-dark">
+            <div class="hdr-glass-dark">
+              <div class="hdr-btn-glass-d"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+              <div style="flex:1">
+                <span class="hdr-title-d">配料详情</span>
+                <span class="hdr-sub-d">来自：午餐肉罐头</span>
+              </div>
+              <div class="hdr-btn-glass-d"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
+            </div>
+            <div class="s-body">
+              <div class="s-section-dark">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+                  <div><div class="s-name s-name-dark">亚硝酸钠</div><div class="s-meta s-meta-dark">E250 · 食品添加剂</div></div>
+                  <span class="s-badge s-badge-red-dark">高风险</span>
+                </div>
+                <div class="s-risk-bar"><div class="s-needle-dark"></div></div>
+                <div style="display:flex;gap:3px;margin-top:5px;flex-wrap:wrap">
+                  <span class="s-chip s-chip-red-d">防腐剂</span>
+                  <span class="s-chip s-chip-red-d">护色剂</span>
+                  <span class="s-chip s-chip-gray-d">化学合成</span>
+                  <span class="s-chip" style="background:#3b1a00;color:#fcd34d;font-size:7px;padding:1.5px 5px;border-radius:4px;">⚠ 孕妇禁用</span>
+                </div>
+              </div>
+              <div class="s-section-dark">
+                <div class="s-row-dark"><span class="s-row-l">WHO 致癌等级</span><span class="s-row-r-red-dark">Group 2A</span></div>
+                <div class="s-row-dark"><span class="s-row-l">母婴等级</span><span class="s-row-r-red-dark">孕妇禁用</span></div>
+                <div class="s-row-dark" style="border:none"><span class="s-row-l">使用限量</span><span class="s-row-r-dark">≤ 0.15g/kg</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPTION B: Risk-tinted ── -->
+  <div class="phone-col">
+    <div class="phone-option-label label-b">B · 风险色调 ★</div>
+    <div class="phone-pair">
+      <div>
+        <div class="mode-tag light-tag">☀ 亮色</div>
+        <div class="phone-shell">
+          <div class="phone-notch"></div>
+          <div class="phone-screen screen-light">
+            <div class="hdr-risk-light">
+              <div class="hdr-btn-risk-l"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+              <div style="flex:1">
+                <span class="hdr-title-risk-l">配料详情</span>
+                <span class="hdr-sub-risk-l">⚠ 高风险 · 谨慎摄入</span>
+              </div>
+              <div class="hdr-btn-risk-l"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
+            </div>
+            <div class="s-body">
+              <div class="s-section">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+                  <div><div class="s-name s-name-light">亚硝酸钠</div><div class="s-meta s-meta-light">E250 · 食品添加剂</div></div>
+                  <span class="s-badge s-badge-red">高风险</span>
+                </div>
+                <div class="s-risk-bar"><div class="s-needle"></div></div>
+                <div style="display:flex;gap:3px;margin-top:5px;flex-wrap:wrap">
+                  <span class="s-chip s-chip-red-l">防腐剂</span>
+                  <span class="s-chip s-chip-red-l">护色剂</span>
+                  <span class="s-chip s-chip-gray-l">化学合成</span>
+                  <span class="s-chip" style="background:#fefce8;color:#a16207;border:1px solid #fde68a;font-size:7px;padding:1.5px 5px;border-radius:4px;">⚠ 孕妇禁用</span>
+                </div>
+              </div>
+              <div class="s-section">
+                <div class="s-row"><span class="s-row-l">WHO 致癌等级</span><span class="s-row-r-red">Group 2A</span></div>
+                <div class="s-row"><span class="s-row-l">母婴等级</span><span class="s-row-r-red">孕妇禁用</span></div>
+                <div class="s-row" style="border:none"><span class="s-row-l">使用限量</span><span class="s-row-r">≤ 0.15g/kg</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="mode-tag dark-tag">🌙 暗色</div>
+        <div class="phone-shell">
+          <div class="phone-notch"></div>
+          <div class="phone-screen screen-dark">
+            <div class="hdr-risk-dark">
+              <div class="hdr-btn-risk-d"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+              <div style="flex:1">
+                <span class="hdr-title-risk-d">配料详情</span>
+                <span class="hdr-sub-risk-d">⚠ 高风险 · 谨慎摄入</span>
+              </div>
+              <div class="hdr-btn-risk-d"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
+            </div>
+            <div class="s-body">
+              <div class="s-section-dark">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+                  <div><div class="s-name s-name-dark">亚硝酸钠</div><div class="s-meta s-meta-dark">E250 · 食品添加剂</div></div>
+                  <span class="s-badge s-badge-red-dark">高风险</span>
+                </div>
+                <div class="s-risk-bar"><div class="s-needle-dark"></div></div>
+                <div style="display:flex;gap:3px;margin-top:5px;flex-wrap:wrap">
+                  <span class="s-chip s-chip-red-d">防腐剂</span>
+                  <span class="s-chip s-chip-red-d">护色剂</span>
+                  <span class="s-chip s-chip-gray-d">化学合成</span>
+                  <span class="s-chip" style="background:#3b1a00;color:#fcd34d;font-size:7px;padding:1.5px 5px;border-radius:4px;">⚠ 孕妇禁用</span>
+                </div>
+              </div>
+              <div class="s-section-dark">
+                <div class="s-row-dark"><span class="s-row-l">WHO 致癌等级</span><span class="s-row-r-red-dark">Group 2A</span></div>
+                <div class="s-row-dark"><span class="s-row-l">母婴等级</span><span class="s-row-r-red-dark">孕妇禁用</span></div>
+                <div class="s-row-dark" style="border:none"><span class="s-row-l">使用限量</span><span class="s-row-r-dark">≤ 0.15g/kg</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPTION C: Neutral dark ── -->
+  <div class="phone-col">
+    <div class="phone-option-label label-c">C · 纯色中性</div>
+    <div class="phone-pair">
+      <div>
+        <div class="mode-tag light-tag">☀ 亮色</div>
+        <div class="phone-shell">
+          <div class="phone-notch"></div>
+          <div class="phone-screen screen-light">
+            <div class="hdr-neutral-light">
+              <div class="hdr-btn-neutral"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+              <div style="flex:1">
+                <span class="hdr-title-neutral">配料详情</span>
+                <span class="hdr-sub-neutral">来自：午餐肉罐头</span>
+              </div>
+              <div class="hdr-btn-neutral"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
+            </div>
+            <div class="s-body">
+              <div class="s-section">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+                  <div><div class="s-name s-name-light">亚硝酸钠</div><div class="s-meta s-meta-light">E250 · 食品添加剂</div></div>
+                  <span class="s-badge s-badge-red">高风险</span>
+                </div>
+                <div class="s-risk-bar"><div class="s-needle"></div></div>
+                <div style="display:flex;gap:3px;margin-top:5px;flex-wrap:wrap">
+                  <span class="s-chip s-chip-red-l">防腐剂</span>
+                  <span class="s-chip s-chip-red-l">护色剂</span>
+                  <span class="s-chip s-chip-gray-l">化学合成</span>
+                  <span class="s-chip" style="background:#fefce8;color:#a16207;border:1px solid #fde68a;font-size:7px;padding:1.5px 5px;border-radius:4px;">⚠ 孕妇禁用</span>
+                </div>
+              </div>
+              <div class="s-section">
+                <div class="s-row"><span class="s-row-l">WHO 致癌等级</span><span class="s-row-r-red">Group 2A</span></div>
+                <div class="s-row"><span class="s-row-l">母婴等级</span><span class="s-row-r-red">孕妇禁用</span></div>
+                <div class="s-row" style="border:none"><span class="s-row-l">使用限量</span><span class="s-row-r">≤ 0.15g/kg</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="mode-tag dark-tag">🌙 暗色</div>
+        <div class="phone-shell">
+          <div class="phone-notch"></div>
+          <div class="phone-screen screen-dark">
+            <div class="hdr-neutral-dark">
+              <div class="hdr-btn-neutral"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+              <div style="flex:1">
+                <span class="hdr-title-neutral">配料详情</span>
+                <span class="hdr-sub-neutral">来自：午餐肉罐头</span>
+              </div>
+              <div class="hdr-btn-neutral"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
+            </div>
+            <div class="s-body">
+              <div class="s-section-dark">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+                  <div><div class="s-name s-name-dark">亚硝酸钠</div><div class="s-meta s-meta-dark">E250 · 食品添加剂</div></div>
+                  <span class="s-badge s-badge-red-dark">高风险</span>
+                </div>
+                <div class="s-risk-bar"><div class="s-needle-dark"></div></div>
+                <div style="display:flex;gap:3px;margin-top:5px;flex-wrap:wrap">
+                  <span class="s-chip s-chip-red-d">防腐剂</span>
+                  <span class="s-chip s-chip-red-d">护色剂</span>
+                  <span class="s-chip s-chip-gray-d">化学合成</span>
+                  <span class="s-chip" style="background:#3b1a00;color:#fcd34d;font-size:7px;padding:1.5px 5px;border-radius:4px;">⚠ 孕妇禁用</span>
+                </div>
+              </div>
+              <div class="s-section-dark">
+                <div class="s-row-dark"><span class="s-row-l">WHO 致癌等级</span><span class="s-row-r-red-dark">Group 2A</span></div>
+                <div class="s-row-dark"><span class="s-row-l">母婴等级</span><span class="s-row-r-red-dark">孕妇禁用</span></div>
+                <div class="s-row-dark" style="border:none"><span class="s-row-l">使用限量</span><span class="s-row-r-dark">≤ 0.15g/kg</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="verdict-wrap">
+  <h3>我的推荐：B · 风险色调</h3>
+  <div class="verdict-item">
+    <div class="verdict-letter vl-b">B</div>
+    <div class="verdict-text"><strong>风险等级与 header 联动</strong> — 高风险显示红色调，低风险/安全成分可切换为绿色调，header 本身就在传达信息，无需阅读内容就能感知。暗色模式下深红背景 + 细红描边比粉色渐变克制得多。</div>
+  </div>
+  <div class="verdict-item">
+    <div class="verdict-letter vl-a">A</div>
+    <div class="verdict-text"><strong>磨砂玻璃</strong> — 最"现代感"，两种模式都优雅，但 header 中性，和 product-detail 区分度低，也丢失了风险等级的即时感知。</div>
+  </div>
+  <div class="verdict-item">
+    <div class="verdict-letter vl-c">C</div>
+    <div class="verdict-text"><strong>纯色中性深色</strong> — 亮色模式反差强烈，整体偏"工具软件"风格，与 product-detail 的温和基调不统一。</div>
+  </div>
+</div>
+
+</body>
+</html>

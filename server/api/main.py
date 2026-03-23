@@ -33,15 +33,6 @@ Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 # 请求日志中间件
 app.add_middleware(RequestLoggingMiddleware)
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # 注册路由
 app.include_router(api_router, prefix="/api")
 
@@ -60,3 +51,12 @@ async def custom_swagger_ui():
         title="个人知识库系统 - Swagger UI",
         swagger_favicon_url="https://fastapi.tiangolo.com/img/favicon.png",
     )
+
+# 将 CORS 作为最外层 ASGI 包裹，确保即使出现未处理异常（500）也会带上 CORS 头。
+app = CORSMiddleware(
+    app=app,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

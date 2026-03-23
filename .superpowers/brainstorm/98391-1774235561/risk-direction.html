@@ -1,0 +1,336 @@
+<style>
+  :root {
+    --primary: #e11d48;
+    --primary-light: #f43f5e;
+    --bg: #f9fafb;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #111827;
+    --muted: #6b7280;
+    --red-bg: #fff1f2;
+    --red-border: #fecdd3;
+  }
+
+  .compare-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 18px;
+    margin: 16px 0;
+  }
+
+  .phone-outer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .phone-label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .label-current { background: #f3f4f6; color: #6b7280; }
+  .label-option-a { background: #eff6ff; color: #2563eb; }
+  .label-option-b { background: #f0fdf4; color: #16a34a; border: 1.5px solid #86efac; }
+
+  .phone-frame {
+    background: #1c1c1e;
+    border-radius: 28px;
+    padding: 8px;
+    width: 160px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .phone-screen {
+    background: #f9fafb;
+    border-radius: 20px;
+    overflow: hidden;
+    font-family: -apple-system, sans-serif;
+  }
+
+  /* Headers */
+  .hdr-white {
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 9px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 8.5px;
+    font-weight: 600;
+    color: #111;
+  }
+  .hdr-gradient {
+    background: linear-gradient(135deg, #e11d48, #f43f5e);
+    padding: 9px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 8.5px;
+    font-weight: 600;
+    color: white;
+  }
+  .hdr-icon { opacity: 0.8; font-size: 9px; }
+  .hdr-spacer { flex: 1; }
+
+  .sb { padding: 9px; }
+
+  /* ── CURRENT: plain badge ── */
+  .cur-badge-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+  .cur-badge {
+    background: #ef4444;
+    color: white;
+    font-size: 7px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+  }
+  .cur-caution { font-size: 6.5px; color: #9ca3af; }
+  .cur-desc { font-size: 6.5px; color: #374151; line-height: 1.4; margin-bottom: 5px; }
+  .cur-tags { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 4px; }
+  .cur-tag { background: #f3f4f6; padding: 1.5px 4px; border-radius: 3px; font-size: 6px; color: #374151; }
+
+  /* ── OPTION A: score ring ── */
+  .ring-hero {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: linear-gradient(135deg, rgba(225,29,72,0.07), rgba(244,63,94,0.07));
+    border: 1px solid rgba(225,29,72,0.12);
+    border-radius: 8px;
+    padding: 7px;
+    margin-bottom: 5px;
+  }
+  .ring {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 3px solid #ef4444;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; color: #ef4444;
+    flex-shrink: 0;
+    background: white;
+  }
+  .ring-info { font-size: 7px; color: #374151; }
+  .ring-info strong { display: block; font-size: 8px; color: #111; margin-bottom: 2px; }
+  .ring-info span { color: #dc2626; font-weight: 600; }
+
+  /* ── OPTION B: spectrum bar (RECOMMENDED) ── */
+  .risk-hero {
+    background: #fff1f2;
+    border: 1.5px solid #fecdd3;
+    border-radius: 10px;
+    padding: 8px;
+    margin-bottom: 5px;
+  }
+  .risk-hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+  .risk-title { font-size: 8.5px; font-weight: 700; color: #111; }
+  .risk-badge-b {
+    background: #ef4444;
+    color: white;
+    font-size: 6.5px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .risk-bar-wrap { margin: 4px 0 2px; }
+  .risk-bar {
+    height: 7px;
+    border-radius: 4px;
+    background: linear-gradient(to right, #22c55e 0%, #86efac 25%, #facc15 50%, #fb923c 70%, #ef4444 85%, #dc2626 100%);
+    position: relative;
+  }
+  .risk-needle {
+    position: absolute;
+    right: 14%;
+    top: -4px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: white;
+    border: 2.5px solid #dc2626;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .risk-labels { display: flex; justify-content: space-between; font-size: 5.5px; color: #9ca3af; margin-top: 2px; }
+  .risk-meta { font-size: 6.5px; color: #6b7280; margin-top: 4px; }
+  .risk-meta strong { color: #dc2626; }
+
+  /* Shared bottom sections */
+  .sec-title {
+    font-size: 8px; font-weight: 700; color: #111;
+    margin: 5px 0 3px;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .list-item {
+    display: flex; gap: 3px; align-items: flex-start;
+    font-size: 6px; color: #374151;
+    margin-bottom: 2.5px; line-height: 1.3;
+  }
+  .dot-red { color: #ef4444; flex-shrink: 0; }
+  .kv-row {
+    display: flex; justify-content: space-between;
+    padding: 2.5px 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 6px;
+  }
+  .kv-l { color: #9ca3af; }
+  .kv-r { color: #111; font-weight: 500; }
+  .kv-r.red { color: #dc2626; }
+
+  /* Bottom bar */
+  .bot-bar {
+    display: flex; gap: 4px; padding: 6px;
+    background: white; border-top: 1px solid #e5e7eb;
+  }
+  .bot-btn-outline {
+    flex: 1; border: 1px solid #e5e7eb; background: white;
+    border-radius: 6px; padding: 4px; font-size: 6px;
+    font-weight: 600; color: #111; text-align: center;
+  }
+  .bot-btn-primary {
+    flex: 1; background: linear-gradient(135deg, #e11d48, #f43f5e);
+    border-radius: 6px; padding: 4px; font-size: 6px;
+    font-weight: 600; color: white; text-align: center;
+  }
+
+  /* Verdict */
+  .verdict {
+    background: #f0fdf4;
+    border: 1.5px solid #86efac;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 4px;
+  }
+  .verdict h3 { color: #15803d; font-size: 13px; margin-bottom: 6px; }
+  .verdict ul { list-style: none; padding: 0; }
+  .verdict li { font-size: 12px; color: #374151; padding: 3px 0; padding-left: 16px; position: relative; line-height: 1.4; }
+  .verdict li::before { content: "✓"; position: absolute; left: 0; color: #16a34a; font-weight: 700; }
+</style>
+
+<h2>风险可视化方案对比</h2>
+<p class="subtitle">三种方案在移动端的实际效果对比 — 推荐 B</p>
+
+<div class="compare-wrap">
+
+  <!-- Current -->
+  <div class="phone-outer">
+    <div class="phone-label label-current">当前设计</div>
+    <div class="phone-frame"><div class="phone-screen">
+      <div class="hdr-white">
+        <span class="hdr-icon">←</span>
+        <span>亚硝酸钠 (E250)</span>
+        <span class="hdr-spacer"></span>
+        <span class="hdr-icon">⬆</span>
+      </div>
+      <div class="sb">
+        <div class="cur-badge-row">
+          <span class="cur-badge">⚠ 高风险</span>
+          <span class="cur-caution">· 谨慎使用</span>
+        </div>
+        <div class="cur-desc"><span style="color:#dc2626;font-weight:600">AI分析：</span>该配料被识别为高风险添加剂，长期大量摄入可能对健康造成不良影响…</div>
+        <div class="cur-tags">
+          <span class="cur-tag">名称 亚硝酸钠</span>
+          <span class="cur-tag">代码 E250</span>
+          <span class="cur-tag">功能 防腐剂</span>
+          <span class="cur-tag">来源 化学合成</span>
+        </div>
+        <div class="sec-title">⚠ AI 风险分析</div>
+        <div class="list-item"><span class="dot-red">✕</span><span>可能形成致癌物质亚硝胺</span></div>
+        <div class="list-item"><span class="dot-red">✕</span><span>WHO 2A 类致癌物</span></div>
+        <div class="sec-title">风险管理信息</div>
+        <div class="kv-row"><span class="kv-l">WHO 致癌等级</span><span class="kv-r red">Group 2A</span></div>
+        <div class="kv-row"><span class="kv-l">母婴等级</span><span class="kv-r">高风险，孕妇禁用</span></div>
+        <div class="kv-row"><span class="kv-l">使用限量</span><span class="kv-r">≤ 0.15g/kg</span></div>
+      </div>
+      <div class="bot-bar">
+        <div class="bot-btn-outline">咨询AI助手</div>
+        <div class="bot-btn-primary">查看相关食品</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Option A -->
+  <div class="phone-outer">
+    <div class="phone-label label-option-a">方案 A：评分圆环</div>
+    <div class="phone-frame"><div class="phone-screen">
+      <div class="hdr-gradient">
+        <span class="hdr-icon">←</span>
+        <span>亚硝酸钠 (E250)</span>
+        <span class="hdr-spacer"></span>
+        <span class="hdr-icon">⬆</span>
+      </div>
+      <div class="sb">
+        <div class="ring-hero">
+          <div class="ring">8.5</div>
+          <div class="ring-info">
+            <strong>高风险添加剂</strong>
+            风险评分 8.5/10<br/>
+            E250 · 防腐剂 · 护色剂<br/>
+            <span>✕ 孕妇禁用</span>
+          </div>
+        </div>
+        <div class="sec-title">⚠ AI 风险分析</div>
+        <div class="list-item"><span class="dot-red">✕</span><span>可能形成致癌物质亚硝胺</span></div>
+        <div class="list-item"><span class="dot-red">✕</span><span>WHO 2A 类致癌物</span></div>
+        <div class="list-item"><span class="dot-red">✕</span><span>孕妇和儿童应避免摄入</span></div>
+        <div class="sec-title">风险管理信息</div>
+        <div class="kv-row"><span class="kv-l">WHO 致癌等级</span><span class="kv-r red">Group 2A</span></div>
+        <div class="kv-row"><span class="kv-l">母婴等级</span><span class="kv-r">高风险，孕妇禁用</span></div>
+        <div class="kv-row"><span class="kv-l">使用限量</span><span class="kv-r">≤ 0.15g/kg</span></div>
+      </div>
+      <div class="bot-bar">
+        <div class="bot-btn-outline">咨询AI助手</div>
+        <div class="bot-btn-primary">查看相关食品</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Option B (Recommended) -->
+  <div class="phone-outer">
+    <div class="phone-label label-option-b">方案 B：风险谱条 ★推荐</div>
+    <div class="phone-frame"><div class="phone-screen">
+      <div class="hdr-gradient">
+        <span class="hdr-icon">←</span>
+        <span>亚硝酸钠 (E250)</span>
+        <span class="hdr-spacer"></span>
+        <span class="hdr-icon">⬆</span>
+      </div>
+      <div class="sb">
+        <div class="risk-hero">
+          <div class="risk-hero-top">
+            <div class="risk-title">亚硝酸钠</div>
+            <div class="risk-badge-b">高风险</div>
+          </div>
+          <div style="font-size:6.5px;color:#6b7280;margin-bottom:3px">E250 · 防腐剂 · 护色剂 · 化学合成</div>
+          <div class="risk-bar-wrap">
+            <div class="risk-bar"><div class="risk-needle"></div></div>
+          </div>
+          <div class="risk-labels"><span>低风险</span><span>中等</span><span>高风险</span></div>
+          <div class="risk-meta"><strong>✕ 孕妇禁用</strong> · WHO Group 2A</div>
+        </div>
+        <div class="sec-title">⚠ AI 风险分析</div>
+        <div class="list-item"><span class="dot-red">✕</span><span>可能形成致癌物质亚硝胺</span></div>
+        <div class="list-item"><span class="dot-red">✕</span><span>WHO 2A 类致癌物</span></div>
+        <div class="list-item"><span class="dot-red">✕</span><span>孕妇和儿童应避免摄入</span></div>
+        <div class="sec-title">风险管理信息</div>
+        <div class="kv-row"><span class="kv-l">WHO 致癌等级</span><span class="kv-r red">Group 2A</span></div>
+        <div class="kv-row"><span class="kv-l">母婴等级</span><span class="kv-r">高风险，孕妇禁用</span></div>
+        <div class="kv-row"><span class="kv-l">使用限量</span><span class="kv-r">≤ 0.15g/kg</span></div>
+      </div>
+      <div class="bot-bar">
+        <div class="bot-btn-outline">咨询AI助手</div>
+        <div class="bot-btn-primary">查看相关食品</div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+
+<div class="verdict">
+  <h3>为什么推荐方案 B</h3>
+  <ul>
+    <li>风险是等级概念（低/中/高），色阶条比数字更诚实 —— 不会让用户追问"8.5 是怎么算的"</li>
+    <li>与 product-detail 的评分圈形成视觉层级：产品用圆环（综合评分），成分用谱条（单一风险），语义清晰</li>
+    <li>颜色即信息：绿→红渐变是通用认知，三种入口的用户都能零学习成本读懂</li>
+    <li>空间紧凑：在 hero card 内部就解决了名称 + 风险级别 + 关键元数据的展示，不额外占位</li>
+  </ul>
+</div>

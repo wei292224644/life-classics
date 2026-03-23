@@ -1,0 +1,280 @@
+<style>
+  .analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .issue-card {
+    background: #fff8f8;
+    border: 1.5px solid #fecaca;
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .ok-card {
+    background: #f0fdf4;
+    border: 1.5px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .issue-card h4 { color: #dc2626; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+  .ok-card h4 { color: #16a34a; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+  .issue-card p, .ok-card p { color: #374151; font-size: 12px; line-height: 1.5; }
+  .mockup-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 16px 0;
+  }
+  .phone-frame {
+    background: #1a1a1a;
+    border-radius: 24px;
+    padding: 10px;
+    max-width: 200px;
+    margin: 0 auto;
+  }
+  .phone-screen {
+    background: #f9f9f9;
+    border-radius: 16px;
+    overflow: hidden;
+    font-size: 9px;
+  }
+  .screen-header-plain {
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 9px;
+  }
+  .screen-header-gradient {
+    background: linear-gradient(135deg, #e11d48, #f43f5e);
+    color: white;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 9px;
+  }
+  .screen-body { padding: 8px; }
+  .screen-badge-sm {
+    background: #ef4444;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 8px;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  .screen-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin: 4px 0;
+  }
+  .screen-tag {
+    background: #f3f4f6;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 7px;
+    color: #374151;
+  }
+  .screen-risk-meter {
+    background: linear-gradient(to right, #22c55e 0%, #facc15 50%, #ef4444 80%, #dc2626 100%);
+    height: 6px;
+    border-radius: 3px;
+    margin: 6px 0;
+    position: relative;
+  }
+  .screen-risk-needle {
+    position: absolute;
+    right: 15%;
+    top: -3px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border: 2px solid #dc2626;
+    border-radius: 50%;
+  }
+  .screen-section-title {
+    font-weight: 700;
+    font-size: 9px;
+    margin: 6px 0 3px;
+    color: #111;
+  }
+  .screen-list-item {
+    display: flex;
+    gap: 4px;
+    align-items: flex-start;
+    margin-bottom: 3px;
+    font-size: 7px;
+    color: #374151;
+  }
+  .screen-dot-red { color: #ef4444; flex-shrink: 0; }
+  .screen-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 7px;
+  }
+  .label-left { color: #9ca3af; }
+  .label-right { color: #111; font-weight: 500; }
+  .label-right.red { color: #dc2626; }
+  .score-ring-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    background: linear-gradient(135deg, rgba(225,29,72,0.08), rgba(244,63,94,0.08));
+    border-radius: 8px;
+    margin: 4px 0;
+    border: 1px solid rgba(225,29,72,0.15);
+  }
+  .score-ring {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #ef4444;
+    flex-shrink: 0;
+  }
+  .score-ring-text { font-size: 7.5px; color: #374151; }
+  .score-ring-text strong { display: block; color: #111; font-size: 8.5px; }
+  .frame-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .frame-label.current { color: #6b7280; }
+  .frame-label.improved { color: #2563eb; }
+  .badge-row { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+  .badge-caution { font-size: 7px; color: #6b7280; }
+</style>
+
+<h2>ingredient-detail.html 设计分析</h2>
+<p class="subtitle">对比 product-detail 风格，识别出 5 个关键改进点</p>
+
+<div class="mockup-pair">
+  <!-- Current Design -->
+  <div>
+    <p class="frame-label current">当前设计</p>
+    <div class="phone-frame">
+      <div class="phone-screen">
+        <div class="screen-header-plain">
+          <span>←</span>
+          <span>亚硝酸钠 (E250)</span>
+          <span style="margin-left:auto">⬆</span>
+        </div>
+        <div class="screen-body">
+          <div class="badge-row">
+            <span class="screen-badge-sm">⚠ 高风险</span>
+            <span class="badge-caution">· 谨慎使用</span>
+          </div>
+          <div style="font-size:7px;color:#374151;margin-bottom:6px;line-height:1.4">
+            <span style="color:#dc2626;font-weight:600">AI 分析：</span>该配料被识别为高风险添加剂，长期大量摄入…
+          </div>
+          <div class="screen-tags">
+            <span class="screen-tag">名称 亚硝酸钠</span>
+            <span class="screen-tag">代码 E250</span>
+            <span class="screen-tag">功能 防腐剂</span>
+            <span class="screen-tag">来源 化学合成</span>
+          </div>
+          <div class="screen-section-title">描述</div>
+          <div style="font-size:7px;color:#6b7280;line-height:1.4">亚硝酸钠是一种常用的食品添加剂，主要用于肉类制品…</div>
+          <div class="screen-section-title">⚠ AI 风险分析</div>
+          <div class="screen-list-item"><span class="screen-dot-red">✕</span><span>可能形成致癌物质亚硝胺</span></div>
+          <div class="screen-list-item"><span class="screen-dot-red">✕</span><span>WHO 2A 类致癌物</span></div>
+          <div class="screen-section-title">风险管理信息</div>
+          <div class="screen-row"><span class="label-left">WHO 致癌等级</span><span class="label-right red">Group 2A</span></div>
+          <div class="screen-row"><span class="label-left">母婴等级</span><span class="label-right">高风险，孕妇禁用</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Improved Design -->
+  <div>
+    <p class="frame-label improved">改进方向</p>
+    <div class="phone-frame">
+      <div class="phone-screen">
+        <div class="screen-header-gradient">
+          <span>←</span>
+          <span>亚硝酸钠 (E250)</span>
+          <span style="margin-left:auto">⬆</span>
+        </div>
+        <div class="screen-body">
+          <!-- Risk score ring (like product detail health score) -->
+          <div class="score-ring-area">
+            <div class="score-ring">8.5</div>
+            <div class="score-ring-text">
+              <strong>高风险添加剂</strong>
+              风险评分 8.5/10 · E250<br/>
+              <span style="color:#dc2626">✕ 孕妇禁用</span>
+            </div>
+          </div>
+          <!-- Info tags in cleaner grid -->
+          <div class="screen-tags" style="margin:4px 0">
+            <span class="screen-tag" style="background:#fff0f0;color:#dc2626">防腐剂</span>
+            <span class="screen-tag" style="background:#fff0f0;color:#dc2626">护色剂</span>
+            <span class="screen-tag" style="background:#f3f4f6">化学合成</span>
+            <span class="screen-tag" style="background:#f3f4f6">E250</span>
+          </div>
+          <!-- Risk meter -->
+          <div style="font-size:7px;color:#6b7280;margin-top:4px">风险程度</div>
+          <div class="screen-risk-meter">
+            <div class="screen-risk-needle"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:6.5px;color:#9ca3af;margin-bottom:4px">
+            <span>低风险</span><span>中等</span><span>高风险</span>
+          </div>
+          <div class="screen-section-title">⚠ AI 风险分析</div>
+          <div class="screen-list-item"><span class="screen-dot-red">✕</span><span>可能形成致癌物质亚硝胺</span></div>
+          <div class="screen-list-item"><span class="screen-dot-red">✕</span><span>WHO 2A 类致癌物</span></div>
+          <div class="screen-section-title">风险管理信息</div>
+          <div class="screen-row"><span class="label-left">WHO 致癌等级</span><span class="label-right red">Group 2A</span></div>
+          <div class="screen-row"><span class="label-left">母婴等级</span><span class="label-right">高风险，孕妇禁用</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>识别出的主要问题</h3>
+  <div class="analysis-grid">
+    <div class="issue-card">
+      <h4>① Header 风格不一致</h4>
+      <p>product-detail 使用渐变 header（gradient-primary），ingredient-detail 用的是纯白 bg-white。两页之间视觉语言断裂。</p>
+    </div>
+    <div class="issue-card">
+      <h4>② 缺少风险可视化</h4>
+      <p>product-detail 有健康评分圈和数值，配料页只有一个小徽章。作为高风险重点内容，缺乏数字化/图形化的风险表达。</p>
+    </div>
+    <div class="issue-card">
+      <h4>③ 信息标签布局拥挤</h4>
+      <p>名称/代码/功能/来源四个标签把 label 和 value 混在同一个 pill 里，读起来不直觉，且无法区分类别重要性。</p>
+    </div>
+    <div class="issue-card">
+      <h4>④ 图标语义错误</h4>
+      <p>"AI 使用建议"的第4条（搭配维C）用了 ✕ 图标（负面含义），但内容是正向建议。应换为 ✓ 图标。</p>
+    </div>
+    <div class="ok-card">
+      <h4>✓ 已做好的部分</h4>
+      <p>卡片布局、圆角、间距、深色模式变量与 product-detail 保持一致。底部双按钮 sticky bar 复用了相同模式。</p>
+    </div>
+    <div class="issue-card">
+      <h4>⑤ 缺少"出现在哪些产品"区块</h4>
+      <p>用户从产品配料列表点进来后，自然会想知道哪些其他产品也含有此配料。product-detail 有相关食品链接，配料页没有。</p>
+    </div>
+  </div>
+</div>

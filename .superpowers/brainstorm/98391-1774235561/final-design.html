@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>配料详情 最终设计稿</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, 'Inter', sans-serif;
+  background: #0a0a0f;
+  min-height: 100vh;
+  padding: 40px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+h1 { color: white; font-size: 22px; font-weight: 700; text-align: center; }
+.page-sub { color: rgba(255,255,255,0.45); font-size: 13px; text-align: center; margin-top: 4px; }
+
+.phones-row {
+  display: flex;
+  gap: 36px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.phone-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.mode-badge {
+  font-size: 11px; font-weight: 600;
+  padding: 3px 12px; border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+.mode-light { background: #f3f4f6; color: #374151; }
+.mode-dark  { background: #1f2937; color: #9ca3af; }
+
+/* Phone Shell */
+.phone-shell {
+  background: #141414;
+  border-radius: 52px;
+  padding: 12px;
+  width: 290px;
+  box-shadow: 0 0 0 1px #2a2a2a, 0 32px 64px rgba(0,0,0,0.7), inset 0 0 0 2px #1a1a1a;
+}
+.phone-notch {
+  background: #141414;
+  width: 90px; height: 22px;
+  border-radius: 0 0 16px 16px;
+  margin: 0 auto -5px;
+  position: relative; z-index: 2;
+}
+.phone-screen {
+  border-radius: 40px;
+  overflow: hidden;
+  height: 620px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  position: relative;
+}
+.phone-screen::-webkit-scrollbar { display: none; }
+
+/* ═══════ LIGHT MODE ═══════ */
+.screen-l {
+  background: oklch(99.405% 0.00011 271.152);
+  --fg: oklch(0.2277 0.0105 312.0161);
+  --card: #ffffff;
+  --muted: oklch(0.967 0.0106 316.4921);
+  --muted-fg: oklch(0.5653 0.021 306.4429);
+  --border: oklch(0.9419 0.016 310.0997);
+  --risk-red: #dc2626;
+  --risk-bg: #fff1f2;
+  --risk-border: #fecaca;
+  --risk-btn: rgba(220,38,38,0.1);
+  --risk-title: #7f1d1d;
+  --risk-sub: #dc2626;
+  --section-bg: #ffffff;
+  --row-border: #f3f4f6;
+  --kv-val: #111827;
+  --kv-val-red: #dc2626;
+  --chip-red-bg: #fff0f0;
+  --chip-red-c: #dc2626;
+  --chip-red-b: #fecaca;
+  --chip-warn-bg: #fefce8;
+  --chip-warn-c: #a16207;
+  --chip-warn-b: #fde68a;
+  --chip-neu-bg: oklch(0.967 0.0106 316.4921);
+  --chip-neu-c: oklch(0.4536 0.0226 309.5036);
+  --related-bg: oklch(0.967 0.0106 316.4921);
+  --related-img: #e5e7eb;
+  --bot-bg: #ffffff;
+  --btn-out-c: #111827;
+  --ai-c1: oklch(58.994% 0.20151 350.346);
+  --ai-c2: oklch(0.6747 0.1492 345.9482);
+  --desc-c: oklch(0.5653 0.021 306.4429);
+  --kv-l: oklch(0.5653 0.021 306.4429);
+}
+
+/* ═══════ DARK MODE ═══════ */
+.screen-d {
+  background: oklch(0.1836 0.0111 311.9111);
+  --fg: oklch(0.9788 0.0057 308.3962);
+  --card: oklch(0.1836 0.0111 311.9111);
+  --muted: oklch(0.2551 0.0142 310.7968);
+  --muted-fg: oklch(0.6288 0.0177 309.9946);
+  --border: oklch(0.2941 0.0175 310.1142);
+  --risk-red: #f87171;
+  --risk-bg: #1a0808;
+  --risk-border: #7f1d1d;
+  --risk-btn: rgba(248,113,113,0.15);
+  --risk-title: #fca5a5;
+  --risk-sub: #f87171;
+  --section-bg: oklch(0.2551 0.0142 310.7968);
+  --row-border: oklch(0.2941 0.0175 310.1142);
+  --kv-val: oklch(0.9788 0.0057 308.3962);
+  --kv-val-red: #f87171;
+  --chip-red-bg: #450a0a;
+  --chip-red-c: #fca5a5;
+  --chip-red-b: transparent;
+  --chip-warn-bg: #3b1a00;
+  --chip-warn-c: #fcd34d;
+  --chip-warn-b: transparent;
+  --chip-neu-bg: oklch(0.2941 0.0175 310.1142);
+  --chip-neu-c: oklch(0.721 0.0184 308.1777);
+  --related-bg: oklch(0.2551 0.0142 310.7968);
+  --related-img: oklch(0.2941 0.0175 310.1142);
+  --bot-bg: oklch(0.2551 0.0142 310.7968);
+  --btn-out-c: oklch(0.9788 0.0057 308.3962);
+  --ai-c1: oklch(0.6747 0.1492 345.9482);
+  --ai-c2: oklch(58.994% 0.20151 350.346);
+  --desc-c: oklch(0.6288 0.0177 309.9946);
+  --kv-l: oklch(0.6288 0.0177 309.9946);
+}
+
+/* ─── Header: Risk-tinted (Option B) ─── */
+.hdr {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--risk-bg);
+  border-bottom: 2px solid var(--risk-border);
+  padding: 12px 14px 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hdr-btn {
+  width: 30px; height: 30px; border-radius: 9px;
+  background: var(--risk-btn);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.hdr-btn svg { width: 14px; height: 14px; stroke: var(--risk-red); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hdr-title  { font-size: 14px; font-weight: 700; color: var(--risk-title); flex: 1; }
+.hdr-sub    { font-size: 10px; color: var(--risk-sub); display: block; font-weight: 600; margin-top: 1px; }
+
+/* ─── Content ─── */
+.content { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+
+/* ─── Hero card ─── */
+.hero {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.hero-top {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--risk-bg) 60%, transparent) 0%, transparent 100%);
+  border-bottom: 1px solid var(--risk-border);
+  padding: 12px 12px 10px;
+}
+.hero-row1 { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+.ing-name { font-size: 18px; font-weight: 800; color: var(--fg); }
+.ing-code { font-size: 11px; color: var(--muted-fg); margin-top: 2px; }
+.risk-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--risk-red); color: white;
+  padding: 4px 9px; border-radius: 7px;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.risk-badge svg { width: 11px; height: 11px; fill: white; }
+
+.meter-bar {
+  height: 7px; border-radius: 4px;
+  background: linear-gradient(to right, #22c55e 0%, #86efac 20%, #facc15 45%, #fb923c 65%, #ef4444 82%, #dc2626 100%);
+  position: relative; margin: 2px 0 4px;
+}
+.meter-needle {
+  position: absolute; right: 14%; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--card);
+  border: 2.5px solid var(--risk-red);
+  box-shadow: 0 2px 6px rgba(220,38,38,0.35);
+}
+.meter-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted-fg); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px 12px 11px; }
+.chip { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 500; }
+.chip-func { background: var(--chip-red-bg); color: var(--chip-red-c); border: 1px solid var(--chip-red-b); }
+.chip-warn { background: var(--chip-warn-bg); color: var(--chip-warn-c); border: 1px solid var(--chip-warn-b); }
+.chip-neu  { background: var(--chip-neu-bg); color: var(--chip-neu-c); }
+
+/* ─── Section card ─── */
+.sec {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.sec-hdr {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 12px 9px;
+  border-bottom: 1px solid var(--border);
+}
+.sec-hdr h3 { font-size: 13px; font-weight: 700; color: var(--fg); }
+.sec-icon { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.si-red  { background: var(--chip-red-bg); }
+.si-red  svg { width: 11px; height: 11px; fill: var(--chip-red-c); }
+.si-prim { background: color-mix(in srgb, var(--ai-c1) 15%, transparent); }
+.si-prim svg { width: 11px; height: 11px; fill: var(--ai-c1); }
+.si-blue { background: #eff6ff; }
+.si-blue svg { width: 11px; height: 11px; fill: #3b82f6; }
+.screen-d .si-blue { background: #1e3a5f; }
+.screen-d .si-blue svg { fill: #60a5fa; }
+.ai-label {
+  margin-left: auto; font-size: 9.5px; font-weight: 700;
+  background: linear-gradient(135deg, var(--ai-c1), var(--ai-c2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Description */
+.desc-body { padding: 11px 12px; }
+.desc-body p { font-size: 12px; color: var(--desc-c); line-height: 1.7; }
+
+/* Risk list */
+.risk-list { padding: 9px 12px 11px; display: flex; flex-direction: column; gap: 8px; }
+.risk-item { display: flex; align-items: flex-start; gap: 8px; }
+.rdot {
+  width: 18px; height: 18px; border-radius: 5px;
+  background: var(--chip-red-bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.rdot svg { width: 10px; height: 10px; fill: var(--chip-red-c); }
+.rtext { font-size: 12px; color: var(--fg); line-height: 1.55; }
+
+/* KV table */
+.kv-wrap { padding: 3px 0; }
+.kv { display: flex; align-items: flex-start; justify-content: space-between; padding: 9px 12px; gap: 10px; }
+.kv + .kv { border-top: 1px solid var(--row-border); }
+.kv-l { font-size: 11.5px; color: var(--kv-l); flex-shrink: 0; }
+.kv-r { font-size: 11.5px; font-weight: 500; color: var(--kv-val); text-align: right; }
+.kv-r.red { color: var(--kv-val-red); }
+
+/* Suggestions */
+.sugg-list { padding: 9px 12px 11px; display: flex; flex-direction: column; gap: 8px; }
+.sugg-item { display: flex; align-items: flex-start; gap: 8px; }
+.sdot-good { background: #f0fdf4; }
+.sdot-good svg { fill: #22c55e; }
+.screen-d .sdot-good { background: #052e16; }
+.screen-d .sdot-good svg { fill: #4ade80; }
+.sdot-warn { background: #fffbeb; }
+.sdot-warn svg { fill: #f59e0b; }
+.screen-d .sdot-warn { background: #3b1a00; }
+.screen-d .sdot-warn svg { fill: #fbbf24; }
+.sdot {
+  width: 18px; height: 18px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.sdot svg { width: 10px; height: 10px; }
+.stext { font-size: 12px; color: var(--fg); line-height: 1.55; }
+
+/* Related products */
+.rel-scroll { overflow-x: auto; scrollbar-width: none; padding: 9px 0 11px; }
+.rel-scroll::-webkit-scrollbar { display: none; }
+.rel-track { display: flex; gap: 8px; padding: 0 12px; width: max-content; }
+.rel-card {
+  width: 86px; background: var(--related-bg);
+  border: 1px solid var(--border);
+  border-radius: 11px; padding: 8px; flex-shrink: 0;
+}
+.rel-img {
+  width: 100%; height: 48px; border-radius: 7px;
+  background: var(--related-img);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 6px;
+}
+.rel-name { font-size: 10px; font-weight: 600; color: var(--fg); line-height: 1.3; margin-bottom: 4px; }
+.rel-risk { font-size: 9px; padding: 1px 5px; border-radius: 4px; display: inline-block; font-weight: 500; }
+.rr-high { background: var(--chip-red-bg); color: var(--chip-red-c); }
+.rr-med  { background: var(--chip-warn-bg); color: var(--chip-warn-c); }
+
+/* Bottom bar */
+.bot {
+  position: sticky; bottom: 0;
+  background: var(--bot-bg);
+  border-top: 1px solid var(--border);
+  padding: 9px 12px; display: flex; gap: 8px;
+}
+.btn-out {
+  flex: 1; border: 1px solid var(--border);
+  background: transparent; border-radius: 11px;
+  padding: 9px; font-size: 12px; font-weight: 600;
+  color: var(--btn-out-c); text-align: center;
+}
+.btn-pri {
+  flex: 1; border-radius: 11px; padding: 9px;
+  font-size: 12px; font-weight: 600; color: white; text-align: center;
+  background: linear-gradient(135deg, oklch(58.994% 0.20151 350.346) 0%, oklch(0.6747 0.1492 345.9482) 100%);
+  box-shadow: 0 4px 12px rgba(225,29,72,0.3);
+}
+</style>
+</head>
+<body>
+
+<div>
+  <h1>配料详情 · 最终设计稿</h1>
+  <p class="page-sub">Header 方案 B · 亮色 + 暗色完整预览</p>
+</div>
+
+<div class="phones-row">
+
+  <!-- ─── LIGHT MODE ─── -->
+  <div class="phone-col">
+    <div class="mode-badge mode-light">☀ 亮色模式</div>
+    <div class="phone-shell">
+      <div class="phone-notch"></div>
+      <div class="phone-screen screen-l">
+
+        <div class="hdr">
+          <div class="hdr-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div style="flex:1">
+            <span class="hdr-title">配料详情</span>
+            <span class="hdr-sub">⚠ 高风险 · 谨慎摄入</span>
+          </div>
+          <div class="hdr-btn"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
+        </div>
+
+        <div class="content">
+
+          <div class="hero">
+            <div class="hero-top">
+              <div class="hero-row1">
+                <div>
+                  <div class="ing-name">亚硝酸钠</div>
+                  <div class="ing-code">E250 · 食品添加剂</div>
+                </div>
+                <div class="risk-badge">
+                  <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                  高风险
+                </div>
+              </div>
+              <div class="meter-bar"><div class="meter-needle"></div></div>
+              <div class="meter-labels"><span>低风险</span><span>中等</span><span>高风险</span></div>
+            </div>
+            <div class="chips">
+              <span class="chip chip-func">防腐剂</span>
+              <span class="chip chip-func">护色剂</span>
+              <span class="chip chip-neu">化学合成</span>
+              <span class="chip chip-warn">⚠ 孕妇禁用</span>
+              <span class="chip chip-neu">别名：E250</span>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-hdr">
+              <div class="sec-icon si-blue"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></div>
+              <h3>描述</h3>
+            </div>
+            <div class="desc-body"><p>亚硝酸钠是一种常用的食品添加剂，主要用于肉类制品的防腐和护色。它能抑制肉毒杆菌的生长，同时保持肉类的红色外观。在特定条件下可能转化为亚硝胺类化合物，WHO 将其列为可能致癌物。</p></div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-hdr">
+              <div class="sec-icon si-red"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg></div>
+              <h3>AI 风险分析</h3>
+              <span class="ai-label">AI</span>
+            </div>
+            <div class="risk-list">
+              <div class="risk-item"><div class="rdot"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg></div><span class="rtext">可能形成致癌物质亚硝胺，长期摄入增加患癌风险</span></div>
+              <div class="risk-item"><div class="rdot"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg></div><span class="rtext">WHO 将其列为 2A 类致癌物（可能对人类致癌）</span></div>
+              <div class="risk-item"><div class="rdot"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg></div><span class="rtext">孕妇和儿童应避免或限制含有此添加剂的食物</span></div>
+              <div class="risk-item"><div class="rdot"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg></div><span class="rtext">过量摄入可能导致急性中毒，出现头痛、恶心症状</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-hdr">
+              <div class="sec-icon si-blue"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div>
+              <h3>风险管理信息</h3>
+            </div>
+            <div class="kv-wrap">
+              <div class="kv"><span class="kv-l">WHO 致癌等级</span><span class="kv-r red">Group 2A</span></div>
+              <div class="kv"><span class="kv-l">母婴等级</span><span class="kv-r red">高风险，孕妇禁用</span></div>
+              <div class="kv"><span class="kv-l">过敏信息</span><span class="kv-r">一般无过敏反应</span></div>
+              <div class="kv"><span class="kv-l">使用限量</span><span class="kv-r">≤ 0.15g/kg</span></div>
+              <div class="kv"><span class="kv-l">适用区域</span><span class="kv-r">中国、欧盟、美国</span></div>
+              <div class="kv"><span class="kv-l">执行标准</span><span class="kv-r">GB 2760-2014</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-hdr">
+              <div class="sec-icon si-prim"><svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg></div>
+              <h3>AI 使用建议</h3>
+              <span class="ai-label">AI</span>
+            </div>
+            <div class="sugg-list">
+              <div class="sugg-item"><div class="sdot sdot-good"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div><span class="stext">建议减少或避免食用含有亚硝酸钠的加工肉类制品</span></div>
+              <div class="sugg-item"><div class="sdot sdot-good"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div><span class="stext">孕妇、儿童和老年人应特别注意，尽量避免摄入</span></div>
+              <div class="sugg-item"><div class="sdot sdot-good"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div><span class="stext">如必须食用，选择添加量符合国家标准的产品</span></div>
+              <div class="sugg-item"><div class="sdot sdot-warn"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div><span class="stext">建议搭配富含维生素 C 的食物，可减少亚硝胺的形成</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-hdr">
+              <div class="sec-icon si-blue"><svg viewBox="0 0 20 20"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+              <h3>含此配料的产品</h3>
+            </div>
+            <div class="rel-scroll">
+              <div class="rel-track">
+                <div class="rel-card"><div class="rel-img">🥫</div><div class="rel-name">午餐肉罐头</div><span class="rel-risk rr-high">高风险</span></div>
+                <div class="rel-card"><div class="rel-img">🌭</div><div class="rel-name">火腿肠</div><span class="rel-risk rr-high">高风险</span></div>
+                <div class="rel-card"><div class="rel-img">🥩</div><div class="rel-name">培根片</div><span class="rel-risk rr-med">中等风险</span></div>
+                <div class="rel-card"><div class="rel-img">🍖</div><div class="rel-name">烤肠</div><span class="rel-risk rr-high">高风险</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="bot">
+          <div class="btn-out">咨询 AI 助手</div>
+          <div class="btn-pri">查看相关食品</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── DARK MODE ─── -->
+  <div class="phone-col">
+    <div class="mode-badge mode-dark">🌙 暗色模式</div>
+    <div class="phone-shell">
+      <div class="phone-notch"></div>
+      <div class="phone-screen screen-d">
+
+        <div class="hdr">
+          <div class="hdr-btn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div style="flex:1">
+            <span class="hdr-title">配料详情</span>
+            <span class="hdr-sub">⚠ 高风险 · 谨慎摄入</span>
+          </div>
+          <div class="hdr-btn"><svg viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></div>
+        </div>
+
+        <div class="content">
+
+          <div class="hero">
+            <div class="hero-top">
+              <div class="hero-row1">
+                <div>
+                  <div class="ing-name">亚硝酸钠</div>
+                  <div class="ing-code">E250 · 食品添加剂</div>
+                </div>
+                <div class="risk-badge">
+                  <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                  高风险
+                </div>
+              </div>
+              <div class="meter-bar"><div class="meter-needle"></div></div>
+              <div class="meter-labels"><span>低风险</span><span>中等</span><span>高风险</span></div>
+            </div>
+            <div class="chips">
+              <span class="chip chip-func">防腐剂</span>
+              <span class="chip chip-func">护色剂</span>
+              <span class="chip chip-neu">化学合成</span>
+              <span class="chip chip-warn">⚠ 孕妇禁用</span>
+              <span class="chip chip-neu">别名：E250</span>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-hdr">
+              <div class="sec-icon si-blue"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></div>
+              <h3>描述</h3>
+            </div>
+            <div class="desc-body"><p>亚硝酸钠是一种常用的食品添加剂，主要用于肉类制品的防腐和护色。它能抑制肉毒杆菌的生长，同时保持肉类的红色外观。在特定条件下可能转化为亚硝胺类化合物，WHO 将其列为可能致癌物。</p></div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-hdr">
+              <div class="sec-icon si-red"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg></div>
+              <h3>AI 风险分析</h3>
+              <span class="ai-label">AI</span>
+            </div>
+            <div class="risk-list">
+              <div class="risk-item"><div class="rdot"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg></div><span class="rtext">可能形成致癌物质亚硝胺，长期摄入增加患癌风险</span></div>
+              <div class="risk-item"><div class="rdot"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg></div><span class="rtext">WHO 将其列为 2A 类致癌物（可能对人类致癌）</span></div>
+              <div class="risk-item"><div class="rdot"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg></div><span class="rtext">孕妇和儿童应避免或限制含有此添加剂的食物</span></div>
+              <div class="risk-item"><div class="rdot"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg></div><span class="rtext">过量摄入可能导致急性中毒，出现头痛、恶心症状</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-hdr">
+              <div class="sec-icon si-blue"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div>
+              <h3>风险管理信息</h3>
+            </div>
+            <div class="kv-wrap">
+              <div class="kv"><span class="kv-l">WHO 致癌等级</span><span class="kv-r red">Group 2A</span></div>
+              <div class="kv"><span class="kv-l">母婴等级</span><span class="kv-r red">高风险，孕妇禁用</span></div>
+              <div class="kv"><span class="kv-l">过敏信息</span><span class="kv-r">一般无过敏反应</span></div>
+              <div class="kv"><span class="kv-l">使用限量</span><span class="kv-r">≤ 0.15g/kg</span></div>
+              <div class="kv"><span class="kv-l">适用区域</span><span class="kv-r">中国、欧盟、美国</span></div>
+              <div class="kv"><span class="kv-l">执行标准</span><span class="kv-r">GB 2760-2014</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-hdr">
+              <div class="sec-icon si-prim"><svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg></div>
+              <h3>AI 使用建议</h3>
+              <span class="ai-label">AI</span>
+            </div>
+            <div class="sugg-list">
+              <div class="sugg-item"><div class="sdot sdot-good"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div><span class="stext">建议减少或避免食用含有亚硝酸钠的加工肉类制品</span></div>
+              <div class="sugg-item"><div class="sdot sdot-good"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div><span class="stext">孕妇、儿童和老年人应特别注意，尽量避免摄入</span></div>
+              <div class="sugg-item"><div class="sdot sdot-good"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div><span class="stext">如必须食用，选择添加量符合国家标准的产品</span></div>
+              <div class="sugg-item"><div class="sdot sdot-warn"><svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg></div><span class="stext">建议搭配富含维生素 C 的食物，可减少亚硝胺的形成</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-hdr">
+              <div class="sec-icon si-blue"><svg viewBox="0 0 20 20"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+              <h3>含此配料的产品</h3>
+            </div>
+            <div class="rel-scroll">
+              <div class="rel-track">
+                <div class="rel-card"><div class="rel-img">🥫</div><div class="rel-name">午餐肉罐头</div><span class="rel-risk rr-high">高风险</span></div>
+                <div class="rel-card"><div class="rel-img">🌭</div><div class="rel-name">火腿肠</div><span class="rel-risk rr-high">高风险</span></div>
+                <div class="rel-card"><div class="rel-img">🥩</div><div class="rel-name">培根片</div><span class="rel-risk rr-med">中等风险</span></div>
+                <div class="rel-card"><div class="rel-img">🍖</div><div class="rel-name">烤肠</div><span class="rel-risk rr-high">高风险</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="bot">
+          <div class="btn-out">咨询 AI 助手</div>
+          <div class="btn-pri">查看相关食品</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
