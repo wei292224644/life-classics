@@ -21,6 +21,20 @@ class IngredientResponse(BaseModel):
     analysis: IngredientAnalysis | None
 
 
+class ProductIngredientAnalysis(BaseModel):
+    level: str
+    reason: str | None
+
+
+class ProductIngredient(BaseModel):
+    id: int
+    name: str
+    who_level: str | None
+    function_type: str | None
+    allergen_info: str | None
+    analysis: "ProductIngredientAnalysis | None"
+
+
 class NutritionResponse(BaseModel):
     name: str
     alias: list[str]
@@ -47,5 +61,5 @@ class ProductResponse(BaseModel):
     net_content: str | None
     image_url_list: list[str]
     nutritions: list[NutritionResponse]
-    ingredients: list[IngredientResponse]
+    ingredients: list[ProductIngredient]
     analysis: list[AnalysisResponse]
