@@ -1,11 +1,7 @@
 <template>
-  <view
-    class="ingredient-detail-page"
-    :class="{ 'dark-mode': isDark }"
-    :style="pageStyle"
-  >
+  <view class="ingredient-detail-page">
     <!-- ── 自定义 Header ──────────────────────────── -->
-    <view class="ing-header" :style="headerStyle">
+    <view class="ing-header" :class="riskClass">
       <!-- 状态栏占位（动态高度） -->
       <view :style="{ height: statusBarHeight + 'px' }" />
       <view class="header-content">
@@ -49,7 +45,7 @@
               <text class="hero-name">{{ ingredient.name }}</text>
               <text v-if="ingredient.additive_code" class="hero-code">{{ ingredient.additive_code }} · 食品添加剂</text>
             </view>
-            <view class="risk-badge" :style="badgeStyle">
+            <view class="risk-badge" :class="riskClass">
               <text class="badge-icon">{{ riskConf.icon }}</text>
               <text class="badge-text">{{ riskConf.badge }}</text>
             </view>
@@ -240,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue"
+import { ref, computed, onMounted } from "vue"
 import { onLoad } from "@dcloudio/uni-app"
 import { useIngredientStore } from "../../store/ingredient"
 import { useProductStore } from "../../store/product"
@@ -301,22 +297,9 @@ onLoad(async (options) => {
 // ── 状态栏高度（动态读取，适配各机型） ──────────────────────
 const statusBarHeight = ref(0)
 
-// ── 暗色模式 ─────────────────────────────────────────────
-const isDark = ref(false)
-
-const handleThemeChange = ({ theme }: { theme: string }) => {
-  isDark.value = theme === "dark"
-}
-
 onMounted(() => {
   const info = uni.getSystemInfoSync()
   statusBarHeight.value = info.statusBarHeight ?? 0
-  isDark.value = info.theme === "dark"
-  uni.onThemeChange(handleThemeChange)
-})
-
-onUnmounted(() => {
-  uni.offThemeChange(handleThemeChange)
 })
 
 // ── 风险等级 ─────────────────────────────────────────────
@@ -329,37 +312,8 @@ const headerSubtitle = computed(() => {
   return riskConf.value.subtitleNoProduct
 })
 
-// ── Inline CSS Vars（风险色调 Header） ───────────────────
-const pageStyle = computed(() => {
-  const c = riskConf.value
-  const isD = isDark.value
-  return {
-    "--fg": isD ? "oklch(0.9788 0.0057 308.3962)" : "oklch(0.2277 0.0105 312.0161)",
-    "--muted-fg": isD ? "oklch(0.6288 0.0177 309.9946)" : "oklch(0.5653 0.021 306.4429)",
-    "--card-bg": isD ? "oklch(0.1836 0.0111 311.9111)" : "#ffffff",
-    "--border-color": isD ? "oklch(0.2941 0.0175 310.1142)" : "oklch(0.9419 0.016 310.0997)",
-    "--risk-bg": isD ? c.headerBgDark : c.headerBgLight,
-    "--risk-border": isD ? c.headerBorderDark : c.headerBorderLight,
-    "--risk-red": isD ? "#f87171" : "#dc2626",
-    "--risk-title": isD ? c.headerTitleDark : c.headerTitleLight,
-    "--risk-sub": isD ? c.headerSubDark : c.headerSubLight,
-    "--risk-btn": isD ? c.headerBtnDark : c.headerBtnLight,
-    "--chip-red-bg": isD ? "rgba(248,113,113,0.15)" : "rgba(239,68,68,0.08)",
-    "--chip-red-c": isD ? "#fca5a5" : "#dc2626",
-    "--chip-red-b": isD ? "transparent" : "rgba(239,68,68,0.2)",
-    "--chip-warn-bg": isD ? "#3b1a00" : "rgba(234,179,8,0.1)",
-    "--chip-warn-c": isD ? "#fcd34d" : "#a16207",
-    "--chip-warn-b": isD ? "transparent" : "rgba(234,179,8,0.25)",
-    "--chip-neu-bg": isD ? "oklch(0.2941 0.0175 310.1142)" : "oklch(0.967 0.0106 316.4921)",
-    "--chip-neu-c": isD ? "oklch(0.721 0.0184 308.1777)" : "oklch(0.4536 0.0226 309.5036)",
-    "--kv-val-red": isD ? "#f87171" : "#dc2626",
-  }
-})
-
-const headerStyle = computed(() => ({
-  background: "var(--risk-bg)",
-  borderBottom: `1px solid var(--risk-border)`,
-}))
+// ── Risk class ───────────────────────────────────────────
+const riskClass = computed(() => `risk-${riskConf.value.visualKey}`)
 
 const heroCardStyle = computed(() => ({
   background: "var(--bg-card)",
@@ -370,10 +324,6 @@ const heroCardStyle = computed(() => ({
 const heroTopStyle = computed(() => ({
   background: `linear-gradient(135deg, var(--risk-bg) 60%, transparent 100%)`,
   borderBottom: "1px solid var(--risk-border)",
-}))
-
-const badgeStyle = computed(() => ({
-  background: riskConf.value.badgeBg,
 }))
 
 const spectrumOpacityStyle = computed(() =>
@@ -546,6 +496,23 @@ function goToProduct(barcode: string) {
 <style lang="scss" scoped>
 @import "@/styles/design-system.scss";
 
+// Risk level color classes — scoped to this component
+.risk-critical { --risk-header-bg: var(--palette-red-50); --risk-header-border: var(--palette-red-200); --risk-badge-bg: var(--palette-red-500); --risk-bg: var(--palette-red-50); --risk-border: var(--palette-red-200); }
+.risk-high      { --risk-header-bg: var(--palette-orange-50); --risk-header-border: var(--palette-orange-200); --risk-badge-bg: var(--palette-orange-500); --risk-bg: var(--palette-orange-50); --risk-border: var(--palette-orange-200); }
+.risk-medium    { --risk-header-bg: var(--palette-yellow-50); --risk-header-border: var(--palette-yellow-200); --risk-badge-bg: var(--palette-yellow-500); --risk-bg: var(--palette-yellow-50); --risk-border: var(--palette-yellow-200); }
+.risk-low       { --risk-header-bg: var(--palette-green-50); --risk-header-border: var(--palette-green-200); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-50); --risk-border: var(--palette-green-200); }
+.risk-safe      { --risk-header-bg: var(--palette-green-50); --risk-header-border: var(--palette-green-200); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-50); --risk-border: var(--palette-green-200); }
+.risk-unknown   { --risk-header-bg: var(--palette-gray-50); --risk-header-border: var(--palette-gray-200); --risk-badge-bg: var(--palette-gray-500); --risk-bg: var(--palette-gray-50); --risk-border: var(--palette-gray-200); }
+
+.dark-mode {
+  .risk-critical { --risk-header-bg: var(--palette-red-900); --risk-header-border: var(--palette-red-800); --risk-badge-bg: var(--palette-red-500); --risk-bg: var(--palette-red-900); --risk-border: var(--palette-red-800); }
+  .risk-high      { --risk-header-bg: var(--palette-orange-900); --risk-header-border: var(--palette-orange-800); --risk-badge-bg: var(--palette-orange-500); --risk-bg: var(--palette-orange-900); --risk-border: var(--palette-orange-800); }
+  .risk-medium    { --risk-header-bg: var(--palette-yellow-900); --risk-header-border: var(--palette-yellow-800); --risk-badge-bg: var(--palette-yellow-500); --risk-bg: var(--palette-yellow-900); --risk-border: var(--palette-yellow-800); }
+  .risk-low       { --risk-header-bg: var(--palette-green-950); --risk-header-border: var(--palette-green-800); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-950); --risk-border: var(--palette-green-800); }
+  .risk-safe      { --risk-header-bg: var(--palette-green-950); --risk-header-border: var(--palette-green-700); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-950); --risk-border: var(--palette-green-700); }
+  .risk-unknown   { --risk-header-bg: var(--palette-gray-800); --risk-header-border: var(--palette-gray-600); --risk-badge-bg: var(--palette-gray-500); --risk-bg: var(--palette-gray-800); --risk-border: var(--palette-gray-600); }
+}
+
 .ingredient-detail-page {
   height: 100vh;
   background: var(--bg-base);
@@ -561,6 +528,8 @@ function goToProduct(barcode: string) {
   top: 0;
   z-index: 100;
   flex-shrink: 0;
+  background: var(--risk-header-bg);
+  border-bottom: 1px solid var(--risk-header-border);
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
@@ -572,8 +541,8 @@ function goToProduct(barcode: string) {
 }
 
 .header-btn {
-  width: 80rpx;
-  height: 80rpx;
+  width: var(--space-20);
+  height: var(--space-20);
   border-radius: 24rpx;
   background: transparent;
   border: none;
@@ -590,8 +559,8 @@ function goToProduct(barcode: string) {
   appearance: none;
 
   svg {
-    width: 36rpx;
-    height: 36rpx;
+    width: var(--space-9);
+    height: var(--space-9);
     stroke-width: 2;
     color: #ffffff;
   }
@@ -623,7 +592,7 @@ function goToProduct(barcode: string) {
 }
 
 .header-spacer {
-  width: 72rpx; // 与 back-btn 等宽，保持标题居中
+  width: var(--space-18); // 与 back-btn 等宽，保持标题居中
 }
 
 // ── 加载态 ───────────────────────────────────────────────
@@ -802,6 +771,7 @@ function goToProduct(barcode: string) {
   padding: var(--space-2) var(--space-5);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+  background: var(--risk-badge-bg);
 }
 
 .badge-icon {
@@ -1020,7 +990,7 @@ function goToProduct(barcode: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48rpx;
+  font-size: var(--text-7xl);
 }
 
 .related-name {

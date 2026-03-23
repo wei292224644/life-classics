@@ -122,6 +122,7 @@
           <text v-else class="empty-text">暂无食用建议</text>
         </view>
 
+        <view class="bottom-spacer" />
       </view>
     </scroll-view>
 
@@ -368,7 +369,11 @@ const adviceItems = computed(() =>
 
 // ── 内容区 ────────────────────────────────────────────
 .content {
-  padding: var(--space-12) var(--space-10) 200rpx;
+  padding: var(--space-6) var(--space-6) 0;
+}
+
+.bottom-spacer {
+  height: 180rpx;
 }
 
 .section-title {

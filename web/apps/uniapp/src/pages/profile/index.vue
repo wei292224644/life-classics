@@ -156,14 +156,14 @@ function goBack() {
 .header-content {
   display: flex;
   align-items: center;
-  height: 88rpx;
+  height: var(--space-22);
   padding: 0 var(--space-4);
   gap: var(--space-3);
 }
 
 .header-btn {
-  width: 60rpx;
-  height: 60rpx;
+  width: var(--space-15);
+  height: var(--space-15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,8 +173,8 @@ function goBack() {
   border-radius: var(--radius-md);
 
   svg {
-    width: 36rpx;
-    height: 36rpx;
+    width: var(--space-9);
+    height: var(--space-9);
     color: var(--text-primary);
   }
 }
@@ -186,11 +186,11 @@ function goBack() {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
-  margin-right: 60rpx;
+  margin-right: var(--space-15);
 }
 
 .header-spacer {
-  width: 60rpx;
+  width: var(--space-15);
 }
 
 // ── Content ─────────────────────────────────────────────
@@ -233,8 +233,8 @@ function goBack() {
   box-shadow: var(--shadow-sm);
 
   svg {
-    width: 48rpx;
-    height: 48rpx;
+    width: var(--space-12);
+    height: var(--space-12);
     color: var(--text-muted);
   }
 }
@@ -283,8 +283,8 @@ function goBack() {
 }
 
 .menu-icon {
-  width: 40rpx;
-  height: 40rpx;
+  width: var(--space-10);
+  height: var(--space-10);
   color: var(--text-secondary);
 }
 
@@ -294,8 +294,8 @@ function goBack() {
 }
 
 .menu-arrow {
-  width: 32rpx;
-  height: 32rpx;
+  width: var(--space-8);
+  height: var(--space-8);
   color: var(--text-muted);
   opacity: 0.4;
 }

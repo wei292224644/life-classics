@@ -32,7 +32,7 @@ onMounted(async () => {
 
   .hint {
     color: #888;
-    font-size: 28rpx;
+    font-size: var(--text-xl);
   }
 }
 </style>

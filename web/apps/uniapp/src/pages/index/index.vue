@@ -189,19 +189,19 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .logo-emoji {
-  font-size: 52rpx;
+  font-size: var(--text-6xl);
   line-height: 1;
 }
 
 .logo-title {
-  font-size: 34rpx;
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
 .logo-sub {
-  font-size: 24rpx;
+  font-size: var(--text-md);
   color: var(--text-muted);
 }
 
@@ -243,8 +243,8 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .scan-cta-icon {
-  width: 72rpx;
-  height: 72rpx;
+  width: var(--space-18);
+  height: var(--space-18);
 }
 
 .scan-cta-text {
@@ -291,7 +291,7 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .section-label-text {
-  font-size: 22rpx;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -301,7 +301,7 @@ function handleRecentClick(item: RecentScan) {
 .scan-count {
   background: var(--palette-red-50);
   color: var(--palette-red-500);
-  font-size: 20rpx;
+  font-size: var(--text-sm);
   font-weight: 700;
   padding: var(--space-1) var(--space-3);
   border-radius: 9999rpx;
@@ -341,15 +341,15 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .scan-icon {
-  width: 80rpx;
-  height: 80rpx;
+  width: var(--space-20);
+  height: var(--space-20);
   border-radius: 20rpx;
   background: var(--bg-base);
   border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40rpx;
+  font-size: var(--text-5xl);
   flex-shrink: 0;
 }
 
@@ -360,7 +360,7 @@ function handleRecentClick(item: RecentScan) {
 
 .scan-name {
   display: block;
-  font-size: 28rpx;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
@@ -371,13 +371,13 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .scan-time {
-  font-size: 24rpx;
+  font-size: var(--text-md);
   color: var(--text-muted);
 }
 
 .scan-arrow {
-  width: 32rpx;
-  height: 32rpx;
+  width: var(--space-8);
+  height: var(--space-8);
   color: var(--text-muted);
   opacity: 0.4;
   flex-shrink: 0;
