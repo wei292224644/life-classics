@@ -112,8 +112,8 @@ onMounted(() => {
 
 // ── Header Style ────────────────────────────────────────
 const headerStyle = computed(() => ({
-  '--header-bg': themeStore.isDark ? 'var(--bg-card)' : 'var(--bg-base)',
-  '--header-text': themeStore.isDark ? 'var(--text-primary)' : 'var(--text-primary)',
+  '--header-bg': 'var(--bg-card)',
+  '--header-text': 'var(--text-primary)',
 }))
 
 // ── Search State ────────────────────────────────────────
