@@ -1,5 +1,5 @@
 <template>
-  <view
+  <page
     class="index-page"
     :class="{ 'dark-mode': isDark }"
   >
@@ -62,7 +62,7 @@
       </view>
     </view>
 
-  </view>
+  </page>
 </template>
 
 <script setup lang="ts">
