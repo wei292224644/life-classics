@@ -230,6 +230,7 @@ page {
   --space-18: 72rpx;
   --space-20: 80rpx;
   --text-sm: 20rpx;
+  --text-xs: 18rpx;
   --text-md: 24rpx;
   --text-lg: 26rpx;
   --text-xl: 28rpx;
@@ -239,7 +240,10 @@ page {
   --text-5xl: 40rpx;
   --text-6xl: 52rpx;
   --icon-sm: 28rpx;
+  --icon-md: 32rpx;
+  --icon-lg: 40rpx;
   --icon-xl: 40rpx;
+  --icon-xs: 24rpx;
   --radius-sm: 24rpx;
   --radius-md: 32rpx;
   --radius-lg: 40rpx;
@@ -248,6 +252,22 @@ page {
   --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 16rpx rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 32rpx rgba(0, 0, 0, 0.12);
+
+  // Button tokens (for backward compat during migration)
+  --btn-padding-x: 40rpx;
+  --btn-radius: 40rpx;
+  --btn-height-xl: 88rpx;
+
+  // Space px token (for backward compat during migration)
+  --space-px: 4rpx;
+
+  // Card padding tokens (for backward compat during migration)
+  --card-padding-sm: 16rpx;
+  --card-padding-md: 24rpx;
+  --card-padding-lg: 32rpx;
+  --card-padding-xl: 40rpx;
+  --card-padding-2xl: 48rpx;
+  --card-padding-3xl: 56rpx;
 }
 
 // ============================================================
