@@ -98,10 +98,6 @@ class IngredientResponse(BaseModel):
     analysis: IngredientAnalysis | None
 ```
 
-### `db_repositories/models.py`
-
-跨仓储共享的 domain 类型（当前为空，预留未来扩展）。
-
 ## Repository 层 dataclass
 
 ### `db_repositories/food.py`
@@ -244,11 +240,11 @@ def get_product_service(
 | 修改 | `api/product/router.py` — 改用 `ProductService` |
 | 修改 | `db_repositories/food.py` — `IngredientDetail` → `ProductIngredientDetail`（精简），移除原 `IngredientDetail` |
 | 修改 | `db_repositories/ingredient.py` — 保留自己的 `IngredientDetail`（完整） |
-| 新建 | `db_repositories/models.py` — 空文件，预留公共类型 |
 | 修改 | `tests/api/test_product.py` — 更新 mock 数据结构 |
 | 修改 | `db_repositories/__init__.py` — 更新导出 |
 
 ## 暂不处理
 
+- `db_repositories/models.py` — 当前两个 Repository 无共享类型，暂不创建该文件；未来有跨仓储类型时再引入
 - `IngredientDetail` 在 `food.py` 和 `ingredient.py` 中字段略有不同（后者的 `analysis` 是 `dict | None`，前者是 `AnalysisSummary`），暂不统一，留作后续观察
 - Service 层暂为薄层，不做复杂业务逻辑
