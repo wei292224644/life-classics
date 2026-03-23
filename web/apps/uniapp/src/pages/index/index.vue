@@ -1,10 +1,10 @@
 <template>
   <view
     class="index-page"
-    :class="{ 'dark-mode': isDark }"
+    :class="{ 'dark-mode': themeStore.isDark }"
   >
     <!-- ── 状态栏占位 ─────────────────────────── -->
-    <view :style="{ height: statusBarHeight + 'px' }" />
+    <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
 
     <!-- ── Logo 区域 ─────────────────────────── -->
     <view class="hero">
@@ -67,6 +67,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useThemeStore } from '../../store/theme'
 import { scanBarcode, ScanCancelledError } from '../../utils/scanner'
 
 // ── Types ─────────────────────────────────────────────
@@ -77,17 +78,10 @@ interface RecentScan {
   time: number
 }
 
-// ── Dark Mode ───────────────────────────────────────────
-const isDark = ref(false)
-const statusBarHeight = ref(0)
+// ── Theme Store ──────────────────────────────────────────
+const themeStore = useThemeStore()
 
 onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = info.statusBarHeight ?? 0
-  isDark.value = info.theme === 'dark'
-  uni.onThemeChange(({ theme }: { theme: string }) => {
-    isDark.value = theme === 'dark'
-  })
   loadRecentScans()
 })
 
