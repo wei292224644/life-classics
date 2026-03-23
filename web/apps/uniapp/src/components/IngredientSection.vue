@@ -106,7 +106,8 @@ function goToDetail(id: number) {
   if (!ing) return;
   const productName = productStore.product?.name;
   ingStore.set(ing, productName);
-  uni.navigateTo({ url: "/pages/ingredient-detail/index" });
+  const fpn = productName ? `&fromProductName=${encodeURIComponent(productName)}` : "";
+  uni.navigateTo({ url: `/pages/ingredient-detail/index?ingredientId=${id}${fpn}` });
 }
 </script>
 
@@ -115,9 +116,9 @@ function goToDetail(id: number) {
 
 // ── 风险分组容器 ──────────────────────────────────────
 .risk-group {
-  border-radius: 40rpx;
-  padding: 32rpx;
-  margin-bottom: 24rpx;
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  margin-bottom: var(--space-6);
   position: relative;
   overflow: hidden;
 
@@ -133,13 +134,13 @@ function goToDetail(id: number) {
 .risk-header {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 28rpx;
+  gap: var(--space-4);
+  margin-bottom: var(--space-7);
 }
 
 .risk-dot {
-  width: 16rpx;
-  height: 16rpx;
+  width: var(--space-4);
+  height: var(--space-4);
   border-radius: 50%;
   flex-shrink: 0;
 
@@ -152,21 +153,21 @@ function goToDetail(id: number) {
 }
 
 .risk-badge {
-  font-size: 24rpx;
+  font-size: var(--text-md);
   font-weight: 600;
-  padding: 8rpx 20rpx;
-  border-radius: 16rpx;
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-sm);
 
-  .t4 & { color: var(--risk-t4); background: rgba(239, 68, 68, 0.15); }
-  .t3 & { color: var(--risk-t3); background: rgba(249, 115, 22, 0.15); }
-  .t2 & { color: var(--risk-t2); background: rgba(234, 179, 8, 0.15); }
-  .t1 & { color: var(--risk-t1); background: rgba(74, 222, 128, 0.15); }
-  .t0 & { color: var(--risk-t0); background: rgba(34, 197, 94, 0.15); }
-  .unknown & { color: var(--risk-unknown); background: rgba(156, 163, 175, 0.15); }
+  .t4 & { color: var(--risk-t4); background: color-mix(in oklch, var(--risk-t4) 15%, transparent); }
+  .t3 & { color: var(--risk-t3); background: color-mix(in oklch, var(--risk-t3) 15%, transparent); }
+  .t2 & { color: var(--risk-t2); background: color-mix(in oklch, var(--risk-t2) 15%, transparent); }
+  .t1 & { color: var(--risk-t1); background: color-mix(in oklch, var(--risk-t1) 15%, transparent); }
+  .t0 & { color: var(--risk-t0); background: color-mix(in oklch, var(--risk-t0) 15%, transparent); }
+  .unknown & { color: var(--risk-unknown); background: color-mix(in oklch, var(--risk-unknown) 15%, transparent); }
 }
 
 .risk-count {
-  font-size: 22rpx;
+  font-size: var(--text-base);
   color: var(--text-muted);
   margin-left: auto;
 }
@@ -185,17 +186,17 @@ function goToDetail(id: number) {
 .ingredient-scroll-inner {
   display: flex;
   flex-direction: row;
-  gap: 20rpx;
+  gap: var(--space-5);
   width: max-content;
-  padding-bottom: 8rpx;
+  padding-bottom: var(--space-2);
 }
 
 // ── 配料卡片 ──────────────────────────────────────────
 .ingredient-card {
   flex: 0 0 auto;
   width: 280rpx;
-  border-radius: 32rpx;
-  padding: 28rpx;
+  border-radius: var(--radius-md);
+  padding: var(--space-7);
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -251,33 +252,33 @@ function goToDetail(id: number) {
 // ── 右上角箭头 ────────────────────────────────────────
 .ingredient-arrow {
   position: absolute;
-  right: 14rpx;
-  top: 14rpx;
-  width: 28rpx;
-  height: 28rpx;
+  right: var(--space-3);
+  top: var(--space-3);
+  width: var(--space-7);
+  height: var(--space-7);
   opacity: 0.4;
   color: var(--text-muted);
 
-  svg { width: 28rpx; height: 28rpx; }
+  svg { width: var(--icon-sm); height: var(--icon-sm); }
 }
 
 // ── 内容区 ────────────────────────────────────────────
 .ingredient-content {
   display: flex;
   flex-direction: column;
-  padding-left: 16rpx;
+  padding-left: var(--space-4);
   min-width: 0;
 }
 
 .ingredient-name {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin-bottom: 12rpx;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 
   .icon {
-    width: 28rpx;
-    height: 28rpx;
+    width: var(--space-7);
+    height: var(--space-7);
     flex-shrink: 0;
   }
 
@@ -291,7 +292,7 @@ function goToDetail(id: number) {
 }
 
 .ingredient-name-text {
-  font-size: 26rpx;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -299,9 +300,9 @@ function goToDetail(id: number) {
 // ── 原因标签 ──────────────────────────────────────────
 .ingredient-reason {
   display: inline-block;
-  font-size: 20rpx;
-  padding: 8rpx 16rpx;
-  border-radius: 12rpx;
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--space-3);
   align-self: flex-start;
   max-width: 100%;
   box-sizing: border-box;
@@ -309,11 +310,11 @@ function goToDetail(id: number) {
   overflow: hidden;
   text-overflow: ellipsis;
 
-  &.t4 { color: var(--risk-t4); background: rgba(239, 68, 68, 0.12); }
-  &.t3 { color: var(--risk-t3); background: rgba(249, 115, 22, 0.12); }
-  &.t2 { color: var(--risk-t2); background: rgba(234, 179, 8, 0.12); }
-  &.t1 { color: var(--risk-t1); background: rgba(74, 222, 128, 0.12); }
-  &.t0 { color: var(--risk-t0); background: rgba(34, 197, 94, 0.12); }
-  &.unknown { color: var(--risk-unknown); background: rgba(156, 163, 175, 0.12); }
+  &.t4 { color: var(--risk-t4); background: color-mix(in oklch, var(--risk-t4) 12%, transparent); }
+  &.t3 { color: var(--risk-t3); background: color-mix(in oklch, var(--risk-t3) 12%, transparent); }
+  &.t2 { color: var(--risk-t2); background: color-mix(in oklch, var(--risk-t2) 12%, transparent); }
+  &.t1 { color: var(--risk-t1); background: color-mix(in oklch, var(--risk-t1) 12%, transparent); }
+  &.t0 { color: var(--risk-t0); background: color-mix(in oklch, var(--risk-t0) 12%, transparent); }
+  &.unknown { color: var(--risk-unknown); background: color-mix(in oklch, var(--risk-unknown) 12%, transparent); }
 }
 </style>
