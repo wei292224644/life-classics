@@ -1,11 +1,11 @@
 <template>
   <view
     class="search-page"
-    :class="{ 'dark-mode': isDark }"
+    :class="{ 'dark-mode': themeStore.isDark }"
   >
     <!-- ── Header ──────────────────────────── -->
     <view class="search-header" :style="headerStyle">
-      <view :style="{ height: statusBarHeight + 'px' }" />
+      <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
       <view class="header-content">
         <button class="header-btn" @click="goBack">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -92,6 +92,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useThemeStore } from "../../store/theme"
 
 // ── Types ─────────────────────────────────────────────
 interface SearchResult {
@@ -102,30 +103,17 @@ interface SearchResult {
   emoji?: string
 }
 
-// ── Dark Mode ───────────────────────────────────────────
-const isDark = ref(false)
-const statusBarHeight = ref(0)
-
-const handleThemeChange = ({ theme }: { theme: string }) => {
-  isDark.value = theme === 'dark'
-}
+// ── Theme Store ─────────────────────────────────────────
+const themeStore = useThemeStore()
 
 onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = info.statusBarHeight ?? 0
-  isDark.value = info.theme === 'dark'
-  uni.onThemeChange(handleThemeChange)
   loadHistory()
-})
-
-onUnmounted(() => {
-  uni.offThemeChange(handleThemeChange)
 })
 
 // ── Header Style ────────────────────────────────────────
 const headerStyle = computed(() => ({
-  '--header-bg': isDark.value ? 'var(--bg-card)' : 'var(--bg-base)',
-  '--header-text': isDark.value ? 'var(--text-primary)' : 'var(--text-primary)',
+  '--header-bg': themeStore.isDark ? 'var(--bg-card)' : 'var(--bg-base)',
+  '--header-text': themeStore.isDark ? 'var(--text-primary)' : 'var(--text-primary)',
 }))
 
 // ── Search State ────────────────────────────────────────
@@ -224,13 +212,9 @@ function handleResultClick(item: SearchResult) {
 // ── Type Tag Style ───────────────────────────────────────
 function typeTagStyle(type: string) {
   if (type === 'product') {
-    return isDark.value
-      ? { background: 'var(--chip-warn-bg)', color: 'var(--chip-warn-text)' }
-      : { background: 'var(--chip-warn-bg)', color: 'var(--chip-warn-text)' }
+    return { background: 'var(--chip-warn-bg)', color: 'var(--chip-warn-text)' }
   }
-  return isDark.value
-    ? { background: 'var(--chip-risk-bg)', color: 'var(--chip-risk-text)' }
-    : { background: 'var(--chip-risk-bg)', color: 'var(--chip-risk-text)' }
+  return { background: 'var(--chip-risk-bg)', color: 'var(--chip-risk-text)' }
 }
 
 // ── Navigation ───────────────────────────────────────────
