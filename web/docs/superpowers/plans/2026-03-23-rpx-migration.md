@@ -36,19 +36,28 @@
 | `box-shadow` 值 | 不迁移 |
 | `border: N rpx` | 不迁移（border-width 用 1px） |
 
-**可替换的 space 映射：**
+**可替换的 space 映射（Tailwind CSS Spacing Scale × 2 = rpx）：**
 
 ```
-4rpx   → var(--space-1)     8rpx   → var(--space-2)
-12rpx  → var(--space-3)    16rpx  → var(--space-4)
-20rpx  → var(--space-5)    24rpx  → var(--space-6)
-28rpx  → var(--space-7)    32rpx  → var(--space-8)
-40rpx  → var(--space-10)   48rpx  → var(--space-12)
-56rpx  → var(--space-14)   64rpx  → var(--space-16)
-80rpx  → var(--space-20)
+0      → var(--space-0)     2rpx   → var(--space-px)
+4rpx   → var(--space-1/0-5)  8rpx   → var(--space-2/1-5)
+12rpx  → var(--space-3/2-5)  16rpx  → var(--space-4/3-5)
+20rpx  → var(--space-5/4-5)  24rpx  → var(--space-6/5-5)
+28rpx  → var(--space-7/6-5)  32rpx  → var(--space-8/7-5)
+36rpx  → var(--space-9/8-5)  40rpx  → var(--space-10/9-5)
+44rpx  → var(--space-11/10-5) 48rpx → var(--space-12/11-5)
+52rpx  → var(--space-13/12-5) 56rpx → var(--space-14/13-5)
+60rpx  → var(--space-15/14-5) 64rpx → var(--space-16/15-5)
+72rpx  → var(--space-18/16-5) 80rpx → var(--space-20/18-5)
+88rpx  → var(--space-22/20-5) 96rpx → var(--space-24/22-5)
+112rpx → var(--space-28)   128rpx → var(--space-32)
+144rpx → var(--space-36)   160rpx → var(--space-40)
+192rpx → var(--space-48)   224rpx → var(--space-56)
+256rpx → var(--space-64)   288rpx → var(--space-72)
+320rpx → var(--space-80)   384rpx → var(--space-96)
 ```
 
-**超出 space 范围、保持硬编码 rpx 的典型值：**
+**超出 Tailwind scale 范围、保持硬编码 rpx：**
 - `280rpx`、`260rpx`、`371rpx`、`520rpx` 等
 - `border: 4rpx solid` 中的 4rpx 保持不变
 

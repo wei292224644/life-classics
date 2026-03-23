@@ -32,20 +32,43 @@ $ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
 page {
   // ── 间距 ────────────────────────────────────────────────
-  // 原则：4px 网格 (4/8/12/16/20/24/28/32/40/48/56/64/80)
-  --space-1: 4rpx;
-  --space-2: 8rpx;
-  --space-3: 12rpx;
-  --space-4: 16rpx;
-  --space-5: 20rpx;
-  --space-6: 24rpx;
-  --space-7: 28rpx;
-  --space-8: 32rpx;
-  --space-10: 40rpx;
-  --space-12: 48rpx;
-  --space-14: 56rpx;
-  --space-16: 64rpx;
-  --space-20: 80rpx;
+  // Tailwind CSS Spacing Scale（基准 4px × 2 = rpx）
+  // 0=0, px=2rpx(1px), 0.5=4rpx, 1=8rpx, 1.5=12rpx...
+  --space-0: 0;
+  --space-px: 2rpx;
+  --space-0-5: 4rpx;   --space-1: 4rpx;
+  --space-1-5: 8rpx;   --space-2: 8rpx;
+  --space-2-5: 12rpx;  --space-3: 12rpx;
+  --space-3-5: 16rpx;  --space-4: 16rpx;
+  --space-4-5: 20rpx;  --space-5: 20rpx;
+  --space-5-5: 24rpx;  --space-6: 24rpx;
+  --space-6-5: 28rpx;  --space-7: 28rpx;
+  --space-7-5: 32rpx;  --space-8: 32rpx;
+  --space-8-5: 36rpx;  --space-9: 36rpx;
+  --space-9-5: 40rpx;  --space-10: 40rpx;
+  --space-10-5: 44rpx; --space-11: 44rpx;
+  --space-11-5: 48rpx; --space-12: 48rpx;
+  --space-12-5: 52rpx; --space-13: 52rpx;
+  --space-13-5: 56rpx; --space-14: 56rpx;
+  --space-14-5: 60rpx; --space-15: 60rpx;
+  --space-15-5: 64rpx; --space-16: 64rpx;
+  --space-16-5: 72rpx; --space-18: 72rpx;
+  --space-18-5: 80rpx; --space-20: 80rpx;
+  --space-20-5: 88rpx; --space-22: 88rpx;
+  --space-22-5: 96rpx; --space-24: 96rpx;
+  --space-28: 112rpx;
+  --space-32: 128rpx;
+  --space-36: 144rpx;
+  --space-40: 160rpx;
+  --space-44: 176rpx;
+  --space-48: 192rpx;
+  --space-52: 208rpx;
+  --space-56: 224rpx;
+  --space-60: 240rpx;
+  --space-64: 256rpx;
+  --space-72: 288rpx;
+  --space-80: 320rpx;
+  --space-96: 384rpx;
 
   // ── 圆角 ────────────────────────────────────────────────
   --radius-sm: 24rpx;
