@@ -5,7 +5,7 @@
 **Goal:** 建立统一的 ThemeStore，集中管理 isDark 和 statusBarHeight；将 riskLevel.ts 的颜色配置移入组件 CSS；消除各页面的 pageStyle computed。
 
 **Architecture:**
-- 新增 `stores/theme.ts` 作为主题状态单一数据源，App.vue 根节点挂载 `.dark-mode` class
+- 新增 `store/theme.ts` 作为主题状态单一数据源，App.vue 根节点挂载 `.dark-mode` class
 - `riskLevel.ts` 剥离颜色字段，仅保留 badge/icon/needleLeft，新增 visualKey 供模板 class 绑定
 - ingredient-detail 页面通过 `.risk-critical` 等 class + CSS 变量接管颜色，不再有 pageStyle computed
 - 其他三个页面（index/search/profile）统一使用 themeStore，移除 local isDark
@@ -18,7 +18,7 @@
 
 | 文件 | 操作 | 职责 |
 |------|------|------|
-| `src/stores/theme.ts` | 创建 | ThemeStore，isDark + statusBarHeight |
+| `src/store/theme.ts` | 创建 | ThemeStore，isDark + statusBarHeight |
 | `src/App.vue` | 修改 | 根节点绑定 dark-mode class |
 | `src/utils/riskLevel.ts` | 修改 | 剥离颜色字段，保留纯数据 |
 | `src/pages/ingredient-detail/index.vue` | 修改 | 移除 pageStyle，改用 riskClass + CSS |
@@ -31,7 +31,7 @@
 ## Task 1: 创建 ThemeStore
 
 **Files:**
-- Create: `src/stores/theme.ts`
+- Create: `src/store/theme.ts`
 
 **Prerequisite:** 无
 
@@ -43,10 +43,10 @@
 mkdir -p src/stores
 ```
 
-Create `src/stores/theme.ts`:
+Create `src/store/theme.ts`:
 
 ```typescript
-// src/stores/theme.ts
+// src/store/theme.ts
 import { defineStore } from "pinia"
 import { ref } from "vue"
 
@@ -76,7 +76,7 @@ export const useThemeStore = defineStore("theme", () => {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add src/stores/theme.ts
+git add src/store/theme.ts
 git commit -m "feat(uniapp): add ThemeStore for isDark and statusBarHeight
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
@@ -363,7 +363,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 - [ ] **Step 2: 替换 import**
 
 删除：`import { ref } from "vue"`
-添加：`import { useThemeStore } from "../../stores/theme"`
+添加：`import { useThemeStore } from "../../store/theme"`
 添加 store 实例（文件顶部）：`const themeStore = useThemeStore()`
 
 - [ ] **Step 3: 删除 local isDark ref 和 theme 监听**
@@ -414,7 +414,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 - [ ] **Step 2: 替换 import**
 
 删除：`import { ref, computed } from "vue"`
-添加：`import { useThemeStore } from "../../stores/theme"`
+添加：`import { useThemeStore } from "../../store/theme"`
 添加 store 实例：`const themeStore = useThemeStore()`
 
 - [ ] **Step 3: 删除 local isDark ref 和 theme 监听**
@@ -464,7 +464,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 - [ ] **Step 2: 替换 import**
 
 删除：`import { ref, computed } from 'vue'`
-添加：`import { useThemeStore } from "../../stores/theme"`
+添加：`import { useThemeStore } from "../../store/theme"`
 添加 store 实例：`const themeStore = useThemeStore()`
 
 - [ ] **Step 3: 删除 local isDark ref 和 theme 监听**
@@ -543,7 +543,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 
 ## 修复记录
 
-- [x] Import path 修正：`../../store/theme` → `../../stores/theme`（Tasks 5/6/7）
+- [x] Import path 修正 + 目录名统一：`../../stores/theme` → `../../store/theme`（Tasks 5/6/7）；创建时目录 `stores/` → `store/`（Task 1）
 - [x] palette-green-950 缺失：已补充为 Task 8
 
 ---
