@@ -97,10 +97,6 @@ import { useThemeStore } from "../../store/theme"
 
 const themeStore = useThemeStore()
 
-onMounted(() => {
-  // Theme is now handled by themeStore
-})
-
 // ── Actions ─────────────────────────────────────────────
 function handleLogin() {
   uni.showToast({ title: '即将上线', icon: 'none' })
