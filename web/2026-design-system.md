@@ -18,13 +18,16 @@
 
 ### 2.1 风险等级色板
 
-| 风险等级 | CSS 变量 (暗) | CSS 变量 (亮) | 语义 |
-|---------|--------------|--------------|------|
-| 严重 (t4) | `--risk-t4: #ef4444` | `--risk-t4: #dc2626` | 严重风险 |
-| 高风险 (t3) | `--risk-t3: #f97316` | `--risk-t3: #ea580c` | 高风险 |
-| 中风险 (t2) | `--risk-t2: #eab308` | `--risk-t2: #ca8a04` | 中风险 |
-| 低风险 (t0) | `--risk-t0: #22c55e` | `--risk-t0: #16a34a` | 低风险 |
-| 未知 (unknown) | `--risk-unknown: #9ca3af` | `--risk-unknown: #9ca3af` | 未检测 |
+后端枚举：`t4 / t3 / t2 / t1 / t0 / unknown`（`server/database/models.py`）。前端保留 5 档独立视觉等级，`unknown` 为特殊回退态。
+
+| level | 视觉 key | 语义 | CSS 变量 (暗) | CSS 变量 (亮) |
+|-------|---------|------|--------------|--------------|
+| `t4` | `critical` | 极高风险 | `--risk-t4: #ef4444` | `--risk-t4: #dc2626` |
+| `t3` | `high` | 高风险 | `--risk-t3: #f97316` | `--risk-t3: #ea580c` |
+| `t2` | `medium` | 中等风险 | `--risk-t2: #eab308` | `--risk-t2: #ca8a04` |
+| `t1` | `low` | 低风险 | `--risk-t1: #86efac` | `--risk-t1: #16a34a` |
+| `t0` | `safe` | 安全 | `--risk-t0: #22c55e` | `--risk-t0: #059669` |
+| `unknown` | `unknown` | 暂无评级 | `--risk-unknown: #9ca3af` | `--risk-unknown: #9ca3af` |
 
 ### 2.2 主题变量
 
@@ -59,6 +62,67 @@
 --accent-pink: #db2777;
 --accent-pink-light: #ec4899;
 ```
+
+### 2.5 ingredient-detail 风险色 token
+
+ingredient-detail 页面的 Header、风险徽章、谱条等元素使用组件级 CSS custom properties，不污染全局变量。以下为完整 6 状态 × 亮色/暗色映射：
+
+#### Header 背景与描边
+
+| 视觉 key | 亮色 `--risk-bg` | 亮色 `--risk-border` | 暗色 `--risk-bg` | 暗色 `--risk-border` |
+|---------|----------------|---------------------|----------------|---------------------|
+| `critical` | `#fff1f2` | `#fca5a5` | `#1a0505` | `#991b1b` |
+| `high` | `#fff4f0` | `#fecaca` | `#1a0808` | `#7f1d1d` |
+| `medium` | `#fefce8` | `#fde68a` | `#1a1500` | `#713f12` |
+| `low` | `#f0fdf4` | `#bbf7d0` | `#051a0a` | `#14532d` |
+| `safe` | `#ecfdf5` | `#6ee7b7` | `#022c22` | `#065f46` |
+| `unknown` | `#f9fafb` | `#d1d5db` | `#111827` | `#374151` |
+
+#### Header 文字颜色
+
+| 视觉 key | 亮色 `--risk-title` | 亮色 `--risk-sub` | 暗色 `--risk-title` | 暗色 `--risk-sub` |
+|---------|--------------------|--------------------|--------------------|--------------------|
+| `critical` | `#7f1d1d` | `#dc2626` | `#fecaca` | `#f87171` |
+| `high` | `#7f1d1d` | `#ef4444` | `#fca5a5` | `#f87171` |
+| `medium` | `#713f12` | `#a16207` | `#fde68a` | `#fbbf24` |
+| `low` | `#14532d` | `#16a34a` | `#86efac` | `#4ade80` |
+| `safe` | `#065f46` | `#059669` | `#6ee7b7` | `#34d399` |
+| `unknown` | `#374151` | `#6b7280` | `#9ca3af` | `#6b7280` |
+
+#### Header 图标按钮背景
+
+| 视觉 key | 亮色 `--risk-btn` | 暗色 `--risk-btn` |
+|---------|------------------|------------------|
+| `critical` | `rgba(220,38,38,0.15)` | `rgba(248,113,113,0.2)` |
+| `high` | `rgba(220,38,38,0.1)` | `rgba(248,113,113,0.15)` |
+| `medium` | `rgba(202,138,4,0.1)` | `rgba(251,191,36,0.15)` |
+| `low` | `rgba(22,163,74,0.1)` | `rgba(74,222,128,0.15)` |
+| `safe` | `rgba(5,150,105,0.1)` | `rgba(52,211,153,0.15)` |
+| `unknown` | `rgba(107,114,128,0.1)` | `rgba(156,163,175,0.15)` |
+
+#### 风险徽章
+
+| 视觉 key | 文案 | 图标 | 徽章背景 |
+|---------|------|------|---------|
+| `critical` | 极高风险 | ⛔ 禁止符 | `#dc2626` |
+| `high` | 高风险 | ⚠ 警告符 | `#ef4444` |
+| `medium` | 中等风险 | ⚠ 警告符 | `#f59e0b` |
+| `low` | 低风险 | ✓ 勾选 | `#22c55e` |
+| `safe` | 安全 | ✓ 勾选 | `#10b981` |
+| `unknown` | 暂无评级 | ? 问号 | `#9ca3af` |
+
+#### 风险谱条指示针位置
+
+谱条方向：左端 = 安全（绿），右端 = 极高风险（红）。指示针绝对定位，`left%` 为针**中心点**百分比（配合 `transform: translateX(-50%)`）：
+
+| 视觉 key | `left` |
+|---------|--------|
+| `safe` | `8%` |
+| `low` | `22%` |
+| `medium` | `50%` |
+| `high` | `72%` |
+| `critical` | `88%` |
+| `unknown` | 隐藏针，谱条透明度降至 40% |
 
 ### 2.4 暗色 / 亮色切换
 
@@ -307,6 +371,67 @@ box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 - 亮色: `background: rgba(255,255,255,0.95)`，`border-top: 1px solid rgba(0,0,0,0.06)`
 - 两按钮各占 `flex: 1`，`gap: 12px`
 
+### 7.8 ingredient-detail 页面
+
+**页面路径：** `pages/ingredient-detail/index.vue`
+
+**信息流：** Identity（Hero 风险卡）→ Risk（AI 风险分析）→ Detail（风险管理信息 + AI 建议）→ Related（含此配料的产品）
+
+**入口与路由参数：**
+
+| 入口 | 路由参数 | Header 副标题 |
+|------|----------|--------------|
+| 产品详情页配料列表点入 | `ingredientId` + `fromProductName` | "来自：{fromProductName}" |
+| 独立搜索 / AI 对话跳转 | `ingredientId` 只 | 按视觉 key 动态渲染（见 2.5 风险徽章文案列） |
+
+**Header：**
+- 使用 `--risk-*` 组件级变量（见 2.5），随 `analysis.level` 动态切换
+- 结构：返回按钮 + 标题"配料详情" + 副标题 + 分享按钮
+- 无渐变，纯色背景 + 2px 底部描边
+
+**Hero 风险卡结构：**
+```
+.hero-card
+  .hero-top（risk-bg 背景，risk-border 底边）
+    成分名称（20px / 800）+ 风险徽章（右对齐）
+    风险谱条（8px 高，渐变色 + 指示针）
+    谱条标签（低风险 / 中等 / 高风险，10px）
+  .chips（10px 12px 内边距）
+    功能 chip（function_type，红色）
+    来源 chip（灰色中性）
+    警告 chip（孕妇禁用等，黄色）
+    别名 chips（alias[]，灰色中性）
+```
+
+**Section 卡片统一结构：**
+```
+.section-card（border-radius: 14px，1px border，轻阴影）
+  .section-header（图标 20×20 + 标题 13px/700 + 可选 AI 渐变标签）
+  .section-body（具体内容）
+```
+
+**AI 分析内容图标语义（见 2.1 图标规范扩展）：**
+
+| 场景 | 图标 | 颜色 |
+|------|------|------|
+| 风险项列表 | ✕ 圆形（filled） | `--risk-t4`（#ef4444） |
+| 正向建议（type=positive） | ✓ 圆形（filled） | `--risk-t0`（#22c55e） |
+| 条件性建议（type=conditional） | ✓ 圆形（filled） | `--risk-t2`（#eab308） |
+
+**含此配料的产品横向卡片：**
+- 卡片宽度：`86px`（172rpx）
+- 图示高度：`48px`（96rpx），emoji 居中
+- 无匹配时 `v-if` 隐藏整个 section
+
+**底部 sticky bar：**
+- 与 BottomBar 组件规范相同（见 7.7）
+- 左按钮：咨询 AI 助手 → `/pages/chat/index?context={name}`
+- 右按钮：查看相关食品 → `/pages/search/index?ingredientId={id}`（数据库主键）
+
+**暗色模式切换：**
+- 初始化：`uni.getSystemInfoSync().theme`
+- 运行时监听：`uni.onThemeChange()` + `onUnmounted` 调用 `uni.offThemeChange()`
+
 ---
 
 ## 8. 无障碍规范
@@ -464,5 +589,7 @@ $ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 | 文件 | 版本 | 说明 |
 |------|------|------|
 | `product-detail-v14.html` | v14 | 最终版，含暗色/亮色双模式，位于 `.superpowers/brainstorm/23968-1774164668/` |
+| `ingredient-detail-final.html` | v1 | ingredient-detail 最终设计稿（亮色+暗色），位于 `.superpowers/brainstorm/98391-1774235561/` |
+| `docs/superpowers/specs/2026-03-23-ingredient-detail-redesign.md` | — | ingredient-detail 完整设计规格文档 |
 
-> 历史版本 (v1–v13) 存于同一目录下
+> product-detail 历史版本 (v1–v13) 存于 `.superpowers/brainstorm/23968-1774164668/`
