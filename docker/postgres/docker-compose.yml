@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:latest
     container_name: life-classics-postgres
     restart: unless-stopped
     environment:
