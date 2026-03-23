@@ -122,7 +122,7 @@
 
 **判断规则：** 后端根据关键词返回数据类型，前端根据 `type` 字段决定跳转：
 - `type: 'product'` → `/pages/product?barcode=xxx`
-- `type: 'ingredient'` → `/pages/ingredient-detail?ingredientId=xxx`
+- `type: 'ingredient'` → `/pages/ingredient?ingredientId=xxx`
 
 **搜索历史：** 本地存储，最多 10 条，支持一键清空。
 
@@ -136,7 +136,7 @@
 | `/pages/search` | 新建 | 通用搜索页 |
 | `/pages/profile` | 新建 | Tab 框架占位（UI 先做，内容后续） |
 | `/pages/product` | 不变 | 已有功能 |
-| `/pages/ingredient-detail` | 不变 | 已有功能 |
+| `/pages/ingredient` | 不变 | 已有功能 |
 
 ---
 
@@ -147,8 +147,8 @@
 | 首页扫码 | `/pages/product` | `barcode` |
 | 首页搜索入口 | `/pages/search` | — |
 | 搜索结果-食品 | `/pages/product` | `barcode` |
-| 搜索结果-配料 | `/pages/ingredient-detail` | `ingredientId` |
-| 产品页点击配料 | `/pages/ingredient-detail` | `ingredientId` |
+| 搜索结果-配料 | `/pages/ingredient` | `ingredientId` |
+| 产品页点击配料 | `/pages/ingredient` | `ingredientId` |
 | 配料页点击相关产品 | `/pages/product` | `barcode` |
 | 首页最近扫描 | `/pages/product` | `barcode` |
 
