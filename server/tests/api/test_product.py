@@ -8,9 +8,8 @@ from api.product.router import get_food_repository
 from db_repositories.food import (
     AnalysisSummary,
     FoodDetail,
+    IngredientDetail,
     NutritionDetail,
-    ProductIngredientAnalysisDetail,
-    ProductIngredientDetail,
 )
 
 # ── Mock Repository ───────────────────────────────────────────────────────────
@@ -35,12 +34,16 @@ MOCK_FOOD = FoodDetail(
         )
     ],
     ingredients=[
-        ProductIngredientDetail(
+        IngredientDetail(
             id=1,
             name="小麦粉",
+            alias=["面粉"],
+            is_additive=False,
+            additive_code=None,
             who_level="Unknown",
-            function_type=None,
             allergen_info="含麸质",
+            function_type=None,
+            standard_code=None,
             analysis=None,
         )
     ],
