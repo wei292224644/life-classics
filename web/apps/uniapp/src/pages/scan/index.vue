@@ -1,5 +1,5 @@
 <template>
-  <view class="scan-page flex justify-center items-center">
+  <view class="scan-page flex justify-center items-center h-screen">
     <text class="hint">正在启动扫码...</text>
   </view>
 </template>
@@ -24,12 +24,8 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-.scan-page {
-  height: 100vh;
-
-  .hint {
-    color: #888;
-    font-size: var(--text-xl);
-  }
+.hint {
+  color: #888;
+  font-size: var(--text-xl);
 }
 </style>
