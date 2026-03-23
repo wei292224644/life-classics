@@ -3,6 +3,9 @@
     class="index-page"
     :class="{ 'dark-mode': isDark }"
   >
+    <!-- ── 状态栏占位 ─────────────────────────── -->
+    <view :style="{ height: statusBarHeight + 'px' }" />
+
     <!-- ── Logo 区域 ─────────────────────────── -->
     <view class="hero">
       <view class="logo-row">
@@ -59,26 +62,8 @@
       </view>
     </view>
 
-    <!-- ── H5 端手动输入 ─────────────────────────── -->
-    <!-- #ifdef H5 -->
-    <view class="h5-input-wrap">
-      <up-input
-        v-model="manualBarcode"
-        placeholder="输入条形码"
-        clearable
-      />
-      <up-button
-        type="primary"
-        :disabled="!manualBarcode.trim()"
-        @click="handleManualInput"
-      >
-        查询
-      </up-button>
-    </view>
-    <!-- #endif -->
-
   </view>
-</template>
+</template></template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
@@ -94,9 +79,11 @@ interface RecentScan {
 
 // ── Dark Mode ───────────────────────────────────────────
 const isDark = ref(false)
+const statusBarHeight = ref(0)
 
 onMounted(() => {
   const info = uni.getSystemInfoSync()
+  statusBarHeight.value = info.statusBarHeight ?? 0
   isDark.value = info.theme === 'dark'
   uni.onThemeChange(({ theme }: { theme: string }) => {
     isDark.value = theme === 'dark'
@@ -152,8 +139,6 @@ function formatTime(timestamp: number): string {
 }
 
 // ── Scan ───────────────────────────────────────────────
-const manualBarcode = ref('')
-
 async function handleScan() {
   try {
     const barcode = await scanBarcode()
@@ -167,13 +152,6 @@ async function handleScan() {
       uni.showToast({ title: '扫码失败', icon: 'error' })
     }
   }
-}
-
-function handleManualInput() {
-  const barcode = manualBarcode.value.trim()
-  if (!barcode) return
-  addRecentScan(barcode)
-  uni.navigateTo({ url: `/pages/product/index?barcode=${barcode}` })
 }
 
 function handleRecentClick(item: RecentScan) {
@@ -411,11 +389,4 @@ function handleRecentClick(item: RecentScan) {
   color: var(--text-muted);
 }
 
-// ── H5 Input (非小程序) ───────────────────────────────
-.h5-input-wrap {
-  margin: 0 48rpx 40rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
-}
 </style>

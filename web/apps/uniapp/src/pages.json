@@ -3,7 +3,8 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "食品安全助手"
+        "navigationStyle": "custom",
+        "statusBarStyle": "dark"
       }
     },
     {
