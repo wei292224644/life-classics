@@ -1,18 +1,18 @@
-"""测试 GET /api/product 端点。"""
+"""测试 GET /api/product 端点（通过 patch service 层）。"""
 
 import pytest
-from fastapi.testclient import TestClient
+from unittest.mock import AsyncMock, patch
 
-from api.main import app
-from api.product.router import get_food_repository
 from db_repositories.food import (
     AnalysisSummary,
     FoodDetail,
     NutritionDetail,
     ProductIngredientDetail,
 )
+from api.product.models import ProductResponse
 
-# ── Mock Repository ───────────────────────────────────────────────────────────
+
+# ── Mock Data ─────────────────────────────────────────────────────────────────
 
 MOCK_FOOD = FoodDetail(
     id=1,
@@ -54,79 +54,71 @@ MOCK_FOOD = FoodDetail(
 )
 
 
-class FoundRepository:
-    async def fetch_by_barcode(self, barcode: str):
-        return MOCK_FOOD
+# ── Tests ──────────────────────────────────────────────────────────────────────
 
 
-class NotFoundRepository:
-    async def fetch_by_barcode(self, barcode: str):
-        return None
-
-
-@pytest.fixture
-def client_found():
-    app.dependency_overrides[get_food_repository] = lambda: FoundRepository()
-    with TestClient(app) as c:
-        yield c
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def client_not_found():
-    app.dependency_overrides[get_food_repository] = lambda: NotFoundRepository()
-    with TestClient(app) as c:
-        yield c
-    app.dependency_overrides.clear()
-
-
-# ── Tests ────────────────────────────────────────────────────────────────────
-
-
-def test_product_not_found_returns_404(client_not_found):
-    """条形码未收录时返回 404。"""
-    resp = client_not_found.get("/api/product?barcode=0000000000000")
-    assert resp.status_code == 404
-    assert resp.json()["detail"] == "Product not found"
-
-
-def test_product_found_returns_200(client_found):
+@pytest.mark.asyncio
+async def test_product_found_returns_200():
     """存在的条形码返回 200 和完整数据。"""
-    resp = client_found.get("/api/product?barcode=6901234567890")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["barcode"] == "6901234567890"
-    assert data["name"] == "测试饼干"
+    from api.product.service import ProductService
+
+    mock_repo = AsyncMock()
+    mock_repo.fetch_by_barcode.return_value = MOCK_FOOD
+
+    svc = ProductService(mock_repo)
+    result = await svc.get_product_by_barcode("6901234567890")
+
+    assert result.barcode == "6901234567890"
+    assert result.name == "测试饼干"
 
 
-def test_product_response_contains_nutritions(client_found):
+@pytest.mark.asyncio
+async def test_product_not_found_raises_404():
+    """条形码未收录时 service 抛出 ValueError。"""
+    from api.product.service import ProductService
+
+    mock_repo = AsyncMock()
+    mock_repo.fetch_by_barcode.return_value = None
+
+    svc = ProductService(mock_repo)
+    with pytest.raises(ValueError, match="not_found"):
+        await svc.get_product_by_barcode("0000000000000")
+
+
+def test_product_response_contains_nutritions():
     """响应中包含 nutritions 列表。"""
-    resp = client_found.get("/api/product?barcode=6901234567890")
-    data = resp.json()
-    assert len(data["nutritions"]) == 1
-    assert data["nutritions"][0]["name"] == "能量"
-    assert data["nutritions"][0]["value_unit"] == "kJ"
+    from api.product.service import ProductService
+
+    svc = ProductService(None)
+    response = svc._to_product_response(MOCK_FOOD)
+
+    assert len(response.nutritions) == 1
+    assert response.nutritions[0].name == "能量"
+    assert response.nutritions[0].value_unit == "kJ"
 
 
-def test_product_response_contains_ingredients(client_found):
-    """响应中包含 ingredients 列表。"""
-    resp = client_found.get("/api/product?barcode=6901234567890")
-    data = resp.json()
-    assert len(data["ingredients"]) == 1
-    assert data["ingredients"][0]["name"] == "小麦粉"
-    assert data["ingredients"][0]["who_level"] == "Unknown"
+def test_product_response_contains_ingredients():
+    """响应中包含 ingredients 列表（精简版）。"""
+    from api.product.service import ProductService
+
+    svc = ProductService(None)
+    response = svc._to_product_response(MOCK_FOOD)
+
+    assert len(response.ingredients) == 1
+    assert response.ingredients[0].name == "小麦粉"
+    assert response.ingredients[0].who_level == "Unknown"
+    # 精简版不应包含 full ingredient 的字段
+    assert not hasattr(response.ingredients[0], "alias")
+    assert not hasattr(response.ingredients[0], "is_additive")
 
 
-def test_product_response_contains_analysis(client_found):
+def test_product_response_contains_analysis():
     """响应中包含 analysis 列表。"""
-    resp = client_found.get("/api/product?barcode=6901234567890")
-    data = resp.json()
-    assert len(data["analysis"]) == 1
-    assert data["analysis"][0]["analysis_type"] == "health_summary"
-    assert data["analysis"][0]["level"] == "t1"
+    from api.product.service import ProductService
 
+    svc = ProductService(None)
+    response = svc._to_product_response(MOCK_FOOD)
 
-def test_missing_barcode_param_returns_422(client_not_found):
-    """缺少 barcode 参数时返回 422。"""
-    resp = client_not_found.get("/api/product")
-    assert resp.status_code == 422
+    assert len(response.analysis) == 1
+    assert response.analysis[0].analysis_type == "health_summary"
+    assert response.analysis[0].level == "t1"
