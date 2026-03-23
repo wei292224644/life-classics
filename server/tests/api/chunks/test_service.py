@@ -194,3 +194,44 @@ async def test_reparse_chunk_rebuilds_classified_and_reruns_transform():
     # 验证返回的 metadata 字段
     assert result["metadata"]["semantic_type"] == "scope"
     assert result["metadata"]["section_path"] == "1|1.1"
+
+
+@pytest.mark.asyncio
+async def test_reparse_chunk_not_found():
+    """chunk 不存在时抛出 ValueError(404)"""
+    mock_col = MagicMock()
+    mock_col.get.return_value = {"ids": [], "documents": [], "metadatas": []}
+
+    with patch("api.chunks.service.get_collection", return_value=mock_col):
+        from api.chunks.service import ChunksService
+        with pytest.raises(ValueError, match="not found"):
+            await ChunksService.reparse_chunk("nonexistent")
+
+
+@pytest.mark.asyncio
+async def test_reparse_chunk_transform_returns_empty():
+    """transform 产出为空时抛出 ValueError"""
+    mock_col = MagicMock()
+    mock_col.get.return_value = {
+        "ids": ["c1"],
+        "documents": ["旧内容"],
+        "metadatas": [{
+            "doc_id": "d1", "semantic_type": "scope", "structure_type": "paragraph",
+            "section_path": "1|1.1", "standard_no": "GB 2762", "doc_type": "food",
+            "raw_content": "原始", "segment_raw_content": "seg原始",
+            "transform_strategy": "plain_embed", "prompt_template": "",
+            "cross_refs": [], "failed_table_refs": [],
+        }],
+    }
+
+    with patch("api.chunks.service.get_collection", return_value=mock_col), \
+         patch("api.chunks.service.embed_batch", AsyncMock(return_value=[[0.1, 0.2]])), \
+         patch("api.chunks.service.transform_node", new_callable=AsyncMock) as mock_transform, \
+         patch("api.chunks.service.merge_node", return_value={"final_chunks": [], "doc_metadata": {}}), \
+         patch("api.chunks.service.fts_writer") as mock_fts, \
+         patch("api.chunks.service.settings") as mock_settings:
+        mock_settings.CHROMA_PERSIST_DIR = "./db"
+
+        from api.chunks.service import ChunksService
+        with pytest.raises(ValueError, match="produced no chunks"):
+            await ChunksService.reparse_chunk("c1")
