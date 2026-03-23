@@ -1,29 +1,29 @@
 <template>
   <view
-    class="profile-page"
-    :class="{ 'dark-mode': themeStore.isDark }"
+    class="profile-page flex flex-col"
+    :class="{ 'dark': themeStore.isDark }"
   >
     <!-- ── Header ──────────────────────────── -->
     <view class="profile-header">
       <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
-      <view class="header-content">
-        <button class="header-btn" @click="goBack">
+      <view class="header-content flex items-center h-[88rpx] px-[32rpx] gap-[24rpx]">
+        <button class="header-btn w-[60rpx] h-[60rpx] flex items-center justify-center" @click="goBack">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </button>
-        <text class="header-title">我的</text>
-        <view class="header-spacer" />
+        <text class="header-title flex-1 text-center">我的</text>
+        <view class="header-spacer w-[60rpx]" />
       </view>
     </view>
 
     <!-- ── Content ─────────────────────────── -->
-    <scroll-view scroll-y class="content-scroll">
-      <view class="content">
+    <scroll-view scroll-y class="content-scroll flex-1">
+      <view class="content p-[48rpx]">
 
         <!-- 登录卡片 -->
-        <view class="login-card" @click="handleLogin">
-          <view class="login-avatar">
+        <view class="login-card h-[200rpx] flex flex-col items-center justify-center gap-[24rpx]" @click="handleLogin">
+          <view class="login-avatar w-[100rpx] h-[100rpx] flex items-center justify-center">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
@@ -33,9 +33,9 @@
         </view>
 
         <!-- 菜单列表 -->
-        <view class="menu-list">
-          <view class="menu-item" @click="handleScanRecord">
-            <view class="menu-item-left">
+        <view class="menu-list overflow-hidden">
+          <view class="menu-item flex items-center justify-between h-[100rpx] px-[48rpx]" @click="handleScanRecord">
+            <view class="menu-item-left flex items-center gap-[16rpx]">
               <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
@@ -46,8 +46,8 @@
             </svg>
           </view>
 
-          <view class="menu-item disabled" @click="handleUpcoming">
-            <view class="menu-item-left">
+          <view class="menu-item disabled flex items-center justify-between h-[100rpx] px-[48rpx]" @click="handleUpcoming">
+            <view class="menu-item-left flex items-center gap-[16rpx]">
               <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
@@ -60,8 +60,8 @@
             </svg>
           </view>
 
-          <view class="menu-item disabled" @click="handleUpcoming">
-            <view class="menu-item-left">
+          <view class="menu-item disabled flex items-center justify-between h-[100rpx] px-[48rpx]" @click="handleUpcoming">
+            <view class="menu-item-left flex items-center gap-[16rpx]">
               <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
@@ -72,8 +72,8 @@
             </svg>
           </view>
 
-          <view class="menu-item disabled" @click="handleUpcoming">
-            <view class="menu-item-left">
+          <view class="menu-item disabled flex items-center justify-between h-[100rpx] px-[48rpx]" @click="handleUpcoming">
+            <view class="menu-item-left flex items-center gap-[16rpx]">
               <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
@@ -121,8 +121,6 @@ function goBack() {
 .profile-page {
   min-height: 100vh;
   background: var(--bg-base);
-  display: flex;
-  flex-direction: column;
 }
 
 // ── Header ─────────────────────────────────────────────
@@ -132,19 +130,10 @@ function goBack() {
 }
 
 .header-content {
-  display: flex;
-  align-items: center;
   height: var(--space-22);
-  padding: 0 var(--space-4);
-  gap: var(--space-3);
 }
 
 .header-btn {
-  width: var(--space-15);
-  height: var(--space-15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: transparent;
   border: none;
   padding: 0;
@@ -158,8 +147,6 @@ function goBack() {
 }
 
 .header-title {
-  flex: 1;
-  text-align: center;
   font-size: var(--text-md);
   font-weight: 600;
   color: var(--text-primary);
@@ -168,46 +155,32 @@ function goBack() {
 }
 
 .header-spacer {
-  width: var(--space-15);
 }
 
 // ── Content ─────────────────────────────────────────────
 .content-scroll {
-  flex: 1;
   height: calc(100vh - 88rpx);
 }
 
 .content {
-  padding: var(--space-6);
 }
 
 // ── Login Card ──────────────────────────────────────────
 .login-card {
-  height: 200rpx;
   background: linear-gradient(135deg, var(--palette-pink-50) 0%, var(--palette-pink-100) 100%);
   border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
   margin-bottom: var(--space-6);
   border: 1px solid color-mix(in oklch, var(--palette-pink-200) 50%, transparent);
 }
 
-.dark-mode .login-card {
+.dark .login-card {
   background: linear-gradient(135deg, #1a1018 0%, #1a1a1a 100%);
   border-color: var(--border-color);
 }
 
 .login-avatar {
-  width: 100rpx;
-  height: 100rpx;
   border-radius: 50%;
   background: var(--bg-card);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-shadow: var(--shadow-sm);
 
   svg {
@@ -227,15 +200,9 @@ function goBack() {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  overflow: hidden;
 }
 
 .menu-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 100rpx;
-  padding: 0 var(--space-6);
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;
   transition: background 0.15s ease;
@@ -255,9 +222,6 @@ function goBack() {
 }
 
 .menu-item-left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
 }
 
 .menu-icon {
