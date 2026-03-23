@@ -21,6 +21,13 @@
         "statusBarStyle": "dark",
         "statusBarHeight": "44px"
       }
+    },
+    {
+      "path": "pages/ingredient-detail/index",
+      "style": {
+        "navigationStyle": "custom",
+        "statusBarStyle": "dark"
+      }
     }
   ],
   "condition": {
