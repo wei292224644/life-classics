@@ -1,5 +1,3 @@
-from fastapi import HTTPException
-
 from api.product.models import (
     IngredientResponse,
     ProductIngredient,
