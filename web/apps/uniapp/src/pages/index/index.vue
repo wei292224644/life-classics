@@ -163,11 +163,12 @@ function handleRecentClick(item: RecentScan) {
 @import '@/styles/design-system.scss';
 
 .index-page {
-  min-height: 100vh;
+  height: 100vh;
   background: var(--bg-base);
   display: flex;
   flex-direction: column;
   padding-bottom: calc(80rpx + env(safe-area-inset-bottom));
+  overflow: hidden;
 }
 
 // ── Hero ───────────────────────────────────────────────
@@ -313,10 +314,13 @@ function handleRecentClick(item: RecentScan) {
 
 // ── Scan List ───────────────────────────────────────────
 .scan-list {
+  flex: 1;
   padding: 0 48rpx 40rpx;
   display: flex;
   flex-direction: column;
   gap: 16rpx;
+  overflow-y: auto;
+  min-height: 0; /* flex child overflow scroll requires this */
 }
 
 .scan-item {
