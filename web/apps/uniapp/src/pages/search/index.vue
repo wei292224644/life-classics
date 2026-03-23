@@ -1,6 +1,6 @@
 <template>
   <view
-    class="search-page flex flex-col"
+    class="search-page flex flex-col min-h-screen"
     :class="{ 'dark': themeStore.isDark }"
   >
     <!-- ── Header ──────────────────────────── -->
@@ -227,7 +227,6 @@ function goBack() {
 @import '@/styles/design-system.scss';
 
 .search-page {
-  min-height: 100vh;
   background: var(--bg-base);
 }
 
@@ -235,10 +234,6 @@ function goBack() {
 .search-header {
   background: var(--bg-base);
   border-bottom: 1px solid var(--border-color);
-}
-
-.header-content {
-  height: var(--space-22);
 }
 
 .header-btn {
@@ -259,7 +254,7 @@ function goBack() {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
-  margin-right: var(--space-15); // balance the back button
+  margin-right: 120rpx;
 }
 
 .header-spacer {
@@ -303,10 +298,6 @@ function goBack() {
 }
 
 // ── Results ────────────────────────────────────────────
-.results-scroll {
-  height: calc(100vh - var(--space-22) - var(--space-20) - var(--space-20));
-}
-
 .results-content {
 }
 
@@ -328,13 +319,10 @@ function goBack() {
   font-size: var(--text-4xl);
 }
 
-.result-info {
-}
-
 .result-type-tag {
   display: inline-block;
   font-size: var(--text-xs);
-  padding: var(--space-px) var(--space-3);
+  padding: var(--space-px) 24rpx;
   border-radius: var(--radius-full);
 }
 
@@ -383,10 +371,7 @@ function goBack() {
   color: var(--text-muted);
   background: transparent;
   border: none;
-  padding: var(--space-2) var(--space-3);
-}
-
-.history-tags {
+  padding: 16rpx 24rpx;
 }
 
 .history-tag {
