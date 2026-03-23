@@ -1,6 +1,6 @@
 <template>
   <view :class="['analysis-card', `analysis-card--${item.level}`]">
-    <view class="card-header">
+    <view class="flex justify-between items-center mb-4">
       <text class="card-title">{{ ANALYSIS_LABELS[item.analysis_type] ?? item.analysis_type }}</text>
       <view :class="['level-badge', `level-badge--${item.level}`]">
         <text>{{ LEVEL_LABELS[item.level] ?? item.level }}</text>
@@ -57,12 +57,6 @@ function extractSummary(results: unknown): string {
   &--t0 { border-left-color: var(--risk-t0); }
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-4);
-}
 
 .card-title {
   font-size: var(--text-2xl);

@@ -1,5 +1,5 @@
 <template>
-  <view :class="['risk-badge', `risk-badge--${level}`]">
+  <view :class="['risk-badge inline-flex items-center', `risk-badge--${level}`]">
     <text>{{ label }}</text>
   </view>
 </template>
@@ -28,7 +28,6 @@ const label = computed(() => props.whoLevel ?? "未知");
 @import "@/styles/design-system.scss";
 
 .risk-badge {
-  display: inline-flex;
   padding: var(--space-1) var(--space-3);
   border-radius: var(--space-2);
   font-size: var(--text-base);

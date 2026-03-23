@@ -1,9 +1,9 @@
 <template>
-  <view class="section-header">
+  <view class="section-header flex items-center gap-4 mb-5 pb-4">
     <view :class="['section-icon-wrap', `icon-bg-${icon}`]">
       <slot name="icon" />
     </view>
-    <text class="section-title">{{ title }}</text>
+    <text class="section-title flex-1">{{ title }}</text>
     <view v-if="showAiBadge" class="ai-label">AI</view>
   </view>
 </template>
@@ -20,11 +20,6 @@ defineProps<{
 @import "@/styles/design-system.scss";
 
 .section-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-5);
-  padding-bottom: var(--space-4);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -48,7 +43,6 @@ defineProps<{
   font-size: var(--text-lg);
   font-weight: 700;
   color: var(--text-primary);
-  flex: 1;
 }
 
 .ai-label {

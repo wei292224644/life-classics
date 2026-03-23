@@ -5,7 +5,7 @@
       :key="item.id"
       :class="['ingredient-item', isHighRisk(item.who_level) && 'ingredient-item--risk']"
     >
-      <view class="ingredient-header">
+      <view class="flex items-center justify-between">
         <text class="ingredient-name">{{ item.name }}</text>
         <RiskBadge :who-level="item.who_level" />
       </view>
@@ -43,11 +43,6 @@ function isHighRisk(whoLevel: string | null): boolean {
   &--risk { background: color-mix(in oklch, var(--risk-t4) 4%, transparent); border-radius: var(--space-2); padding: var(--space-4); }
 }
 
-.ingredient-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
 
 .ingredient-name { font-size: var(--text-2xl); color: var(--text-primary); }
 

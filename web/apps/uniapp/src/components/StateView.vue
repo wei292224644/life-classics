@@ -1,5 +1,5 @@
 <template>
-  <view :class="['state-view', `state-view--${state}`]">
+  <view :class="['state-view flex flex-col items-center justify-center gap-8', `state-view--${state}`]">
     <template v-if="state === 'loading'">
       <up-loading-icon mode="circle" />
       <text class="state-view__message">{{ message || "加载中..." }}</text>
@@ -37,12 +37,6 @@ defineEmits<{ (e: "retry"): void }>();
 @import "@/styles/design-system.scss";
 
 .state-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-8);
-
   &__message {
     font-size: var(--text-lg);
     color: var(--text-muted);

@@ -5,15 +5,15 @@
       :key="group.label"
       class="group"
     >
-      <text class="group-label">{{ group.label }}</text>
-      <view class="row header">
+      <text class="group-label block mb-2">{{ group.label }}</text>
+      <view class="row header flex justify-between">
         <text class="col-name">营养成分</text>
         <text class="col-value">每{{ group.referenceUnit }}</text>
       </view>
       <view
         v-for="item in group.items"
         :key="item.name"
-        class="row"
+        class="row flex justify-between"
       >
         <text class="col-name">{{ item.name }}</text>
         <text class="col-value">{{ item.value }} {{ item.value_unit }}</text>
@@ -60,13 +60,9 @@ const grouped = computed(() => {
   .group-label {
     font-size: var(--text-lg);
     color: #888;
-    margin-bottom: var(--space-2);
-    display: block;
   }
 
   .row {
-    display: flex;
-    justify-content: space-between;
     padding: var(--space-4) 0;
     border-bottom: 1rpx solid #f0f0f0;
 

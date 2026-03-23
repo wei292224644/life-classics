@@ -1,17 +1,17 @@
 <template>
   <view class="product-header">
     <view
-      class="header"
+      class="header flex items-center gap-6"
       :class="{ 'header--scrolled': isScrolled }"
       :style="{ top: statusBarHeight + 'px' }"
     >
-      <button type="button" class="header-btn" aria-label="返回" @click="handleBack">
+      <button type="button" class="header-btn flex items-center justify-center flex-shrink-0" aria-label="返回" @click="handleBack">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M15 19l-7-7 7-7"/>
         </svg>
       </button>
-      <text class="header-title">{{ name }}</text>
-      <button type="button" class="header-btn" aria-label="分享" @click="handleShare">
+      <text class="header-title flex-1">{{ name }}</text>
+      <button type="button" class="header-btn flex items-center justify-center flex-shrink-0" aria-label="分享" @click="handleShare">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
         </svg>
@@ -66,9 +66,6 @@ function handleShare() {
   left: 0;
   right: 0;
   padding: var(--space-4) var(--space-8);
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
   background: transparent;
   transition: background 0.4s $ease-spring, box-shadow 0.4s $ease-spring;
   pointer-events: auto;
@@ -91,9 +88,6 @@ function handleShare() {
   width: var(--space-20);
   height: var(--space-20);
   border-radius: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -101,7 +95,6 @@ function handleShare() {
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
-  flex-shrink: 0;
   color: #ffffff;
   transition: all 0.2s $ease-spring;
 
@@ -127,7 +120,6 @@ function handleShare() {
 }
 
 .header-title {
-  flex: 1;
   font-size: var(--text-3xl);
   font-weight: 600;
   letter-spacing: -0.02em;

@@ -6,15 +6,15 @@
         :class="['risk-group', levelKey]"
       >
         <!-- 组头 -->
-        <view class="risk-header">
+        <view class="risk-header flex items-center gap-4 mb-7">
           <view :class="['risk-dot', levelKey]" />
           <view :class="['risk-badge', levelKey]">{{ LEVEL_LABELS[levelKey] }}</view>
-          <text class="risk-count">{{ groupedIngredients[levelKey].length }} 项</text>
+          <text class="risk-count ml-auto">{{ groupedIngredients[levelKey].length }} 项</text>
         </view>
 
         <!-- 横向滚动配料卡 -->
         <scroll-view scroll-x class="ingredient-scroll">
-          <view class="ingredient-scroll-inner">
+          <view class="ingredient-scroll-inner flex flex-row gap-5 w-max pb-2">
           <view
             v-for="item in groupedIngredients[levelKey]"
             :key="item.id"
@@ -32,8 +32,8 @@
             </view>
 
             <!-- 内容 -->
-            <view class="ingredient-content">
-              <view class="ingredient-name">
+            <view class="ingredient-content flex flex-col pl-4 min-w-0">
+              <view class="ingredient-name flex items-center gap-3 mb-3">
                 <!-- 低风险：叶子图标（stroke） -->
                 <svg v-if="levelKey === 't0'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon" aria-hidden="true">
                   <path d="M6.5 21C3 17.5 3 12 6 8c2-2.5 5-4 8.5-4C18 4 21 7 21 10c0 2.5-1.5 4.5-3.5 5.5"/>
@@ -131,13 +131,6 @@ function goToDetail(id: number) {
 }
 
 // ── 组头 ──────────────────────────────────────────────
-.risk-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-7);
-}
-
 .risk-dot {
   width: var(--space-4);
   height: var(--space-4);
@@ -169,7 +162,6 @@ function goToDetail(id: number) {
 .risk-count {
   font-size: var(--text-base);
   color: var(--text-muted);
-  margin-left: auto;
 }
 
 // ── 横向滚动 ──────────────────────────────────────────
@@ -181,14 +173,6 @@ function goToDetail(id: number) {
   }
 
   &::-webkit-scrollbar { display: none; }
-}
-
-.ingredient-scroll-inner {
-  display: flex;
-  flex-direction: row;
-  gap: var(--space-5);
-  width: max-content;
-  padding-bottom: var(--space-2);
 }
 
 // ── 配料卡片 ──────────────────────────────────────────
@@ -263,19 +247,7 @@ function goToDetail(id: number) {
 }
 
 // ── 内容区 ────────────────────────────────────────────
-.ingredient-content {
-  display: flex;
-  flex-direction: column;
-  padding-left: var(--space-4);
-  min-width: 0;
-}
-
 .ingredient-name {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
-
   .icon {
     width: var(--space-7);
     height: var(--space-7);
