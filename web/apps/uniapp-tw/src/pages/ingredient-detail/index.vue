@@ -38,8 +38,8 @@
     <view class="scroll-content">
 
       <!-- Hero 风险卡 -->
-      <view class="section-card hero-card" :style="heroCardStyle">
-        <view class="hero-top" :style="heroTopStyle">
+      <view class="section-card hero-card">
+        <view class="hero-top">
           <view class="hero-name-row">
             <view class="hero-name-wrap">
               <text class="hero-name">{{ ingredient.name }}</text>
@@ -74,9 +74,7 @@
         <view class="chips-row">
           <text v-if="ingredient.additive_code" class="chip chip-func">{{ ingredient.additive_code }}</text>
           <text v-if="ingredient.function_type" class="chip chip-func">{{ ingredient.function_type }}</text>
-          <!-- 来源 chip：暂用假数据（后端扩展 IngredientDetail schema 后更新）-->
           <text v-if="source" class="chip chip-neu">{{ source }}</text>
-          <!-- 孕妇警告 chip：字段名暂定，后端确认 schema 后更新 -->
           <text v-if="pregnancyWarning" class="chip chip-warn">{{ pregnancyWarning }}</text>
           <template v-if="ingredient.alias?.length">
             <text v-for="alias in ingredient.alias" :key="alias" class="chip chip-neu">别名：{{ alias }}</text>
@@ -132,7 +130,6 @@
             <text class="kv-key">WHO 致癌等级</text>
             <text class="kv-value kv-value-red">{{ ingredient.who_level }}</text>
           </view>
-          <!-- 母婴等级、使用限量、适用区域：字段名暂定，待后端 IngredientDetail 类型扩展后更新 -->
           <view v-if="maternalLevel" class="kv-row">
             <text class="kv-key">母婴等级</text>
             <text class="kv-value kv-value-red">{{ maternalLevel }}</text>
@@ -261,21 +258,18 @@ onLoad(async (options) => {
   const fpn = options?.fromProductName ? decodeURIComponent(options.fromProductName) : null
 
   if (ingStore.current) {
-    // 已有 Pinia 数据（从产品页下钻而来），URL 的 fromProductName 覆盖之
     if (fpn) ingStore.set(ingStore.current, fpn)
     return
   }
 
   if (!id) return
 
-  // 独立访问：先从当前产品 store 匹配，未找到则调 API
   const fromProduct = productStore.product?.ingredients?.find(i => i.id === id)
   if (fromProduct) {
     ingStore.set(fromProduct, fpn ?? productStore.product?.name)
     return
   }
 
-  // 调后端独立配料接口
   isLoading.value = true
   try {
     const res = await new Promise<UniApp.RequestSuccessCallbackResult>((resolve, reject) => {
@@ -309,17 +303,6 @@ const headerSubtitle = computed(() => {
 // ── Risk class ───────────────────────────────────────────
 const riskClass = computed(() => `risk-${riskConf.value.visualKey}`)
 
-const heroCardStyle = computed(() => ({
-  background: "var(--bg-card)",
-  border: "1px solid var(--border-color)",
-  boxShadow: "0 2rpx 8rpx rgba(0,0,0,0.05)",
-}))
-
-const heroTopStyle = computed(() => ({
-  background: `linear-gradient(135deg, var(--risk-header-bg) 60%, transparent 100%)`,
-  borderBottom: "1px solid var(--risk-header-border)",
-}))
-
 const spectrumOpacityStyle = computed(() =>
   riskConf.value.needleLeft === null ? { opacity: "0.4" } : {}
 )
@@ -328,7 +311,6 @@ const spectrumOpacityStyle = computed(() =>
 const needleRight = computed(() => {
   const left = riskConf.value.needleLeft
   if (left === null) return null
-  // 将 left 百分比转换为 right 百分比（假设指针宽度约 14px 占谱条 4%）
   return `${100 - parseFloat(left) - 4}%`
 })
 
@@ -345,7 +327,7 @@ function safeResults(analysis: IngredientAnalysis | undefined): Record<string, u
   return {}
 }
 
-// Mock 兜底数据：真实 analysis.results 中无内容时使用，待后端数据完善后可移除
+// Mock 兜底数据
 const MOCK_RESULTS = {
   summary: "香草精是一种广泛使用的食品香料，主要成分为香兰素（vanillin），可天然提取自香草豆荚，也可人工合成。常用于烘焙食品、甜点、饮料、冰淇淋等中增香。天然香草精含有超过200种风味化合物，香气更为复杂细腻。",
   risk_factors: [
@@ -366,26 +348,21 @@ const results = computed(() => {
   return hasRealData ? raw : MOCK_RESULTS
 })
 
-// 以数据接口章节为准（信息架构中的 `description` 为笔误），使用 `results.summary`
 const summary = computed(() => {
   const s = results.value.summary
   return typeof s === "string" ? s : null
 })
 
-// 孕妇警告 chip：字段名暂定（待后端确认），隐藏时不渲染
 const pregnancyWarning = computed(() => {
   const w = results.value.pregnancy_warning
   return typeof w === "string" ? w : null
 })
 
-// 来源 chip：暂用假数据（后端扩展 IngredientDetail schema 后更新）
 const source = computed(() => {
   const s = results.value.source
   return typeof s === "string" ? s : "化学合成"
 })
 
-// 以下三个字段在当前 IngredientDetail 类型中不存在，暂时从 analysis.results 读取；
-// 后端扩展 IngredientDetail schema 后迁移到顶层字段并更新此处。
 const maternalLevel = computed(() => {
   const v = results.value.maternal_level
   return typeof v === "string" ? v : null
@@ -420,7 +397,6 @@ const suggestions = computed((): Suggestion[] => {
   })
 })
 
-// ── 风险管理信息是否有内容 ────────────────────────────────
 const hasRiskMgmt = computed(() =>
   !!(
     ingredient.value?.who_level ||
@@ -432,11 +408,6 @@ const hasRiskMgmt = computed(() =>
   )
 )
 
-// ── 含此配料的相关产品 ────────────────────────────────────
-// [已知降级] 规格要求从"全局产品列表"过滤，但全局产品列表 store 尚未实现。
-// 当前降级策略：使用假数据模拟多个产品卡片。
-// 后续扩展：实现全局产品列表 store 后，将此处改为从全局列表过滤。
-// 假数据格式
 interface RelatedProduct {
   id: number
   name: string
@@ -455,7 +426,6 @@ const MOCK_RELATED_PRODUCTS: RelatedProduct[] = [
 
 const relatedProducts = computed(() => {
   if (!ingredient.value) return []
-  // 暂时返回假数据，后续接入全局产品列表后改为过滤逻辑
   return MOCK_RELATED_PRODUCTS
 })
 
@@ -488,444 +458,306 @@ function goToProduct(barcode: string) {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
 // Risk level color classes — scoped to this component
-.risk-critical { --risk-header-bg: var(--palette-red-50); --risk-header-border: var(--palette-red-200); --risk-badge-bg: var(--palette-red-500); --risk-bg: var(--palette-red-50); --risk-border: var(--palette-red-200); --risk-btn-bg: var(--risk-t4-bg); --risk-btn-color: var(--risk-t4); --risk-title-color: var(--palette-red-800); --risk-sub-color: var(--risk-t4); }
-.risk-high      { --risk-header-bg: var(--palette-orange-50); --risk-header-border: var(--palette-orange-200); --risk-badge-bg: var(--palette-orange-500); --risk-bg: var(--palette-orange-50); --risk-border: var(--palette-orange-200); --risk-btn-bg: var(--risk-t3-bg); --risk-btn-color: var(--risk-t3); --risk-title-color: var(--palette-orange-800); --risk-sub-color: var(--risk-t3); }
-.risk-medium    { --risk-header-bg: var(--palette-yellow-50); --risk-header-border: var(--palette-yellow-200); --risk-badge-bg: var(--palette-yellow-500); --risk-bg: var(--palette-yellow-50); --risk-border: var(--palette-yellow-200); --risk-btn-bg: var(--risk-t2-bg); --risk-btn-color: var(--risk-t2); --risk-title-color: var(--palette-yellow-800); --risk-sub-color: var(--risk-t2); }
-.risk-low       { --risk-header-bg: var(--palette-green-50); --risk-header-border: var(--palette-green-200); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-50); --risk-border: var(--palette-green-200); --risk-btn-bg: var(--risk-t1-bg); --risk-btn-color: var(--risk-t1); --risk-title-color: var(--palette-green-800); --risk-sub-color: var(--risk-t1); }
-.risk-safe      { --risk-header-bg: var(--palette-green-50); --risk-header-border: var(--palette-green-200); --risk-badge-bg: var(--palette-green-500); --risk-bg: var(--palette-green-50); --risk-border: var(--palette-green-200); --risk-btn-bg: var(--risk-t0-bg); --risk-btn-color: var(--risk-t0); --risk-title-color: var(--palette-green-800); --risk-sub-color: var(--risk-t0); }
-.risk-unknown   { --risk-header-bg: var(--palette-gray-50); --risk-header-border: var(--palette-gray-200); --risk-badge-bg: var(--palette-gray-500); --risk-bg: var(--palette-gray-50); --risk-border: var(--palette-gray-200); --risk-btn-bg: var(--risk-unknown-bg); --risk-btn-color: var(--risk-unknown); --risk-title-color: var(--palette-gray-600); --risk-sub-color: var(--risk-unknown); }
+.risk-critical { --risk-header-bg: oklch(97% 0.02 25); --risk-header-border: oklch(92% 0.04 25); --risk-badge-bg: oklch(55% 0.2 25); --risk-bg: oklch(97% 0.02 25); --risk-border: oklch(92% 0.04 25); --risk-btn-bg: oklch(97% 0.02 25); --risk-btn-color: oklch(55% 0.2 25); --risk-title-color: oklch(45% 0.12 25); --risk-sub-color: oklch(55% 0.2 25); }
+.risk-high      { --risk-header-bg: oklch(97% 0.03 60); --risk-header-border: oklch(90% 0.06 60); --risk-badge-bg: oklch(60% 0.18 50); --risk-bg: oklch(97% 0.03 60); --risk-border: oklch(90% 0.06 60); --risk-btn-bg: oklch(97% 0.03 60); --risk-btn-color: oklch(60% 0.18 50); --risk-title-color: oklch(45% 0.14 50); --risk-sub-color: oklch(60% 0.18 50); }
+.risk-medium    { --risk-header-bg: oklch(97% 0.03 85); --risk-header-border: oklch(90% 0.06 85); --risk-badge-bg: oklch(65% 0.16 85); --risk-bg: oklch(97% 0.03 85); --risk-border: oklch(90% 0.06 85); --risk-btn-bg: oklch(97% 0.03 85); --risk-btn-color: oklch(65% 0.16 85); --risk-title-color: oklch(45% 0.14 85); --risk-sub-color: oklch(65% 0.16 85); }
+.risk-low       { --risk-header-bg: oklch(97% 0.03 145); --risk-header-border: oklch(90% 0.06 145); --risk-badge-bg: oklch(55% 0.15 145); --risk-bg: oklch(97% 0.03 145); --risk-border: oklch(90% 0.06 145); --risk-btn-bg: oklch(97% 0.03 145); --risk-btn-color: oklch(55% 0.15 145); --risk-title-color: oklch(40% 0.10 145); --risk-sub-color: oklch(55% 0.15 145); }
+.risk-safe      { --risk-header-bg: oklch(97% 0.03 145); --risk-header-border: oklch(90% 0.06 145); --risk-badge-bg: oklch(55% 0.15 145); --risk-bg: oklch(97% 0.03 145); --risk-border: oklch(90% 0.06 145); --risk-btn-bg: oklch(97% 0.03 145); --risk-btn-color: oklch(55% 0.15 145); --risk-title-color: oklch(40% 0.10 145); --risk-sub-color: oklch(55% 0.15 145); }
+.risk-unknown   { --risk-header-bg: oklch(97% 0.01 265); --risk-header-border: oklch(93% 0.01 265); --risk-badge-bg: oklch(55% 0.01 265); --risk-bg: oklch(97% 0.01 265); --risk-border: oklch(93% 0.01 265); --risk-btn-bg: oklch(97% 0.01 265); --risk-btn-color: oklch(55% 0.01 265); --risk-title-color: oklch(45% 0.01 265); --risk-sub-color: oklch(55% 0.01 265); }
 
+// ── Page ─────────────────────────────────────────────────
 .ingredient-detail-page {
-  height: 100vh;
-  background: var(--bg-base);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
+  @apply h-screen bg-background flex flex-col relative overflow-hidden;
   --bottom-bar-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.06);
 }
 
 // ── Header ──────────────────────────────────────────────
 .ing-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  flex-shrink: 0;
+  @apply sticky top-0 z-[100] flex-shrink-0;
   background: var(--risk-header-bg);
   border-bottom: 1px solid var(--risk-header-border);
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .header-content {
-  display: flex;
-  align-items: center;
-  padding: var(--space-5) var(--space-6) var(--space-6);
-  gap: var(--space-4);
+  @apply flex items-center px-6 pb-6;
+  gap: 16rpx;
 }
 
 .header-btn {
-  width: var(--space-20);
-  height: var(--space-20);
-  border-radius: 24rpx;
+  @apply w-20 h-20 rounded-xl flex items-center justify-center flex-shrink-0 p-0 m-0;
   background: var(--risk-btn-bg);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 0;
-  margin: 0;
   color: var(--risk-btn-color);
-  transition: all 0.2s $ease-spring;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   outline: none;
   -webkit-appearance: none;
   appearance: none;
+  border: none;
 
   svg {
-    width: var(--space-9);
-    height: var(--space-9);
+    @apply w-9 h-9;
     stroke-width: 2;
     color: var(--risk-btn-color);
     stroke: var(--risk-btn-color);
   }
 
   &:active {
-    transform: scale(0.92);
-    opacity: 0.8;
+    @apply scale-95 opacity-80;
   }
 }
 
 .header-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  @apply flex-1 flex flex-col gap-0.5;
 }
 
 .header-title {
-  font-size: var(--text-3xl);
-  font-weight: 700;
+  @apply text-2xl font-bold leading-tight;
   color: var(--risk-title-color);
-  line-height: 1.2;
 }
 
 .header-subtitle {
-  font-size: var(--text-md);
+  @apply text-base leading-relaxed;
   color: var(--risk-sub-color);
-  line-height: 1.3;
-}
-
-.header-spacer {
-  width: var(--space-18); // 与 back-btn 等宽，保持标题居中
 }
 
 // ── 加载态 ───────────────────────────────────────────────
 .loading-state {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @apply flex-1 flex items-center justify-center;
 }
 
 .loading-text {
-  font-size: var(--text-xl);
-  color: var(--text-muted);
+  @apply text-xl text-muted-foreground;
 }
 
 // ── 错误态 ───────────────────────────────────────────────
 .error-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-8);
-  padding: var(--space-20) var(--space-12);
+  @apply flex-1 flex flex-col items-center justify-center gap-8 px-12 py-20;
 }
 
 .error-text {
-  font-size: var(--text-xl);
-  color: var(--text-secondary);
-  text-align: center;
+  @apply text-xl text-secondary text-center;
 }
 
 .retry-btn {
-  padding: var(--space-5) var(--space-12);
-  border-radius: var(--radius-md);
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: var(--text-xl);
+  @apply px-12 py-5 rounded-xl bg-card border border-border text-foreground text-xl;
 }
 
 // ── 滚动区 ───────────────────────────────────────────────
 .scroll-area {
-  flex: 1;
-  overflow: hidden;
-  width: 100%;
+  @apply flex-1 overflow-hidden w-full;
   box-sizing: border-box;
 }
 
 .scroll-content {
-  padding: var(--space-6) var(--space-6) 0;
+  @apply px-6 pt-0;
 }
 
 .bottom-spacer {
-  height: 180rpx; // 留出底部 bar 的空间
+  height: 180rpx;
 }
 
 // ── Section Card 通用 ────────────────────────────────────
 .section-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: var(--space-8);
-  margin-bottom: var(--space-6);
-  border: 1px solid var(--border-color);
-  box-sizing: border-box;
-  width: 100%;
-  overflow: hidden;
+  @apply bg-card rounded-xl p-8 mb-6 border border-border box-border w-full overflow-hidden;
   box-shadow: var(--shadow-sm);
 }
 
 .section-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-5);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border-color);
+  @apply flex items-center gap-4 mb-5 pb-4 border-b border-border;
 }
 
 .section-icon-wrap {
-  width: var(--icon-xl);
-  height: var(--icon-xl);
-  border-radius: var(--space-3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  @apply w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0;
 
-  &.icon-bg-blue { background: color-mix(in oklch, var(--palette-blue-500) 12%, transparent); }
-  &.icon-bg-red { background: color-mix(in oklch, var(--palette-red-500) 12%, transparent); }
-  &.icon-bg-purple { background: color-mix(in oklch, var(--palette-purple-500) 12%, transparent); }
-  &.icon-bg-green { background: color-mix(in oklch, var(--palette-green-500) 12%, transparent); }
-  &.icon-bg-orange { background: color-mix(in oklch, var(--palette-orange-400) 12%, transparent); }
+  &.icon-bg-blue { background: color-mix(in oklch, oklch(55% 0.15 245) 12%, transparent); }
+  &.icon-bg-red { background: color-mix(in oklch, oklch(55% 0.2 25) 12%, transparent); }
+  &.icon-bg-purple { background: color-mix(in oklch, oklch(55% 0.15 300) 12%, transparent); }
+  &.icon-bg-green { background: color-mix(in oklch, oklch(55% 0.15 145) 12%, transparent); }
+  &.icon-bg-orange { background: color-mix(in oklch, oklch(60% 0.18 50) 12%, transparent); }
 }
 
 .section-icon {
-  width: var(--icon-sm);
-  height: var(--icon-sm);
+  @apply w-5 h-5;
   fill: currentColor;
 }
 
-.icon-bg-blue .section-icon { color: var(--palette-blue-500); }
-.icon-bg-red .section-icon { color: var(--palette-red-500); }
-.icon-bg-purple .section-icon { color: var(--palette-purple-500); }
-.icon-bg-green .section-icon { color: var(--palette-green-500); }
-.icon-bg-orange .section-icon { color: var(--palette-orange-400); }
+.icon-bg-blue .section-icon { color: oklch(55% 0.15 245); }
+.icon-bg-red .section-icon { color: oklch(55% 0.2 25); }
+.icon-bg-purple .section-icon { color: oklch(55% 0.15 300); }
+.icon-bg-green .section-icon { color: oklch(55% 0.15 145); }
+.icon-bg-orange .section-icon { color: oklch(60% 0.18 50); }
 
 .section-title {
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: var(--text-primary);
-  flex: 1;
+  @apply text-lg font-bold text-foreground flex-1;
 }
 
 .ai-label {
-  font-size: var(--text-sm);
-  font-weight: 700;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--space-2);
+  @apply text-sm font-bold px-3 py-0.5 rounded text-white;
   background: var(--ai-label-bg);
-  color: #fff;
   letter-spacing: 0.05em;
 }
 
 .section-body {
-  font-size: var(--text-md);
-  color: var(--text-secondary);
-  line-height: 1.7;
+  @apply text-base text-secondary leading-relaxed;
 }
 
 // ── Hero 风险卡 ──────────────────────────────────────────
 .section-card.hero-card {
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  padding: 0;
+  @apply rounded-2xl overflow-hidden p-0;
 }
 
 .hero-top {
   background: linear-gradient(135deg, var(--risk-header-bg) 60%, transparent 100%);
   border-bottom: 1px solid var(--risk-header-border);
-  padding: var(--space-6) var(--space-6) var(--space-5);
+  @apply px-6 pb-5;
 }
 
 .hero-name-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
+  @apply flex items-start justify-between gap-4 mb-4;
 }
 
 .hero-name-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  @apply flex-1 flex flex-col gap-0.5;
 }
 
 .hero-name {
-  font-size: var(--text-4xl);
-  font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1.2;
+  @apply text-[36rpx] font-extrabold text-foreground leading-tight;
 }
 
 .hero-code {
-  font-size: var(--text-base);
-  color: var(--text-secondary);
-  font-weight: 400;
+  @apply text-base text-secondary font-normal;
 }
 
 .risk-badge {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-5);
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
+  @apply flex items-center gap-2 px-5 py-2 rounded-xl flex-shrink-0;
   background: var(--risk-badge-bg);
 }
 
 .badge-icon {
-  font-size: var(--text-md);
+  @apply text-base;
 }
 
 .badge-text {
-  font-size: var(--text-base);
-  font-weight: 700;
-  color: #fff;
+  @apply text-base font-bold text-white;
 }
 
 // ── 风险谱条 ─────────────────────────────────────────────
 .spectrum-wrap {
-  position: relative;
-  margin: var(--space-1) 0 var(--space-2);
+  @apply relative mb-1;
 }
 
 .spectrum-bar {
-  height: var(--space-3);
-  border-radius: var(--space-2);
+  @apply h-3 rounded-xl;
   background: linear-gradient(to right,
-    var(--palette-green-500) 0%,
-    var(--palette-green-300) 20%,
-    var(--palette-yellow-500) 45%,
-    var(--palette-orange-400) 65%,
-    var(--palette-red-500) 82%,
-    var(--palette-red-500) 100%
+    oklch(55% 0.15 145) 0%,
+    oklch(65% 0.12 145) 20%,
+    oklch(65% 0.16 85) 45%,
+    oklch(60% 0.18 50) 65%,
+    oklch(55% 0.2 25) 82%,
+    oklch(55% 0.2 25) 100%
   );
   transition: opacity 0.3s ease;
 }
 
 .spectrum-needle {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: var(--space-7);
-  height: var(--space-7);
-  border-radius: 50%;
-  background: var(--bg-card);
-  border: 5rpx solid var(--risk-t4);
-  box-shadow: 0 2rpx 6rpx color-mix(in oklch, var(--palette-red-500) 35%, transparent);
+  @apply absolute top-1/2 -translate-y-1/2 rounded-full;
+  width: 28rpx;
+  height: 28rpx;
+  background: var(--color-card);
+  border: 5rpx solid var(--color-risk-t4);
+  box-shadow: 0 2rpx 6rpx color-mix(in oklch, oklch(55% 0.2 25) 35%, transparent);
 }
 
 .spectrum-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: var(--space-1);
+  @apply flex justify-between mt-1;
 }
 
 .spec-label-safe,
 .spec-label-mid,
 .spec-label-danger {
-  font-size: var(--text-xs);
-  color: var(--text-secondary);
+  @apply text-xs text-secondary;
 }
 
 // ── Chips ────────────────────────────────────────────────
 .chips-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  padding: var(--space-5) var(--space-6) var(--space-5);
+  @apply flex flex-wrap gap-3 px-6 py-5;
 }
 
 .chip {
-  font-size: var(--text-sm);
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--space-3);
-  font-weight: 500;
+  @apply text-sm px-4 py-0.5 rounded-lg font-medium;
 
   &.chip-func {
-    color: var(--chip-risk-text);
-    background: var(--chip-risk-bg);
-    border: 1px solid var(--chip-risk-border);
+    color: var(--color-risk-t3);
+    background: color-mix(in oklch, var(--color-risk-t3) 12%, transparent);
+    border: 1px solid color-mix(in oklch, var(--color-risk-t3) 20%, transparent);
   }
 
   &.chip-warn {
-    color: var(--chip-warn-text);
-    background: var(--chip-warn-bg);
-    border: 1px solid var(--chip-warn-border);
+    color: var(--color-risk-t4);
+    background: color-mix(in oklch, var(--color-risk-t4) 12%, transparent);
+    border: 1px solid color-mix(in oklch, var(--color-risk-t4) 20%, transparent);
   }
 
   &.chip-neu {
-    color: var(--chip-neu-text);
-    background: var(--chip-neu-bg);
+    color: var(--color-secondary);
+    background: var(--color-secondary);
+    background: color-mix(in oklch, var(--color-secondary) 8%, transparent);
+    border: 1px solid color-mix(in oklch, var(--color-secondary) 15%, transparent);
   }
 }
 
 // ── KV 表格 ──────────────────────────────────────────────
 .kv-table {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+  @apply flex flex-col gap-4;
 }
 
 .kv-row {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-4);
+  @apply flex items-start gap-4;
 }
 
 .kv-key {
-  font-size: var(--text-md);
-  color: var(--text-muted);
-  width: 200rpx;
-  flex-shrink: 0;
-  padding-top: var(--space-1);
+  @apply text-base text-muted-foreground w-[200rpx] flex-shrink-0 pt-0.5;
 }
 
 .kv-value {
-  font-size: var(--text-lg);
-  color: var(--text-primary);
-  flex: 1;
-  line-height: 1.5;
+  @apply text-lg text-foreground flex-1 leading-relaxed;
 
   &.kv-value-red {
-    color: var(--risk-t4);
+    color: var(--color-risk-t4);
   }
 }
 
 // ── 列表项（风险分析 / 使用建议） ───────────────────────────
 .list-items {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+  @apply flex flex-col gap-4;
 }
 
 .list-item {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-4);
+  @apply flex items-start gap-4;
 }
 
 .list-item-icon {
-  width: var(--icon-lg);
-  height: var(--icon-lg);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-sm);
-  font-weight: 700;
-  flex-shrink: 0;
-  margin-top: var(--space-1);
+  @apply w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5;
 
   &.icon-x {
-    background: color-mix(in oklch, var(--palette-red-500) 12%, transparent);
-    color: var(--palette-red-500);
+    background: color-mix(in oklch, oklch(55% 0.2 25) 12%, transparent);
+    color: oklch(55% 0.2 25);
   }
 
   &.icon-check-green {
-    background: color-mix(in oklch, var(--palette-green-500) 12%, transparent);
-    color: var(--palette-green-500);
+    background: color-mix(in oklch, oklch(55% 0.15 145) 12%, transparent);
+    color: oklch(55% 0.15 145);
   }
 
   &.icon-check-yellow {
-    background: color-mix(in oklch, var(--palette-yellow-500) 12%, transparent);
-    color: var(--palette-yellow-500);
+    background: color-mix(in oklch, oklch(65% 0.16 85) 12%, transparent);
+    color: oklch(65% 0.16 85);
   }
 }
 
 .list-item-text {
-  font-size: var(--text-lg);
-  color: var(--text-secondary);
-  line-height: 1.6;
-  flex: 1;
+  @apply text-lg text-secondary leading-relaxed flex-1;
 }
 
 // ── 相关产品横向滚动 ─────────────────────────────────────
@@ -937,133 +769,80 @@ function goToProduct(barcode: string) {
 }
 
 .related-inner {
-  display: flex;
-  flex-direction: row;
-  gap: var(--space-5);
-  width: max-content;
-  padding-bottom: var(--space-2);
+  @apply flex flex-row gap-5 w-max pb-2;
 }
 
 .related-card {
-  flex: 0 0 auto;
-  width: 172rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  cursor: pointer;
+  @apply flex flex-col items-center gap-3 cursor-pointer flex-shrink-0;
 
-  &:active { opacity: 0.7; }
+  &:active { @apply opacity-70; }
 }
 
 .related-img-wrap {
-  width: 172rpx;
-  height: 172rpx;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--bg-base);
-  border: 1px solid var(--border-color);
+  @apply w-[172rpx] h-[172rpx] rounded-xl overflow-hidden bg-background border border-border;
 }
 
 .related-img {
-  width: 100%;
-  height: 100%;
+  @apply w-full h-full;
 }
 
 .related-img-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-7xl);
+  @apply w-full h-full flex items-center justify-center text-6xl;
 }
 
 .related-name {
-  font-size: var(--text-base);
-  color: var(--text-secondary);
-  text-align: center;
-  line-height: 1.3;
+  @apply text-base text-secondary text-center leading-tight line-clamp-2 w-full;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  width: 100%;
 }
 
 .related-risk-tag {
-  font-size: var(--text-xs);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--space-2);
-  font-weight: 500;
-  display: inline-block;
+  @apply text-xs px-3 py-0.5 rounded font-medium inline-block;
 
   &.risk-high {
-    color: var(--chip-risk-text);
-    background: var(--chip-risk-bg);
+    color: var(--color-risk-t3);
+    background: color-mix(in oklch, var(--color-risk-t3) 12%, transparent);
   }
 
   &.risk-med {
-    color: var(--chip-warn-text);
-    background: var(--chip-warn-bg);
+    color: var(--color-risk-t2);
+    background: color-mix(in oklch, var(--color-risk-t2) 12%, transparent);
   }
 }
 
 // ── 底部操作栏 ───────────────────────────────────────────
 .bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: var(--space-5) var(--space-6) var(--space-12);
-  padding-bottom: max(var(--space-12), constant(safe-area-inset-bottom));
-  padding-bottom: max(var(--space-12), env(safe-area-inset-bottom));
-  background: var(--bottom-bar-bg);
-  border-top: 1px solid var(--bottom-bar-border);
+  @apply fixed bottom-0 left-0 right-0 px-6 pb-12 bg-background border-t border-border flex gap-4 z-[100];
+  padding-bottom: max(48rpx, env(safe-area-inset-bottom));
   box-shadow: var(--bottom-bar-shadow);
-  display: flex;
-  gap: var(--space-4);
-  z-index: 100;
 }
 
 .bar-btn {
-  flex: 1;
-  height: var(--btn-height-xl);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  font-size: var(--text-lg);
-  font-weight: 600;
-  padding: 0;
+  @apply flex-1 h-14 rounded-xl flex items-center justify-center gap-3 text-lg font-semibold p-0;
 
-  &:active { opacity: 0.8; }
+  &:active { @apply opacity-80; }
 
   text {
-    font-size: var(--text-lg);
+    @apply text-lg;
   }
 }
 
 .bar-icon {
-  width: var(--icon-md);
-  height: var(--icon-md);
+  @apply w-5 h-5;
   fill: currentColor;
 }
 
 .bar-btn-ghost {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  @apply bg-card border border-border text-foreground;
 }
 
 .bar-btn-primary {
-  background: var(--accent);
-  color: #ffffff;
-  border: none;
+  @apply bg-accent text-white border-none;
 
   .dark & {
-    background: var(--accent);
+    background: var(--color-accent);
     color: #ffffff;
   }
 }
