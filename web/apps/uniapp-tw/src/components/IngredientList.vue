@@ -32,38 +32,42 @@ function isHighRisk(whoLevel: string | null): boolean {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
-.ingredient-list { width: 100%; }
+.ingredient-list {
+  @apply w-full;
+}
 
 .ingredient-item {
-  padding: var(--space-5) 0;
-  border-bottom: 1rpx solid var(--border-color);
+  @apply py-5;
+  border-bottom: 1px solid var(--color-border);
 
-  &--risk { background: color-mix(in oklch, var(--risk-t4) 4%, transparent); border-radius: var(--space-2); padding: var(--space-4); }
+  &--risk {
+    background: color-mix(in oklch, var(--color-risk-t4) 4%, transparent);
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    border-bottom-color: transparent;
+  }
 }
 
 .ingredient-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @apply flex items-center justify-between;
 }
 
-.ingredient-name { font-size: var(--text-2xl); color: var(--text-primary); }
+.ingredient-name {
+  @apply text-xl text-foreground;
+}
 
 .ingredient-meta {
-  display: block;
-  font-size: var(--text-md);
-  color: var(--text-muted);
-  margin-top: var(--space-2);
+  @apply block text-base mt-2;
+  color: var(--color-muted-foreground);
 }
 
 .ingredient-allergen {
-  display: block;
-  font-size: var(--text-md);
-  color: var(--risk-t4);
-  margin-top: var(--space-2);
+  @apply block text-base mt-2;
+  color: var(--color-risk-t4);
 }
 
-.empty { color: var(--text-muted); font-size: var(--text-xl); }
+.empty {
+  @apply text-xl;
+  color: var(--color-muted);
+}
 </style>

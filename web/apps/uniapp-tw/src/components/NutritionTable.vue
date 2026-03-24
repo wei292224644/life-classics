@@ -53,29 +53,36 @@ const grouped = computed(() => {
 
 <style lang="scss" scoped>
 .nutrition-table {
-  width: 100%;
+  @apply w-full;
 
-  .group { margin-bottom: var(--space-8); }
+  .group {
+    @apply mb-8;
+  }
 
   .group-label {
-    font-size: var(--text-lg);
-    color: #888;
-    margin-bottom: var(--space-2);
-    display: block;
+    @apply block text-lg mb-2;
+    color: var(--color-muted-foreground);
   }
 
   .row {
-    display: flex;
-    justify-content: space-between;
-    padding: var(--space-4) 0;
-    border-bottom: 1rpx solid #f0f0f0;
+    @apply flex justify-between py-4;
+    border-bottom: 1px solid var(--color-border);
 
-    &.header { font-weight: bold; }
+    &.header { @apply font-bold; }
   }
 
-  .col-name { font-size: var(--text-xl); color: #333; }
-  .col-value { font-size: var(--text-xl); color: #555; }
+  .col-name {
+    @apply text-xl;
+    color: var(--color-foreground);
+  }
+  .col-value {
+    @apply text-xl;
+    color: var(--color-secondary);
+  }
 
-  .empty { color: #aaa; font-size: var(--text-xl); }
+  .empty {
+    @apply text-xl;
+    color: var(--color-muted);
+  }
 }
 </style>
