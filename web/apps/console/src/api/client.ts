@@ -104,6 +104,7 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(payload),
       }),
+    reparse: (chunk_id: string) => request<Chunk>(`/chunks/${chunk_id}/reparse`, { method: 'POST' }),
   },
   kb: {
     stats: () => request<KBStats>('/kb/stats'),
