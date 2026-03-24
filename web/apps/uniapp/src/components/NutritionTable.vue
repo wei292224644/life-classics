@@ -5,15 +5,15 @@
       :key="group.label"
       class="group"
     >
-      <text class="group-label block mb-2">{{ group.label }}</text>
-      <view class="row header flex justify-between">
+      <text class="group-label">{{ group.label }}</text>
+      <view class="row header">
         <text class="col-name">营养成分</text>
         <text class="col-value">每{{ group.referenceUnit }}</text>
       </view>
       <view
         v-for="item in group.items"
         :key="item.name"
-        class="row flex justify-between"
+        class="row"
       >
         <text class="col-name">{{ item.name }}</text>
         <text class="col-value">{{ item.value }} {{ item.value_unit }}</text>
@@ -55,23 +55,27 @@ const grouped = computed(() => {
 .nutrition-table {
   width: 100%;
 
-  .group { margin-bottom: 32rpx; }
+  .group { margin-bottom: var(--space-8); }
 
   .group-label {
-    font-size: 26rpx;
+    font-size: var(--text-lg);
     color: #888;
+    margin-bottom: var(--space-2);
+    display: block;
   }
 
   .row {
-    padding: 16rpx 0;
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-4) 0;
     border-bottom: 1rpx solid #f0f0f0;
 
     &.header { font-weight: bold; }
   }
 
-  .col-name { font-size: 28rpx; color: #333; }
-  .col-value { font-size: 28rpx; color: #555; }
+  .col-name { font-size: var(--text-xl); color: #333; }
+  .col-value { font-size: var(--text-xl); color: #555; }
 
-  .empty { color: #aaa; font-size: 28rpx; }
+  .empty { color: #aaa; font-size: var(--text-xl); }
 }
 </style>

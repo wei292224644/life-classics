@@ -1,6 +1,6 @@
 <template>
-  <view class="flex items-start gap-4">
-    <view :class="['list-item-icon', `icon-${icon}`, 'flex items-center justify-center flex-shrink-0 mt-1']">
+  <view class="list-item">
+    <view :class="['list-item-icon', `icon-${icon}`]">
       <!-- x icon -->
       <svg v-if="icon === 'x'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
         <path d="M18 6L6 18M6 6l12 12"/>
@@ -10,7 +10,7 @@
         <path d="M20 6L9 17l-5-5"/>
       </svg>
     </view>
-    <text class="list-item-text flex-1">{{ text }}</text>
+    <text class="list-item-text">{{ text }}</text>
   </view>
 </template>
 
@@ -24,16 +24,27 @@ defineProps<{
 <style lang="scss" scoped>
 @import "@/styles/design-system.scss";
 
+.list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
 .list-item-icon {
-  width: 36rpx;
-  height: 36rpx;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   border-radius: 50%;
-  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-sm);
   font-weight: 700;
+  flex-shrink: 0;
+  margin-top: var(--space-1);
 
   svg {
-    width: 24rpx;
-    height: 24rpx;
+    width: var(--icon-xs);
+    height: var(--icon-xs);
   }
 
   &.icon-x { background: color-mix(in oklch, var(--risk-t4) 12%, transparent); color: var(--risk-t4); }
@@ -42,8 +53,9 @@ defineProps<{
 }
 
 .list-item-text {
-  font-size: 26rpx;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   line-height: 1.6;
+  flex: 1;
 }
 </style>

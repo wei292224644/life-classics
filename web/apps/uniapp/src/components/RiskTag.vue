@@ -1,5 +1,5 @@
 <template>
-  <view :class="['risk-tag inline-flex items-center', `level-${level}`, size === 'sm' && 'risk-tag--sm']">
+  <view :class="['risk-tag', `level-${level}`, size === 'sm' && 'risk-tag--sm']">
     <text>{{ config.badge }}</text>
   </view>
 </template>
@@ -24,14 +24,16 @@ const config = computed(() => getRiskConfig(props.level));
 @import "@/styles/design-system.scss";
 
 .risk-tag {
-  padding: 4rpx 16rpx;
-  border-radius: 9999rpx;
-  font-size: 20rpx;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
   font-weight: 600;
 
   &--sm {
-    font-size: 20rpx;
-    padding: 4rpx 12rpx;
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-3);
   }
 
   // Colors reference CSS vars, auto dark mode

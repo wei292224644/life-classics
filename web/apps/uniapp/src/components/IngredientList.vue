@@ -5,7 +5,7 @@
       :key="item.id"
       :class="['ingredient-item', isHighRisk(item.who_level) && 'ingredient-item--risk']"
     >
-      <view class="flex items-center justify-between">
+      <view class="ingredient-header">
         <text class="ingredient-name">{{ item.name }}</text>
         <RiskBadge :who-level="item.who_level" />
       </view>
@@ -37,28 +37,33 @@ function isHighRisk(whoLevel: string | null): boolean {
 .ingredient-list { width: 100%; }
 
 .ingredient-item {
-  padding: 20rpx 0;
+  padding: var(--space-5) 0;
   border-bottom: 1rpx solid var(--border-color);
 
-  &--risk { background: color-mix(in oklch, var(--risk-t4) 4%, transparent); border-radius: 8rpx; padding: 16rpx; }
+  &--risk { background: color-mix(in oklch, var(--risk-t4) 4%, transparent); border-radius: var(--space-2); padding: var(--space-4); }
 }
 
+.ingredient-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-.ingredient-name { font-size: 30rpx; color: var(--text-primary); }
+.ingredient-name { font-size: var(--text-2xl); color: var(--text-primary); }
 
 .ingredient-meta {
   display: block;
-  font-size: 24rpx;
+  font-size: var(--text-md);
   color: var(--text-muted);
-  margin-top: 8rpx;
+  margin-top: var(--space-2);
 }
 
 .ingredient-allergen {
   display: block;
-  font-size: 24rpx;
+  font-size: var(--text-md);
   color: var(--risk-t4);
-  margin-top: 8rpx;
+  margin-top: var(--space-2);
 }
 
-.empty { color: var(--text-muted); font-size: 28rpx; }
+.empty { color: var(--text-muted); font-size: var(--text-xl); }
 </style>

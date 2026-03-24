@@ -1,5 +1,5 @@
 <template>
-  <text :class="['info-chip inline-flex items-center', `chip-${variant}`]">{{ text }}</text>
+  <text :class="['info-chip', `chip-${variant}`]">{{ text }}</text>
 </template>
 
 <script setup lang="ts">
@@ -13,9 +13,11 @@ defineProps<{
 @import "@/styles/design-system.scss";
 
 .info-chip {
-  font-size: 20rpx;
-  padding: 4rpx 16rpx;
-  border-radius: 24rpx;
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-sm);
   font-weight: 500;
   box-sizing: border-box;
   white-space: nowrap;

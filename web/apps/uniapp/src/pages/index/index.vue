@@ -1,15 +1,14 @@
 <template>
   <view
-    class="index-page h-screen bg-[var(--bg-base)] flex flex-col overflow-hidden"
-    :class="{ 'dark': themeStore.isDark }"
-    :style="{ paddingBottom: 'calc(80rpx + env(safe-area-inset-bottom))' }"
+    class="index-page"
+    :class="{ 'dark-mode': themeStore.isDark }"
   >
     <!-- ── 状态栏占位 ─────────────────────────── -->
     <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
 
     <!-- ── Logo 区域 ─────────────────────────── -->
-    <view class="hero bg-[var(--bg-card)] py-20 px-12 pb-16 flex flex-col items-center border-b border-[var(--border-color)]">
-      <view class="logo-row flex items-center gap-4 mb-2">
+    <view class="hero">
+      <view class="logo-row">
         <text class="logo-emoji">🍎</text>
         <text class="logo-title">食品安全助手</text>
       </view>
@@ -17,7 +16,7 @@
     </view>
 
     <!-- ── 扫一扫 CTA ─────────────────────────── -->
-    <view class="scan-cta-wrap flex justify-center items-center py-20 pb-16">
+    <view class="scan-cta-wrap">
       <view class="scan-cta" @click="handleScan" role="button" tabindex="0" aria-label="扫一扫">
         <view class="scan-cta-ring" aria-hidden="true"></view>
         <svg class="scan-cta-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -29,26 +28,26 @@
     </view>
 
     <!-- ── 最近扫描 ─────────────────────────── -->
-    <view class="section-divider flex items-center gap-6 px-12 pb-6">
+    <view class="section-divider">
       <view class="divider-line"></view>
-      <view class="section-label flex items-center gap-4 flex-shrink-0">
+      <view class="section-label">
         <text class="section-label-text">最近扫描</text>
         <view class="scan-count">{{ recentScans.length }}</view>
       </view>
       <view class="divider-line"></view>
     </view>
 
-    <view class="scan-list flex-1 px-12 pb-10 flex flex-col gap-4 overflow-y-auto min-h-0">
+    <view class="scan-list">
       <view
         v-for="item in recentScans"
         :key="item.barcode"
-        class="scan-item bg-[var(--bg-card)] border border-[var(--border-color)] rounded-3xl py-7 px-8 flex items-center gap-6"
+        class="scan-item"
         role="button"
         tabindex="0"
         :aria-label="`${item.name}，${formatTime(item.time)}`"
         @click="handleRecentClick(item)"
       >
-        <view class="scan-icon" style="border-radius: 20rpx">{{ item.emoji }}</view>
+        <view class="scan-icon">{{ item.emoji }}</view>
         <view class="scan-info">
           <text class="scan-name">{{ item.name }}</text>
           <text class="scan-time">{{ formatTime(item.time) }}</text>
@@ -157,25 +156,57 @@ function handleRecentClick(item: RecentScan) {
 <style lang="scss" scoped>
 @import '@/styles/design-system.scss';
 
-// ── Logo ────────────────────────────────────────────────
+.index-page {
+  height: 100vh;
+  background: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(var(--space-20) + env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+// ── Hero ───────────────────────────────────────────────
+.hero {
+  background: var(--bg-card);
+  padding: var(--space-20) var(--space-12) var(--space-16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
 .logo-emoji {
-  font-size: 52rpx;
+  font-size: var(--text-6xl);
   line-height: 1;
 }
 
 .logo-title {
-  font-size: 34rpx;
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
 .logo-sub {
-  font-size: 24rpx;
+  font-size: var(--text-md);
   color: var(--text-muted);
 }
 
 // ── Scan CTA ───────────────────────────────────────────
+.scan-cta-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-20) 0 var(--space-16);
+}
+
 .scan-cta {
   width: 280rpx;
   height: 280rpx;
@@ -185,7 +216,7 @@ function handleRecentClick(item: RecentScan) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
+  gap: var(--space-3);
   box-shadow: 0 16rpx 80rpx rgba(236, 72, 153, 0.4);
   cursor: pointer;
   position: relative;
@@ -206,8 +237,8 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .scan-cta-icon {
-  width: 72rpx;
-  height: 72rpx;
+  width: var(--space-18);
+  height: var(--space-18);
 }
 
 .scan-cta-text {
@@ -233,14 +264,28 @@ function handleRecentClick(item: RecentScan) {
 }
 
 // ── Section Divider ────────────────────────────────────
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: 0 var(--space-12) var(--space-6);
+}
+
 .divider-line {
   flex: 1;
   height: 1px;
   background: var(--border-color);
 }
 
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-shrink: 0;
+}
+
 .section-label-text {
-  font-size: 20rpx;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -250,9 +295,9 @@ function handleRecentClick(item: RecentScan) {
 .scan-count {
   background: var(--palette-red-50);
   color: var(--palette-red-500);
-  font-size: 20rpx;
+  font-size: var(--text-sm);
   font-weight: 700;
-  padding: 4rpx 12rpx;
+  padding: var(--space-1) var(--space-3);
   border-radius: 9999rpx;
 }
 
@@ -261,9 +306,27 @@ function handleRecentClick(item: RecentScan) {
   color: var(--palette-red-400);
 }
 
-// ── Scan Item ───────────────────────────────────────────
+// ── Scan List ───────────────────────────────────────────
+.scan-list {
+  flex: 1;
+  padding: 0 var(--space-12) var(--space-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  overflow-y: auto;
+  min-height: 0; /* flex child overflow scroll requires this */
+}
+
 .scan-item {
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--space-7);
+  padding: var(--space-7) var(--space-8);
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
   transition: transform 0.15s ease;
 
   &:active {
@@ -272,14 +335,15 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .scan-icon {
-  width: 80rpx;
-  height: 80rpx;
+  width: var(--space-20);
+  height: var(--space-20);
+  border-radius: 20rpx;
   background: var(--bg-base);
   border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40rpx;
+  font-size: var(--text-5xl);
   flex-shrink: 0;
 }
 
@@ -290,24 +354,24 @@ function handleRecentClick(item: RecentScan) {
 
 .scan-name {
   display: block;
-  font-size: 28rpx;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
-  margin-bottom: 4rpx;
+  margin-bottom: var(--space-1);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .scan-time {
-  font-size: 24rpx;
+  font-size: var(--text-md);
   color: var(--text-muted);
 }
 
 .scan-arrow {
-  width: 32rpx;
-  height: 32rpx;
+  width: var(--space-8);
+  height: var(--space-8);
   color: var(--text-muted);
   opacity: 0.4;
   flex-shrink: 0;
@@ -315,11 +379,11 @@ function handleRecentClick(item: RecentScan) {
 
 .scan-empty {
   text-align: center;
-  padding: 48rpx 0;
+  padding: var(--space-12) 0;
 }
 
 .scan-empty-text {
-  font-size: 20rpx;
+  font-size: var(--text-base);
   color: var(--text-muted);
 }
 

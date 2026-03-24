@@ -1,6 +1,6 @@
 <template>
   <scroll-view scroll-x class="horizontal-scroller" :enhanced="true">
-    <view class="flex flex-row w-max pb-2" :style="{ gap: `${gap}rpx` }">
+    <view class="horizontal-scroller-inner" :style="{ gap: `${gap}rpx` }">
       <slot />
     </view>
   </scroll-view>
@@ -24,4 +24,10 @@ withDefaults(
   &::-webkit-scrollbar { display: none; }
 }
 
+.horizontal-scroller-inner {
+  display: flex;
+  flex-direction: row;
+  width: max-content;
+  padding-bottom: var(--space-2);
+}
 </style>

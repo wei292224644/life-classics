@@ -1,9 +1,9 @@
 <template>
-  <view class="section-header flex items-center gap-4 mb-5 pb-4">
+  <view class="section-header">
     <view :class="['section-icon-wrap', `icon-bg-${icon}`]">
       <slot name="icon" />
     </view>
-    <text class="section-title flex-1">{{ title }}</text>
+    <text class="section-title">{{ title }}</text>
     <view v-if="showAiBadge" class="ai-label">AI</view>
   </view>
 </template>
@@ -20,13 +20,18 @@ defineProps<{
 @import "@/styles/design-system.scss";
 
 .section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
   border-bottom: 1px solid var(--border-color);
 }
 
 .section-icon-wrap {
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 24rpx;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -40,16 +45,17 @@ defineProps<{
 }
 
 .section-title {
-  font-size: 26rpx;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--text-primary);
+  flex: 1;
 }
 
 .ai-label {
-  font-size: 20rpx;
+  font-size: var(--text-xs);
   font-weight: 700;
-  padding: 4rpx 12rpx;
-  border-radius: 24rpx;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
   background: var(--ai-label-bg);
   color: #fff;
 }

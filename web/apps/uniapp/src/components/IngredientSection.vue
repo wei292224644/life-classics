@@ -6,15 +6,15 @@
         :class="['risk-group', levelKey]"
       >
         <!-- 组头 -->
-        <view class="risk-header flex items-center gap-4 mb-7">
+        <view class="risk-header">
           <view :class="['risk-dot', levelKey]" />
           <view :class="['risk-badge', levelKey]">{{ LEVEL_LABELS[levelKey] }}</view>
-          <text class="risk-count ml-auto">{{ groupedIngredients[levelKey].length }} 项</text>
+          <text class="risk-count">{{ groupedIngredients[levelKey].length }} 项</text>
         </view>
 
         <!-- 横向滚动配料卡 -->
         <scroll-view scroll-x class="ingredient-scroll">
-          <view class="ingredient-scroll-inner flex flex-row gap-5 w-max pb-2">
+          <view class="ingredient-scroll-inner">
           <view
             v-for="item in groupedIngredients[levelKey]"
             :key="item.id"
@@ -32,8 +32,8 @@
             </view>
 
             <!-- 内容 -->
-            <view class="ingredient-content flex flex-col pl-4 min-w-0">
-              <view class="ingredient-name flex items-center gap-3 mb-3">
+            <view class="ingredient-content">
+              <view class="ingredient-name">
                 <!-- 低风险：叶子图标（stroke） -->
                 <svg v-if="levelKey === 't0'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon" aria-hidden="true">
                   <path d="M6.5 21C3 17.5 3 12 6 8c2-2.5 5-4 8.5-4C18 4 21 7 21 10c0 2.5-1.5 4.5-3.5 5.5"/>
@@ -116,9 +116,9 @@ function goToDetail(id: number) {
 
 // ── 风险分组容器 ──────────────────────────────────────
 .risk-group {
-  border-radius: 40rpx;
-  padding: 32rpx;
-  margin-bottom: 24rpx;
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  margin-bottom: var(--space-6);
   position: relative;
   overflow: hidden;
 
@@ -131,9 +131,16 @@ function goToDetail(id: number) {
 }
 
 // ── 组头 ──────────────────────────────────────────────
+.risk-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-7);
+}
+
 .risk-dot {
-  width: 16rpx;
-  height: 16rpx;
+  width: var(--space-4);
+  height: var(--space-4);
   border-radius: 50%;
   flex-shrink: 0;
 
@@ -146,10 +153,10 @@ function goToDetail(id: number) {
 }
 
 .risk-badge {
-  font-size: 24rpx;
+  font-size: var(--text-md);
   font-weight: 600;
-  padding: 8rpx 20rpx;
-  border-radius: 24rpx;
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-sm);
 
   .t4 & { color: var(--risk-t4); background: color-mix(in oklch, var(--risk-t4) 15%, transparent); }
   .t3 & { color: var(--risk-t3); background: color-mix(in oklch, var(--risk-t3) 15%, transparent); }
@@ -160,8 +167,9 @@ function goToDetail(id: number) {
 }
 
 .risk-count {
-  font-size: 28rpx;
+  font-size: var(--text-base);
   color: var(--text-muted);
+  margin-left: auto;
 }
 
 // ── 横向滚动 ──────────────────────────────────────────
@@ -175,12 +183,20 @@ function goToDetail(id: number) {
   &::-webkit-scrollbar { display: none; }
 }
 
+.ingredient-scroll-inner {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-5);
+  width: max-content;
+  padding-bottom: var(--space-2);
+}
+
 // ── 配料卡片 ──────────────────────────────────────────
 .ingredient-card {
   flex: 0 0 auto;
   width: 280rpx;
-  border-radius: 32rpx;
-  padding: 28rpx;
+  border-radius: var(--radius-md);
+  padding: var(--space-7);
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -236,21 +252,33 @@ function goToDetail(id: number) {
 // ── 右上角箭头 ────────────────────────────────────────
 .ingredient-arrow {
   position: absolute;
-  right: 12rpx;
-  top: 12rpx;
-  width: 28rpx;
-  height: 28rpx;
+  right: var(--space-3);
+  top: var(--space-3);
+  width: var(--space-7);
+  height: var(--space-7);
   opacity: 0.4;
   color: var(--text-muted);
 
-  svg { width: 28rpx; height: 28rpx; }
+  svg { width: var(--icon-sm); height: var(--icon-sm); }
 }
 
 // ── 内容区 ────────────────────────────────────────────
+.ingredient-content {
+  display: flex;
+  flex-direction: column;
+  padding-left: var(--space-4);
+  min-width: 0;
+}
+
 .ingredient-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+
   .icon {
-    width: 28rpx;
-    height: 28rpx;
+    width: var(--space-7);
+    height: var(--space-7);
     flex-shrink: 0;
   }
 
@@ -264,7 +292,7 @@ function goToDetail(id: number) {
 }
 
 .ingredient-name-text {
-  font-size: 26rpx;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -272,9 +300,9 @@ function goToDetail(id: number) {
 // ── 原因标签 ──────────────────────────────────────────
 .ingredient-reason {
   display: inline-block;
-  font-size: 20rpx;
-  padding: 8rpx 16rpx;
-  border-radius: 12rpx;
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--space-3);
   align-self: flex-start;
   max-width: 100%;
   box-sizing: border-box;

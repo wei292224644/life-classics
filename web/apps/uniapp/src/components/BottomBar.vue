@@ -6,11 +6,11 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <view class="bottom-bar flex gap-6">
-    <button type="button" class="action-btn action-btn--secondary flex-1" @click="emit('add-record')">
+  <view class="bottom-bar">
+    <button type="button" class="action-btn action-btn--secondary" @click="emit('add-record')">
       添加到记录
     </button>
-    <button type="button" class="action-btn action-btn--primary flex-1" @click="emit('chat')">
+    <button type="button" class="action-btn action-btn--primary" @click="emit('chat')">
       咨询 AI 助手
     </button>
   </view>
@@ -24,8 +24,10 @@ const emit = defineEmits<{
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 32rpx 40rpx;
-  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  padding: var(--space-8) var(--space-10);
+  padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom));
+  display: flex;
+  gap: var(--space-6);
   z-index: 40;
   background: var(--bottom-bar-bg);
   backdrop-filter: saturate(180%) blur(16px);
@@ -36,9 +38,9 @@ const emit = defineEmits<{
 
 .action-btn {
   flex: 1;
-  padding: 28rpx 32rpx;
-  border-radius: 28rpx;
-  font-size: 28rpx;
+  padding: var(--space-7) var(--btn-padding-x);
+  border-radius: var(--btn-radius);
+  font-size: var(--text-xl);
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;

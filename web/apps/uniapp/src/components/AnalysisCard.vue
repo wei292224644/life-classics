@@ -1,6 +1,6 @@
 <template>
   <view :class="['analysis-card', `analysis-card--${item.level}`]">
-    <view class="flex justify-between items-center mb-4">
+    <view class="card-header">
       <text class="card-title">{{ ANALYSIS_LABELS[item.analysis_type] ?? item.analysis_type }}</text>
       <view :class="['level-badge', `level-badge--${item.level}`]">
         <text>{{ LEVEL_LABELS[item.level] ?? item.level }}</text>
@@ -45,9 +45,9 @@ function extractSummary(results: unknown): string {
 
 .analysis-card {
   background: var(--bg-card);
-  border-radius: 16rpx;
-  padding: 28rpx;
-  margin-bottom: 20rpx;
+  border-radius: var(--space-4);
+  padding: var(--space-7);
+  margin-bottom: var(--space-5);
   border-left: 6rpx solid var(--border-color);
 
   &--t4 { border-left-color: var(--risk-t4); }
@@ -57,17 +57,23 @@ function extractSummary(results: unknown): string {
   &--t0 { border-left-color: var(--risk-t0); }
 }
 
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
 
 .card-title {
-  font-size: 30rpx;
+  font-size: var(--text-2xl);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .level-badge {
-  padding: 4rpx 16rpx;
-  border-radius: 9999rpx;
-  font-size: 28rpx;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-base);
 
   &--t4 {
     background: var(--risktag-t4-bg);
@@ -96,7 +102,7 @@ function extractSummary(results: unknown): string {
 }
 
 .card-content {
-  font-size: 28rpx;
+  font-size: var(--text-xl);
   color: var(--text-secondary);
   line-height: 1.6;
 }
