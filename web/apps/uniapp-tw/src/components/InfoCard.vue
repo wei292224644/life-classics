@@ -1,5 +1,11 @@
 <template>
-  <view class="info-card" :style="cardStyle">
+  <view
+    class="info-card"
+    :class="[
+      paddingClass,
+      radiusClass,
+    ]"
+  >
     <slot />
   </view>
 </template>
@@ -21,34 +27,29 @@ const props = withDefaults(
   }
 );
 
-const paddingMap: Record<PaddingLevel, string> = {
-  sm: "var(--card-padding-sm)",
-  md: "var(--card-padding-md)",
-  lg: "var(--card-padding-lg)",
-  xl: "var(--card-padding-xl)",
-  "2xl": "var(--card-padding-2xl)",
-  "3xl": "var(--card-padding-3xl)",
-};
+const paddingClass = computed(() => {
+  const map: Record<PaddingLevel, string> = {
+    sm: "p-4",
+    md: "p-5",
+    lg: "p-6",
+    xl: "p-8",
+    "2xl": "p-10",
+    "3xl": "p-12",
+  };
+  return map[props.padding];
+});
 
-const radiusMap: Record<RadiusLevel, string> = {
-  lg: "var(--radius-lg)",
-  xl: "var(--radius-xl)",
-};
-
-const cardStyle = computed(() => ({
-  padding: paddingMap[props.padding],
-  borderRadius: radiusMap[props.radius],
-}));
+const radiusClass = computed(() => {
+  const map: Record<RadiusLevel, string> = {
+    lg: "rounded-xl",
+    xl: "rounded-2xl",
+  };
+  return map[props.radius];
+});
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
 .info-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  box-sizing: border-box;
-  width: 100%;
-  overflow: hidden;
+  @apply bg-card border border-border box-border w-full overflow-hidden;
 }
 </style>
