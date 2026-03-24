@@ -25,14 +25,10 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .scan-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  @apply flex justify-center items-center h-screen;
 
   .hint {
-    color: #888;
-    font-size: var(--text-xl);
+    @apply text-xl text-muted-foreground;
   }
 }
 </style>
