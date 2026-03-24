@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5174,
   },
   plugins: [
-    UnoCSS(),
+    UnoCSS({ configFile: './src/uno.config.ts' }),
     uni(),
   ],
   css: {
