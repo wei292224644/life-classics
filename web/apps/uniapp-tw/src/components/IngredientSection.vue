@@ -86,7 +86,8 @@ const groupedIngredients = computed(() => {
   const groups: Record<string, IngredientDetail[]> = {
     t4: [], t3: [], t2: [], t1: [], t0: [], unknown: [],
   };
-  for (const ing of props.ingredients) {
+  const ingredients = props.ingredients ?? [];
+  for (const ing of ingredients) {
     const level = ing.analysis?.level ?? "unknown";
     if (groups[level] !== undefined) groups[level].push(ing);
     else groups["unknown"].push(ing);
