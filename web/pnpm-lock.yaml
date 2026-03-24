@@ -220,6 +220,9 @@ importers:
       pinia:
         specifier: ^2.3.1
         version: 2.3.1(typescript@4.9.5)(vue@3.5.30(typescript@4.9.5))
+      unocss-preset-uni:
+        specifier: ^0.1.9
+        version: 0.1.9
       uview-plus:
         specifier: ^3.7.13
         version: 3.7.13
@@ -2766,6 +2769,9 @@ packages:
     resolution: {integrity: sha512-1uleyRLyJc6PNNc2L3hEaKL89zXwvQAtP36oFySgL47RAxZHPZ4vfqFpbwR0eEN4iSqTS24ZFr7CTRWCaEGjzQ==}
     engines: {node: '>=14'}
 
+  '@unocss/core@0.45.4':
+    resolution: {integrity: sha512-/LaVbM/gHbaCiGbvoFXeYZ7A+i1wKRZph/zfRsBLmzeBeLq0ZvkgSnOfYYnwxYSfWqq15W9h9TCHbfBZhZfZEQ==}
+
   '@unocss/core@66.6.7':
     resolution: {integrity: sha512-Q8456iWFtdwrUNYKVOQY8ygRggjZOVtLc6Jc8KIkxig7OiNlUWOgXJTfCh4I8g6jBYzC5eHaHFDLgJOmOrxBsg==}
 
@@ -2780,6 +2786,9 @@ packages:
 
   '@unocss/preset-icons@66.6.7':
     resolution: {integrity: sha512-mGAOyI/qz1pZUV1BcOtWAMm5czdFCjhFCYcDk0KY+Jw37pKRVSQRFeh4gpHuYKmehGv36caLyVrWXpTAwRBdFQ==}
+
+  '@unocss/preset-mini@0.45.4':
+    resolution: {integrity: sha512-VsaxeEpjECgUxOlcZ6M+O6+ZVSG3i+06YIEP3/SBWQXKpEQLXItMoJROLHlnk5N6RsfdifHVZ1ZLxjonNcHz7A==}
 
   '@unocss/preset-mini@66.6.7':
     resolution: {integrity: sha512-tf0mqiSEhPQ49WZOqjNhxlbZbNakiBLzCoxfLSzqfIGglOPYShP8mxsdp9Jv0n+Ntn0rHcBiX5KTLfax1/Bd9g==}
@@ -2801,6 +2810,9 @@ packages:
 
   '@unocss/preset-wind4@66.6.7':
     resolution: {integrity: sha512-9grhWeBsFzpv8iER9AFATRaxLyXMCwGQ5HzeI4XZh2ZZ9O6vC7nYfGhns4/I+F/RpFglzU1bjqMWRS/DS8OpGQ==}
+
+  '@unocss/preset-wind@0.45.4':
+    resolution: {integrity: sha512-gIqy5rryBzJKaMwFxwGAGMUezpVXVcuK1N1BinVaI6pMu2WUJzQtGdoh4boNCSmkjypzsR6caOFuhdJhQgdlCw==}
 
   '@unocss/preset-wind@66.6.7':
     resolution: {integrity: sha512-jxtAN96jljd+KglbhPv6Y/ujceI5rVdrLQimj4KUTPoYBPEiWadzsGKN3o8Q07hlPRg+hBlO0r4tGSUWl+/EZQ==}
@@ -4732,6 +4744,10 @@ packages:
   magic-regexp@0.10.0:
     resolution: {integrity: sha512-Uly1Bu4lO1hwHUW0CQeSWuRtzCMNO00CmXtS8N6fyvB3B979GOEEeAkiTUDsmbYLAbvpUS/Kt5c4ibosAzVyVg==}
 
+  magic-string@0.26.7:
+    resolution: {integrity: sha512-hX9XH3ziStPoPhJxLq1syWuZMxbDvGNbVchfrdCtanC7D13888bMFow61x8axrx+GfHLtVeAx2kxL7tTGRl+Ow==}
+    engines: {node: '>=12'}
+
   magic-string@0.30.11:
     resolution: {integrity: sha512-+Wri9p0QHMy+545hKww7YAu5NyzF8iomPL/RQazugQ9+Ez4Ic3mERMd8ZTX5rfK944j+560ZJi8iAwgak1Ac7A==}
 
@@ -5815,6 +5831,10 @@ packages:
     resolution: {integrity: sha512-i5uvt8C3ikiWeNZSVZNWcfZPItFQOsYTUAOkcUPGd8DqDy1uOUikjt5dG+uRlwyvR108Fb9DOd4GvXfT0N2/uQ==}
     engines: {node: '>= 12'}
 
+  sourcemap-codec@1.4.8:
+    resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
+    deprecated: Please use @jridgewell/sourcemap-codec instead
+
   space-separated-tokens@2.0.2:
     resolution: {integrity: sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q==}
 
@@ -6140,6 +6160,10 @@ packages:
   universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
+
+  unocss-preset-uni@0.1.9:
+    resolution: {integrity: sha512-/uxo0bOGSSgEdzIgIHinIuGjOqSikelnsPBBeldOh/r3MXwFYh/NodnYBH6xUhunDUsK4AyOmZj0aNuTle7E2A==}
+    deprecated: There are many problems in this unocss-preset-uni and may not be maintained in the future. Please consider using unocss-applet.
 
   unocss@66.6.7:
     resolution: {integrity: sha512-TdZ/JnKhrqkknrMvLl0KOwrGzFThEspFIyYiylFYJki2JkMN/5EJIr+vIZEGRX69hFTjTLi6utIpbipueqzNbw==}
@@ -9599,6 +9623,8 @@ snapshots:
       consola: 3.4.2
       unconfig: 7.5.0
 
+  '@unocss/core@0.45.4': {}
+
   '@unocss/core@66.6.7': {}
 
   '@unocss/extractor-arbitrary-variants@66.6.7':
@@ -9622,6 +9648,10 @@ snapshots:
       '@iconify/utils': 3.1.0
       '@unocss/core': 66.6.7
       ofetch: 1.5.1
+
+  '@unocss/preset-mini@0.45.4':
+    dependencies:
+      '@unocss/core': 0.45.4
 
   '@unocss/preset-mini@66.6.7':
     dependencies:
@@ -9659,6 +9689,11 @@ snapshots:
       '@unocss/core': 66.6.7
       '@unocss/extractor-arbitrary-variants': 66.6.7
       '@unocss/rule-utils': 66.6.7
+
+  '@unocss/preset-wind@0.45.4':
+    dependencies:
+      '@unocss/core': 0.45.4
+      '@unocss/preset-mini': 0.45.4
 
   '@unocss/preset-wind@66.6.7':
     dependencies:
@@ -12111,6 +12146,10 @@ snapshots:
       ufo: 1.6.3
       unplugin: 2.3.11
 
+  magic-string@0.26.7:
+    dependencies:
+      sourcemap-codec: 1.4.8
+
   magic-string@0.30.11:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -13480,6 +13519,8 @@ snapshots:
 
   source-map@0.7.6: {}
 
+  sourcemap-codec@1.4.8: {}
+
   space-separated-tokens@2.0.2: {}
 
   sprintf-js@1.0.3: {}
@@ -13852,6 +13893,14 @@ snapshots:
   universalify@0.2.0: {}
 
   universalify@2.0.1: {}
+
+  unocss-preset-uni@0.1.9:
+    dependencies:
+      '@unocss/core': 0.45.4
+      '@unocss/preset-mini': 0.45.4
+      '@unocss/preset-wind': 0.45.4
+      '@vue/compiler-sfc': 3.5.30
+      magic-string: 0.26.7
 
   unocss@66.6.7(vite@7.1.12(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(sass-embedded@1.98.0)(sass@1.98.0)(terser@5.46.1)):
     dependencies:
