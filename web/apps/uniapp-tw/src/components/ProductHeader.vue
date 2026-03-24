@@ -81,7 +81,7 @@ function handleShare() {
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06);
 
     // 亮色模式 shadow
-    .product-page:not(.dark-mode) & {
+    .dark & {
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(0, 0, 0, 0.04);
     }
   }

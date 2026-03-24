@@ -1,8 +1,5 @@
 <template>
-  <view
-    class="search-page"
-    :class="{ 'dark-mode': themeStore.isDark }"
-  >
+  <view class="search-page">
     <!-- ── Header ──────────────────────────── -->
     <view class="search-header" :style="headerStyle">
       <view :style="{ height: themeStore.statusBarHeight + 'px' }" />

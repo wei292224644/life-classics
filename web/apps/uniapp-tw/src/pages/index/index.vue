@@ -1,8 +1,5 @@
 <template>
-  <view
-    class="index-page"
-    :class="{ 'dark-mode': themeStore.isDark }"
-  >
+  <view class="index-page">
     <!-- ── 状态栏占位 ─────────────────────────── -->
     <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
 
@@ -301,7 +298,7 @@ function handleRecentClick(item: RecentScan) {
   border-radius: 9999rpx;
 }
 
-.dark-mode .scan-count {
+.dark .scan-count {
   background: color-mix(in oklch, var(--palette-red-400) 15%, transparent);
   color: var(--palette-red-400);
 }

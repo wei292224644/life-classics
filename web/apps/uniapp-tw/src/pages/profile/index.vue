@@ -1,8 +1,5 @@
 <template>
-  <view
-    class="profile-page"
-    :class="{ 'dark-mode': themeStore.isDark }"
-  >
+  <view class="profile-page">
     <!-- ── Header ──────────────────────────── -->
     <view class="profile-header">
       <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
@@ -195,7 +192,7 @@ function goBack() {
   border: 1px solid color-mix(in oklch, var(--palette-pink-200) 50%, transparent);
 }
 
-.dark-mode .login-card {
+.dark .login-card {
   background: linear-gradient(135deg, #1a1018 0%, #1a1a1a 100%);
   border-color: var(--border-color);
 }

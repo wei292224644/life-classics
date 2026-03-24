@@ -1062,7 +1062,7 @@ function goToProduct(barcode: string) {
   color: #ffffff;
   border: none;
 
-  .dark-mode & {
+  .dark & {
     background: var(--accent);
     color: #ffffff;
   }

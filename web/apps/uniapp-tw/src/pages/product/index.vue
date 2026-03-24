@@ -285,7 +285,7 @@ const adviceItems = computed(() =>
     z-index: 1;
   }
 
-  .dark-mode &::before {
+  .dark &::before {
     background:
       radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in oklch, var(--risk-t0) 8%, transparent) 0%, transparent 60%),
       radial-gradient(ellipse 60% 40% at 80% 80%, color-mix(in oklch, var(--accent) 5%, transparent) 0%, transparent 50%);
@@ -512,16 +512,9 @@ const adviceItems = computed(() =>
   opacity: 0;
   transform: translateY(16px);
 
-  // 暗色
-  background: color-mix(in oklch, var(--bg-card) 2%, transparent);
-  border: 1px solid color-mix(in oklch, #ffffff 6%, transparent);
-
-  // 亮色
-  .product-page:not(.dark-mode) & {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
-  }
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .advice-header {

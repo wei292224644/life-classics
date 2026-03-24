@@ -76,11 +76,9 @@ const emit = defineEmits<{
     border: 1px solid color-mix(in oklch, #ffffff 10%, transparent);
     color: var(--text-primary);
 
-    // 亮色模式覆盖
-    .product-page:not(.dark-mode) & {
-      background: color-mix(in oklch, var(--palette-gray-900) 4%, transparent);
-      border-color: color-mix(in oklch, var(--palette-gray-900) 8%, transparent);
-    }
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    color: var(--color-foreground);
   }
 }
 </style>
