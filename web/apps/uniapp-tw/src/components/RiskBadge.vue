@@ -25,18 +25,28 @@ const label = computed(() => props.whoLevel ?? "未知");
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
 .risk-badge {
-  display: inline-flex;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--space-2);
-  font-size: var(--text-base);
+  @apply inline-flex px-3 py-1 rounded text-base font-semibold;
 
-  &--critical { background: var(--risktag-t4-bg); color: var(--risk-t4); }
-  &--high     { background: var(--risktag-t3-bg); color: var(--risk-t3); }
-  &--medium   { background: var(--risktag-t2-bg); color: var(--risk-t2); }
-  &--low      { background: var(--risktag-t1-bg); color: var(--risk-t1); }
-  &--unknown  { background: var(--risktag-unknown-bg); color: var(--risk-unknown); }
+  &--critical {
+    background: color-mix(in oklch, var(--color-risk-t4) 12%, transparent);
+    color: var(--color-risk-t4);
+  }
+  &--high {
+    background: color-mix(in oklch, var(--color-risk-t3) 12%, transparent);
+    color: var(--color-risk-t3);
+  }
+  &--medium {
+    background: color-mix(in oklch, var(--color-risk-t2) 12%, transparent);
+    color: var(--color-risk-t2);
+  }
+  &--low {
+    background: color-mix(in oklch, var(--color-risk-t1) 12%, transparent);
+    color: var(--color-risk-t1);
+  }
+  &--unknown {
+    background: color-mix(in oklch, var(--color-risk-unknown) 12%, transparent);
+    color: var(--color-risk-unknown);
+  }
 }
 </style>
