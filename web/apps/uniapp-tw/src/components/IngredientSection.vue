@@ -112,15 +112,9 @@ function goToDetail(id: number) {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
 // ── 风险分组容器 ──────────────────────────────────────
 .risk-group {
-  border-radius: var(--radius-lg);
-  padding: var(--space-8);
-  margin-bottom: var(--space-6);
-  position: relative;
-  overflow: hidden;
+  @apply rounded-xl p-8 mb-6 relative overflow-hidden;
 
   &.t4 { background: var(--risk-t4-bg); border: 1px solid var(--risk-t4-border); }
   &.t3 { background: var(--risk-t3-bg); border: 1px solid var(--risk-t3-border); }
@@ -132,50 +126,38 @@ function goToDetail(id: number) {
 
 // ── 组头 ──────────────────────────────────────────────
 .risk-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-7);
+  @apply flex items-center gap-4 mb-7;
 }
 
 .risk-dot {
-  width: var(--space-4);
-  height: var(--space-4);
-  border-radius: 50%;
-  flex-shrink: 0;
+  @apply w-4 h-4 rounded-full flex-shrink-0;
 
-  &.t4 { background: var(--risk-t4); box-shadow: 0 0 8px var(--risk-t4); }
-  &.t3 { background: var(--risk-t3); box-shadow: 0 0 8px var(--risk-t3); }
-  &.t2 { background: var(--risk-t2); box-shadow: 0 0 8px var(--risk-t2); }
-  &.t1 { background: var(--risk-t1); box-shadow: 0 0 8px var(--risk-t1); }
-  &.t0 { background: var(--risk-t0); box-shadow: 0 0 8px var(--risk-t0); }
-  &.unknown { background: var(--risk-unknown); }
+  &.t4 { background: var(--color-risk-t4); box-shadow: 0 0 8px var(--color-risk-t4); }
+  &.t3 { background: var(--color-risk-t3); box-shadow: 0 0 8px var(--color-risk-t3); }
+  &.t2 { background: var(--color-risk-t2); box-shadow: 0 0 8px var(--color-risk-t2); }
+  &.t1 { background: var(--color-risk-t1); box-shadow: 0 0 8px var(--color-risk-t1); }
+  &.t0 { background: var(--color-risk-t0); box-shadow: 0 0 8px var(--color-risk-t0); }
+  &.unknown { background: var(--color-risk-unknown); }
 }
 
 .risk-badge {
-  font-size: var(--text-md);
-  font-weight: 600;
-  padding: var(--space-2) var(--space-5);
-  border-radius: var(--radius-sm);
+  @apply text-base font-semibold px-4 py-1 rounded;
 
-  .t4 & { color: var(--risk-t4); background: color-mix(in oklch, var(--risk-t4) 15%, transparent); }
-  .t3 & { color: var(--risk-t3); background: color-mix(in oklch, var(--risk-t3) 15%, transparent); }
-  .t2 & { color: var(--risk-t2); background: color-mix(in oklch, var(--risk-t2) 15%, transparent); }
-  .t1 & { color: var(--risk-t1); background: color-mix(in oklch, var(--risk-t1) 15%, transparent); }
-  .t0 & { color: var(--risk-t0); background: color-mix(in oklch, var(--risk-t0) 15%, transparent); }
-  .unknown & { color: var(--risk-unknown); background: color-mix(in oklch, var(--risk-unknown) 15%, transparent); }
+  .t4 & { color: var(--color-risk-t4); background: color-mix(in oklch, var(--color-risk-t4) 15%, transparent); }
+  .t3 & { color: var(--color-risk-t3); background: color-mix(in oklch, var(--color-risk-t3) 15%, transparent); }
+  .t2 & { color: var(--color-risk-t2); background: color-mix(in oklch, var(--color-risk-t2) 15%, transparent); }
+  .t1 & { color: var(--color-risk-t1); background: color-mix(in oklch, var(--color-risk-t1) 15%, transparent); }
+  .t0 & { color: var(--color-risk-t0); background: color-mix(in oklch, var(--color-risk-t0) 15%, transparent); }
+  .unknown & { color: var(--color-risk-unknown); background: color-mix(in oklch, var(--color-risk-unknown) 15%, transparent); }
 }
 
 .risk-count {
-  font-size: var(--text-base);
-  color: var(--text-muted);
-  margin-left: auto;
+  @apply text-base ml-auto;
+  color: var(--color-muted-foreground);
 }
 
 // ── 横向滚动 ──────────────────────────────────────────
 .ingredient-scroll {
-  // UniApp H5 的 uni-scroll-view 外层 wrapper 是 overflow:visible
-  // 用 :deep 强制 clip，使内容不溢出父级
   :deep(.uni-scroll-view:first-child) {
     overflow: hidden;
   }
@@ -184,26 +166,16 @@ function goToDetail(id: number) {
 }
 
 .ingredient-scroll-inner {
-  display: flex;
-  flex-direction: row;
-  gap: var(--space-5);
-  width: max-content;
-  padding-bottom: var(--space-2);
+  @apply flex flex-row gap-5 w-max pb-2;
 }
 
 // ── 配料卡片 ──────────────────────────────────────────
 .ingredient-card {
-  flex: 0 0 auto;
-  width: 280rpx;
-  border-radius: var(--radius-md);
-  padding: var(--space-7);
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s $ease-spring;
+  @apply flex-none w-[280rpx] rounded-lg p-7 relative overflow-hidden cursor-pointer;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-sizing: border-box;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
 
   &.t4 { border-color: var(--risk-t4-border); }
   &.t3 { border-color: var(--risk-t3-border); }
@@ -225,12 +197,12 @@ function goToDetail(id: number) {
     border-radius: 50%;
     opacity: 0.1;
   }
-  &.t4::before { background: var(--risk-t4); }
-  &.t3::before { background: var(--risk-t3); }
-  &.t2::before { background: var(--risk-t2); }
-  &.t1::before { background: var(--risk-t1); }
-  &.t0::before { background: var(--risk-t0); }
-  &.unknown::before { background: var(--risk-unknown); }
+  &.t4::before { background: var(--color-risk-t4); }
+  &.t3::before { background: var(--color-risk-t3); }
+  &.t2::before { background: var(--color-risk-t2); }
+  &.t1::before { background: var(--color-risk-t1); }
+  &.t0::before { background: var(--color-risk-t0); }
+  &.unknown::before { background: var(--color-risk-unknown); }
 }
 
 // ── 左侧风险色条 ──────────────────────────────────────
@@ -241,80 +213,61 @@ function goToDetail(id: number) {
   bottom: 0;
   width: 6rpx;
 
-  .t4 & { background: var(--risk-t4); box-shadow: 0 0 16rpx var(--risk-t4); }
-  .t3 & { background: var(--risk-t3); box-shadow: 0 0 16rpx var(--risk-t3); }
-  .t2 & { background: var(--risk-t2); box-shadow: 0 0 16rpx var(--risk-t2); }
-  .t1 & { background: var(--risk-t1); box-shadow: 0 0 16rpx var(--risk-t1); }
-  .t0 & { background: var(--risk-t0); box-shadow: 0 0 16rpx var(--risk-t0); }
-  .unknown & { background: var(--risk-unknown); }
+  .t4 & { background: var(--color-risk-t4); box-shadow: 0 0 16rpx var(--color-risk-t4); }
+  .t3 & { background: var(--color-risk-t3); box-shadow: 0 0 16rpx var(--color-risk-t3); }
+  .t2 & { background: var(--color-risk-t2); box-shadow: 0 0 16rpx var(--color-risk-t2); }
+  .t1 & { background: var(--color-risk-t1); box-shadow: 0 0 16rpx var(--color-risk-t1); }
+  .t0 & { background: var(--color-risk-t0); box-shadow: 0 0 16rpx var(--color-risk-t0); }
+  .unknown & { background: var(--color-risk-unknown); }
 }
 
 // ── 右上角箭头 ────────────────────────────────────────
 .ingredient-arrow {
-  position: absolute;
-  right: var(--space-3);
-  top: var(--space-3);
-  width: var(--space-7);
-  height: var(--space-7);
+  @apply absolute w-7 h-7;
+  right: 0.75rem;
+  top: 0.75rem;
   opacity: 0.4;
-  color: var(--text-muted);
+  color: var(--color-muted-foreground);
 
-  svg { width: var(--icon-sm); height: var(--icon-sm); }
+  svg { @apply w-5 h-5; }
 }
 
 // ── 内容区 ────────────────────────────────────────────
 .ingredient-content {
-  display: flex;
-  flex-direction: column;
-  padding-left: var(--space-4);
-  min-width: 0;
+  @apply flex flex-col pl-4 min-w-0;
 }
 
+// ── 配料名称 ──────────────────────────────────────────
 .ingredient-name {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
+  @apply flex items-center gap-3 mb-3;
 
   .icon {
-    width: var(--space-7);
-    height: var(--space-7);
-    flex-shrink: 0;
+    @apply w-7 h-7 flex-shrink-0;
   }
 
   // 图标颜色
-  .t4 & .icon { fill: var(--risk-t4); }
-  .t3 & .icon { fill: var(--risk-t3); }
-  .t2 & .icon { fill: var(--risk-t2); }
-  .t1 & .icon { stroke: var(--risk-t1); fill: none; }
-  .t0 & .icon { stroke: var(--risk-t0); fill: none; }
-  .unknown & .icon { fill: var(--risk-unknown); }
+  .t4 & .icon { fill: var(--color-risk-t4); }
+  .t3 & .icon { fill: var(--color-risk-t3); }
+  .t2 & .icon { fill: var(--color-risk-t2); }
+  .t1 & .icon { stroke: var(--color-risk-t1); fill: none; }
+  .t0 & .icon { stroke: var(--color-risk-t0); fill: none; }
+  .unknown & .icon { fill: var(--color-risk-unknown); }
 }
 
 .ingredient-name-text {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--text-primary);
+  @apply text-lg font-semibold;
+  color: var(--color-foreground);
 }
 
 // ── 原因标签 ──────────────────────────────────────────
 .ingredient-reason {
-  display: inline-block;
-  font-size: var(--text-sm);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--space-3);
-  align-self: flex-start;
-  max-width: 100%;
-  box-sizing: border-box;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  @apply inline-block text-sm px-4 py-1 rounded self-start max-w-full box-border whitespace-nowrap overflow-hidden text-ellipsis;
 
-  &.t4 { color: var(--risk-t4); background: color-mix(in oklch, var(--risk-t4) 12%, transparent); }
-  &.t3 { color: var(--risk-t3); background: color-mix(in oklch, var(--risk-t3) 12%, transparent); }
-  &.t2 { color: var(--risk-t2); background: color-mix(in oklch, var(--risk-t2) 12%, transparent); }
-  &.t1 { color: var(--risk-t1); background: color-mix(in oklch, var(--risk-t1) 12%, transparent); }
-  &.t0 { color: var(--risk-t0); background: color-mix(in oklch, var(--risk-t0) 12%, transparent); }
-  &.unknown { color: var(--risk-unknown); background: color-mix(in oklch, var(--risk-unknown) 12%, transparent); }
+  &.t4 { color: var(--color-risk-t4); background: color-mix(in oklch, var(--color-risk-t4) 12%, transparent); }
+  &.t3 { color: var(--color-risk-t3); background: color-mix(in oklch, var(--color-risk-t3) 12%, transparent); }
+  &.t2 { color: var(--color-risk-t2); background: color-mix(in oklch, var(--color-risk-t2) 12%, transparent); }
+  &.t1 { color: var(--color-risk-t1); background: color-mix(in oklch, var(--color-risk-t1) 12%, transparent); }
+  &.t0 { color: var(--color-risk-t0); background: color-mix(in oklch, var(--color-risk-t0) 12%, transparent); }
+  &.unknown { color: var(--color-risk-unknown); background: color-mix(in oklch, var(--color-risk-unknown) 12%, transparent); }
 }
 </style>
