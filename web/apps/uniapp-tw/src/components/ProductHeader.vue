@@ -50,37 +50,25 @@ function handleShare() {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
 .product-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  pointer-events: none;
+  @apply fixed top-0 left-0 right-0 z-50 pointer-events-none;
 }
 
 .header {
-  position: fixed;
-  left: 0;
-  right: 0;
-  padding: var(--space-4) var(--space-8);
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
+  @apply fixed left-0 right-0 flex items-center px-8 gap-6;
+  padding-top: 16rpx;
+  padding-bottom: 16rpx;
   background: transparent;
-  transition: background 0.4s $ease-spring, box-shadow 0.4s $ease-spring;
+  transition: background 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: auto;
 
   &--scrolled {
     background: var(--header-scrolled-bg);
     backdrop-filter: saturate(180%) blur(16px);
     -webkit-backdrop-filter: saturate(180%) blur(16px);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--color-border);
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06);
 
-    // 亮色模式 shadow
     .dark & {
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(0, 0, 0, 0.04);
     }
@@ -88,55 +76,40 @@ function handleShare() {
 }
 
 .header-btn {
-  width: var(--space-20);
-  height: var(--space-20);
-  border-radius: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  outline: none;
+  @apply w-20 h-20 rounded-2xl flex items-center justify-center bg-transparent border-none shadow-none outline-none appearance-none cursor-pointer flex-shrink-0;
+  color: #ffffff;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   -webkit-appearance: none;
   appearance: none;
-  cursor: pointer;
-  flex-shrink: 0;
-  color: #ffffff;
-  transition: all 0.2s $ease-spring;
 
   .header--scrolled & {
-    color: var(--text-primary);
+    color: var(--color-foreground);
   }
 
   &:active {
-    transform: scale(0.92);
+    @apply scale-95;
     background: rgba(128, 128, 128, 0.15);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--accent-pink);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
 
   svg {
-    width: var(--space-9);
-    height: var(--space-9);
+    @apply w-9 h-9;
     stroke-width: 2;
   }
 }
 
 .header-title {
-  flex: 1;
-  font-size: var(--text-3xl);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  @apply flex-1 text-2xl font-semibold tracking-tight;
   color: #ffffff;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  transition: color 0.3s $ease-spring, text-shadow 0.3s $ease-spring;
+  transition: color 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), text-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 
   .header--scrolled & {
-    color: var(--text-primary);
+    color: var(--color-foreground);
     text-shadow: none;
   }
 }
