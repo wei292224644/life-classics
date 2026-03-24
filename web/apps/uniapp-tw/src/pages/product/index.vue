@@ -220,59 +220,33 @@ const adviceItems = computed(() =>
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
 // ── 页面基础 ──────────────────────────────────────────
 .product-page {
-  min-height: 100vh;
-  background: var(--bg-base);
+  @apply min-h-screen bg-background;
 }
 
 .scroll-area {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-  background: var(--bg-base);
+  @apply fixed inset-0 z-10 bg-background;
 }
 
 // ── 状态页 ────────────────────────────────────────────
 .status-center {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-12);
-  z-index: 10;
-  background: var(--bg-base);
+  @apply fixed inset-0 flex flex-col items-center justify-center gap-12 z-20 bg-background;
 }
 
 .status-text {
-  font-size: var(--text-2xl);
-  color: var(--text-muted);
+  @apply text-3xl text-muted-foreground;
 }
 
 .retry-btn {
-  padding: var(--space-6) var(--space-16);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xl);
-  font-weight: 500;
-  font-family: inherit;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  @apply px-8 py-3 rounded-xl text-lg font-medium bg-card border border-border text-foreground;
 }
 
 // ── Banner ────────────────────────────────────────────
 .banner {
+  @apply relative overflow-hidden;
   width: 100%;
   height: 520rpx;
-  position: relative;
-  overflow: hidden;
   background: var(--banner-bg);
   display: flex;
   align-items: center;
@@ -280,96 +254,71 @@ const adviceItems = computed(() =>
 
   &::before {
     content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
+    @apply absolute inset-0 z-[1];
   }
 
   .dark &::before {
     background:
-      radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in oklch, var(--risk-t0) 8%, transparent) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 80% 80%, color-mix(in oklch, var(--accent) 5%, transparent) 0%, transparent 50%);
+      radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in oklch, var(--color-risk-t0) 8%, transparent) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, color-mix(in oklch, var(--color-accent) 5%, transparent) 0%, transparent 50%);
   }
 }
 
 .banner-img {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
+  @apply absolute inset-0 w-full h-full;
 }
 
 .banner-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  position: relative;
-  z-index: 2;
+  @apply relative z-[2] flex flex-col items-center justify-center gap-4;
 }
 
 .banner-emoji {
-  font-size: 160rpx;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.3));
-  animation: floatIn 0.8s $ease-spring forwards;
+  @apply text-[160rpx];
+  filter: drop-shadow(0 8rpx 24rpx rgba(0, 0, 0, 0.3));
+  animation: floatIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: scale(0.8);
   transform-origin: center;
 }
 
 .banner-label {
-  font-size: var(--text-lg);
+  @apply text-lg tracking-widest;
   color: var(--banner-label);
-  letter-spacing: 0.1em;
 }
 
 .banner-badge {
-  position: absolute;
-  right: var(--space-10);
-  bottom: var(--space-10);
-  border-radius: var(--radius-sm);
-  padding: var(--space-5) var(--space-8);
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 2;
+  @apply absolute right-[40rpx] bottom-[40rpx] rounded-xl px-[32rpx] py-[20rpx] flex items-center gap-[16rpx] backdrop-blur-xl z-[2];
   background: var(--banner-badge-bg);
   border: 1px solid var(--banner-badge-border);
   box-shadow: var(--banner-badge-shadow);
-  animation: slideUpBadge 0.6s 0.2s $ease-spring forwards;
+  animation: slideUpBadge 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: translateY(10px);
 }
 
 .badge-icon {
-  width: var(--space-7);
-  height: var(--space-7);
-  flex-shrink: 0;
+  @apply w-[28rpx] h-[28rpx] flex-shrink-0;
 
-  .banner-badge.t4 & { fill: var(--risk-t4); }
-  .banner-badge.t3 & { fill: var(--risk-t3); }
-  .banner-badge.t2 & { fill: var(--risk-t2); }
-  .banner-badge.t0 & { fill: var(--risk-t0); }
-  .banner-badge.unknown & { fill: var(--risk-unknown); }
+  .banner-badge.t4 & { fill: var(--color-risk-t4); }
+  .banner-badge.t3 & { fill: var(--color-risk-t3); }
+  .banner-badge.t2 & { fill: var(--color-risk-t2); }
+  .banner-badge.t0 & { fill: var(--color-risk-t0); }
+  .banner-badge.unknown & { fill: var(--color-risk-unknown); }
 }
 
 .badge-text {
-  font-size: var(--text-md);
-  font-weight: 600;
+  @apply text-base font-semibold;
 
-  .banner-badge.t4 & { color: var(--risk-t4); }
-  .banner-badge.t3 & { color: var(--risk-t3); }
-  .banner-badge.t2 & { color: var(--risk-t2); }
-  .banner-badge.t0 & { color: var(--risk-t0); }
-  .banner-badge.unknown & { color: var(--risk-unknown); }
+  .banner-badge.t4 & { color: var(--color-risk-t4); }
+  .banner-badge.t3 & { color: var(--color-risk-t3); }
+  .banner-badge.t2 & { color: var(--color-risk-t2); }
+  .banner-badge.t0 & { color: var(--color-risk-t0); }
+  .banner-badge.unknown & { color: var(--color-risk-unknown); }
 }
 
 // ── 内容区 ────────────────────────────────────────────
 .content {
-  padding: var(--space-6) var(--space-6) 0;
+  @apply px-6 pt-0;
 }
 
 .bottom-spacer {
@@ -377,13 +326,9 @@ const adviceItems = computed(() =>
 }
 
 .section-title {
-  display: block;
-  font-size: var(--text-5xl);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  margin-top: var(--space-14);
-  margin-bottom: var(--space-7);
+  @apply block text-2xl font-bold tracking-tight text-foreground;
+  margin-top: 56rpx;
+  margin-bottom: 28rpx;
 
   &:first-child {
     margin-top: 0;
@@ -392,12 +337,8 @@ const adviceItems = computed(() =>
 
 // ── 营养卡片 ──────────────────────────────────────────
 .nutrition-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-xl);
-  padding: var(--space-10);
-  margin-bottom: 0;
-  animation: slideUp 0.5s 0.1s $ease-spring forwards;
+  @apply relative overflow-hidden rounded-2xl p-10 mb-0;
+  animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: translateY(16px);
   background: var(--nutrition-bg);
@@ -405,11 +346,7 @@ const adviceItems = computed(() =>
 
   &::before {
     content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
+    @apply absolute top-0 left-0 right-0 h-px;
     background: linear-gradient(90deg, transparent, var(--nutrition-glow), transparent);
   }
 }
@@ -417,66 +354,40 @@ const adviceItems = computed(() =>
 .nutrition-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-10);
-  margin-bottom: var(--space-10);
+  gap: 40rpx;
+  margin-bottom: 40rpx;
 }
 
 .nutrition-cell {
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-col;
 }
 
 .nutrition-label {
-  font-size: var(--text-base);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: var(--space-1);
-  color: var(--text-muted);
+  @apply text-sm uppercase tracking-widest mb-0.5 text-muted-foreground;
 }
 
 .nutrition-value {
-  font-size: var(--text-5xl);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  @apply text-[48rpx] font-bold tracking-tighter text-foreground leading-none mt-0.5;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
-  color: var(--text-primary);
-  margin-top: var(--space-1);
 }
 
 .nutrition-unit {
-  font-size: var(--text-base);
-  margin-top: var(--space-1);
-  color: var(--text-muted);
+  @apply text-base mt-0.5 text-muted-foreground;
 }
 
 .nutrition-toggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  padding: var(--space-5);
-  background: transparent;
-  border: none;
+  @apply w-full flex items-center justify-center gap-4 py-5 bg-transparent border-none text-lg font-medium rounded-lg text-muted-foreground cursor-pointer;
   -webkit-appearance: none;
   appearance: none;
-  font-size: var(--text-lg);
-  font-weight: 500;
   font-family: inherit;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  cursor: pointer;
   transition: background 0.2s;
 
-  &:active { background: color-mix(in oklch, var(--palette-gray-500) 10%, transparent); }
-  &:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  &:active { background: color-mix(in oklch, oklch(55% 0.02 265) 10%, transparent); }
+  &:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
   .chevron {
-    width: var(--icon-md);
-    height: var(--icon-md);
-    transition: transform 0.3s ease;
-    stroke: var(--text-muted);
+    @apply w-5 h-5 transition-transform duration-300;
+    stroke: var(--color-muted);
   }
 
   &.expanded .chevron {
@@ -485,87 +396,58 @@ const adviceItems = computed(() =>
 }
 
 .nutrition-details {
-  border-top: 1px solid var(--border-color);
-  padding-top: var(--space-8);
-  margin-top: var(--space-2);
+  @apply border-t border-border pt-8 mt-2;
 }
 
 .nutrition-row {
-  display: flex;
-  justify-content: space-between;
-  padding: var(--space-5) 0;
-  border-bottom: 1px solid var(--border-color);
-  font-size: var(--text-xl);
+  @apply flex justify-between py-5 border-b border-border text-lg;
+  &:last-child { @apply border-b-0; }
 
-  &:last-child { border-bottom: none; }
-
-  .row-label { color: var(--text-secondary); }
-  .row-value { color: var(--text-primary); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .row-label { @apply text-secondary; }
+  .row-value { @apply text-foreground font-medium; font-variant-numeric: tabular-nums; }
 }
 
 // ── 健康益处 / 食用建议卡片 ────────────────────────────
 .analysis-card {
-  border-radius: var(--radius-lg);
-  padding: var(--space-9);
-  margin-bottom: 0;
-  animation: slideUp 0.5s 0.3s $ease-spring forwards;
+  @apply rounded-xl p-9 mb-0;
+  animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: translateY(16px);
 
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  @apply bg-card border border-border;
   box-shadow: var(--shadow-sm);
 }
 
 .advice-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-7);
-  font-size: var(--text-2xl);
-  font-weight: 600;
-  color: var(--text-primary);
+  @apply flex items-center gap-4 mb-7 text-2xl font-semibold text-foreground;
 
   .star-icon {
-    width: var(--icon-lg);
-    height: var(--icon-lg);
-    fill: var(--palette-yellow-500);
-    flex-shrink: 0;
+    @apply w-6 h-6 flex-shrink-0;
+    fill: oklch(70% 0.18 85);
   }
 }
 
 .analysis-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-7);
+  @apply flex flex-col gap-7;
 }
 
 .analysis-item {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-6);
+  @apply flex items-start gap-6;
 
   .item-icon {
-    width: var(--icon-lg);
-    height: var(--icon-lg);
-    flex-shrink: 0;
-    margin-top: var(--space-1);
+    @apply w-6 h-6 flex-shrink-0 mt-0.5;
 
-    &--check { fill: var(--risk-t0); }
-    &--dot { fill: var(--text-muted); }
+    &--check { fill: var(--color-risk-t0); }
+    &--dot { fill: var(--color-muted); }
   }
 
   .item-text {
-    font-size: var(--text-xl);
-    line-height: 1.5;
-    color: var(--text-secondary);
-    flex: 1;
+    @apply text-lg leading-relaxed text-secondary flex-1;
   }
 }
 
 .empty-text {
-  font-size: var(--text-xl);
-  color: var(--text-muted);
+  @apply text-lg text-muted-foreground;
 }
 
 // ── 动画 ─────────────────────────────────────────────
