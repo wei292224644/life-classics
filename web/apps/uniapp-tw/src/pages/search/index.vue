@@ -1,7 +1,7 @@
 <template>
   <view class="search-page">
     <!-- ── Header ──────────────────────────── -->
-    <view class="search-header" :style="headerStyle">
+    <view class="search-header">
       <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
       <view class="header-content">
         <button class="header-btn" @click="goBack">
@@ -50,7 +50,9 @@
         >
           <view class="result-icon">{{ item.emoji }}</view>
           <view class="result-info">
-            <view class="result-type-tag" :style="typeTagStyle(item.type)">{{ item.type === 'product' ? '食品' : '配料' }}</view>
+            <view :class="['result-type-tag', item.type === 'product' ? 'type-tag--warn' : 'type-tag--risk']">
+              {{ item.type === 'product' ? '食品' : '配料' }}
+            </view>
             <text class="result-name">{{ item.name }}</text>
             <text class="result-desc">{{ item.description }}</text>
           </view>
@@ -88,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed,onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useThemeStore } from "../../store/theme"
 
 // ── Types ─────────────────────────────────────────────
@@ -106,12 +108,6 @@ const themeStore = useThemeStore()
 onMounted(() => {
   loadHistory()
 })
-
-// ── Header Style ────────────────────────────────────────
-const headerStyle = computed(() => ({
-  '--header-bg': 'var(--bg-card)',
-  '--header-text': 'var(--text-primary)',
-}))
 
 // ── Search State ────────────────────────────────────────
 const keyword = ref('')
@@ -169,7 +165,6 @@ function handleInput() {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     if (keyword.value.trim()) {
-      // Mock search: filter by keyword
       const kw = keyword.value.toLowerCase()
       const filteredProducts = mockProducts.filter(p => p.name.toLowerCase().includes(kw))
       const filteredIngredients = mockIngredients.filter(i => i.name.toLowerCase().includes(kw))
@@ -206,14 +201,6 @@ function handleResultClick(item: SearchResult) {
   }
 }
 
-// ── Type Tag Style ───────────────────────────────────────
-function typeTagStyle(type: string) {
-  if (type === 'product') {
-    return { background: 'var(--chip-warn-bg)', color: 'var(--chip-warn-text)' }
-  }
-  return { background: 'var(--chip-risk-bg)', color: 'var(--chip-risk-text)' }
-}
-
 // ── Navigation ───────────────────────────────────────────
 function goBack() {
   uni.navigateBack()
@@ -221,252 +208,161 @@ function goBack() {
 </script>
 
 <style lang="scss" scoped>
-// @import '@/styles/design-system.scss';
-
+// ── Page ────────────────────────────────────────────────
 .search-page {
-  min-height: 100vh;
-  background: var(--bg-base);
-  display: flex;
-  flex-direction: column;
+  @apply min-h-screen bg-background flex flex-col;
 }
 
 // ── Header ─────────────────────────────────────────────
 .search-header {
-  background: var(--bg-base);
-  border-bottom: 1px solid var(--border-color);
+  @apply bg-background border-b border-border;
 }
 
 .header-content {
-  display: flex;
-  align-items: center;
-  height: var(--space-22);
-  padding: 0 var(--space-4);
-  gap: var(--space-3);
+  @apply flex items-center px-4;
+  height: 88rpx;
+  gap: 12rpx;
 }
 
 .header-btn {
-  width: var(--space-15);
-  height: var(--space-15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  padding: 0;
-  border-radius: var(--radius-md);
+  @apply w-12 h-12 flex items-center justify-center bg-transparent border-none p-0 rounded-lg;
 
   svg {
-    width: 36rpx;
-    height: 36rpx;
-    color: var(--text-primary);
+    @apply w-9 h-9;
+    color: var(--color-foreground);
   }
 }
 
 .header-title {
-  flex: 1;
-  text-align: center;
-  font-size: var(--text-md);
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  margin-right: var(--space-15); // balance the back button
+  @apply flex-1 text-center text-base font-semibold text-foreground tracking-tight;
+  margin-right: 48rpx; // balance the back button
 }
 
 .header-spacer {
-  width: var(--space-15);
+  width: 48rpx;
 }
 
 // ── Search Input ───────────────────────────────────────
 .search-input-wrap {
-  padding: var(--space-4) var(--space-6);
-  background: var(--bg-base);
+  @apply p-4 px-6 bg-background;
 }
 
 .search-input-box {
-  display: flex;
-  align-items: center;
-  height: var(--space-20);
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: 0 var(--space-4);
-  gap: var(--space-3);
+  @apply flex items-center bg-card border border-border rounded-2xl px-4;
+  height: 80rpx;
+  gap: 12rpx;
 }
 
 .search-icon {
-  width: var(--space-8);
-  height: var(--space-8);
-  color: var(--text-muted);
-  flex-shrink: 0;
+  @apply w-8 h-8 text-muted-foreground flex-shrink-0;
 }
 
 .search-input {
-  flex: 1;
-  height: 100%;
-  font-size: var(--text-base);
-  color: var(--text-primary);
-  background: transparent;
-  border: none;
-  outline: none;
-
+  @apply flex-1 h-full text-base text-foreground bg-transparent border-none outline-none;
   &::placeholder {
-    color: var(--text-muted);
+    color: var(--color-muted);
   }
 }
 
 .clear-btn {
-  width: var(--space-10);
-  height: var(--space-10);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  padding: 0;
+  @apply w-10 h-10 flex items-center justify-center bg-transparent border-none p-0;
 
   svg {
-    width: var(--space-8);
-    height: var(--space-8);
-    color: var(--text-muted);
+    @apply w-8 h-8 text-muted-foreground;
   }
 }
 
 // ── Results ────────────────────────────────────────────
 .results-scroll {
-  flex: 1;
-  height: calc(100vh - var(--space-22) - var(--space-20) - var(--space-20));
+  @apply flex-1;
+  height: calc(100vh - 88rpx - 80rpx - 80rpx);
 }
 
 .results-content {
-  padding: var(--space-4) var(--space-6);
+  @apply p-4 px-6;
 }
 
 .results-count {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  margin-bottom: var(--space-4);
+  @apply text-sm text-muted-foreground mb-4;
 }
 
 .result-item {
-  display: flex;
-  align-items: center;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: var(--card-padding-md);
-  margin-bottom: var(--space-3);
-  gap: var(--space-4);
+  @apply bg-card border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 mb-3;
   box-shadow: var(--shadow-sm);
 }
 
 .result-icon {
-  width: var(--space-18);
-  height: var(--space-18);
-  border-radius: var(--radius-md);
-  background: var(--bg-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-4xl);
-  flex-shrink: 0;
+  @apply w-[72rpx] h-[72rpx] rounded-xl bg-background border border-border flex items-center justify-center text-2xl flex-shrink-0;
 }
 
 .result-info {
-  flex: 1;
-  min-width: 0;
+  @apply flex-1 min-w-0;
 }
 
 .result-type-tag {
-  display: inline-block;
-  font-size: var(--text-xs);
-  padding: var(--space-px) var(--space-3);
-  border-radius: var(--radius-full);
-  margin-bottom: var(--space-1);
+  @apply inline-block text-xs px-2 py-0.5 rounded-full mb-0.5;
+}
+
+.type-tag--warn {
+  background: color-mix(in oklch, var(--color-risk-t3) 12%, transparent);
+  color: var(--color-risk-t3);
+}
+
+.type-tag--risk {
+  background: color-mix(in oklch, var(--color-risk-t4) 12%, transparent);
+  color: var(--color-risk-t4);
 }
 
 .result-name {
-  display: block;
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  margin-bottom: var(--space-px);
+  @apply block text-base font-semibold text-foreground tracking-tight mb-0.5 truncate;
 }
 
 .result-desc {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  @apply text-sm text-muted-foreground;
 }
 
 .result-arrow {
-  width: var(--space-8);
-  height: var(--space-8);
-  color: var(--text-muted);
-  opacity: 0.4;
-  flex-shrink: 0;
+  @apply w-8 h-8 text-muted-foreground opacity-40 flex-shrink-0;
 }
 
 .empty-results {
-  text-align: center;
-  padding: var(--space-16) 0;
+  @apply text-center pt-16;
 }
 
 .empty-text {
-  font-size: var(--text-base);
-  color: var(--text-muted);
+  @apply text-base text-muted-foreground;
 }
 
 // ── History ─────────────────────────────────────────────
 .history-section {
-  padding: var(--space-6);
+  @apply p-6;
 }
 
 .history-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
+  @apply flex items-center justify-between mb-4;
 }
 
 .history-title {
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--text-primary);
+  @apply text-base font-semibold text-foreground;
 }
 
 .clear-history-btn {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  background: transparent;
-  border: none;
-  padding: var(--space-2) var(--space-3);
+  @apply text-sm text-muted-foreground bg-transparent border-none p-2 pl-3;
 }
 
 .history-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+  @apply flex flex-wrap gap-3;
 }
 
 .history-tag {
-  height: var(--space-14);
-  padding: 0 var(--space-6);
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
+  @apply h-14 px-6 bg-card border border-border rounded-full text-sm text-secondary flex items-center;
 }
 
 .history-empty {
-  text-align: center;
-  padding: var(--space-10) 0;
+  @apply text-center pt-10;
 }
 
 .history-empty-text {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  @apply text-sm text-muted-foreground;
 }
 </style>
