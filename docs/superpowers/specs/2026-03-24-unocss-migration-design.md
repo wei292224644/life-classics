@@ -54,10 +54,14 @@ shortcuts: {
 | `transition: all 0.2s $ease-spring` | UnoCSS shortcut `transition-spring` |
 | `color-mix(in oklch, var(--risk-t4) 12%, transparent)` | shortcut `risk-t4-bg` |
 | `&:active { transform: scale(0.92) }` | `active:scale-92` |
-| 状态嵌套 `.header--scrolled &` | UnoCSS custom variant 或保留极少量 style 并注明原因 |
+| 状态嵌套 `.header--scrolled &` | UnoCSS custom variant；若涉及父级 `.dark &` 且组件为 scoped，需改用 `:deep()` 或将该块移入独立非 scoped `<style>` 块 |
 | `$ease-spring`（SCSS 变量） | 迁移为 CSS 变量 `--ease-spring`，uno.config.ts 引用 |
+| `@keyframes` 动画块 | 保留在各组件 style 块，`animation:` 属性用 `animation-[...]` 任意值写法；Phase 0 migration-guide 中列出所有动画名 |
+| `backdrop-filter`、`radial-gradient` 等复合属性 | 保留在 style 块，注明"无法原子化" |
 
-**原则**：能用原子类就用，无法表达的用 shortcut/custom rule 封装，实在不行保留在 style 块并注明原因（预计极少数）。
+**原则**：能用原子类就用，无法表达的用 shortcut/custom rule 封装，实在不行保留在 style 块并注明原因。
+
+**scoped 与 `.dark &` 冲突说明**：`<style scoped>` 下 Vue 会为所有选择器注入 `[data-v-xxx]`，导致 `.dark &` 父选择器失效（`.dark` 在 `page` 元素上，不含 scoped 属性）。解法：将依赖 `.dark &` 的样式块改为 `:deep()` 写法，或单独用一个非 scoped `<style>` 块承载。
 
 ---
 
@@ -67,8 +71,9 @@ shortcuts: {
 
 1. 回滚 uniapp 迁移 commit，保留 server/api commit
 2. 安装 `unocss-preset-uni`，更新 `uno.config.ts`
-3. 精简 `design-system.scss`（删 Palette + Component 层）
-4. 编写 `migration-guide.md`（所有 CSS 模式 → UnoCSS 映射，后续所有 session 的唯一参考）
+3. **rpx 支持验证**：用最简单的组件（ListItem）写一个包含 `w-[80rpx]` 的测试类，执行 H5 构建，检查产物 CSS 中 rpx 是否原样保留；验证通过再进入后续步骤
+4. 精简 `design-system.scss`（删 Palette + Component 层）
+5. 编写 `migration-guide.md`（所有 CSS 模式 → UnoCSS 映射，包含所有 @keyframes 名称列表，后续所有 session 的唯一参考）
 
 ### Phase 1：组件迁移（多个 session，每 session 处理 3-4 个组件）
 
@@ -92,7 +97,7 @@ shortcuts: {
 
 ## 成功标准
 
-- [ ] 所有 21 个 Vue 文件的 style 块行数总计 < 100 行（当前 1782 行）
+- [ ] 所有 21 个 Vue 文件的 style 块行数总计 < 200 行（当前 1782 行；允许保留 @keyframes、backdrop-filter、radial-gradient 等无法原子化的内容，但必须注明原因）
 - [ ] 视觉效果与迁移前一致（亮色 + 暗色模式）
 - [ ] H5 构建无报错
 - [ ] 每个保留的 style 块注明保留原因
