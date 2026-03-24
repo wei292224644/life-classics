@@ -6,6 +6,8 @@
 // Tailwind config 通过 variable: 引用，无需 dark: 前缀。
 // ============================================================
 
+@use 'tailwindcss/base';
+
 @layer base {
   :root {
     // ── shadcn 语义色 ───────────────────────────────
