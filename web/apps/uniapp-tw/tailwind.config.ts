@@ -53,6 +53,10 @@ export default <Config>{
         'banner-badge-shadow': 'var(--banner-badge-shadow)',
         'accent-glow': 'var(--accent-glow)',
 
+        // accent pink 色系
+        'accent-pink-light': 'var(--accent-pink-light)',
+        'accent-pink': 'var(--accent-pink)',
+
         // 调色板色 (SectionHeader icon backgrounds)
         'palette-blue-500': 'var(--palette-blue-500)',
         'palette-purple-500': 'var(--palette-purple-500)',
