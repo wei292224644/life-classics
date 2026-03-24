@@ -113,165 +113,106 @@ function goBack() {
 </script>
 
 <style lang="scss" scoped>
-// @import '@/styles/design-system.scss';
-
+// ── Page ────────────────────────────────────────────────
 .profile-page {
-  min-height: 100vh;
-  background: var(--bg-base);
-  display: flex;
-  flex-direction: column;
+  @apply min-h-screen bg-background flex flex-col;
 }
 
 // ── Header ─────────────────────────────────────────────
 .profile-header {
-  background: var(--bg-base);
-  border-bottom: 1px solid var(--border-color);
+  @apply bg-background border-b border-border;
 }
 
 .header-content {
-  display: flex;
-  align-items: center;
-  height: var(--space-22);
-  padding: 0 var(--space-4);
-  gap: var(--space-3);
+  @apply flex items-center px-4;
+  height: 88rpx;
+  gap: 12rpx;
 }
 
 .header-btn {
-  width: var(--space-15);
-  height: var(--space-15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  padding: 0;
-  border-radius: var(--radius-md);
+  @apply w-12 h-12 flex items-center justify-center bg-transparent border-none p-0 rounded-lg;
 
   svg {
-    width: var(--space-9);
-    height: var(--space-9);
-    color: var(--text-primary);
+    @apply w-9 h-9;
+    color: var(--color-foreground);
   }
 }
 
 .header-title {
-  flex: 1;
-  text-align: center;
-  font-size: var(--text-md);
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  margin-right: var(--space-15);
+  @apply flex-1 text-center text-base font-semibold text-foreground tracking-tight;
+  margin-right: 48rpx;
 }
 
 .header-spacer {
-  width: var(--space-15);
+  width: 48rpx;
 }
 
 // ── Content ─────────────────────────────────────────────
 .content-scroll {
-  flex: 1;
+  @apply flex-1;
   height: calc(100vh - 88rpx);
 }
 
 .content {
-  padding: var(--space-6);
+  @apply p-6;
 }
 
 // ── Login Card ──────────────────────────────────────────
 .login-card {
-  height: 200rpx;
-  background: linear-gradient(135deg, var(--palette-pink-50) 0%, var(--palette-pink-100) 100%);
-  border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-6);
-  border: 1px solid color-mix(in oklch, var(--palette-pink-200) 50%, transparent);
+  @apply h-[200rpx] bg-gradient-to-br from-pink-50 to-pink-100 rounded-2xl flex flex-col items-center justify-center gap-3 mb-6;
+  border: 1px solid color-mix(in oklch, oklch(93% 0.03 350) 50%, transparent);
 }
 
 .dark .login-card {
-  background: linear-gradient(135deg, #1a1018 0%, #1a1a1a 100%);
-  border-color: var(--border-color);
+  @apply from-zinc-900 to-zinc-800;
+  border-color: var(--color-border);
 }
 
 .login-avatar {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  background: var(--bg-card);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @apply w-[100rpx] h-[100rpx] rounded-full bg-card flex items-center justify-center;
   box-shadow: var(--shadow-sm);
 
   svg {
-    width: var(--space-12);
-    height: var(--space-12);
-    color: var(--text-muted);
+    @apply w-12 h-12;
+    color: var(--color-muted);
   }
 }
 
 .login-text {
-  font-size: var(--text-base);
-  color: var(--text-muted);
+  @apply text-base text-muted-foreground;
 }
 
 // ── Menu List ───────────────────────────────────────────
 .menu-list {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  @apply bg-card border border-border rounded-2xl overflow-hidden;
 }
 
 .menu-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 100rpx;
-  padding: 0 var(--space-6);
-  border-bottom: 1px solid var(--border-color);
-  cursor: pointer;
-  transition: background 0.15s ease;
-
+  @apply flex items-center justify-between h-[100rpx] px-6 border-b border-border cursor-pointer transition-colors duration-150;
   &:last-child {
-    border-bottom: none;
+    @apply border-b-0;
   }
-
   &:active {
-    background: var(--bg-card-hover);
+    @apply bg-muted;
   }
-
   &.disabled {
-    opacity: 0.5;
-    pointer-events: none;
+    @apply opacity-50 pointer-events-none;
   }
 }
 
 .menu-item-left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
+  @apply flex items-center gap-4;
 }
 
 .menu-icon {
-  width: var(--space-10);
-  height: var(--space-10);
-  color: var(--text-secondary);
+  @apply w-10 h-10 text-secondary;
 }
 
 .menu-text {
-  font-size: var(--text-base);
-  color: var(--text-primary);
+  @apply text-base text-foreground;
 }
 
 .menu-arrow {
-  width: var(--space-8);
-  height: var(--space-8);
-  color: var(--text-muted);
-  opacity: 0.4;
+  @apply w-8 h-8 text-muted-foreground opacity-40;
 }
 </style>
