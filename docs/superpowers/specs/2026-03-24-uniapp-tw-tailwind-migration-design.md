@@ -70,7 +70,7 @@ export default <Config>{
         input: 'var(--color-input)',
         ring: 'var(--color-ring)',
 
-        // 风险色（不在 shadcn 标准语义中，用 --color-* 自定义名）
+        // 风险色
         'risk-t4': 'var(--color-risk-t4)',
         'risk-t3': 'var(--color-risk-t3)',
         'risk-t2': 'var(--color-risk-t2)',
@@ -78,18 +78,31 @@ export default <Config>{
         'risk-t0': 'var(--color-risk-t0)',
         'risk-unknown': 'var(--color-risk-unknown)',
 
-        // 复杂 token（直接引用 CSS 变量）
+        // 复杂 component token（直接引用 CSS 变量）
         'bottom-bar-bg': 'var(--bottom-bar-bg)',
         'bottom-bar-border': 'var(--bottom-bar-border)',
+        'header-scrolled-bg': 'var(--header-scrolled-bg)',
+        'ai-label-bg': 'var(--ai-label-bg)',
         'nutrition-bg': 'var(--nutrition-bg)',
         'nutrition-border': 'var(--nutrition-border)',
+        'nutrition-glow': 'var(--nutrition-glow)',
+        'status-bar-bg': 'var(--status-bar-bg)',
+        'status-bar-text': 'var(--status-bar-text)',
         'banner-bg': 'var(--banner-bg)',
         'banner-label': 'var(--banner-label)',
+        'banner-badge-bg': 'var(--banner-badge-bg)',
+        'banner-badge-border': 'var(--banner-badge-border)',
+        'banner-badge-shadow': 'var(--banner-badge-shadow)',
+        'accent-glow': 'var(--accent-glow)',
       },
       borderRadius: {
-        lg: 'var(--radius-lg)',
-        md: 'var(--radius-md)',
-        sm: 'var(--radius-sm)',
+        sm: 'var(--radius-sm)',    // 24rpx = 12px
+        md: 'var(--radius-md)',    // 32rpx = 16px
+        lg: 'var(--radius-lg)',    // 40rpx = 20px
+        xl: 'var(--radius-xl)',    // 48rpx = 24px，额外定义
+      },
+      boxShadow: {
+        sm: 'var(--shadow-sm)',
       },
     },
   },
@@ -141,17 +154,28 @@ export default <Config>{
     --radius-sm:              0.75rem;   // 12px (24rpx)
     --radius-md:              1rem;      // 16px (32rpx)
     --radius-lg:              1.25rem;   // 20px (40rpx)
+    --radius-xl:              1.5rem;    // 24px (48rpx)
 
-    // 复杂 token
+    // 阴影 & 动效
+    --shadow-sm:              0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+    --ease-spring:            cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    // 复杂 component token
     --bottom-bar-bg:          oklch(100% 0 0 / 95%);
     --bottom-bar-border:      oklch(14.5% 0.016 265 / 6%);
     --header-scrolled-bg:     oklch(100% 0 0 / 90%);
+    --ai-label-bg:            linear-gradient(135deg, #8b5cf6, #7c3aed);
     --nutrition-bg:           oklch(65% 0.16 145 / 4%);
     --nutrition-border:        oklch(65% 0.16 145 / 12%);
     --nutrition-glow:         oklch(65% 0.16 145 / 30%);
-    --banner-bg:              linear-gradient(145deg, oklch(99% 0.005 95) 0%, oklch(98% 0.01 95) 50%, oklch(96% 0.02 85) 100%);
-    --banner-label:           oklch(40% 0.12 60);          // #713f12
-    --accent-glow:           oklch(45% 0.18 330 / 40%);
+    --status-bar-bg:          #ffffff;
+    --status-bar-text:        #111827;
+    --banner-bg:              linear-gradient(145deg, #fefce8 0%, #fef9c3 50%, #fef08a 100%);
+    --banner-label:           #713f12;
+    --banner-badge-bg:        oklch(100% 0 0 / 85%);
+    --banner-badge-border:    oklch(100% 0 0 / 20%);
+    --banner-badge-shadow:    0 4px 24px rgba(0, 0, 0, 0.15);
+    --accent-glow:            oklch(45% 0.18 330 / 40%);
   }
 
   .dark {
@@ -193,16 +217,27 @@ export default <Config>{
     --radius-sm:              0.75rem;
     --radius-md:              1rem;
     --radius-lg:              1.25rem;
+    --radius-xl:              1.5rem;
 
-    // 复杂 token
+    // 阴影 & 动效
+    --shadow-sm:              0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+    --ease-spring:            cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    // 复杂 component token
     --bottom-bar-bg:          oklch(98% 0.003 265 / 95%);
     --bottom-bar-border:      oklch(100% 0 0 / 6%);
     --header-scrolled-bg:     oklch(93% 0.005 265 / 88%);
+    --ai-label-bg:            linear-gradient(135deg, #8b5cf6, #7c3aed);  // 暗色可单独调整
     --nutrition-bg:           oklch(75% 0.16 145 / 6%);
     --nutrition-border:       oklch(75% 0.16 145 / 10%);
     --nutrition-glow:         oklch(75% 0.16 145 / 20%);
-    --banner-bg:              linear-gradient(145deg, oklch(10% 0.005 265) 0%, oklch(6% 0.004 265) 50%, oklch(9% 0.005 265) 100%);
-    --banner-label:           oklch(45% 0.012 265);        // #6b7280
+    --status-bar-bg:          transparent;
+    --status-bar-text:        #ffffff;
+    --banner-bg:              linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%);
+    --banner-label:           oklch(45% 0.012 265);
+    --banner-badge-bg:        oklch(12% 0.005 265 / 90%);
+    --banner-badge-border:    oklch(100% 0 0 / 10%);
+    --banner-badge-shadow:    0 4px 24px rgba(0, 0, 0, 0.4);
     --accent-glow:            oklch(70% 0.24 330 / 30%);
   }
 }
@@ -384,7 +419,14 @@ TW config 引用：
 'nutrition-bg': 'var(--nutrition-bg)',
 ```
 
-### 3. Dark mode 切换
+### 3. Dark mode 切换（`dark-mode` → `.dark`）
+
+当前项目使用 `.dark-mode` class，迁移后统一改为 `.dark`（shadcn 规范）。
+
+需要迁移的范围：
+- `design-system.scss` 中的 `.dark-mode {}` 块 → 改为 `.dark {}`
+- 所有 Vue 模板中的 `:class="{ 'dark-mode': ... }"` → **移除**（不再需要动态 class）
+- 所有 SCSS 中的 `.dark-mode &` 选择器 → 改为 `.dark &`
 
 ```ts
 // App.vue
@@ -393,9 +435,38 @@ watch(() => theme.isDark, (dark) => {
 }, { immediate: true })
 ```
 
-`.dark` class 在 `<html>` 或 `<body>` 上，CSS 变量在 `.dark` 下的定义自动生效。
+`.dark` class 在 `<html>` 上，CSS 变量在 `.dark` 下的定义自动生效。
 
-### 4. Preflight 差异
+### 4. 动画 Keyframes
+
+以下 keyframes 保留在 `design-system.scss` 中（不在 TW config 中定义）：
+
+```scss
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16rpx); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes floatIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideUpBadge {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .banner-emoji, .nutrition-card, .health-card,
+  .advice-card, .banner-badge {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+```
+
+### 5. Preflight 差异
 
 `preflight: !isMp`，H5 开启，小程序关闭。如有冲突在组件局部重新声明。
 
@@ -407,5 +478,6 @@ watch(() => theme.isDark, (dark) => {
 2. 颜色通过 CSS 变量自动切换，**不使用** `dark:` TW 前缀
 3. `tailwind.config.ts` 中所有颜色通过 `var(--color-*)` 引用
 4. CSS 变量定义在 `@layer base` 的 `:root` 和 `.dark` 下（shadcn 模式）
-5. SCSS `<style>` 块仅在有 SCSS 逻辑时保留，否则移除
-6. `dark-mode` class 从所有页面模板中移除
+5. SCSS `<style>` 块仅在有 SCSS 逻辑时保留（keyframes、mixin、函数），否则移除
+6. `.dark-mode` class 全面替换为 `.dark`，从所有页面模板和 SCSS 中清除
+7. `design-system.scss` 中所有原有 CSS 变量均已在 spec 中定义，无遗漏
