@@ -4,49 +4,78 @@ import cssMacro from 'weapp-tailwindcss/css-macro'
 import { isMp } from './platform'
 
 export default <Config>{
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{html,js,ts,jsx,tsx,vue}'],
   theme: {
     extend: {
-      // colors: {
-      // // 你可以在这里进行颜色的扩展
-      // primary: {
-      //   'DEFAULT': 'var(--color-primary, #0089FF)',
-      //   'light-3': 'var(--color-primary-light-3, rgb(85, 199, 255))',
-      //   'light-5': 'var(--color-primary-light-5, rgb(130, 217, 255))',
-      //   'light-7': 'var(--color-primary-light-7, rgb(175, 235, 255))',
-      //   'light-9': 'var(--color-primary-light-9, rgb(219, 252, 255))',
-      //   'dark-2': 'var(--color-primary-dark-2, rgb(0, 135, 204))',
-      // },
-      // },
+      colors: {
+        // shadcn 语义变量命名
+        background: 'var(--color-background)',
+        foreground: 'var(--color-foreground)',
+        card: 'var(--color-card)',
+        'card-foreground': 'var(--color-card-foreground)',
+        primary: 'var(--color-primary)',
+        'primary-foreground': 'var(--color-primary-foreground)',
+        secondary: 'var(--color-secondary)',
+        'secondary-foreground': 'var(--color-secondary-foreground)',
+        muted: 'var(--color-muted)',
+        'muted-foreground': 'var(--color-muted-foreground)',
+        accent: 'var(--color-accent)',
+        'accent-foreground': 'var(--color-accent-foreground)',
+        destructive: 'var(--color-destructive)',
+        'destructive-foreground': 'var(--color-destructive-foreground)',
+        border: 'var(--color-border)',
+        input: 'var(--color-input)',
+        ring: 'var(--color-ring)',
+
+        // 风险色
+        'risk-t4': 'var(--color-risk-t4)',
+        'risk-t3': 'var(--color-risk-t3)',
+        'risk-t2': 'var(--color-risk-t2)',
+        'risk-t1': 'var(--color-risk-t1)',
+        'risk-t0': 'var(--color-risk-t0)',
+        'risk-unknown': 'var(--color-risk-unknown)',
+
+        // 复杂 component token
+        'bottom-bar-bg': 'var(--bottom-bar-bg)',
+        'bottom-bar-border': 'var(--bottom-bar-border)',
+        'header-scrolled-bg': 'var(--header-scrolled-bg)',
+        'ai-label-bg': 'var(--ai-label-bg)',
+        'nutrition-bg': 'var(--nutrition-bg)',
+        'nutrition-border': 'var(--nutrition-border)',
+        'nutrition-glow': 'var(--nutrition-glow)',
+        'status-bar-bg': 'var(--status-bar-bg)',
+        'status-bar-text': 'var(--status-bar-text)',
+        'banner-bg': 'var(--banner-bg)',
+        'banner-label': 'var(--banner-label)',
+        'banner-badge-bg': 'var(--banner-badge-bg)',
+        'banner-badge-border': 'var(--banner-badge-border)',
+        'banner-badge-shadow': 'var(--banner-badge-shadow)',
+        'accent-glow': 'var(--accent-glow)',
+      },
+      borderRadius: {
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
+      },
+      boxShadow: {
+        sm: 'var(--shadow-sm)',
+      },
     },
   },
-  // https://tw.icebreaker.top/docs/quick-start/uni-app-css-macro
   plugins: [
     cssMacro({
       variantsMap: {
         'wx': 'MP-WEIXIN',
-        '-wx': {
-          value: 'MP-WEIXIN',
-          negative: true,
-        },
-        // 定义多个条件判断
-        // mv: {
-        //   value: 'H5 || MP-WEIXIN'
-        // },
-        // '-mv': {
-        //   value: 'H5 || MP-WEIXIN',
-        //   negative: true
-        // }
+        '-wx': { value: 'MP-WEIXIN', negative: true },
       },
     }),
     iconsPlugin({
-      // 在这里可以选择你要使用的 icon, 更多详见:
-      // https://icon-sets.iconify.design/
       collections: getIconCollections(['svg-spinners', 'mdi']),
     }),
   ],
   corePlugins: {
-    // 小程序去使用 h5 的 preflight 和响应式 container 没有意义
     preflight: !isMp,
     container: !isMp,
   },
