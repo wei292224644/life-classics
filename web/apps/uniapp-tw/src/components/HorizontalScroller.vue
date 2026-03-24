@@ -25,9 +25,6 @@ withDefaults(
 }
 
 .horizontal-scroller-inner {
-  display: flex;
-  flex-direction: row;
-  width: max-content;
-  padding-bottom: var(--space-2);
+  @apply flex flex-row w-max pb-2;
 }
 </style>

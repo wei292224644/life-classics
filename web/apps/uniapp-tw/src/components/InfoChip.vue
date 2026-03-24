@@ -10,33 +10,24 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
 .info-chip {
-  display: inline-flex;
-  align-items: center;
-  font-size: var(--text-sm);
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--radius-sm);
-  font-weight: 500;
-  box-sizing: border-box;
-  white-space: nowrap;
+  @apply inline-flex items-center text-sm px-4 py-1 rounded font-medium box-border whitespace-nowrap;
 
   &.chip-risk {
-    color: var(--chip-risk-text);
-    background: var(--chip-risk-bg);
-    border: 1px solid var(--chip-risk-border);
+    background: color-mix(in oklch, var(--color-destructive) 10%, transparent);
+    color: var(--color-destructive);
+    border: 1px solid color-mix(in oklch, var(--color-destructive) 20%, transparent);
   }
 
   &.chip-warn {
-    color: var(--chip-warn-text);
-    background: var(--chip-warn-bg);
-    border: 1px solid var(--chip-warn-border);
+    background: color-mix(in oklch, var(--color-risk-t3) 10%, transparent);
+    color: var(--color-risk-t3);
+    border: 1px solid color-mix(in oklch, var(--color-risk-t3) 20%, transparent);
   }
 
   &.chip-neutral {
-    color: var(--chip-neu-text);
-    background: var(--chip-neu-bg);
+    background: color-mix(in oklch, var(--color-secondary) 10%, transparent);
+    color: var(--color-secondary);
   }
 }
 </style>

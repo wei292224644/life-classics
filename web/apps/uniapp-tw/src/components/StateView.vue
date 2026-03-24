@@ -34,33 +34,18 @@ defineEmits<{ (e: "retry"): void }>();
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
 .state-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-8);
+  @apply flex flex-col items-center justify-center gap-8;
 
   &__message {
-    font-size: var(--text-lg);
-    color: var(--text-muted);
-    text-align: center;
+    @apply text-lg text-muted-foreground text-center;
   }
 
   &__action {
-    padding: var(--space-3) var(--space-8);
-    border-radius: var(--radius-md);
-    font-size: var(--text-lg);
-    font-weight: 500;
+    @apply px-8 py-3 rounded-lg text-lg font-medium bg-card border border-border text-foreground cursor-pointer font-family-inherit;
     font-family: inherit;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    cursor: pointer;
 
-    &:active { background: var(--bg-card-hover); }
+    &:active { @apply bg-muted; }
   }
 }
 </style>
