@@ -151,98 +151,60 @@ function handleRecentClick(item: RecentScan) {
 </script>
 
 <style lang="scss" scoped>
-// @import '@/styles/design-system.scss';
-
+// ── Page ────────────────────────────────────────────────
 .index-page {
-  height: 100vh;
-  background: var(--bg-base);
-  display: flex;
-  flex-direction: column;
-  padding-bottom: calc(var(--space-20) + env(safe-area-inset-bottom));
+  @apply h-screen bg-background flex flex-col;
+  padding-bottom: calc(80rpx + env(safe-area-inset-bottom));
   overflow: hidden;
 }
 
 // ── Hero ───────────────────────────────────────────────
 .hero {
-  background: var(--bg-card);
-  padding: var(--space-20) var(--space-12) var(--space-16);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-bottom: 1px solid var(--border-color);
+  @apply bg-card px-6 pt-10 pb-8 flex flex-col items-center border-b border-border;
 }
 
 .logo-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-2);
+  @apply flex items-center gap-2 mb-1;
 }
 
 .logo-emoji {
-  font-size: var(--text-6xl);
-  line-height: 1;
+  @apply text-[60px] leading-none;
 }
 
 .logo-title {
-  font-size: var(--text-3xl);
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
+  @apply text-xl font-bold text-foreground tracking-tight;
 }
 
 .logo-sub {
-  font-size: var(--text-md);
-  color: var(--text-muted);
+  @apply text-sm text-muted-foreground;
 }
 
 // ── Scan CTA ───────────────────────────────────────────
 .scan-cta-wrap {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: var(--space-20) 0 var(--space-16);
+  @apply flex justify-center items-center py-10 pb-8;
 }
 
 .scan-cta {
-  width: 280rpx;
-  height: 280rpx;
-  background: linear-gradient(135deg, var(--palette-pink-400) 0%, var(--palette-pink-500) 100%);
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
+  @apply w-[140px] h-[140px] rounded-full bg-gradient-to-br from-pink-400 to-pink-500 flex flex-col items-center justify-center gap-1.5 relative cursor-pointer;
   box-shadow: 0 16rpx 80rpx rgba(236, 72, 153, 0.4);
-  cursor: pointer;
-  position: relative;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
 
   &:active {
-    transform: scale(0.95);
+    @apply scale-95;
   }
 }
 
 .scan-cta-ring {
-  position: absolute;
-  inset: -8rpx;
-  border-radius: 50%;
-  border: 4rpx solid rgba(236, 72, 153, 0.25);
+  @apply absolute inset-[-4px] rounded-full border-2 border-pink-400/30 pointer-events-none;
   animation: pulse-ring 2s ease-out infinite;
-  pointer-events: none;
 }
 
 .scan-cta-icon {
-  width: var(--space-18);
-  height: var(--space-18);
+  @apply w-9 h-9;
 }
 
 .scan-cta-text {
-  color: white;
-  font-size: 32rpx;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  @apply text-white text-base font-bold tracking-tight;
 }
 
 @keyframes pulse-ring {
@@ -262,126 +224,71 @@ function handleRecentClick(item: RecentScan) {
 
 // ── Section Divider ────────────────────────────────────
 .section-divider {
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
-  padding: 0 var(--space-12) var(--space-6);
+  @apply flex items-center gap-3 px-6 pt-6 pb-3;
 }
 
 .divider-line {
-  flex: 1;
-  height: 1px;
-  background: var(--border-color);
+  @apply flex-1 h-px bg-border;
 }
 
 .section-label {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  flex-shrink: 0;
+  @apply flex items-center gap-2 flex-shrink-0;
 }
 
 .section-label-text {
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  @apply text-[11px] font-semibold text-muted-foreground uppercase tracking-widest;
 }
 
 .scan-count {
-  background: var(--palette-red-50);
-  color: var(--palette-red-500);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  padding: var(--space-1) var(--space-3);
-  border-radius: 9999rpx;
+  @apply bg-risk-t4/10 text-risk-t4 text-[10px] font-bold px-1.5 py-0.5 rounded-full;
 }
 
 .dark .scan-count {
-  background: color-mix(in oklch, var(--palette-red-400) 15%, transparent);
-  color: var(--palette-red-400);
+  background: color-mix(in oklch, var(--color-risk-t4) 15%, transparent);
+  color: var(--color-risk-t4);
 }
 
 // ── Scan List ───────────────────────────────────────────
 .scan-list {
-  flex: 1;
-  padding: 0 var(--space-12) var(--space-10);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  overflow-y: auto;
-  min-height: 0; /* flex child overflow scroll requires this */
+  @apply flex-1 px-6 pb-10 flex flex-col gap-2 overflow-y-auto;
+  min-height: 0;
 }
 
 .scan-item {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--space-7);
-  padding: var(--space-7) var(--space-8);
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
+  @apply bg-card border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 cursor-pointer;
   box-shadow: var(--shadow-sm);
-  cursor: pointer;
   transition: transform 0.15s ease;
 
   &:active {
-    transform: scale(0.98);
+    @apply scale-[0.98];
   }
 }
 
 .scan-icon {
-  width: var(--space-20);
-  height: var(--space-20);
-  border-radius: 20rpx;
-  background: var(--bg-base);
-  border: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-5xl);
-  flex-shrink: 0;
+  @apply w-10 h-10 rounded-lg bg-background border border-border flex items-center justify-center text-xl flex-shrink-0;
 }
 
 .scan-info {
-  flex: 1;
-  min-width: 0;
+  @apply flex-1 min-w-0;
 }
 
 .scan-name {
-  display: block;
-  font-size: var(--text-xl);
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  margin-bottom: var(--space-1);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  @apply block text-sm font-semibold text-foreground tracking-tight mb-0.5 truncate;
 }
 
 .scan-time {
-  font-size: var(--text-md);
-  color: var(--text-muted);
+  @apply text-xs text-muted-foreground;
 }
 
 .scan-arrow {
-  width: var(--space-8);
-  height: var(--space-8);
-  color: var(--text-muted);
-  opacity: 0.4;
-  flex-shrink: 0;
+  @apply w-4 h-4 text-muted-foreground opacity-40 flex-shrink-0;
 }
 
 .scan-empty {
-  text-align: center;
-  padding: var(--space-12) 0;
+  @apply text-center pt-12;
 }
 
 .scan-empty-text {
-  font-size: var(--text-base);
-  color: var(--text-muted);
+  @apply text-base text-muted-foreground;
 }
-
 </style>
