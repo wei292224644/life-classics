@@ -41,69 +41,54 @@ function extractSummary(results: unknown): string {
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
 .analysis-card {
-  background: var(--bg-card);
-  border-radius: var(--space-4);
-  padding: var(--space-7);
-  margin-bottom: var(--space-5);
-  border-left: 6rpx solid var(--border-color);
+  @apply bg-card rounded-lg p-7 mb-5 border-l-[6rpx] border-border;
 
-  &--t4 { border-left-color: var(--risk-t4); }
-  &--t3 { border-left-color: var(--risk-t3); }
-  &--t2 { border-left-color: var(--risk-t2); }
-  &--t1 { border-left-color: var(--risk-t1); }
-  &--t0 { border-left-color: var(--risk-t0); }
+  &--t4 { border-left-color: var(--color-risk-t4); }
+  &--t3 { border-left-color: var(--color-risk-t3); }
+  &--t2 { border-left-color: var(--color-risk-t2); }
+  &--t1 { border-left-color: var(--color-risk-t1); }
+  &--t0 { border-left-color: var(--color-risk-t0); }
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-4);
+  @apply flex justify-between items-center mb-4;
 }
 
 .card-title {
-  font-size: var(--text-2xl);
-  font-weight: 600;
-  color: var(--text-primary);
+  @apply text-2xl font-semibold text-foreground;
 }
 
 .level-badge {
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--text-base);
+  @apply px-4 py-1 rounded-full text-base;
 
   &--t4 {
-    background: var(--risktag-t4-bg);
-    color: var(--risk-t4);
+    background: color-mix(in oklch, var(--color-risk-t4) 12%, transparent);
+    color: var(--color-risk-t4);
   }
   &--t3 {
-    background: var(--risktag-t3-bg);
-    color: var(--risk-t3);
+    background: color-mix(in oklch, var(--color-risk-t3) 12%, transparent);
+    color: var(--color-risk-t3);
   }
   &--t2 {
-    background: var(--risktag-t2-bg);
-    color: var(--risk-t2);
+    background: color-mix(in oklch, var(--color-risk-t2) 12%, transparent);
+    color: var(--color-risk-t2);
   }
   &--t1 {
-    background: var(--risktag-t1-bg);
-    color: var(--risk-t1);
+    background: color-mix(in oklch, var(--color-risk-t1) 12%, transparent);
+    color: var(--color-risk-t1);
   }
   &--t0 {
-    background: var(--risktag-t1-bg);
-    color: var(--risk-t1);
+    background: color-mix(in oklch, var(--color-risk-t0) 12%, transparent);
+    color: var(--color-risk-t0);
   }
   &--unknown {
-    background: var(--risktag-unknown-bg);
-    color: var(--risk-unknown);
+    background: color-mix(in oklch, var(--color-risk-unknown) 12%, transparent);
+    color: var(--color-risk-unknown);
   }
 }
 
 .card-content {
-  font-size: var(--text-xl);
-  color: var(--text-secondary);
-  line-height: 1.6;
+  @apply text-xl text-secondary leading-relaxed;
 }
 </style>

@@ -52,6 +52,12 @@ export default <Config>{
         'banner-badge-border': 'var(--banner-badge-border)',
         'banner-badge-shadow': 'var(--banner-badge-shadow)',
         'accent-glow': 'var(--accent-glow)',
+
+        // 调色板色 (SectionHeader icon backgrounds)
+        'palette-blue-500': 'var(--palette-blue-500)',
+        'palette-purple-500': 'var(--palette-purple-500)',
+        'palette-green-500': 'var(--palette-green-500)',
+        'palette-orange-500': 'var(--palette-orange-500)',
       },
       borderRadius: {
         sm: 'var(--radius-sm)',

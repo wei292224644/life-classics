@@ -20,7 +20,7 @@ withDefaults(
     size?: "md" | "lg";
     disabled?: boolean;
     loading?: boolean;
-    icon?: string; // SVG path d attribute, optional
+    icon?: string;
   }>(),
   { variant: "primary", size: "lg", disabled: false, loading: false, icon: undefined }
 );
@@ -29,70 +29,49 @@ defineEmits<{ (e: "click"): void }>();
 </script>
 
 <style lang="scss" scoped>
-@import "@/styles/design-system.scss";
-
 .action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  width: 100%;
-  border: none;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s $ease-spring;
+  @apply inline-flex items-center justify-center gap-2 w-full border-none font-semibold cursor-pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 
   // size
   &--lg {
-    height: var(--btn-height-xl);
-    padding: 0 var(--btn-padding-x);
-    font-size: var(--text-xl);
-    border-radius: var(--btn-radius);
+    @apply h-12 px-8 text-xl rounded-xl;
   }
   &--md {
-    height: var(--btn-height-md);
-    padding: 0 var(--space-6);
-    font-size: var(--text-lg);
-    border-radius: var(--radius-md);
+    @apply h-9 px-6 text-lg rounded-lg;
   }
 
   // primary
   &--primary {
-    background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink));
-    color: #fff;
-    box-shadow: 0 4rpx 20rpx color-mix(in oklch, var(--accent-pink) 30%, transparent);
+    @apply text-white bg-gradient-to-br from-pink-400 to-pink-500;
+    box-shadow: 0 4rpx 20rpx color-mix(in oklch, var(--color-primary) 30%, transparent);
 
     &:active { transform: scale(0.97); }
-    &:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 2px; }
-    &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    &:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+    &:disabled { @apply opacity-50 cursor-not-allowed; transform: none; }
   }
 
   // secondary
   &--secondary {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
+    @apply bg-card border border-border text-foreground;
 
-    &:active { background: var(--bg-card-hover); }
-    &:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 2px; }
-    &:disabled { opacity: 0.5; cursor: not-allowed; }
+    &:active { background: color-mix(in oklch, var(--color-card) 90%, transparent); }
+    &:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+    &:disabled { @apply opacity-50 cursor-not-allowed; }
   }
 
   // ghost
   &--ghost {
-    background: transparent;
-    color: var(--text-primary);
+    @apply bg-transparent text-foreground;
 
-    &:active { background: color-mix(in oklch, var(--text-primary) 8%, transparent); }
-    &:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 2px; }
-    &:disabled { opacity: 0.5; cursor: not-allowed; }
+    &:active { background: color-mix(in oklch, var(--color-foreground) 8%, transparent); }
+    &:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+    &:disabled { @apply opacity-50 cursor-not-allowed; }
   }
 
   &__loading,
   &__icon {
-    width: var(--icon-sm);
-    height: var(--icon-sm);
+    @apply w-5 h-5;
   }
 }
 </style>

@@ -61,6 +61,12 @@
     --banner-badge-border:    oklch(100% 0 0 / 20%);
     --banner-badge-shadow:    0 4px 24px rgba(0, 0, 0, 0.15);
     --accent-glow:            oklch(45% 0.18 330 / 40%);
+
+    // ── 调色板色 (SectionHeader icon backgrounds) ───────────
+    --palette-blue-500:   oklch(60% 0.15 250);
+    --palette-purple-500: oklch(55% 0.2 300);
+    --palette-green-500:  oklch(60% 0.15 145);
+    --palette-orange-500: oklch(60% 0.18 50);
   }
 
   .dark {
@@ -108,6 +114,12 @@
     --banner-badge-border:      oklch(100% 0 0 / 10%);
     --banner-badge-shadow:      0 4px 24px rgba(0, 0, 0, 0.4);
     --accent-glow:             oklch(70% 0.24 330 / 30%);
+
+    // ── 调色板色 (SectionHeader icon backgrounds) ───────────
+    --palette-blue-500:   oklch(65% 0.15 250);
+    --palette-purple-500: oklch(60% 0.2 300);
+    --palette-green-500:  oklch(65% 0.15 145);
+    --palette-orange-500: oklch(65% 0.18 50);
   }
 }
 
