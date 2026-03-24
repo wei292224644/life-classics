@@ -1,0 +1,230 @@
+// ============================================================
+// 2026 Design System — CSS Variables (shadcn Mode)
+// UniApp + Vue 3 + Tailwind CSS 3
+//
+// 所有颜色通过 CSS 变量定义，.dark class 切换暗色。
+// ============================================================
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  // ── shadcn 语义色 ───────────────────────────────
+  --color-background: oklch(97.5% 0.003 240);
+  --color-foreground: oklch(14.5% 0.016 265);
+  --color-primary: oklch(45% 0.18 330); // #db2777
+  --color-primary-foreground: oklch(98% 0.002 240);
+  --color-secondary: oklch(55% 0.02 265);
+  --color-secondary-foreground: oklch(14.5% 0.016 265);
+  --color-muted: oklch(70% 0.015 265);
+  --color-muted-foreground: oklch(60% 0.015 265);
+  --color-accent: oklch(55% 0.22 330);
+  --color-accent-foreground: oklch(14.5% 0.016 265);
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(14.5% 0.016 265);
+  --color-destructive: oklch(50% 0.22 25);
+  --color-destructive-foreground: oklch(98% 0.002 25);
+  --color-border: oklch(14.5% 0.016 265 / 6%);
+  --color-input: oklch(14.5% 0.016 265 / 10%);
+  --color-ring: oklch(45% 0.18 330);
+
+  // accent pink 色系（与设计稿一致）
+  --accent-pink-light: oklch(65% 0.2 330);   /* #ec4899，渐变起点 */
+  --accent-pink: oklch(45% 0.18 330);          /* #db2777，渐变终点 / 主色 */
+
+  // ── 风险色 ───────────────────────────────────
+  --color-risk-t4: oklch(50% 0.22 25);
+  --color-risk-t3: oklch(55% 0.20 50);
+  --color-risk-t2: oklch(60% 0.18 85);
+  --color-risk-t1: oklch(65% 0.16 145);
+  --color-risk-t0: oklch(55% 0.15 145);
+  --color-risk-unknown: oklch(60% 0.01 265);
+
+  // ── 圆角 ───────────────────────────────────
+  --radius-sm: 0.75rem; // 12px (24rpx)
+  --radius-md: 1rem; // 16px (32rpx)
+  --radius-lg: 1.25rem; // 20px (40rpx)
+  --radius-xl: 1.5rem; // 24px (48rpx)
+
+  // ── 阴影 & 动效 ───────────────────────────────
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  // ── 复杂 component token ───────────────────────
+  --bottom-bar-bg: oklch(100% 0 0 / 95%);
+  --bottom-bar-border: oklch(14.5% 0.016 265 / 6%);
+  --header-scrolled-bg: oklch(100% 0 0 / 90%);
+  --ai-label-bg: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  --nutrition-bg: oklch(65% 0.16 145 / 4%);
+  --nutrition-border: oklch(65% 0.16 145 / 12%);
+  --nutrition-glow: oklch(65% 0.16 145 / 30%);
+  --status-bar-bg: #ffffff;
+  --status-bar-text: #111827;
+  --banner-bg: linear-gradient(145deg, #fefce8 0%, #fef9c3 50%, #fef08a 100%);
+  --banner-label: #713f12;
+  --banner-badge-bg: oklch(100% 0 0 / 85%);
+  --banner-badge-border: oklch(100% 0 0 / 20%);
+  --banner-badge-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  --accent-glow: oklch(45% 0.18 330 / 40%);
+
+  // ── 调色板色 (SectionHeader icon backgrounds) ───────────
+  --palette-blue-500: oklch(60% 0.15 250);
+  --palette-purple-500: oklch(55% 0.2 300);
+  --palette-green-500: oklch(60% 0.15 145);
+  --palette-orange-500: oklch(60% 0.18 50);
+
+  // ── 风险分组背景/边框 (IngredientSection) ─────────────────
+  --risk-t4-bg: oklch(97% 0.02 25 / 4%);
+  --risk-t4-border: oklch(97% 0.02 25 / 10%);
+  --risk-t3-bg: oklch(97% 0.02 50 / 4%);
+  --risk-t3-border: oklch(97% 0.02 50 / 10%);
+  --risk-t2-bg: oklch(97% 0.02 85 / 4%);
+  --risk-t2-border: oklch(97% 0.02 85 / 10%);
+  --risk-t1-bg: oklch(97% 0.02 145 / 4%);
+  --risk-t1-border: oklch(97% 0.02 145 / 10%);
+  --risk-t0-bg: oklch(97% 0.02 145 / 4%);
+  --risk-t0-border: oklch(97% 0.02 145 / 10%);
+  --risk-unknown-bg: oklch(97% 0.01 265 / 4%);
+  --risk-unknown-border: oklch(97% 0.01 265 / 10%);
+}
+
+.dark {
+  --color-background: oklch(7% 0.006 265);
+  --color-foreground: oklch(93% 0.005 265);
+  --color-primary: oklch(60% 0.22 330);
+  --color-primary-foreground: oklch(7% 0.006 265);
+  --color-secondary: oklch(65% 0.015 265);
+  --color-secondary-foreground: oklch(93% 0.005 265);
+  --color-muted: oklch(45% 0.012 265);
+  --color-muted-foreground: oklch(65% 0.015 265);
+  --color-accent: oklch(70% 0.24 330);
+  --color-accent-foreground: oklch(7% 0.006 265);
+  --color-card: oklch(12% 0.005 265);
+  --color-card-foreground: oklch(93% 0.005 265);
+  --color-destructive: oklch(65% 0.22 25);
+  --color-destructive-foreground: oklch(7% 0.006 25);
+  --color-border: oklch(93% 0.005 265 / 8%);
+  --color-input: oklch(93% 0.005 265 / 10%);
+  --color-ring: oklch(60% 0.22 330);
+
+  // accent pink 色系
+  --accent-pink-light: oklch(75% 0.24 330);   /* 暗色偏亮 */
+  --accent-pink: oklch(60% 0.22 330);          /* 与 --color-primary 暗色值一致 */
+
+  --color-risk-t4: oklch(70% 0.22 25);
+  --color-risk-t3: oklch(70% 0.22 50);
+  --color-risk-t2: oklch(75% 0.18 85);
+  --color-risk-t1: oklch(75% 0.16 145);
+  --color-risk-t0: oklch(65% 0.16 145);
+  --color-risk-unknown: oklch(55% 0.01 265);
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --bottom-bar-bg: oklch(98% 0.003 265 / 95%);
+  --bottom-bar-border: oklch(100% 0 0 / 6%);
+  --header-scrolled-bg: oklch(93% 0.005 265 / 88%);
+  --ai-label-bg: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  --nutrition-bg: oklch(75% 0.16 145 / 6%);
+  --nutrition-border: oklch(75% 0.16 145 / 10%);
+  --nutrition-glow: oklch(75% 0.16 145 / 20%);
+  --status-bar-bg: transparent;
+  --status-bar-text: #ffffff;
+  --banner-bg: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%);
+  --banner-label: oklch(45% 0.012 265);
+  --banner-badge-bg: oklch(12% 0.005 265 / 90%);
+  --banner-badge-border: oklch(100% 0 0 / 10%);
+  --banner-badge-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --accent-glow: oklch(70% 0.24 330 / 30%);
+
+  // ── 调色板色 (SectionHeader icon backgrounds) ───────────
+  --palette-blue-500: oklch(65% 0.15 250);
+  --palette-purple-500: oklch(60% 0.2 300);
+  --palette-green-500: oklch(65% 0.15 145);
+  --palette-orange-500: oklch(65% 0.18 50);
+
+  // ── 风险分组背景/边框 (IngredientSection) ─────────────────
+  --risk-t4-bg: oklch(75% 0.12 25 / 8%);
+  --risk-t4-border: oklch(75% 0.12 25 / 15%);
+  --risk-t3-bg: oklch(75% 0.12 50 / 8%);
+  --risk-t3-border: oklch(75% 0.12 50 / 15%);
+  --risk-t2-bg: oklch(75% 0.10 85 / 8%);
+  --risk-t2-border: oklch(75% 0.10 85 / 15%);
+  --risk-t1-bg: oklch(75% 0.10 145 / 8%);
+  --risk-t1-border: oklch(75% 0.10 145 / 15%);
+  --risk-t0-bg: oklch(75% 0.10 145 / 8%);
+  --risk-t0-border: oklch(75% 0.10 145 / 15%);
+  --risk-unknown-bg: oklch(75% 0.01 265 / 8%);
+  --risk-unknown-border: oklch(75% 0.01 265 / 15%);
+}
+
+// ── Keyframes ───────────────────────────────────────────────
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16rpx);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUpBadge {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  70% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+// ── Reduced Motion ───────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+
+  .banner-emoji,
+  .nutrition-card,
+  .health-card,
+  .advice-card,
+  .banner-badge {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
