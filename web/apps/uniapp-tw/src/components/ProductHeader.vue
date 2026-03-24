@@ -51,14 +51,20 @@ function handleShare() {
 
 <style lang="scss" scoped>
 .product-header {
-  @apply fixed top-0 left-0 right-0 z-50 pointer-events-none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  pointer-events: none;
 }
 
 .header {
   @apply fixed left-0 right-0 flex items-center px-8 gap-6;
   padding-top: 16rpx;
   padding-bottom: 16rpx;
-  background: transparent;
+  // 初始背景：半透明渐变，滚动后变为 glassmorphism
+  background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 100%);
   transition: background 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: auto;
 
