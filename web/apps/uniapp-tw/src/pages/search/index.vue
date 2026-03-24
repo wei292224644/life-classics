@@ -5,9 +5,7 @@
       <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
       <view class="header-content">
         <button class="header-btn" @click="goBack">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M15 18l-6-6 6-6"/>
-          </svg>
+          <Icon name="arrowLeft" :size="24" />
         </button>
         <text class="header-title">搜索食品或配料</text>
         <view class="header-spacer" />
@@ -17,10 +15,7 @@
     <!-- ── 搜索框 ─────────────────────────── -->
     <view class="search-input-wrap">
       <view class="search-input-box">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="M21 21l-4.35-4.35" stroke-linecap="round"/>
-        </svg>
+        <Icon name="search" class="search-icon" :size="20" />
         <input
           v-model="keyword"
           class="search-input"
@@ -31,9 +26,7 @@
           @input="handleInput"
         />
         <button v-if="keyword" class="clear-btn" @click="clearKeyword">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
+          <Icon name="x" :size="20" />
         </button>
       </view>
     </view>
@@ -56,9 +49,7 @@
             <text class="result-name">{{ item.name }}</text>
             <text class="result-desc">{{ item.description }}</text>
           </view>
-          <svg class="result-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
+          <Icon name="arrowRight" class="result-arrow" :size="20" />
         </view>
         <view v-if="results.length === 0" class="empty-results">
           <text class="empty-text">未找到相关结果</text>
@@ -92,6 +83,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useThemeStore } from "../../store/theme"
+import Icon from "../../components/Icon.vue"
 
 // ── Types ─────────────────────────────────────────────
 interface SearchResult {

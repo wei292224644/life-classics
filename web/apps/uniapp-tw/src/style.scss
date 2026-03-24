@@ -11,27 +11,42 @@
 
 :root {
   // ── shadcn 语义色 ───────────────────────────────
-  --color-background: oklch(97.5% 0.003 240);
-  --color-foreground: oklch(14.5% 0.016 265);
-  --color-primary: oklch(45% 0.18 330); // #db2777
-  --color-primary-foreground: oklch(98% 0.002 240);
-  --color-secondary: oklch(55% 0.02 265);
-  --color-secondary-foreground: oklch(14.5% 0.016 265);
-  --color-muted: oklch(70% 0.015 265);
-  --color-muted-foreground: oklch(60% 0.015 265);
-  --color-accent: oklch(55% 0.22 330);
-  --color-accent-foreground: oklch(14.5% 0.016 265);
-  --color-card: oklch(100% 0 0);
-  --color-card-foreground: oklch(14.5% 0.016 265);
-  --color-destructive: oklch(50% 0.22 25);
-  --color-destructive-foreground: oklch(98% 0.002 25);
-  --color-border: oklch(14.5% 0.016 265 / 6%);
-  --color-input: oklch(14.5% 0.016 265 / 10%);
-  --color-ring: oklch(45% 0.18 330);
+  --background: oklch(0.96 0 0);
+  --foreground: oklch(0.147 0.004 49.3);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.147 0.004 49.3);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.147 0.004 49.3);
+  --primary: #ec4899;
+  --primary-foreground: oklch(0.971 0.014 343.198);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.96 0.002 17.2);
+  --muted-foreground: oklch(0.547 0.021 43.1);
+  --accent: oklch(0.96 0.002 17.2);
+  --accent-foreground: oklch(0.214 0.009 43.1);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0.005 34.3);
+  --input: oklch(0.922 0.005 34.3);
+  --ring: oklch(0.714 0.014 41.2);
+  --chart-1: oklch(0.81 0.117 11.638);
+  --chart-2: oklch(0.645 0.246 16.439);
+  --chart-3: oklch(0.586 0.253 17.585);
+  --chart-4: oklch(0.514 0.222 16.935);
+  --chart-5: oklch(0.455 0.188 13.697);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.986 0.002 67.8);
+  --sidebar-foreground: oklch(0.147 0.004 49.3);
+  --sidebar-primary: oklch(0.592 0.249 0.584);
+  --sidebar-primary-foreground: oklch(0.971 0.014 343.198);
+  --sidebar-accent: oklch(0.96 0.002 17.2);
+  --sidebar-accent-foreground: oklch(0.214 0.009 43.1);
+  --sidebar-border: oklch(0.922 0.005 34.3);
+  --sidebar-ring: oklch(0.714 0.014 41.2);
 
   // accent pink 色系（与设计稿一致）
-  --accent-pink-light: oklch(65% 0.2 330);   /* #ec4899，渐变起点 */
-  --accent-pink: oklch(45% 0.18 330);          /* #db2777，渐变终点 / 主色 */
+  --accent-pink-light: #ec4899;
+  --accent-pink: #db2777;
 
   // ── 风险色 ───────────────────────────────────
   --color-risk-t4: oklch(50% 0.22 25);
@@ -61,7 +76,7 @@
   --nutrition-glow: oklch(65% 0.16 145 / 30%);
   --status-bar-bg: #ffffff;
   --status-bar-text: #111827;
-  --banner-bg: linear-gradient(145deg, #fefce8 0%, #fef9c3 50%, #fef08a 100%);
+  --banner-bg: linear-gradient(145deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%);
   --banner-label: #713f12;
   --banner-badge-bg: oklch(100% 0 0 / 85%);
   --banner-badge-border: oklch(100% 0 0 / 20%);
@@ -90,27 +105,43 @@
 }
 
 .dark {
-  --color-background: oklch(7% 0.006 265);
-  --color-foreground: oklch(93% 0.005 265);
-  --color-primary: oklch(60% 0.22 330);
-  --color-primary-foreground: oklch(7% 0.006 265);
-  --color-secondary: oklch(65% 0.015 265);
-  --color-secondary-foreground: oklch(93% 0.005 265);
-  --color-muted: oklch(45% 0.012 265);
-  --color-muted-foreground: oklch(65% 0.015 265);
-  --color-accent: oklch(70% 0.24 330);
-  --color-accent-foreground: oklch(7% 0.006 265);
-  --color-card: oklch(12% 0.005 265);
-  --color-card-foreground: oklch(93% 0.005 265);
-  --color-destructive: oklch(65% 0.22 25);
-  --color-destructive-foreground: oklch(7% 0.006 25);
-  --color-border: oklch(93% 0.005 265 / 8%);
-  --color-input: oklch(93% 0.005 265 / 10%);
-  --color-ring: oklch(60% 0.22 330);
+  --background: oklch(0.147 0.004 49.3);
+  --foreground: oklch(0.986 0.002 67.8);
+  --card: oklch(0.214 0.009 43.1);
+  --card-foreground: oklch(0.986 0.002 67.8);
+  --popover: oklch(0.214 0.009 43.1);
+  --popover-foreground: oklch(0.986 0.002 67.8);
+  --primary: oklch(0.459 0.187 3.815);
+  --primary-foreground: oklch(0.971 0.014 343.198);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.268 0.011 36.5);
+  --muted-foreground: oklch(0.714 0.014 41.2);
+  --accent: oklch(0.268 0.011 36.5);
+  --accent-foreground: oklch(0.986 0.002 67.8);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.547 0.021 43.1);
+  --chart-1: oklch(0.81 0.117 11.638);
+  --chart-2: oklch(0.645 0.246 16.439);
+  --chart-3: oklch(0.586 0.253 17.585);
+  --chart-4: oklch(0.514 0.222 16.935);
+  --chart-5: oklch(0.455 0.188 13.697);
+  --sidebar: oklch(0.214 0.009 43.1);
+  --sidebar-foreground: oklch(0.986 0.002 67.8);
+  --sidebar-primary: oklch(0.656 0.241 354.308);
+  --sidebar-primary-foreground: oklch(0.971 0.014 343.198);
+  --sidebar-accent: oklch(0.268 0.011 36.5);
+  --sidebar-accent-foreground: oklch(0.986 0.002 67.8);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.547 0.021 43.1);
 
   // accent pink 色系
-  --accent-pink-light: oklch(75% 0.24 330);   /* 暗色偏亮 */
-  --accent-pink: oklch(60% 0.22 330);          /* 与 --color-primary 暗色值一致 */
+  --accent-pink-light: oklch(75% 0.24 330);
+  /* 暗色偏亮 */
+  --accent-pink: oklch(60% 0.22 330);
+  /* 与 --color-primary 暗色值一致 */
 
   --color-risk-t4: oklch(70% 0.22 25);
   --color-risk-t3: oklch(70% 0.22 50);

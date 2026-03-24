@@ -6,6 +6,7 @@ import { useIngredientStore } from '../../store/ingredient'
 import { useProductStore } from '../../store/product'
 import { useThemeStore } from '../../store/theme'
 import { getRiskConfig } from '../../utils/riskLevel'
+import Icon from '../../components/Icon.vue'
 
 // ── Store ────────────────────────────────────────────────
 const ingStore = useIngredientStore()
@@ -233,18 +234,14 @@ function goToProduct(barcode: string) {
       <view :style="{ height: `${themeStore.statusBarHeight}px` }" />
       <view class="header-content">
         <button class="header-btn back-btn" @click="goBack">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+          <Icon name="arrowLeft" :size="24" />
         </button>
         <view class="header-text">
           <text class="header-title">配料详情</text>
           <text class="header-subtitle">{{ headerSubtitle }}</text>
         </view>
         <button class="header-btn share-btn" @click="shareToFriend">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M8.684 13.342C8.886 12.938 9 12 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-          </svg>
+          <Icon name="share" :size="24" />
         </button>
       </view>
     </view>
@@ -319,9 +316,7 @@ function goToProduct(barcode: string) {
         <view v-if="summary" class="section-card">
           <view class="section-header">
             <view class="section-icon-wrap icon-bg-blue">
-              <svg viewBox="0 0 20 20" class="section-icon" aria-hidden="true">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-              </svg>
+              <Icon name="info" class="section-icon" :size="20" />
             </view>
             <text class="section-title">描述</text>
             <text class="ai-label">AI</text>
@@ -333,9 +328,7 @@ function goToProduct(barcode: string) {
         <view v-if="riskFactors.length > 0" class="section-card">
           <view class="section-header">
             <view class="section-icon-wrap icon-bg-red">
-              <svg viewBox="0 0 20 20" class="section-icon" aria-hidden="true">
-                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-              </svg>
+              <Icon name="alertTriangle" class="section-icon" :size="20" />
             </view>
             <text class="section-title">AI 风险分析</text>
             <text class="ai-label">AI</text>
@@ -354,9 +347,7 @@ function goToProduct(barcode: string) {
         <view v-if="hasRiskMgmt" class="section-card">
           <view class="section-header">
             <view class="section-icon-wrap icon-bg-purple">
-              <svg viewBox="0 0 20 20" class="section-icon" aria-hidden="true">
-                <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd" />
-              </svg>
+              <Icon name="alertCircle" class="section-icon" :size="20" />
             </view>
             <text class="section-title">风险管理信息</text>
           </view>
@@ -392,9 +383,7 @@ function goToProduct(barcode: string) {
         <view v-if="suggestions.length > 0" class="section-card">
           <view class="section-header">
             <view class="section-icon-wrap icon-bg-green">
-              <svg viewBox="0 0 20 20" class="section-icon" aria-hidden="true">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
+              <Icon name="check" class="section-icon" :size="20" />
             </view>
             <text class="section-title">AI 使用建议</text>
             <text class="ai-label">AI</text>
@@ -418,9 +407,7 @@ function goToProduct(barcode: string) {
         <view v-if="relatedProducts.length > 0" class="section-card">
           <view class="section-header">
             <view class="section-icon-wrap icon-bg-orange">
-              <svg viewBox="0 0 20 20" class="section-icon" aria-hidden="true">
-                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z" />
-              </svg>
+              <Icon name="shoppingCart" class="section-icon" :size="20" />
             </view>
             <text class="section-title">含此配料的产品</text>
           </view>
@@ -464,15 +451,11 @@ function goToProduct(barcode: string) {
     <!-- ── 底部操作栏 ──────────────────────────────── -->
     <view v-if="ingredient" class="bottom-bar">
       <button class="bar-btn bar-btn-ghost" @click="goToAI">
-        <svg viewBox="0 0 20 20" class="bar-icon" aria-hidden="true">
-          <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
-        </svg>
+        <Icon name="messageCircle" class="bar-icon" :size="20" />
         <text>咨询 AI 助手</text>
       </button>
       <button class="bar-btn bar-btn-primary" @click="goToSearch">
-        <svg viewBox="0 0 20 20" class="bar-icon" aria-hidden="true">
-          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-        </svg>
+        <Icon name="search" class="bar-icon" :size="20" />
         <text>查看相关食品</text>
       </button>
     </view>
@@ -579,11 +562,9 @@ function goToProduct(barcode: string) {
   appearance: none;
   border: none;
 
-  svg {
+  :deep(.icon-svg) {
     @apply w-9 h-9;
-    stroke-width: 2;
     color: var(--risk-btn-color);
-    stroke: var(--risk-btn-color);
   }
 
   &:active {
@@ -673,7 +654,7 @@ function goToProduct(barcode: string) {
 
 .section-icon {
   @apply w-5 h-5;
-  fill: currentColor;
+  color: currentColor;
 }
 
 .icon-bg-blue .section-icon {
@@ -942,7 +923,7 @@ function goToProduct(barcode: string) {
 
 .bar-icon {
   @apply w-5 h-5;
-  fill: currentColor;
+  color: currentColor;
 }
 
 .bar-btn-ghost {

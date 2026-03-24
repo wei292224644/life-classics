@@ -5,27 +5,31 @@
     @click="$emit('click')"
   >
     <up-loading-icon v-if="loading" class="action-btn__loading" />
-    <svg v-else-if="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="action-btn__icon" aria-hidden="true">
-      <path :d="icon" />
-    </svg>
+    <Icon v-else-if="iconName" :name="iconName" class="action-btn__icon" :size="iconSize" />
     <text>{{ label }}</text>
   </button>
 </template>
 
 <script setup lang="ts">
-withDefaults(
+import { computed } from 'vue'
+import Icon from './Icon.vue'
+
+const props = withDefaults(
   defineProps<{
     label: string;
-    variant?: "primary" | "secondary" | "ghost";
-    size?: "md" | "lg";
+    variant?: 'primary' | 'secondary' | 'ghost';
+    size?: 'md' | 'lg';
     disabled?: boolean;
     loading?: boolean;
-    icon?: string;
+    icon?: string; // icon 名称，如 'search', 'x' 等
   }>(),
-  { variant: "primary", size: "lg", disabled: false, loading: false, icon: undefined }
-);
+  { variant: 'primary', size: 'lg', disabled: false, loading: false, icon: undefined },
+)
 
-defineEmits<{ (e: "click"): void }>();
+defineEmits<{ (e: 'click'): void }>()
+
+const iconName = computed(() => props.icon as any ?? null)
+const iconSize = computed(() => props.size === 'md' ? 18 : 20)
 </script>
 
 <style lang="scss" scoped>

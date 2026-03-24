@@ -21,6 +21,5 @@
   "devDependencies": {
     "prettier": "catalog:",
     "typescript": "catalog:"
-  },
-  "prettier": "@acme/prettier-config"
+  }
 }

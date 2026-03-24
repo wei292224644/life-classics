@@ -1,20 +1,16 @@
 <template>
   <view class="list-item">
     <view :class="['list-item-icon', `icon-${icon}`]">
-      <!-- x icon -->
-      <svg v-if="icon === 'x'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-        <path d="M18 6L6 18M6 6l12 12"/>
-      </svg>
-      <!-- check icon -->
-      <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-        <path d="M20 6L9 17l-5-5"/>
-      </svg>
+      <Icon v-if="icon === 'x'" name="x" :size="24" />
+      <Icon v-else name="check" :size="24" />
     </view>
     <text class="list-item-text">{{ text }}</text>
   </view>
 </template>
 
 <script setup lang="ts">
+import Icon from './Icon.vue'
+
 defineProps<{
   icon: 'x' | 'check-green' | 'check-yellow';
   text: string;
@@ -29,7 +25,7 @@ defineProps<{
 .list-item-icon {
   @apply w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5;
 
-  svg {
+  :deep(.icon-svg) {
     @apply w-6 h-6;
   }
 

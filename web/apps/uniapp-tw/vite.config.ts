@@ -20,6 +20,7 @@ export default defineConfig(async () => {
       UnifiedViteWeappTailwindcssPlugin({
         rem2rpx: true,
         disabled: WeappTailwindcssDisabled,
+        cache: false,
       }),
       AutoImport({
         imports: ['vue', 'uni-app', 'pinia'],
