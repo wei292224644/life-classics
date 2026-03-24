@@ -240,7 +240,8 @@ function handleRecentClick(item: RecentScan) {
 }
 
 .scan-count {
-  @apply bg-risk-t4/10 text-risk-t4 text-[10px] font-bold px-1.5 py-0.5 rounded-full;
+  background: color-mix(in oklch, var(--color-risk-t4) 10%, transparent);
+  @apply text-risk-t4 text-[10px] font-bold px-1.5 py-0.5 rounded-full;
 }
 
 .dark .scan-count {
