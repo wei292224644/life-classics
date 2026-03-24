@@ -9,6 +9,7 @@ import { ChunkCard } from './ChunkCard'
 import { ChunkEditDrawer } from './ChunkEditDrawer'
 import { api } from '@/api/client'
 import type { Chunk } from '@/api/types'
+import { useToast } from '@/hooks/use-toast'
 
 const SEMANTIC_TYPES = [
   'scope', 'definition', 'limit', 'procedure',
@@ -42,6 +43,16 @@ interface Props {
   docId: string | null
 }
 
+type LoadResult =
+  | { ok: true; chunks: Chunk[] }
+  | { ok: false; error: unknown }
+
+interface LoadParams {
+  docId: string | null
+  semanticFilter: string
+  offset: number
+}
+
 export function ChunkList({ docId }: Props) {
   const [chunks, setChunks] = useState<Chunk[]>([])
   const [total, setTotal] = useState(0)
@@ -49,28 +60,107 @@ export function ChunkList({ docId }: Props) {
   const [semanticFilter, setSemanticFilter] = useState<string>('all')
   const [loading, setLoading] = useState(false)
   const [editingChunk, setEditingChunk] = useState<Chunk | null>(null)
+  const [reparsingIds, setReparsingIds] = useState<Set<string>>(new Set())
+  const reparsingLockRef = useRef<Set<string>>(new Set())
+  const currentParamsRef = useRef<LoadParams>({ docId, semanticFilter, offset })
+  const loadRequestIdRef = useRef(0)
+  const { toast } = useToast()
 
-  const load = useCallback(async () => {
-    if (!docId) { setChunks([]); setTotal(0); return }
+  const loadAndReturn = useCallback(async (params?: LoadParams): Promise<LoadResult> => {
+    const { docId: currentDocId, semanticFilter: currentSemanticFilter, offset: currentOffset } = params ?? currentParamsRef.current
+    const requestId = ++loadRequestIdRef.current
+
+    if (!currentDocId) {
+      if (requestId === loadRequestIdRef.current) {
+        setChunks([])
+        setTotal(0)
+        setLoading(false)
+      }
+      return { ok: true, chunks: [] }
+    }
+
     setLoading(true)
     try {
       const res = await api.chunks.list({
-        doc_id: docId,
-        semantic_type: semanticFilter === 'all' ? undefined : semanticFilter,
+        doc_id: currentDocId,
+        semantic_type: currentSemanticFilter === 'all' ? undefined : currentSemanticFilter,
         limit: PAGE_SIZE,
-        offset,
+        offset: currentOffset,
       })
-      setChunks(res.chunks)
-      setTotal(res.total)
+      if (requestId === loadRequestIdRef.current) {
+        setChunks(res.chunks)
+        setTotal(res.total)
+      }
+      return { ok: true, chunks: res.chunks }
     } catch (e) {
       console.error(e)
+      return { ok: false, error: e }
     } finally {
-      setLoading(false)
+      if (requestId === loadRequestIdRef.current) {
+        setLoading(false)
+      }
     }
-  }, [docId, semanticFilter, offset])
+  }, [])
 
   useEffect(() => { setOffset(0) }, [docId, semanticFilter])
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    const params = { docId, semanticFilter, offset }
+    currentParamsRef.current = params
+    void loadAndReturn(params)
+  }, [docId, semanticFilter, offset, loadAndReturn])
+
+  const handleReparse = useCallback(async (chunkId: string) => {
+    if (reparsingLockRef.current.has(chunkId)) return
+
+    reparsingLockRef.current.add(chunkId)
+
+    setReparsingIds(prev => {
+      const next = new Set(prev)
+      next.add(chunkId)
+      return next
+    })
+
+    try {
+      await api.chunks.reparse(chunkId)
+      const latest = await loadAndReturn()
+      if (!latest.ok) {
+        toast({ description: '重解析成功，但列表刷新失败，请手动刷新' })
+      } else {
+        const isVisible = latest.chunks.some(chunk => chunk.id === chunkId)
+        if (!isVisible) {
+          toast({ description: '重解析完成，该条在当前筛选条件下不可见' })
+        } else {
+          toast({ description: '重解析成功' })
+        }
+      }
+
+      if (editingChunk?.id === chunkId) {
+        toast({ description: '当前抽屉内容可能过期，请关闭后重新打开再编辑' })
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : ''
+      const genericErrors = new Set([
+        'Internal Server Error',
+        'Bad Gateway',
+        'Service Unavailable',
+        'Gateway Timeout',
+      ])
+      const shouldFallback =
+        !message
+        || e instanceof TypeError
+        || message.includes('Failed to fetch')
+        || genericErrors.has(message)
+        || /^HTTP\s+\d+$/.test(message)
+      toast({ description: shouldFallback ? '重解析失败，请稍后重试' : message })
+    } finally {
+      setReparsingIds(prev => {
+        const next = new Set(prev)
+        next.delete(chunkId)
+        return next
+      })
+      reparsingLockRef.current.delete(chunkId)
+    }
+  }, [loadAndReturn, toast, editingChunk])
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1
@@ -121,7 +211,9 @@ export function ChunkList({ docId }: Props) {
               <ChunkCard
                 key={chunk.id}
                 chunk={chunk}
+                isReparsing={reparsingIds.has(chunk.id)}
                 onEdit={() => setEditingChunk(chunk)}
+                onReparse={() => handleReparse(chunk.id)}
               />
             ))}
           </div>

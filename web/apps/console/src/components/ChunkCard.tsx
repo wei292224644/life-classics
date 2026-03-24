@@ -4,10 +4,13 @@ import type { Chunk } from '@/api/types'
 
 interface Props {
   chunk: Chunk
+  isReparsing?: boolean
   onEdit: () => void
+  onReparse?: () => void
 }
 
-export function ChunkCard({ chunk, onEdit }: Props) {
+export function ChunkCard({ chunk, isReparsing, onEdit, onReparse }: Props) {
+  const reparsing = Boolean(isReparsing)
   const displaySectionPath = chunk.metadata.section_path.replace(/\|/g, '/')
 
   return (
@@ -19,9 +22,26 @@ export function ChunkCard({ chunk, onEdit }: Props) {
           </Badge>
           <span className="text-xs text-muted-foreground">{displaySectionPath}</span>
         </div>
-        <Button size="sm" variant="secondary" className="h-7 text-xs shrink-0" onClick={onEdit}>
-          编辑
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            onClick={() => onReparse?.()}
+            disabled={reparsing || !onReparse}
+          >
+            {reparsing ? '重解析中...' : '重解析'}
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-7 text-xs"
+            onClick={onEdit}
+            disabled={reparsing}
+          >
+            编辑
+          </Button>
+        </div>
       </div>
       <p className="text-sm text-foreground leading-relaxed line-clamp-4">{chunk.content}</p>
     </div>
