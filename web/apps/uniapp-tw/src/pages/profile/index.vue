@@ -133,7 +133,7 @@ function goBack() {
   @apply w-12 h-12 flex items-center justify-center bg-transparent border-none p-0 rounded-lg;
 
   svg {
-    @apply w-9 h-9;
+    @apply w-6 h-6;
     color: var(--color-foreground);
   }
 }

@@ -82,7 +82,7 @@ function handleShare() {
 }
 
 .header-btn {
-  @apply w-20 h-20 rounded-2xl flex items-center justify-center bg-transparent border-none shadow-none outline-none appearance-none cursor-pointer flex-shrink-0;
+  @apply w-6 h-6 rounded-2xl flex items-center justify-center bg-transparent border-none shadow-none outline-none appearance-none cursor-pointer flex-shrink-0;
   color: #ffffff;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   -webkit-appearance: none;
@@ -103,7 +103,7 @@ function handleShare() {
   }
 
   svg {
-    @apply w-9 h-9;
+    @apply w-5 h-5;
     stroke-width: 2;
   }
 }
