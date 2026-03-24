@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>01 首页</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        'bg-base':           'var(--bg-base)',
+        'bg-card':           'var(--bg-card)',
+        'bg-card-hover':     'var(--bg-card-hover)',
+        'text-primary':      'var(--text-primary)',
+        'text-secondary':    'var(--text-secondary)',
+        'text-muted':        'var(--text-muted)',
+        'border-c':          'var(--border-color)',
+        'accent-pink':       'var(--accent-pink)',
+        'accent-pink-light': 'var(--accent-pink-light)',
+        'risk-t4':           'var(--risk-t4)',
+        'risk-t3':           'var(--risk-t3)',
+        'risk-t2':           'var(--risk-t2)',
+        'risk-t1':           'var(--risk-t1)',
+        'risk-t0':           'var(--risk-t0)',
+        'risk-unknown':      'var(--risk-unknown)',
+      },
+      fontFamily: {
+        sans: ['DM Sans', '-apple-system', 'sans-serif'],
+      },
+    }
+  }
+}
+</script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: #0a0a0f;
+  min-height: 100vh;
+  padding: 40px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+h1 { color: white; font-size: 22px; font-weight: 700; text-align: center; }
+.page-sub { color: rgba(255,255,255,0.45); font-size: 13px; text-align: center; margin-top: 4px; }
+.phones-row { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+.phone-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.mode-badge { font-size:12px; font-weight:600; padding:4px 14px; border-radius:20px; letter-spacing:0.02em; }
+.mode-light { background:#f3f4f6; color:#374151; }
+.mode-dark  { background:#1f2937; color:#9ca3af; }
+.phone-shell { background:#141414; border-radius:52px; padding:12px; width:399px;
+  box-shadow: 0 0 0 1px #2a2a2a, 0 32px 64px rgba(0,0,0,0.7), inset 0 0 0 2px #1a1a1a; }
+.phone-notch { background:#141414; width:90px; height:22px; border-radius:0 0 16px 16px;
+  margin:0 auto -5px; position:relative; z-index:2; }
+.phone-screen { border-radius:40px; overflow:hidden; height:812px;
+  scrollbar-width:none; position:relative; }
+.phone-screen::-webkit-scrollbar { display:none; }
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  70%  { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+.animate-pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+
+.light-mode {
+  --bg-base: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f9fafb;
+  --text-primary: #111;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --border-color: rgba(0,0,0,0.06);
+  --accent-pink: #db2777;
+  --accent-pink-light: #ec4899;
+  --risk-t4: #dc2626;
+  --risk-t3: #ea580c;
+  --risk-t2: #ca8a04;
+  --risk-t1: #16a34a;
+  --risk-t0: #059669;
+  --risk-unknown: #9ca3af;
+}
+.dark-mode {
+  --bg-base: #0f0f0f;
+  --bg-card: #1a1a1a;
+  --bg-card-hover: #222222;
+  --text-primary: #f5f5f5;
+  --text-secondary: #a1a1a1;
+  --text-muted: #6b7280;
+  --border-color: rgba(255,255,255,0.08);
+  --accent-pink: #ec4899;
+  --accent-pink-light: #f472b6;
+  --risk-t4: #ef4444;
+  --risk-t3: #f97316;
+  --risk-t2: #eab308;
+  --risk-t1: #86efac;
+  --risk-t0: #22c55e;
+  --risk-unknown: #9ca3af;
+}
+</style>
+</head>
+<body>
+
+<div>
+  <h1>01 首页</h1>
+  <p class="page-sub">375px · Tailwind CSS · 亮色 + 暗色</p>
+</div>
+
+<div class="phones-row">
+
+  <!-- ═══════════════════════════════════ LIGHT ═══════════════════════════════════ -->
+  <div class="phone-col">
+    <div class="mode-badge mode-light">☀ 亮色模式</div>
+    <div class="phone-shell">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <div class="light-mode min-h-screen bg-bg-base flex flex-col pb-[60px]">
+
+          <!-- Hero -->
+          <div class="bg-bg-card px-6 pt-10 pb-8 flex flex-col items-center border-b border-border-c">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[26px]">🍎</span>
+              <span class="text-[17px] font-bold text-text-primary tracking-tight">食品安全助手</span>
+            </div>
+            <p class="text-xs text-text-muted mb-7">扫码查配料 · 了解你吃的每一口</p>
+
+            <!-- Scan CTA -->
+            <button
+              type="button"
+              class="w-[140px] h-[140px] rounded-full bg-gradient-to-br from-accent-pink-light to-accent-pink flex flex-col items-center justify-center gap-1.5 relative shadow-[0_4px_20px_rgba(236,72,153,0.3)] transition-transform duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-pink focus:ring-offset-2"
+              aria-label="扫一扫"
+            >
+              <span class="absolute inset-[-4px] rounded-full border-2 border-[rgba(236,72,153,0.3)] animate-pulse-ring"></span>
+              <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/>
+                <line x1="7" y1="12" x2="17" y2="12"/>
+              </svg>
+              <span class="text-white text-base font-bold tracking-tight">扫一扫</span>
+            </button>
+          </div>
+
+          <!-- Divider -->
+          <div class="flex items-center gap-3 px-6 pt-6 pb-3">
+            <div class="flex-1 h-px bg-border-c"></div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="text-[11px] font-semibold text-text-muted uppercase tracking-widest">最近扫描</span>
+              <span class="bg-risk-t4/10 text-risk-t4 text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+            </div>
+            <div class="flex-1 h-px bg-border-c"></div>
+          </div>
+
+          <!-- List -->
+          <div class="px-6 pb-10 flex flex-col gap-2">
+            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
+              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🥫</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">午餐肉罐头</div>
+                <div class="text-xs text-text-muted">2分钟前</div>
+              </div>
+              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
+              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🍝</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">康师傅方便面</div>
+                <div class="text-xs text-text-muted">昨天</div>
+              </div>
+              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
+              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🥤</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">可口可乐</div>
+                <div class="text-xs text-text-muted">3天前</div>
+              </div>
+              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </div>
+
+          <!-- TabBar -->
+          <div class="absolute bottom-0 left-0 right-0 h-[60px] bg-bg-card border-t border-border-c flex justify-around items-center pt-2 px-2" style="padding-bottom: calc(8px + env(safe-area-inset-bottom));">
+            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="var(--accent-pink)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <span class="text-xs font-semibold text-accent-pink">首页</span>
+            </button>
+            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+              <span class="text-xs text-text-muted">搜索</span>
+            </button>
+            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span class="text-xs text-text-muted">我的</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ DARK ═══════════════════════════════════ -->
+  <div class="phone-col">
+    <div class="mode-badge mode-dark">🌙 暗色模式</div>
+    <div class="phone-shell">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <div class="dark-mode min-h-screen bg-bg-base flex flex-col pb-[60px]">
+
+          <!-- Hero -->
+          <div class="bg-bg-card px-6 pt-10 pb-8 flex flex-col items-center border-b border-border-c">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[26px]">🍎</span>
+              <span class="text-[17px] font-bold text-text-primary tracking-tight">食品安全助手</span>
+            </div>
+            <p class="text-xs text-text-muted mb-7">扫码查配料 · 了解你吃的每一口</p>
+
+            <!-- Scan CTA -->
+            <button
+              type="button"
+              class="w-[140px] h-[140px] rounded-full bg-gradient-to-br from-accent-pink-light to-accent-pink flex flex-col items-center justify-center gap-1.5 relative shadow-[0_4px_20px_rgba(236,72,153,0.3)] transition-transform duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-pink focus:ring-offset-2"
+              aria-label="扫一扫"
+            >
+              <span class="absolute inset-[-4px] rounded-full border-2 border-[rgba(236,72,153,0.3)] animate-pulse-ring"></span>
+              <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/>
+                <line x1="7" y1="12" x2="17" y2="12"/>
+              </svg>
+              <span class="text-white text-base font-bold tracking-tight">扫一扫</span>
+            </button>
+          </div>
+
+          <!-- Divider -->
+          <div class="flex items-center gap-3 px-6 pt-6 pb-3">
+            <div class="flex-1 h-px bg-border-c"></div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="text-[11px] font-semibold text-text-muted uppercase tracking-widest">最近扫描</span>
+              <span class="bg-risk-t4/10 text-risk-t4 text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+            </div>
+            <div class="flex-1 h-px bg-border-c"></div>
+          </div>
+
+          <!-- List -->
+          <div class="px-6 pb-10 flex flex-col gap-2">
+            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
+              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🥫</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">午餐肉罐头</div>
+                <div class="text-xs text-text-muted">2分钟前</div>
+              </div>
+              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
+              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🍝</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">康师傅方便面</div>
+                <div class="text-xs text-text-muted">昨天</div>
+              </div>
+              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
+              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🥤</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">可口可乐</div>
+                <div class="text-xs text-text-muted">3天前</div>
+              </div>
+              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </div>
+
+          <!-- TabBar -->
+          <div class="absolute bottom-0 left-0 right-0 h-[60px] bg-bg-card/95 border-t border-border-c backdrop-blur-xl flex justify-around items-center pt-2 px-2" style="padding-bottom: calc(8px + env(safe-area-inset-bottom));">
+            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="var(--accent-pink)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <span class="text-xs font-semibold text-accent-pink">首页</span>
+            </button>
+            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+              <span class="text-xs text-text-muted">搜索</span>
+            </button>
+            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span class="text-xs text-text-muted">我的</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

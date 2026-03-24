@@ -19,7 +19,7 @@ from pathlib import Path
 import requests
 
 # ── 配置 ──────────────────────────────────────────────────────────────────────
-SOURCE_DIR = Path("/Users/wwj/Desktop/myself/download_test/reorganized")
+SOURCE_DIR = Path("/Users/wwj/Desktop/self/download_gb/reorganized")
 API_BASE = "http://localhost:9999"
 CONCURRENCY = 2
 TIMEOUT_PER_FILE = 12000  # 秒

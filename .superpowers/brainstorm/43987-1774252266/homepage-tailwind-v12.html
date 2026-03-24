@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>首页 · Tailwind CSS 设计稿</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Google Fonts: DM Sans -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['DM Sans', '-apple-system', 'sans-serif'],
+        },
+        colors: {
+          // 暗色模式
+          dark: {
+            base: '#0f0f0f',
+            card: '#1a1a1a',
+            hover: '#222',
+          },
+          // 亮色模式
+          light: {
+            base: '#f5f5f5',
+            card: '#ffffff',
+            hover: '#f9fafb',
+          },
+          // 风险色
+          risk: {
+            t4: '#ef4444',
+            t3: '#f97316',
+            t2: '#eab308',
+            t1: '#86efac',
+            t0: '#22c55e',
+            unknown: '#9ca3af',
+          },
+          // 强调色
+          accent: {
+            pink: '#ec4899',
+            'pink-light': '#f472b6',
+            'pink-dark': '#db2777',
+          },
+        },
+        boxShadow: {
+          'btn': '0 8px 40px rgba(236, 72, 153, 0.4)',
+          'card': '0 2px 8px rgba(0, 0, 0, 0.04)',
+          'card-dark': '0 2px 8px rgba(0, 0, 0, 0.3)',
+          'bottombar': '0 -8px 32px rgba(0, 0, 0, 0.06)',
+          'bottombar-dark': '0 -8px 32px rgba(0, 0, 0, 0.4)',
+        },
+        animation: {
+          'pulse-ring': 'pulse-ring 2s ease-out infinite',
+        },
+        keyframes: {
+          'pulse-ring': {
+            '0%': { transform: 'scale(1)', opacity: '0.6' },
+            '70%': { transform: 'scale(1.15)', opacity: '0' },
+            '100%': { transform: 'scale(1.15)', opacity: '0' },
+          }
+        }
+      }
+    }
+  }
+</script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: #0a0a0f;
+  min-height: 100vh;
+  padding: 40px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+h1 { color: white; font-size: 22px; font-weight: 700; text-align: center; }
+.page-sub { color: rgba(255,255,255,0.45); font-size: 13px; text-align: center; margin-top: 4px; }
+
+.phones-row {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.phone-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.mode-badge {
+  font-size: 12px; font-weight: 600;
+  padding: 4px 14px; border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+.mode-light { background: #f3f4f6; color: #374151; }
+.mode-dark  { background: #1f2937; color: #9ca3af; }
+
+.phone-shell {
+  background: #141414;
+  border-radius: 52px;
+  padding: 12px;
+  width: 399px;
+  box-shadow: 0 0 0 1px #2a2a2a, 0 32px 64px rgba(0,0,0,0.7), inset 0 0 0 2px #1a1a1a;
+}
+.phone-notch {
+  background: #141414;
+  width: 90px; height: 22px;
+  border-radius: 0 0 16px 16px;
+  margin: 0 auto -5px;
+  position: relative; z-index: 2;
+}
+.phone-screen {
+  border-radius: 40px;
+  overflow: hidden;
+  height: 812px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  position: relative;
+}
+.phone-screen::-webkit-scrollbar { display: none; }
+
+/* ─── TabBar ─── */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 80px;
+  border-top-width: 1px;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+}
+.tab-item {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  padding: 6px 20px;
+  cursor: pointer; min-width: 64px;
+}
+.tab-item svg { width: 22px; height: 22px; }
+.tab-item span { font-size: 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div>
+  <h1>首页 · Tailwind CSS 设计稿</h1>
+  <p class="page-sub">375px · 亮色 + 暗色</p>
+</div>
+
+<div class="phones-row">
+
+  <!-- ═══════════════════════════════════ LIGHT ═══════════════════════════════════ -->
+  <div class="phone-col">
+    <div class="mode-badge mode-light">☀ 亮色模式</div>
+    <div class="phone-shell">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <!-- Page Container - Light -->
+        <div class="min-h-screen bg-light-base flex flex-col pb-20">
+
+          <!-- Scan Hero -->
+          <div class="bg-light-card border-b border-black/5 px-6 pt-10 pb-8 flex flex-col items-center">
+
+            <!-- Logo Row -->
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[26px] leading-none">🍎</span>
+              <span class="text-[17px] font-bold text-gray-900 tracking-tight">食品安全助手</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-7">扫码查配料 · 了解你吃的每一口</p>
+
+            <!-- Scan CTA -->
+            <div class="flex justify-center items-center">
+              <button
+                type="button"
+                class="w-[140px] h-[140px] rounded-full bg-gradient-to-br from-accent-pink-light to-accent-pink-dark shadow-btn flex flex-col items-center justify-center gap-1.5 relative transition-transform duration-200 ease-out hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-pink focus:ring-offset-2"
+                aria-label="扫一扫"
+              >
+                <!-- Pulse Ring -->
+                <span class="absolute inset-[-4px] rounded-full border-2 border-accent-pink/25 animate-pulse-ring" aria-hidden="true"></span>
+                <!-- Icon -->
+                <svg class="w-9 h-9 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/>
+                  <line x1="7" y1="12" x2="17" y2="12"/>
+                </svg>
+                <span class="text-white text-base font-bold tracking-tight">扫一扫</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section Divider -->
+          <div class="flex items-center gap-3 px-6 pt-6 pb-3">
+            <div class="flex-1 h-px bg-black/[0.06]"></div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">最近扫描</span>
+              <span class="bg-red-50 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+            </div>
+            <div class="flex-1 h-px bg-black/[0.06]"></div>
+          </div>
+
+          <!-- Scan List -->
+          <div class="px-6 pb-10 flex flex-col gap-2">
+
+            <!-- Scan Item 1 -->
+            <div class="bg-light-card border border-black/[0.06] rounded-xl px-4 py-3.5 flex items-center gap-3 shadow-card hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0" aria-label="午餐肉罐头，2分钟前">
+              <div class="w-10 h-10 rounded-lg bg-gray-100 border border-black/5 flex items-center justify-center text-[20px] flex-shrink-0">🥫</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-gray-900 mb-0.5 truncate">午餐肉罐头</div>
+                <div class="text-xs text-gray-400">2分钟前</div>
+              </div>
+              <svg class="w-4 h-4 text-gray-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+
+            <!-- Scan Item 2 -->
+            <div class="bg-light-card border border-black/[0.06] rounded-xl px-4 py-3.5 flex items-center gap-3 shadow-card hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0" aria-label="康师傅方便面，昨天">
+              <div class="w-10 h-10 rounded-lg bg-gray-100 border border-black/5 flex items-center justify-center text-[20px] flex-shrink-0">🍝</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-gray-900 mb-0.5 truncate">康师傅方便面</div>
+                <div class="text-xs text-gray-400">昨天</div>
+              </div>
+              <svg class="w-4 h-4 text-gray-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+
+            <!-- Scan Item 3 -->
+            <div class="bg-light-card border border-black/[0.06] rounded-xl px-4 py-3.5 flex items-center gap-3 shadow-card hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0" aria-label="可口可乐，3天前">
+              <div class="w-10 h-10 rounded-lg bg-gray-100 border border-black/5 flex items-center justify-center text-[20px] flex-shrink-0">🥤</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-gray-900 mb-0.5 truncate">可口可乐</div>
+                <div class="text-xs text-gray-400">3天前</div>
+              </div>
+              <svg class="w-4 h-4 text-gray-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- TabBar - Light -->
+        <div class="tabbar bg-light-card border-t border-black/[0.06] shadow-bottombar">
+          <div class="tab-item" role="tab" aria-selected="true" tabindex="0">
+            <svg viewBox="0 0 24 24" fill="#db2777"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span class="text-accent-pink-dark">首页</span>
+          </div>
+          <div class="tab-item" role="tab" aria-selected="false" tabindex="0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+            <span class="text-gray-300">搜索</span>
+          </div>
+          <div class="tab-item" role="tab" aria-selected="false" tabindex="0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="text-gray-300">我的</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ DARK ═══════════════════════════════════ -->
+  <div class="phone-col">
+    <div class="mode-badge mode-dark">🌙 暗色模式</div>
+    <div class="phone-shell">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <!-- Page Container - Dark -->
+        <div class="min-h-screen bg-dark-base flex flex-col pb-20">
+
+          <!-- Scan Hero -->
+          <div class="bg-dark-card border-b border-white/[0.08] px-6 pt-10 pb-8 flex flex-col items-center">
+
+            <!-- Logo Row -->
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[26px] leading-none">🍎</span>
+              <span class="text-[17px] font-bold text-gray-100 tracking-tight">食品安全助手</span>
+            </div>
+            <p class="text-xs text-gray-500 mb-7">扫码查配料 · 了解你吃的每一口</p>
+
+            <!-- Scan CTA -->
+            <div class="flex justify-center items-center">
+              <button
+                type="button"
+                class="w-[140px] h-[140px] rounded-full bg-gradient-to-br from-accent-pink to-accent-pink-dark shadow-btn flex flex-col items-center justify-center gap-1.5 relative transition-transform duration-200 ease-out hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-pink focus:ring-offset-2"
+                aria-label="扫一扫"
+              >
+                <!-- Pulse Ring -->
+                <span class="absolute inset-[-4px] rounded-full border-2 border-accent-pink/25 animate-pulse-ring" aria-hidden="true"></span>
+                <!-- Icon -->
+                <svg class="w-9 h-9 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/>
+                  <line x1="7" y1="12" x2="17" y2="12"/>
+                </svg>
+                <span class="text-white text-base font-bold tracking-tight">扫一扫</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section Divider -->
+          <div class="flex items-center gap-3 px-6 pt-6 pb-3">
+            <div class="flex-1 h-px bg-white/[0.08]"></div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-widest">最近扫描</span>
+              <span class="bg-red-900/40 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+            </div>
+            <div class="flex-1 h-px bg-white/[0.08]"></div>
+          </div>
+
+          <!-- Scan List -->
+          <div class="px-6 pb-10 flex flex-col gap-2">
+
+            <!-- Scan Item 1 -->
+            <div class="bg-dark-card border border-white/[0.08] rounded-xl px-4 py-3.5 flex items-center gap-3 shadow-card-dark hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0" aria-label="午餐肉罐头，2分钟前">
+              <div class="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-[20px] flex-shrink-0">🥫</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-gray-100 mb-0.5 truncate">午餐肉罐头</div>
+                <div class="text-xs text-gray-500">2分钟前</div>
+              </div>
+              <svg class="w-4 h-4 text-gray-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+
+            <!-- Scan Item 2 -->
+            <div class="bg-dark-card border border-white/[0.08] rounded-xl px-4 py-3.5 flex items-center gap-3 shadow-card-dark hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0" aria-label="康师傅方便面，昨天">
+              <div class="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-[20px] flex-shrink-0">🍝</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-gray-100 mb-0.5 truncate">康师傅方便面</div>
+                <div class="text-xs text-gray-500">昨天</div>
+              </div>
+              <svg class="w-4 h-4 text-gray-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+
+            <!-- Scan Item 3 -->
+            <div class="bg-dark-card border border-white/[0.08] rounded-xl px-4 py-3.5 flex items-center gap-3 shadow-card-dark hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0" aria-label="可口可乐，3天前">
+              <div class="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-[20px] flex-shrink-0">🥤</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-gray-100 mb-0.5 truncate">可口可乐</div>
+                <div class="text-xs text-gray-500">3天前</div>
+              </div>
+              <svg class="w-4 h-4 text-gray-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- TabBar - Dark -->
+        <div class="tabbar bg-dark-card border-t border-white/[0.06] shadow-bottombar-dark">
+          <div class="tab-item" role="tab" aria-selected="true" tabindex="0">
+            <svg viewBox="0 0 24 24" fill="#ec4899"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span class="text-accent-pink">首页</span>
+          </div>
+          <div class="tab-item" role="tab" aria-selected="false" tabindex="0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#4b5563" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
+            <span class="text-gray-500">搜索</span>
+          </div>
+          <div class="tab-item" role="tab" aria-selected="false" tabindex="0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#4b5563" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="text-gray-500">我的</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
