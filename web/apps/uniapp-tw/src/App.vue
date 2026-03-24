@@ -22,9 +22,6 @@ onHide(() => {
 </script>
 
 <style lang="scss">
-@use 'tailwindcss/components';
-@use 'tailwindcss/utilities';
-
 /*  #ifdef  H5  */
 svg {
   display: initial;

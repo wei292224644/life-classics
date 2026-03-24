@@ -9,11 +9,11 @@
   "scripts": {
     "dev:console": "pnpm --filter @acme/console dev",
     "build:console": "pnpm --filter @acme/console build",
-    "dev:uniapp:weapp": "pnpm --filter @acme/uniapp dev:mp-weixin",
-    "dev:uniapp:alipay": "pnpm --filter @acme/uniapp dev:mp-alipay",
-    "dev:uniapp:tt": "pnpm --filter @acme/uniapp dev:mp-toutiao",
-    "dev:uniapp:h5": "pnpm --filter @acme/uniapp dev:h5",
-    "build:uniapp:weapp": "pnpm --filter @acme/uniapp build:mp-weixin",
+    "dev:uniapp:weapp": "pnpm --filter @acme/uniapp-tw dev:mp-weixin",
+    "dev:uniapp:alipay": "pnpm --filter @acme/uniapp-tw dev:mp-alipay",
+    "dev:uniapp:tt": "pnpm --filter @acme/uniapp-tw dev:mp-toutiao",
+    "dev:uniapp:h5": "pnpm --filter @acme/uniapp-tw dev:h5",
+    "build:uniapp:weapp": "pnpm --filter @acme/uniapp-tw build:mp-weixin",
     "lint": "pnpm -r run lint",
     "format": "pnpm -r run format",
     "typecheck": "pnpm -r run typecheck"

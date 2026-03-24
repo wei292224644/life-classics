@@ -7,6 +7,13 @@
 // ============================================================
 
 @use 'tailwindcss/base';
+@use 'tailwindcss/components';
+@use 'tailwindcss/utilities';
+
+uni-button{
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
 
 @layer base {
   :root {
