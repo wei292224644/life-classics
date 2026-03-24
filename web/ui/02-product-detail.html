@@ -56,7 +56,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; touch-action: manipula
 }
 
 /* 手机壳 */
-.phone-shell { background:#141414; border-radius:52px; padding:12px; width:399px;
+.phone-shell { background:#141414; border-radius:52px; padding:12px; width:399px; height:834px;
   box-shadow: 0 0 0 1px #2a2a2a, 0 32px 64px rgba(0,0,0,0.7), inset 0 0 0 2px #1a1a1a; }
 .phone-notch { background:#141414; width:90px; height:22px; border-radius:0 0 16px 16px;
   margin:0 auto -5px; position:relative; z-index:2; }
@@ -165,8 +165,11 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; touch-action: manipula
 .nutrition-toggle svg { transition:transform 0.3s ease; }
 .nutrition-toggle.expanded svg { transform:rotate(180deg); }
 
-/* Header scrolled */
-.header { transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+/* Header */
+.header {
+  transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  background:transparent;
+}
 .dark-mode .header.scrolled {
   background:rgba(20,20,20,0.88);
   backdrop-filter:saturate(180%) blur(16px); -webkit-backdrop-filter:saturate(180%) blur(16px);
@@ -205,26 +208,23 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; touch-action: manipula
   <!-- ═══════════════════════════════════ LIGHT ═══════════════════════════════════ -->
   <div class="flex flex-col items-center gap-2.5">
     <div class="mode-badge mode-light">☀ 亮色模式</div>
-    <div class="phone-shell">
-      <div class="phone-screen">
-        <div class="h-11 flex items-center justify-center relative z-50 border-b border-border-c">
-          <span class="text-sm font-semibold tracking-wide text-text-primary">9:41</span>
-        </div>
-        <div class="light-mode" style="min-height:100%">
+    <div class="phone-shell ">
+      <div class="phone-screen relative  ">
+        <div class="light-mode h-full overflow-hidden" >
 
           <!-- Header -->
-          <div class="header absolute top-0 left-0 right-0 z-50 px-4 py-2 flex items-center gap-3" id="headerLight">
-            <button type="button" class="w-10 h-10 rounded-xl flex items-center justify-center border-none bg-transparent cursor-pointer active:scale-[0.92] focus-visible:outline-2 focus-visible:outline-accent-pink focus-visible:outline-offset-2" aria-label="返回">
+          <div class="header absolute top-0 left-0 right-0 z-50 px-3.5 py-3 flex items-center gap-3 h-16" id="headerLight">
+            <button type="button" class="w-[30px] h-[30px] rounded-xl flex items-center justify-center border-none bg-transparent cursor-pointer active:scale-[0.92] focus-visible:outline-2 focus-visible:outline-accent-pink focus-visible:outline-offset-2" aria-label="返回">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 19l-7-7 7-7"/></svg>
             </button>
             <span class="flex-1 text-[17px] font-semibold tracking-tight text-text-primary">苹果</span>
-            <button type="button" class="w-10 h-10 rounded-xl flex items-center justify-center border-none bg-transparent cursor-pointer active:scale-[0.92]" aria-label="分享">
+            <button type="button" class="w-[30px] h-[30px] rounded-xl flex items-center justify-center border-none bg-transparent cursor-pointer active:scale-[0.92]" aria-label="分享">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
             </button>
           </div>
 
           <!-- 滚动区 -->
-          <div class="absolute top-[44px] bottom-[88px] left-0 right-0 overflow-y-auto overflow-x-hidden" style="-webkit-overflow-scrolling:touch;scrollbar-width:none" id="scrollLight" onscroll="handleScroll('Light')">
+          <div class="absolute top-0 bottom-0 left-0 right-0 overflow-y-auto overflow-x-hidden" style="-webkit-overflow-scrolling:touch;scrollbar-width:none" id="scrollLight" onscroll="handleScroll('Light')">
 
             <!-- Banner -->
             <div class="h-[260px] relative overflow-hidden flex flex-col items-center justify-center" style="background:linear-gradient(145deg,#fef3c7 0%,#fde68a 50%,#fcd34d 100%)">
@@ -239,7 +239,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; touch-action: manipula
             </div>
 
             <!-- Content -->
-            <div class="px-5 pt-6 pb-10" style="background:var(--bg-base)">
+            <div class="px-3 pt-6 pb-10" style="background:var(--bg-base)">
 
               <!-- 营养卡片 -->
               <div class="rounded-3xl p-5 mb-7 relative overflow-hidden border"
@@ -427,7 +427,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; touch-action: manipula
           </div><!-- /scroll-area -->
 
           <!-- Bottom Bar -->
-          <div class="bottom-bar absolute bottom-0 left-0 right-0 z-40 px-5 py-4 flex gap-3 border-t border-border-c">
+          <div class="bottom-bar absolute bottom-0 left-0 right-0 z-40 px-2 py-2 flex gap-3 border-t border-border-c h-16">
             <button type="button" class="btn-secondary flex-1 py-3.5 rounded-xl text-sm font-semibold text-text-primary cursor-pointer active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-accent-pink">添加到记录</button>
             <button type="button" class="flex-1 py-3.5 rounded-xl text-sm font-semibold text-white cursor-pointer active:scale-[0.97]" style="background:linear-gradient(135deg,var(--accent-pink-light),var(--accent-pink));box-shadow:0 4px 20px rgba(236,72,153,0.3)">咨询 AI 助手</button>
           </div>
@@ -442,24 +442,21 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; touch-action: manipula
     <div class="mode-badge mode-dark">🌙 暗色模式</div>
     <div class="phone-shell">
       <div class="phone-screen">
-        <div class="h-11 flex items-center justify-center relative z-50 border-b border-border-c">
-          <span class="text-sm font-semibold tracking-wide text-text-primary">9:41</span>
-        </div>
         <div class="dark-mode" style="min-height:100%">
 
           <!-- Header -->
-          <div class="header absolute top-0 left-0 right-0 z-50 px-4 py-2 flex items-center gap-3" id="headerDark">
-            <button type="button" class="w-10 h-10 rounded-xl flex items-center justify-center border-none bg-transparent cursor-pointer active:scale-[0.92] focus-visible:outline-2 focus-visible:outline-accent-pink focus-visible:outline-offset-2" aria-label="返回">
+          <div class="header absolute top-0 left-0 right-0 z-50 px-3.5 py-3 flex items-center gap-3 h-16" id="headerDark">
+            <button type="button" class="w-[30px] h-[30px] text-text-primary rounded-xl flex items-center justify-center border-none bg-transparent cursor-pointer active:scale-[0.92] focus-visible:outline-2 focus-visible:outline-accent-pink focus-visible:outline-offset-2" aria-label="返回">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 19l-7-7 7-7"/></svg>
             </button>
             <span class="flex-1 text-[17px] font-semibold tracking-tight text-text-primary">苹果</span>
-            <button type="button" class="w-10 h-10 rounded-xl flex items-center justify-center border-none bg-transparent cursor-pointer active:scale-[0.92]" aria-label="分享">
+            <button type="button" class="w-[30px] h-[30px] text-text-primary rounded-xl flex items-center justify-center border-none bg-transparent cursor-pointer active:scale-[0.92]" aria-label="分享">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
             </button>
           </div>
 
           <!-- 滚动区 -->
-          <div class="absolute top-[44px] bottom-[88px] left-0 right-0 overflow-y-auto overflow-x-hidden" style="-webkit-overflow-scrolling:touch;scrollbar-width:none" id="scrollDark" onscroll="handleScroll('Dark')">
+          <div class="absolute top-0 bottom-0 left-0 right-0  overflow-y-auto overflow-x-hidden" style="-webkit-overflow-scrolling:touch;scrollbar-width:none" id="scrollDark" onscroll="handleScroll('Dark')">
 
             <!-- Banner -->
             <div class="h-[260px] relative overflow-hidden flex flex-col items-center justify-center" style="background:linear-gradient(145deg,#1a1a1a 0%,#0d0d0d 50%,#151515 100%)">
@@ -474,7 +471,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; touch-action: manipula
             </div>
 
             <!-- Content -->
-            <div class="px-5 pt-6 pb-10" style="background:var(--bg-base)">
+            <div class="px-3 pt-6 pb-10" style="background:var(--bg-base)">
 
               <!-- 营养卡片 -->
               <div class="rounded-3xl p-5 mb-7 relative overflow-hidden border"
@@ -662,7 +659,7 @@ body { font-family: 'DM Sans', -apple-system, sans-serif; touch-action: manipula
           </div><!-- /scroll-area -->
 
           <!-- Bottom Bar -->
-          <div class="bottom-bar absolute bottom-0 left-0 right-0 z-40 px-5 py-4 flex gap-3 border-t border-border-c">
+          <div class="bottom-bar absolute bottom-0 left-0 right-0 z-40 px-2 py-2 flex gap-3 border-t border-border-c h-16">
             <button type="button" class="btn-secondary flex-1 py-3.5 rounded-xl text-sm font-semibold text-text-primary cursor-pointer active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-accent-pink">添加到记录</button>
             <button type="button" class="flex-1 py-3.5 rounded-xl text-sm font-semibold text-white cursor-pointer active:scale-[0.97]" style="background:linear-gradient(135deg,var(--accent-pink-light),var(--accent-pink));box-shadow:0 4px 20px rgba(236,72,153,0.3)">咨询 AI 助手</button>
           </div>

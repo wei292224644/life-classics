@@ -9,6 +9,7 @@ from kb.writer import fts_writer
 from parser.models import ClassifiedChunk, RawChunk, TypedSegment, WorkflowState
 from parser.nodes.merge_node import merge_node
 from parser.nodes.transform_node import transform_node
+from parser.rules import RulesStore
 
 
 def get_collection():
@@ -137,14 +138,15 @@ class ChunksService:
         section_path_str = old_meta.get("section_path", "")
 
         # 重建 TypedSegment
+        semantic_type = old_meta.get("semantic_type", "")
+        store = RulesStore(settings.RULES_DIR)
+        transform_params = store.get_transform_params(semantic_type)
+
         typed_segment: TypedSegment = {
-            "content": old_meta.get("segment_raw_content", ""),
+            "content": old_meta.get("raw_content", ""),
             "structure_type": old_meta.get("structure_type", "paragraph"),
-            "semantic_type": old_meta.get("semantic_type", ""),
-            "transform_params": {
-                "strategy": old_meta.get("transform_strategy", "nl"),
-                "prompt_template": old_meta.get("prompt_template", ""),
-            },
+            "semantic_type": semantic_type,
+            "transform_params": transform_params,
             "confidence": 1.0,
             "escalated": False,
             "cross_refs": old_meta.get("cross_refs", []),
