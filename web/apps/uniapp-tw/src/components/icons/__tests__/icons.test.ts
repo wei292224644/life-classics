@@ -1,49 +1,48 @@
 import { describe, it, expect } from 'vitest';
-import { aliases, defaultAttributes } from '../';
 import * as icons from '../';
 
 describe('Icon Library', () => {
   describe('aliases', () => {
     it('should resolve left to arrow-left', () => {
-      expect(aliases['left']).toBe('arrow-left');
+      expect(icons.aliases['left']).toBe('arrow-left');
     });
 
     it('should resolve right to arrow-right', () => {
-      expect(aliases['right']).toBe('arrow-right');
+      expect(icons.aliases['right']).toBe('arrow-right');
     });
 
     it('should resolve close to x', () => {
-      expect(aliases['close']).toBe('x');
+      expect(icons.aliases['close']).toBe('x');
     });
 
     it('should resolve chat to message-circle', () => {
-      expect(aliases['chat']).toBe('message-circle');
+      expect(icons.aliases['chat']).toBe('message-circle');
     });
 
     it('should resolve cart to shopping-cart', () => {
-      expect(aliases['cart']).toBe('shopping-cart');
+      expect(icons.aliases['cart']).toBe('shopping-cart');
     });
   });
 
   describe('defaultAttributes', () => {
     it('should have correct viewBox', () => {
-      expect(defaultAttributes.viewBox).toBe('0 0 24 24');
+      expect(icons.defaultAttributes.viewBox).toBe('0 0 24 24');
     });
 
     it('should use currentColor for stroke', () => {
-      expect(defaultAttributes.stroke).toBe('currentColor');
+      expect(icons.defaultAttributes.stroke).toBe('currentColor');
     });
 
     it('should have round linecap', () => {
-      expect(defaultAttributes.strokeLinecap).toBe('round');
+      expect(icons.defaultAttributes.strokeLinecap).toBe('round');
     });
 
     it('should have round linejoin', () => {
-      expect(defaultAttributes.strokeLinejoin).toBe('round');
+      expect(icons.defaultAttributes.strokeLinejoin).toBe('round');
     });
 
     it('should have strokeWidth of 2', () => {
-      expect(defaultAttributes.strokeWidth).toBe(2);
+      expect(icons.defaultAttributes.strokeWidth).toBe(2);
     });
   });
 
@@ -72,7 +71,7 @@ describe('Icon Library', () => {
       expect(icons.arrowLeft.contents).toContain('path');
     });
 
-    it('should have tags for all icons', () => {
+    it('arrowLeft should have tags', () => {
       expect(icons.arrowLeft.tags).toBeDefined();
       expect(Array.isArray(icons.arrowLeft.tags)).toBe(true);
     });
