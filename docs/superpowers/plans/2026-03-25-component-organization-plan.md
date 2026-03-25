@@ -267,7 +267,46 @@ import Icon from "@/components/ui/Icon.vue";
 
 ---
 
-## Task 11: Verify build
+## Task 11: Update cross-component imports in business components
+
+**Files:**
+- Modify: `web/apps/uniapp-tw/src/components/business/product/ProductHeader.vue`
+- Modify: `web/apps/uniapp-tw/src/components/business/ingredient/IngredientSection.vue`
+- Modify: `web/apps/uniapp-tw/src/components/business/ingredient/IngredientList.vue`
+
+- [ ] **Step 1: Update ProductHeader.vue Icon import**
+
+```typescript
+// Change from:
+import Icon from './Icon.vue'
+
+// Change to:
+import Icon from '../../ui/Icon.vue'
+```
+
+- [ ] **Step 2: Update IngredientSection.vue Icon import**
+
+```typescript
+// Change from:
+import Icon from "./Icon.vue";
+
+// Change to:
+import Icon from "../../ui/Icon.vue";
+```
+
+- [ ] **Step 3: Update IngredientList.vue RiskBadge import**
+
+```typescript
+// Change from:
+import RiskBadge from "./RiskBadge.vue";
+
+// Change to:
+import RiskBadge from "../../ui/RiskBadge.vue";
+```
+
+---
+
+## Task 12: Verify build
 
 **Files:**
 - Verify: `web/apps/uniapp-tw/src/`
