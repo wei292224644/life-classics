@@ -7,6 +7,7 @@ import { useProductStore } from "@/store/product";
 import { useThemeStore } from "@/store/theme";
 import { getRiskConfig } from "@/utils/riskLevel";
 import Icon from "@/components/ui/Icon.vue";
+import Screen from "@/components/ui/Screen.vue";
 
 // ── Store ────────────────────────────────────────────────
 const ingStore = useIngredientStore();
@@ -256,23 +257,6 @@ const relatedProducts = computed(() => {
   return MOCK_RELATED_PRODUCTS;
 });
 
-const heroEmoji = computed(() => {
-  const n = ingredient.value?.name ?? "";
-  if (n.includes("苹果")) {
-    return "🍎";
-  }
-  if (n.includes("草莓")) {
-    return "🍓";
-  }
-  if (n.includes("柠檬")) {
-    return "🍋";
-  }
-  if (n.includes("牛奶")) {
-    return "🥛";
-  }
-  return "🧪";
-});
-
 // ── 导航 ─────────────────────────────────────────────────
 function goBack() {
   uni.navigateBack();
@@ -314,149 +298,131 @@ function goToProduct(barcode: string) {
 </script>
 
 <template>
-  <view class="h-screen bg-background flex flex-col relative overflow-hidden">
-    <!-- ── 自定义 Header ──────────────────────────── -->
-    <view
-      class="absolute top-0 left-0 right-0 z-[100] shrink-0 transition-all duration-300 bg-transparent"
-      :class="riskClass"
-    >
-      <!-- 状态栏占位（动态高度） -->
-      <view :style="{ height: `${themeStore.statusBarHeight}px` }" />
-      <view class="flex items-center px-4 pb-4 gap-[16rpx]">
+  <Screen>
+    <!-- #header slot -->
+    <template #header>
+      <view
+        class="ing-hdr sticky top-0 z-10 flex items-center gap-2.5 px-3.5 py-3"
+        :class="riskClass"
+      >
         <button
-          class="w-4 h-4 rounded-xl flex items-center justify-center shrink-0 p-0 m-0"
+          class="ing-hdr-btn w-[30px] h-[30px] rounded-[9px] flex items-center justify-center flex-shrink-0 cursor-pointer border-none p-0"
           @click="goBack"
         >
-          <Icon name="arrowLeft" :size="24" />
+          <Icon name="arrowLeft" class="w-3.5 h-3.5" :size="14" />
         </button>
-        <view class="flex-1 flex flex-col gap-[2rpx] pr-[96rpx]">
-          <text
-            class="header-title text-[34rpx] leading-[1.15] font-bold tracking-[0.01em]"
-            >{{ ingredient?.name ?? "配料详情" }}</text
-          >
-          <text
-            class="header-subtitle text-[22rpx] leading-[1.25] font-medium tracking-[0.02em]"
-            >{{ headerSubtitle }}</text
-          >
+        <view class="flex-1 flex flex-col">
+          <text class="ing-hdr-title text-[14px] font-bold">{{
+            ingredient?.name ?? "配料详情"
+          }}</text>
+          <text class="ing-hdr-sub text-[10px] font-semibold mt-px">{{
+            headerSubtitle
+          }}</text>
         </view>
         <button
-          class="header-btn share-btn w-8 h-8 rounded-xl flex items-center justify-center shrink-0 p-0 m-0"
+          class="ing-hdr-btn w-[30px] h-[30px] rounded-[9px] flex items-center justify-center flex-shrink-0 cursor-pointer border-none p-0"
           @click="shareToFriend"
         >
-          <Icon name="share" :size="24" />
+          <Icon name="share" class="w-3.5 h-3.5" :size="14" />
         </button>
       </view>
-    </view>
+    </template>
 
-    <!-- ── 加载态 ──────────────────────────────── -->
-    <view v-if="isLoading" class="flex-1 flex items-center justify-center">
-      <text class="text-xl text-muted-foreground">加载中...</text>
-    </view>
-
-    <!-- ── 无数据错误态 ──────────────────────────── -->
-    <view
-      v-else-if="!ingredient"
-      class="flex-1 flex flex-col items-center justify-center gap-8 px-12 py-20"
-    >
-      <text class="text-xl text-secondary text-center"
-        >数据加载失败，请返回重试</text
+    <!-- #content slot -->
+    <template #content>
+      <!-- 加载态 -->
+      <view
+        v-if="isLoading"
+        class="flex-1 flex items-center justify-center"
       >
-      <button
-        class="px-12 py-5 rounded-xl bg-card border border-border text-foreground text-xl"
-        @click="goBack"
-      >
-        返回
-      </button>
-    </view>
+        <text class="text-xl text-muted-foreground">加载中...</text>
+      </view>
 
-    <!-- ── 内容区 ────────────────────────────────── -->
-    <scroll-view
-      v-else
-      scroll-y
-      :show-scrollbar="false"
-      class="flex-1 overflow-hidden w-full box-border"
-    >
-      <view class="px-3 pt-0 bg-background">
-        <!-- Hero 风险卡 -->
-        <view
-          class="section-card hero-card bg-card mb-4 box-border w-full rounded-none overflow-hidden p-0 mx-[-24rpx] mt-0 border-none"
+      <!-- 无数据错误态 -->
+      <view
+        v-else-if="!ingredient"
+        class="flex-1 flex flex-col items-center justify-center gap-8 px-12 py-20"
+      >
+        <text class="text-xl text-secondary text-center"
+          >数据加载失败，请返回重试</text
         >
-          <view class="hero-top px-5 pt-24 pb-5">
-            <view class="hero-emoji text-center leading-none">
-              {{ heroEmoji }}
-            </view>
+        <button
+          class="px-12 py-5 rounded-xl bg-card border border-border text-foreground text-xl"
+          @click="goBack"
+        >
+          返回
+        </button>
+      </view>
+
+      <!-- 内容区 -->
+      <view v-else class="px-3 flex flex-col gap-3">
+        <!-- Hero 风险卡 -->
+        <view class="sec-card">
+          <view class="hero-top p-3">
             <view
-              class="hero-name-row flex items-end justify-between gap-4 mb-6"
+              class="flex items-start justify-between mb-2"
             >
-              <view class="hero-name-wrap flex-1 flex flex-col gap-0.5">
-                <text class="hero-name text-[36rpx] font-bold leading-tight">{{
+              <view>
+                <text class="text-[18px] font-extrabold text-text-primary">{{
                   ingredient.name
                 }}</text>
-                <text class="hero-code text-[24rpx] font-normal">{{
-                  ingredient.additive_code || "食品配料"
+                <text class="text-[11px] text-text-muted mt-0.5">{{
+                  ingredient.additive_code || "食品添加剂"
                 }}</text>
               </view>
               <view
-                class="risk-badge flex items-center gap-2 px-4 py-2 rounded-2xl shrink-0"
-                :class="riskClass"
+                class="risk-badge bg-risk-t3 text-white px-[9px] py-1 rounded-[7px] text-[11px] font-bold flex items-center gap-1 flex-shrink-0"
               >
-                <text class="badge-icon text-base">{{ riskConf.icon }}</text>
-                <text class="badge-text text-sm font-semibold">{{
-                  riskConf.badge
-                }}</text>
+                <Icon name="alertTriangle" class="w-2.5 h-2.5" :size="10" />
+                <text>{{ riskConf.badge }}</text>
               </view>
             </view>
 
             <!-- 风险谱条 -->
-            <view class="spectrum-wrap relative mb-1">
+            <view class="relative" style="margin: 4px 0">
               <view
-                class="spectrum-bar h-3 rounded-xl"
+                class="spectrum-bar h-[7px] rounded-full"
                 :style="spectrumOpacityStyle"
-              >
-                <!-- 色阶渐变已通过 CSS 实现 -->
-              </view>
+              />
               <view
                 v-if="riskConf.needleLeft !== null"
-                class="spectrum-needle absolute top-1/2 -translate-y-1/2 rounded-full"
+                class="spectrum-needle absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-[14px] h-[14px] rounded-full bg-bg-card border-[2.5px] border-risk-t3"
                 :style="needleStyle"
               />
             </view>
-            <view class="spectrum-labels flex justify-between mt-1">
-              <text class="spec-label-safe text-xs text-secondary">低风险</text>
-              <text class="spec-label-mid text-xs text-secondary">中等</text>
-              <text class="spec-label-danger text-xs text-secondary"
-                >高风险</text
-              >
+            <view class="flex justify-between text-[9px] text-text-muted px-0.5">
+              <text>低风险</text>
+              <text>中等</text>
+              <text>高风险</text>
             </view>
           </view>
 
           <!-- Chips -->
-          <view class="chips-row flex flex-wrap gap-2 px-4 py-4">
+          <view class="flex flex-wrap gap-[5px] p-3">
             <text
               v-if="ingredient.additive_code"
-              class="chip chip-func text-sm px-4 py-0.5 rounded-lg font-medium"
+              class="chip chip-red text-[10.5px] font-medium px-2 py-0.5 rounded-md"
               >{{ ingredient.additive_code }}</text
             >
             <text
               v-if="ingredient.function_type"
-              class="chip chip-func text-sm px-4 py-0.5 rounded-lg font-medium"
+              class="chip chip-red text-[10.5px] font-medium px-2 py-0.5 rounded-md"
               >{{ ingredient.function_type }}</text
             >
             <text
-              v-if="source"
-              class="chip chip-neu text-sm px-4 py-0.5 rounded-lg font-medium"
+              class="chip chip-neu text-[10.5px] font-medium px-2 py-0.5 rounded-md"
               >{{ source }}</text
             >
             <text
               v-if="pregnancyWarning"
-              class="chip chip-warn text-sm px-4 py-0.5 rounded-lg font-medium"
+              class="chip chip-warn text-[10.5px] font-medium px-2 py-0.5 rounded-md"
               >{{ pregnancyWarning }}</text
             >
             <template v-if="ingredient.alias?.length">
               <text
                 v-for="alias in ingredient.alias"
                 :key="alias"
-                class="chip chip-neu text-sm px-4 py-0.5 rounded-lg font-medium"
+                class="chip chip-neu text-[10.5px] font-medium px-2 py-0.5 rounded-md"
               >
                 别名：{{ alias }}
               </text>
@@ -465,160 +431,151 @@ function goToProduct(barcode: string) {
         </view>
 
         <!-- 描述 -->
-        <view
-          v-if="summary"
-          class="section-card bg-card rounded-2xl p-5 mb-4 border border-border box-border w-full overflow-hidden"
-        >
+        <view v-if="summary" class="sec-card">
           <view
-            class="flex items-center gap-4 mb-5 pb-4 border-b border-border"
+            class="flex items-center gap-2 px-3 py-[11px] border-b border-border-c"
           >
             <view
-              class="section-icon-wrap icon-bg-blue w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+              class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 bg-blue-100"
             >
-              <Icon name="info" class="w-5 h-5 text-current" :size="20" />
+              <Icon name="info" class="w-3 h-3 text-blue-500" :size="12" />
             </view>
-            <text class="text-lg font-bold text-foreground flex-1">描述</text>
-            <text
-              class="ai-label text-sm font-bold px-3 py-0.5 rounded text-white"
-              >AI</text
+            <text class="text-[13px] font-bold text-text-primary flex-1"
+              >描述</text
             >
+            <text class="ai-label ml-auto">AI</text>
           </view>
-          <text class="text-base text-secondary leading-relaxed">{{
-            summary
-          }}</text>
+          <view class="px-3 py-[11px]">
+            <text class="text-[12px] text-text-secondary leading-[1.7]">{{
+              summary
+            }}</text>
+          </view>
         </view>
 
         <!-- AI 风险分析 -->
-        <view
-          v-if="riskFactors.length > 0"
-          class="section-card bg-card rounded-2xl p-5 mb-4 border border-border box-border w-full overflow-hidden"
-        >
+        <view v-if="riskFactors.length > 0" class="sec-card">
           <view
-            class="flex items-center gap-4 mb-5 pb-4 border-b border-border"
+            class="flex items-center gap-2 px-3 py-[11px] border-b border-border-c"
           >
             <view
-              class="section-icon-wrap icon-bg-red w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+              class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 bg-red-100"
             >
               <Icon
                 name="alertTriangle"
-                class="w-5 h-5 text-current"
-                :size="20"
+                class="w-3 h-3 text-red-400"
+                :size="12"
               />
             </view>
-            <text class="text-lg font-bold text-foreground flex-1"
+            <text class="text-[13px] font-bold text-text-primary flex-1"
               >AI 风险分析</text
             >
-            <text
-              class="ai-label text-sm font-bold px-3 py-0.5 rounded text-white"
-              >AI</text
-            >
+            <text class="ai-label ml-auto">AI</text>
           </view>
-          <view class="list-items flex flex-col gap-4">
+          <view class="px-3 py-[11px] flex flex-col gap-2">
             <view
               v-for="(item, i) in riskFactors"
               :key="i"
-              class="flex items-start gap-4"
+              class="flex items-start gap-2"
             >
               <view
-                class="list-item-icon icon-x w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5"
+                class="w-[18px] h-[18px] rounded-[5px] flex items-center justify-center flex-shrink-0 mt-px bg-red-100"
               >
-                ✕
+                <Icon name="x" class="w-2.5 h-2.5 text-red-400" :size="10" />
               </view>
-              <text class="text-lg text-secondary leading-relaxed flex-1">{{
-                item
-              }}</text>
+              <text
+                class="text-[12px] text-text-primary leading-[1.55] flex-1"
+                >{{ item }}</text
+              >
             </view>
           </view>
         </view>
 
         <!-- 风险管理信息 -->
-        <view
-          v-if="hasRiskMgmt"
-          class="section-card bg-card rounded-2xl p-5 mb-4 border border-border box-border w-full overflow-hidden"
-        >
+        <view v-if="hasRiskMgmt" class="sec-card">
           <view
-            class="flex items-center gap-4 mb-5 pb-4 border-b border-border"
+            class="flex items-center gap-2 px-3 py-[11px] border-b border-border-c"
           >
             <view
-              class="section-icon-wrap icon-bg-purple w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+              class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 bg-blue-100"
             >
               <Icon
                 name="alertCircle"
-                class="w-5 h-5 text-current"
-                :size="20"
+                class="w-3 h-3 text-blue-500"
+                :size="12"
               />
             </view>
-            <text class="text-lg font-bold text-foreground flex-1"
+            <text class="text-[13px] font-bold text-text-primary flex-1"
               >风险管理信息</text
             >
           </view>
-          <view class="kv-table flex flex-col gap-4">
+          <view>
             <view
               v-if="ingredient.who_level"
-              class="kv-row flex items-start gap-4"
+              class="flex justify-between items-start py-[9px] px-3 gap-2.5 border-b border-border-c"
             >
-              <text
-                class="kv-key text-base text-muted-foreground w-[200rpx] shrink-0 pt-0.5"
+              <text class="text-[11.5px] text-text-secondary flex-shrink-0"
                 >WHO 致癌等级</text
               >
-              <text
-                class="kv-value kv-value-red text-lg text-foreground flex-1 leading-relaxed"
-                >{{ ingredient.who_level }}</text
-              >
+              <text class="text-[11.5px] font-medium text-risk-t4 text-right">{{
+                ingredient.who_level
+              }}</text>
             </view>
-            <view v-if="maternalLevel" class="kv-row flex items-start gap-4">
-              <text
-                class="kv-key text-base text-muted-foreground w-[200rpx] shrink-0 pt-0.5"
+            <view
+              v-if="maternalLevel"
+              class="flex justify-between items-start py-[9px] px-3 gap-2.5 border-b border-border-c"
+            >
+              <text class="text-[11.5px] text-text-secondary flex-shrink-0"
                 >母婴等级</text
               >
-              <text
-                class="kv-value kv-value-red text-lg text-foreground flex-1 leading-relaxed"
-                >{{ maternalLevel }}</text
-              >
+              <text class="text-[11.5px] font-medium text-risk-t4 text-right">{{
+                maternalLevel
+              }}</text>
             </view>
-            <view v-if="usageLimit" class="kv-row flex items-start gap-4">
-              <text
-                class="kv-key text-base text-muted-foreground w-[200rpx] shrink-0 pt-0.5"
+            <view
+              v-if="usageLimit"
+              class="flex justify-between items-start py-[9px] px-3 gap-2.5 border-b border-border-c"
+            >
+              <text class="text-[11.5px] text-text-secondary flex-shrink-0"
                 >使用限量</text
               >
               <text
-                class="kv-value text-lg text-foreground flex-1 leading-relaxed"
+                class="text-[11.5px] font-medium text-text-primary text-right"
                 >{{ usageLimit }}</text
               >
             </view>
-            <view v-if="applicableRegion" class="kv-row flex items-start gap-4">
-              <text
-                class="kv-key text-base text-muted-foreground w-[200rpx] shrink-0 pt-0.5"
+            <view
+              v-if="applicableRegion"
+              class="flex justify-between items-start py-[9px] px-3 gap-2.5 border-b border-border-c"
+            >
+              <text class="text-[11.5px] text-text-secondary flex-shrink-0"
                 >适用区域</text
               >
               <text
-                class="kv-value text-lg text-foreground flex-1 leading-relaxed"
+                class="text-[11.5px] font-medium text-text-primary text-right"
                 >{{ applicableRegion }}</text
               >
             </view>
             <view
               v-if="ingredient.allergen_info"
-              class="kv-row flex items-start gap-4"
+              class="flex justify-between items-start py-[9px] px-3 gap-2.5 border-b border-border-c"
             >
-              <text
-                class="kv-key text-base text-muted-foreground w-[200rpx] shrink-0 pt-0.5"
+              <text class="text-[11.5px] text-text-secondary flex-shrink-0"
                 >过敏信息</text
               >
               <text
-                class="kv-value text-lg text-foreground flex-1 leading-relaxed"
+                class="text-[11.5px] font-medium text-text-primary text-right"
                 >{{ ingredient.allergen_info }}</text
               >
             </view>
             <view
               v-if="ingredient.standard_code"
-              class="kv-row flex items-start gap-4"
+              class="flex justify-between items-start py-[9px] px-3 gap-2.5"
             >
-              <text
-                class="kv-key text-base text-muted-foreground w-[200rpx] shrink-0 pt-0.5"
+              <text class="text-[11.5px] text-text-secondary flex-shrink-0"
                 >执行标准</text
               >
               <text
-                class="kv-value text-lg text-foreground flex-1 leading-relaxed"
+                class="text-[11.5px] font-medium text-text-primary text-right"
                 >{{ ingredient.standard_code }}</text
               >
             </view>
@@ -626,462 +583,276 @@ function goToProduct(barcode: string) {
         </view>
 
         <!-- AI 使用建议 -->
-        <view
-          v-if="suggestions.length > 0"
-          class="section-card bg-card rounded-2xl p-5 mb-4 border border-border box-border w-full overflow-hidden"
-        >
+        <view v-if="suggestions.length > 0" class="sec-card">
           <view
-            class="flex items-center gap-4 mb-5 pb-4 border-b border-border"
+            class="flex items-center gap-2 px-3 py-[11px] border-b border-border-c"
           >
             <view
-              class="section-icon-wrap icon-bg-green w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+              class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 bg-pink-100"
             >
-              <Icon name="check" class="w-5 h-5 text-current" :size="20" />
+              <Icon name="check" class="w-3 h-3 text-pink-400" :size="12" />
             </view>
-            <text class="text-lg font-bold text-foreground flex-1"
+            <text class="text-[13px] font-bold text-text-primary flex-1"
               >AI 使用建议</text
             >
-            <text
-              class="ai-label text-sm font-bold px-3 py-0.5 rounded text-white"
-              >AI</text
-            >
+            <text class="ai-label ml-auto">AI</text>
           </view>
-          <view class="list-items flex flex-col gap-4">
+          <view class="px-3 py-[11px] flex flex-col gap-2">
             <view
               v-for="(s, i) in suggestions"
               :key="i"
-              class="flex items-start gap-4"
+              class="flex items-start gap-2"
             >
               <view
-                class="list-item-icon w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5"
+                class="w-[18px] h-[18px] rounded-[5px] flex items-center justify-center flex-shrink-0 mt-px"
                 :class="
-                  s.type === 'positive'
-                    ? 'icon-check-green'
-                    : `
-                  icon-check-yellow
-                `
+                  s.type === 'positive' ? 'dot-good' : 'dot-warn'
                 "
               >
-                ✓
+                <Icon
+                  name="check"
+                  class="w-2.5 h-2.5"
+                  :class="s.type === 'positive' ? 'text-green-500' : 'text-yellow-500'"
+                  :size="10"
+                />
               </view>
-              <text class="text-lg text-secondary leading-relaxed flex-1">{{
-                s.text
-              }}</text>
+              <text
+                class="text-[12px] text-text-primary leading-[1.55] flex-1"
+                >{{ s.text }}</text
+              >
             </view>
           </view>
         </view>
 
         <!-- 含此配料的产品 -->
-        <view
-          v-if="relatedProducts.length > 0"
-          class="section-card bg-card rounded-2xl p-5 mb-4 border border-border box-border w-full overflow-hidden"
-        >
+        <view v-if="relatedProducts.length > 0" class="sec-card">
           <view
-            class="flex items-center gap-4 mb-5 pb-4 border-b border-border"
+            class="flex items-center gap-2 px-3 py-[11px] border-b border-border-c"
           >
             <view
-              class="section-icon-wrap icon-bg-orange w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+              class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 bg-blue-100"
             >
               <Icon
                 name="shoppingCart"
-                class="w-5 h-5 text-current"
-                :size="20"
+                class="w-3 h-3 text-blue-500"
+                :size="12"
               />
             </view>
-            <text class="text-lg font-bold text-foreground flex-1"
+            <text class="text-[13px] font-bold text-text-primary flex-1"
               >含此配料的产品</text
             >
           </view>
-          <scroll-view scroll-x enable-flex class="related-scroll">
-            <view class="related-inner flex flex-row gap-5 w-max pb-2">
+          <view
+            class="overflow-x-auto"
+            style="scrollbar-width: none; -webkit-overflow-scrolling: touch"
+          >
+            <view class="flex gap-2 p-3" style="width: max-content">
               <view
                 v-for="p in relatedProducts"
                 :key="p.id"
-                class="related-card flex flex-col items-center gap-3 cursor-pointer shrink-0 active:opacity-70"
+                class="w-[86px] flex-shrink-0 bg-bg-base border border-border-c rounded-xl p-2 cursor-pointer active:opacity-70"
                 @click="goToProduct(p.barcode)"
               >
                 <view
-                  class="related-img-wrap w-[172rpx] h-[172rpx] rounded-xl overflow-hidden bg-background border border-border"
+                  class="w-full h-12 rounded-lg bg-bg-card flex items-center justify-center text-[20px] mb-1.5"
                 >
-                  <image
-                    v-if="p.image_url_list?.[0]"
-                    :src="p.image_url_list[0]"
-                    class="related-img w-full h-full"
-                    mode="aspectFill"
-                  />
-                  <view
-                    v-else
-                    class="related-img-placeholder w-full h-full flex items-center justify-center text-6xl"
-                  >
-                    {{ p.emoji }}
-                  </view>
+                  {{ p.emoji }}
                 </view>
                 <text
-                  class="related-name text-base text-secondary text-center leading-tight w-full"
+                  class="text-[10px] font-semibold text-text-primary leading-[1.3] mb-1 block"
                   >{{ p.name }}</text
                 >
                 <text
                   v-if="p.riskTag"
-                  class="related-risk-tag text-xs px-3 py-0.5 rounded font-medium inline-block"
-                  :class="[
+                  class="text-[9px] font-medium px-[5px] py-px rounded inline-block"
+                  :class="
                     p.riskTag === '高风险'
-                      ? `
-                    risk-high
-                  `
-                      : `risk-med`,
-                  ]"
+                      ? 'chip chip-red'
+                      : 'chip chip-warn'
+                  "
                 >
                   {{ p.riskTag }}
                 </text>
               </view>
             </view>
-          </scroll-view>
+          </view>
         </view>
-
-        <!-- 底部安全距离 -->
-        <view class="h-[180rpx]" />
       </view>
-    </scroll-view>
+    </template>
 
-    <!-- ── 底部操作栏 ──────────────────────────────── -->
-    <view
-      v-if="ingredient"
-      class="bottom-bar fixed bottom-0 left-0 right-0 px-2 py-2 border-t border-border flex gap-3 z-[100]"
-    >
-      <button
-        class="bar-btn bar-btn-ghost flex-1 h-12 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold p-0 text-foreground active:opacity-80"
-        @click="goToSearch"
+    <!-- #footer slot -->
+    <template #footer>
+      <view
+        v-if="ingredient"
+        class="bot-bar sticky bottom-0 z-10 px-3 py-2 flex gap-2 h-16"
       >
-        <Icon name="search" class="w-5 h-5 text-current" :size="20" />
-        <text>添加到记录</text>
-      </button>
-      <button
-        class="bar-btn bar-btn-primary flex-1 h-12 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold p-0 text-white border-none active:opacity-80"
-        @click="goToAI"
-      >
-        <Icon name="messageCircle" class="w-5 h-5 text-current" :size="20" />
-        <text>咨询 AI 助手</text>
-      </button>
-    </view>
-  </view>
+        <button
+          class="btn-out flex-1 rounded-xl py-3 text-[12px] font-semibold text-center cursor-pointer active:scale-[0.97]"
+          @click="goToAI"
+        >
+          咨询 AI 助手
+        </button>
+        <button
+          class="flex-1 rounded-xl py-3 text-[12px] font-semibold text-white text-center cursor-pointer active:scale-[0.97]"
+          style="background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink)); box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3)"
+          @click="goToSearch"
+        >
+          查看相关食品
+        </button>
+      </view>
+    </template>
+  </Screen>
 </template>
 
 <style lang="scss" scoped>
-// Risk level color classes — scoped to this component
-.risk-critical {
-  --risk-header-bg: oklch(97% 0.02 25);
-  --risk-header-border: oklch(92% 0.04 25);
-  --risk-badge-bg: oklch(55% 0.2 25);
-  --risk-bg: oklch(97% 0.02 25);
-  --risk-border: oklch(92% 0.04 25);
-  --risk-btn-bg: oklch(97% 0.02 25);
-  --risk-btn-color: oklch(55% 0.2 25);
-  --risk-title-color: oklch(45% 0.12 25);
-  --risk-sub-color: oklch(55% 0.2 25);
+// ── ing-hdr 颜色变量 ─────────────────────────────────────
+// 暗色 risk header
+.dark-mode .ing-hdr {
+  background: #1a0808;
+  border-bottom: 2px solid #7f1d1d;
 }
-.risk-high {
-  --risk-header-bg: oklch(97% 0.03 60);
-  --risk-header-border: oklch(90% 0.06 60);
-  --risk-badge-bg: oklch(60% 0.18 50);
-  --risk-bg: oklch(97% 0.03 60);
-  --risk-border: oklch(90% 0.06 60);
-  --risk-btn-bg: oklch(97% 0.03 60);
-  --risk-btn-color: oklch(60% 0.18 50);
-  --risk-title-color: oklch(45% 0.14 50);
-  --risk-sub-color: oklch(60% 0.18 50);
+.dark-mode .ing-hdr-title {
+  color: #fca5a5;
 }
-.risk-medium {
-  --risk-header-bg: oklch(97% 0.03 85);
-  --risk-header-border: oklch(90% 0.06 85);
-  --risk-badge-bg: oklch(65% 0.16 85);
-  --risk-bg: oklch(97% 0.03 85);
-  --risk-border: oklch(90% 0.06 85);
-  --risk-btn-bg: oklch(97% 0.03 85);
-  --risk-btn-color: oklch(65% 0.16 85);
-  --risk-title-color: oklch(45% 0.14 85);
-  --risk-sub-color: oklch(65% 0.16 85);
+.dark-mode .ing-hdr-sub {
+  color: #f87171;
 }
-.risk-low {
-  --risk-header-bg: oklch(97% 0.03 145);
-  --risk-header-border: oklch(90% 0.06 145);
-  --risk-badge-bg: oklch(55% 0.15 145);
-  --risk-bg: oklch(97% 0.03 145);
-  --risk-border: oklch(90% 0.06 145);
-  --risk-btn-bg: oklch(97% 0.03 145);
-  --risk-btn-color: oklch(55% 0.15 145);
-  --risk-title-color: oklch(40% 0.1 145);
-  --risk-sub-color: oklch(55% 0.15 145);
+.dark-mode .ing-hdr-btn {
+  background: rgba(248, 113, 113, 0.15);
 }
-.risk-safe {
-  --risk-header-bg: oklch(97% 0.03 145);
-  --risk-header-border: oklch(90% 0.06 145);
-  --risk-badge-bg: oklch(55% 0.15 145);
-  --risk-bg: oklch(97% 0.03 145);
-  --risk-border: oklch(90% 0.06 145);
-  --risk-btn-bg: oklch(97% 0.03 145);
-  --risk-btn-color: oklch(55% 0.15 145);
-  --risk-title-color: oklch(40% 0.1 145);
-  --risk-sub-color: oklch(55% 0.15 145);
+.dark-mode .ing-hdr :deep(.icon-svg) {
+  stroke: #f87171;
 }
-.risk-unknown {
-  --risk-header-bg: oklch(97% 0.01 265);
-  --risk-header-border: oklch(93% 0.01 265);
-  --risk-badge-bg: oklch(55% 0.01 265);
-  --risk-bg: oklch(97% 0.01 265);
-  --risk-border: oklch(93% 0.01 265);
-  --risk-btn-bg: oklch(97% 0.01 265);
-  --risk-btn-color: oklch(55% 0.01 265);
-  --risk-title-color: oklch(45% 0.01 265);
-  --risk-sub-color: oklch(55% 0.01 265);
+// 亮色 risk header
+.light-mode .ing-hdr {
+  background: #fff4f0;
+  border-bottom: 2px solid #fecaca;
+}
+.light-mode .ing-hdr-title {
+  color: #7f1d1d;
+}
+.light-mode .ing-hdr-sub {
+  color: #ef4444;
+}
+.light-mode .ing-hdr-btn {
+  background: rgba(220, 38, 38, 0.1);
+}
+.light-mode .ing-hdr :deep(.icon-svg) {
+  stroke: #ef4444;
 }
 
-// ── Header ──────────────────────────────────────────────
-
-.header-btn {
-  background: transparent;
-  color: var(--color-foreground);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  border: none;
-
-  :deep(.icon-svg) {
-    color: var(--risk-btn-color);
-  }
+// ── Section Card ──────────────────────────────────────────
+.sec-card {
+  border-radius: 14px;
+  overflow: hidden;
+}
+.dark-mode .sec-card {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.light-mode .sec-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.header-title {
-  color: var(--color-foreground);
-}
-
-.dark .header-subtitle {
-  color: color-mix(in oklch, var(--color-foreground) 54%, transparent);
-}
-
-// ── Section Card 通用 ────────────────────────────────────
-.section-card {
-  box-shadow: 0 6rpx 20rpx rgba(15, 23, 42, 0.06);
-}
-
-.dark .section-card {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.25);
-}
-
-.section-icon-wrap {
-  &.icon-bg-blue {
-    background: color-mix(in oklch, oklch(55% 0.15 245) 12%, transparent);
-  }
-  &.icon-bg-red {
-    background: color-mix(in oklch, oklch(55% 0.2 25) 12%, transparent);
-  }
-  &.icon-bg-purple {
-    background: color-mix(in oklch, oklch(55% 0.15 300) 12%, transparent);
-  }
-  &.icon-bg-green {
-    background: color-mix(in oklch, oklch(55% 0.15 145) 12%, transparent);
-  }
-  &.icon-bg-orange {
-    background: color-mix(in oklch, oklch(60% 0.18 50) 12%, transparent);
-  }
-}
-
-.icon-bg-blue .section-icon {
-  color: oklch(55% 0.15 245);
-}
-.icon-bg-red .section-icon {
-  color: oklch(55% 0.2 25);
-}
-.icon-bg-purple .section-icon {
-  color: oklch(55% 0.15 300);
-}
-.icon-bg-green .section-icon {
-  color: oklch(55% 0.15 145);
-}
-.icon-bg-orange .section-icon {
-  color: oklch(60% 0.18 50);
-}
-
-.ai-label {
-  background: var(--ai-label-bg);
-  letter-spacing: 0.05em;
-}
-
-// ── Hero 风险卡 ──────────────────────────────────────────
-.section-card.hero-card {
-  box-shadow: none;
-}
-
+// ── Hero Top ─────────────────────────────────────────────
 .hero-top {
-  background: linear-gradient(145deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%);
-  min-height: 420rpx;
+  border-bottom: 1px solid #fecaca;
+}
+.dark-mode .hero-top {
+  background: linear-gradient(135deg, rgba(26, 8, 8, 0.6) 0%, transparent 100%);
+  border-bottom: 1px solid #7f1d1d;
+}
+.light-mode .hero-top {
+  background: linear-gradient(135deg, rgba(255, 244, 240, 0.6) 0%, transparent 100%);
+  border-bottom: 1px solid #fecaca;
 }
 
-.dark .hero-top {
-  background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%);
+// ── AI 标签 ──────────────────────────────────────────────
+.ai-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.hero-emoji {
-  font-size: 110rpx;
-  margin-bottom: 20rpx;
-  filter: drop-shadow(0 8rpx 18rpx rgba(0, 0, 0, 0.18));
+// ── Chips ────────────────────────────────────────────────
+.dark-mode .chip-red {
+  background: #450a0a;
+  color: #fca5a5;
+  border: 1px solid transparent;
 }
-
-.hero-name {
-  color: var(--color-foreground);
+.dark-mode .chip-warn {
+  background: #3b1a00;
+  color: #fcd34d;
+  border: 1px solid transparent;
 }
-
-.hero-code {
-  color: color-mix(in oklch, var(--color-foreground) 58%, transparent);
+.dark-mode .chip-neu {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
 }
-
-.risk-badge {
-  background: color-mix(in oklch, var(--risk-badge-bg) 24%, transparent);
-  border: 1px solid color-mix(in oklch, var(--risk-badge-bg) 36%, transparent);
-  backdrop-filter: blur(8px);
+.light-mode .chip-red {
+  background: #fff0f0;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
-
-.badge-text {
-  color: var(--risk-btn-color);
+.light-mode .chip-warn {
+  background: #fefce8;
+  color: #a16207;
+  border: 1px solid #fde68a;
+}
+.light-mode .chip-neu {
+  background: rgba(0, 0, 0, 0.04);
+  color: #4b5563;
 }
 
 // ── 风险谱条 ─────────────────────────────────────────────
 .spectrum-bar {
   background: linear-gradient(
     to right,
-    oklch(55% 0.15 145) 0%,
-    oklch(65% 0.12 145) 20%,
-    oklch(65% 0.16 85) 45%,
-    oklch(60% 0.18 50) 65%,
-    oklch(55% 0.2 25) 82%,
-    oklch(55% 0.2 25) 100%
+    #22c55e 0%,
+    #86efac 20%,
+    #facc15 45%,
+    #fb923c 65%,
+    #ef4444 82%,
+    #dc2626 100%
   );
-  transition: opacity 0.3s ease;
 }
 
-.spectrum-needle {
-  width: 28rpx;
-  height: 28rpx;
-  background: var(--color-card);
-  border: 5rpx solid var(--color-risk-t4);
-  box-shadow: 0 2rpx 6rpx
-    color-mix(in oklch, oklch(55% 0.2 25) 35%, transparent);
+// ── 建议图标 ─────────────────────────────────────────────
+.dot-good {
+  background: #f0fdf4;
+}
+.dark-mode .dot-good {
+  background: #052e16;
+}
+.dot-warn {
+  background: #fffbeb;
+}
+.dark-mode .dot-warn {
+  background: #3b1a00;
 }
 
-// ── Chips ────────────────────────────────────────────────
-.chips-row {
-  background: var(--color-background);
-  border-top-left-radius: 28rpx;
-  border-top-right-radius: 28rpx;
-  margin-top: -8rpx;
+// ── 底部栏 ───────────────────────────────────────────────
+.bot-bar {
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
-
-.chip {
-  &.chip-func {
-    color: var(--color-risk-t3);
-    background: color-mix(in oklch, var(--color-risk-t3) 12%, transparent);
-    border: 1px solid color-mix(in oklch, var(--color-risk-t3) 20%, transparent);
-  }
-
-  &.chip-warn {
-    color: var(--color-risk-t4);
-    background: color-mix(in oklch, var(--color-risk-t4) 12%, transparent);
-    border: 1px solid color-mix(in oklch, var(--color-risk-t4) 20%, transparent);
-  }
-
-  &.chip-neu {
-    color: var(--color-secondary);
-    background: var(--color-secondary);
-    background: color-mix(in oklch, var(--color-secondary) 8%, transparent);
-    border: 1px solid
-      color-mix(in oklch, var(--color-secondary) 15%, transparent);
-  }
+.dark-mode .bot-bar {
+  background: rgba(26, 26, 26, 0.98);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
-
-// ── KV 表格 ──────────────────────────────────────────────
-.kv-value {
-  &.kv-value-red {
-    color: var(--color-risk-t4);
-  }
+.dark-mode .btn-out {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
 }
-
-// ── 列表项（风险分析 / 使用建议） ───────────────────────────
-.list-item-icon {
-  &.icon-x {
-    background: color-mix(in oklch, oklch(55% 0.2 25) 12%, transparent);
-    color: oklch(55% 0.2 25);
-  }
-
-  &.icon-check-green {
-    background: color-mix(in oklch, oklch(55% 0.15 145) 12%, transparent);
-    color: oklch(55% 0.15 145);
-  }
-
-  &.icon-check-yellow {
-    background: color-mix(in oklch, oklch(65% 0.16 85) 12%, transparent);
-    color: oklch(65% 0.16 85);
-  }
-}
-
-// ── 相关产品横向滚动 ─────────────────────────────────────
-.related-scroll {
-  :deep(.uni-scroll-view:first-child) {
-    overflow: hidden;
-  }
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.related-name {
-  line-clamp: 2;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.related-risk-tag {
-  &.risk-high {
-    color: var(--color-risk-t3);
-    background: color-mix(in oklch, var(--color-risk-t3) 12%, transparent);
-  }
-
-  &.risk-med {
-    color: var(--color-risk-t2);
-    background: color-mix(in oklch, var(--color-risk-t2) 12%, transparent);
-  }
-}
-
-// ── 底部操作栏 ───────────────────────────────────────────
-.bottom-bar {
-  --bottom-bar-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.06);
-  background: color-mix(in oklch, var(--color-background) 95%, transparent);
-  backdrop-filter: saturate(180%) blur(14px);
-  padding-bottom: max(16rpx, env(safe-area-inset-bottom));
-  box-shadow: var(--bottom-bar-shadow);
-}
-
-.bar-btn-ghost {
-  background: color-mix(in oklch, var(--color-foreground) 6%, transparent);
-  border: 1px solid
-    color-mix(in oklch, var(--color-foreground) 10%, transparent);
-}
-
-.bar-btn-primary {
-  background: linear-gradient(
-    135deg,
-    var(--color-accent),
-    color-mix(in oklch, var(--color-accent) 80%, #f472b6)
-  );
-  box-shadow: 0 8rpx 22rpx
-    color-mix(in oklch, var(--color-accent) 32%, transparent);
-
-  .dark & {
-    background: var(--color-accent);
-    color: #ffffff;
-  }
+.light-mode .btn-out {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
 }
 </style>
