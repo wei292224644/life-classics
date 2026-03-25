@@ -358,7 +358,10 @@ function goToProduct(barcode: string) {
       <view v-else class="px-3 flex flex-col gap-3">
         <!-- Hero 风险卡 -->
         <view class="sec-card">
-          <view class="hero-top p-3">
+          <view
+            class="hero-top p-3"
+            :class="[`hero-top-${riskConf.visualKey}`, themeStore.isDark ? 'dark-mode' : 'light-mode']"
+          >
             <view
               class="flex items-start justify-between mb-2"
             >
@@ -443,7 +446,6 @@ function goToProduct(barcode: string) {
             <text class="text-[13px] font-bold text-text-primary flex-1"
               >描述</text
             >
-            <text class="ai-label ml-auto">AI</text>
           </view>
           <view class="px-3 py-[11px]">
             <text class="text-[12px] text-text-secondary leading-[1.7]">{{
@@ -767,6 +769,73 @@ function goToProduct(barcode: string) {
 .light-mode .hero-top {
   background: linear-gradient(135deg, rgba(255, 244, 240, 0.6) 0%, transparent 100%);
   border-bottom: 1px solid #fecaca;
+}
+
+// Risk-level specific overrides
+.hero-top-t4,
+.hero-top-critical {
+  &.dark-mode {
+    background: linear-gradient(135deg, rgba(26, 8, 8, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #7f1d1d;
+  }
+  &.light-mode {
+    background: linear-gradient(135deg, rgba(255, 244, 240, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #fecaca;
+  }
+}
+.hero-top-t3,
+.hero-top-high {
+  &.dark-mode {
+    background: linear-gradient(135deg, rgba(26, 8, 8, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #7f1d1d;
+  }
+  &.light-mode {
+    background: linear-gradient(135deg, rgba(255, 244, 240, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #fecaca;
+  }
+}
+.hero-top-t2,
+.hero-top-medium {
+  &.dark-mode {
+    background: linear-gradient(135deg, rgba(26, 20, 8, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #78350f;
+  }
+  &.light-mode {
+    background: linear-gradient(135deg, rgba(255, 251, 235, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #fde68a;
+  }
+}
+.hero-top-t1,
+.hero-top-low {
+  &.dark-mode {
+    background: linear-gradient(135deg, rgba(5, 20, 10, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #166534;
+  }
+  &.light-mode {
+    background: linear-gradient(135deg, rgba(240, 253, 244, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #bbf7d0;
+  }
+}
+.hero-top-t0,
+.hero-top-safe {
+  &.dark-mode {
+    background: linear-gradient(135deg, rgba(5, 20, 10, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #166534;
+  }
+  &.light-mode {
+    background: linear-gradient(135deg, rgba(240, 253, 244, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #bbf7d0;
+  }
+}
+.hero-top-unknown {
+  &.dark-mode {
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #374151;
+  }
+  &.light-mode {
+    background: linear-gradient(135deg, rgba(245, 245, 245, 0.6) 0%, transparent 100%);
+    border-bottom: 1px solid #e5e7eb;
+  }
 }
 
 // ── AI 标签 ──────────────────────────────────────────────
