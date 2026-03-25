@@ -1,4 +1,5 @@
 <template>
+  <ToastContainer />
   <Screen @scroll="onScroll">
     <template #content>
       <view class="pb-10 bg-background">
@@ -191,6 +192,7 @@ import Screen from "@/components/ui/Screen.vue";
 import StateView from "@/components/ui/StateView.vue";
 import { formatDecimalString } from "@/utils/numberFormat";
 import { useToast } from "@/composables/useToast";
+import ToastContainer from "@/components/ui/ToastContainer.vue";
 
 const toast = useToast();
 const store = useProductStore();

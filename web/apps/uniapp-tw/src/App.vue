@@ -21,7 +21,3 @@ onHide(() => {
   console.log("App Hide");
 });
 </script>
-
-<template>
-  <ToastContainer />
-</template>
