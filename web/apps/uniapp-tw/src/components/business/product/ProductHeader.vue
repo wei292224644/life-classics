@@ -1,108 +1,77 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useSystemInfo } from '../../../utils/system'
-import Icon from '../../ui/Icon.vue'
+import { ref } from "vue";
+import { useSystemInfo } from "@/utils/system";
+import Icon from "@/components/ui/Icon.vue";
+import Button from "@/components/ui/Button.vue";
 
 interface Props {
-  name: string
-  overallRiskLevel: string
+  name: string;
+  overallRiskLevel: string;
 }
 
-defineProps<Props>()
+defineProps<Props>();
 
-const { statusBarHeight } = useSystemInfo()
-const isScrolled = ref(false)
+const { statusBarHeight } = useSystemInfo();
+const isScrolled = ref(false);
 
 function updateScroll(scrollTop: number) {
-  isScrolled.value = scrollTop > 60
+  isScrolled.value = scrollTop > 60;
 }
 
-defineExpose({ updateScroll })
+defineExpose({ updateScroll });
 
 function handleBack() {
-  uni.navigateBack()
+  uni.navigateBack();
 }
 
 function handleShare() {
-  // TODO: share
+  uni.showShareMenu({
+    withShareTicket: true,
+    menus: ["shareAppMessage", "shareTimeline"],
+  });
 }
 </script>
 
 <template>
-  <view class="product-header">
+  <view class="fixed top-0 left-0 right-0 z-50 pointer-events-none">
     <view
-      class="header"
+      class="flex items-center px-3 py-2 bg-transparent pointer-events-auto transition-[background,box-shadow] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
       :class="{ 'header--scrolled': isScrolled }"
       :style="{ top: `${statusBarHeight}px` }"
     >
-      <button type="button" class="header-btn" aria-label="返回" @click="handleBack">
-        <Icon name="arrowLeft" :size="36" />
-      </button>
-      <text class="header-title">{{ name }}</text>
-      <button type="button" class="header-btn" aria-label="分享" @click="handleShare">
-        <Icon name="share" :size="36" />
-      </button>
+      <Button
+        size="icon"
+        variant="ghost"
+        @click="handleBack"
+        class="rounded-sm"
+      >
+        <Icon name="arrowLeft" :size="20" />
+      </Button>
+      <text
+        class="flex-1 text-sm leading-[1.15] font-semibold tracking-[-0.01em]"
+      >
+        {{ name }}
+      </text>
+      <Button
+        size="icon"
+        variant="ghost"
+        class="rounded-sm"
+        @click="handleShare"
+      >
+        <Icon name="share" :size="20" />
+      </Button>
     </view>
   </view>
 </template>
 
 <style lang="scss" scoped>
-.product-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  pointer-events: none;
-}
-
-.header {
-  @apply fixed left-0 right-0 flex items-center;
-  height: 128rpx;
-  padding-left: 28rpx;
-  padding-right: 28rpx;
-  background: var(--header-bg, transparent);
-  transition:
-    background 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  pointer-events: auto;
-  z-index: 100;
-
-  &--scrolled {
-    background: var(--header-scrolled-bg);
-    backdrop-filter: saturate(180%) blur(16px);
-    -webkit-backdrop-filter: saturate(180%) blur(16px);
-    border-bottom: 1px solid var(--color-border);
-    box-shadow:
-      0 8rpx 48rpx rgba(0, 0, 0, 0.08),
-      0 1px 0 rgba(0, 0, 0, 0.04);
-  }
-}
-
-.header-btn {
-  @apply rounded-2xl flex items-center justify-center bg-transparent border-none shadow-none outline-none appearance-none cursor-pointer flex-shrink-0;
-  width: 60rpx;
-  height: 60rpx;
-  color: var(--foreground);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  -webkit-appearance: none;
-  appearance: none;
-
-  &:active {
-    @apply scale-95;
-    background: rgba(128, 128, 128, 0.15);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-  }
-}
-
-.header-title {
-  @apply flex-1 font-semibold tracking-tight;
-  font-size: 34rpx;
-  color: var(--foreground);
-  line-height: 1.15;
+.header--scrolled {
+  background: var(--header-scrolled-bg);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow:
+    0 8rpx 48rpx rgba(0, 0, 0, 0.08),
+    0 1px 0 rgba(0, 0, 0, 0.04);
 }
 </style>

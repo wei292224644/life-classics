@@ -35,6 +35,14 @@ export { settings } from './icons/settings';
 export { search } from './icons/search';
 export { messageCircle } from './icons/message-circle';
 export { loader } from './icons/loader';
+export { riskT0 } from './icons/risk-t0';
+export { riskT1 } from './icons/risk-t1';
+export { riskT2 } from './icons/risk-t2';
+export { riskT3 } from './icons/risk-t3';
+export { riskT4 } from './icons/risk-t4';
+export { riskUnknown } from './icons/risk-unknown';
+export { checkCircle } from './icons/check-circle';
+export { xCircle } from './icons/x-circle';
 
 // Create icon component factory
 export { createIconComponent } from './createIconComponent';

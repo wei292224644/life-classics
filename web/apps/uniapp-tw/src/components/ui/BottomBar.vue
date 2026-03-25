@@ -26,7 +26,7 @@ const emit = defineEmits<{
 
 <style lang="scss" scoped>
 .bottom-bar {
-  @apply absolute bottom-0 left-0 right-0 z-50 flex items-center gap-3 px-3 py-3;
+  @apply flex items-center gap-3 px-3 py-3;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: saturate(180%) blur(16px);
   -webkit-backdrop-filter: saturate(180%) blur(16px);

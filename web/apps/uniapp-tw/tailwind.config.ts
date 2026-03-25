@@ -6,6 +6,16 @@ import { isMp } from "./platform";
 export default <Config>{
   darkMode: "class",
   content: ["./index.html", "./src/**/*.{html,js,ts,jsx,tsx,vue}"],
+  safelist: [
+    // 风险色：文字类
+    { pattern: /^text-risk-(t0|t1|t2|t3|t4|unknown)$/ },
+    // 风险色：背景类（不带透明度）
+    { pattern: /^bg-risk-(t0|t1|t2|t3|t4|unknown)$/ },
+    // 风险色：背景类（带透明度 /xx）
+    { pattern: /^bg-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/ },
+    { pattern: /^border-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/ },
+    { pattern: /^shadow-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/ },
+  ],
   theme: {
     extend: {
       colors: {
@@ -42,13 +52,15 @@ export default <Config>{
         "sidebar-border": "var(--sidebar-border)",
         "sidebar-ring": "var(--sidebar-ring)",
 
-        // 风险色
-        "risk-t4": "var(--color-risk-t4)",
-        "risk-t3": "var(--color-risk-t3)",
-        "risk-t2": "var(--color-risk-t2)",
-        "risk-t1": "var(--color-risk-t1)",
-        "risk-t0": "var(--color-risk-t0)",
-        "risk-unknown": "var(--color-risk-unknown)",
+        risk: {
+          t4: "oklch(50% 0.22 25 / <alpha-value>)",
+          t3: "oklch(55% 0.2 50 / <alpha-value>)",
+          t2: "oklch(60% 0.18 85 / <alpha-value>)",
+          t1: "oklch(65% 0.16 145 / <alpha-value>)",
+          t0: "oklch(55% 0.15 145 / <alpha-value>)",
+          // 允许 `bg-risk-unknown/50` 这类透明度修饰符
+          unknown: "oklch(60% 0.01 265 / <alpha-value>)",
+        },
 
         // 复杂 component token
         "bottom-bar-bg": "var(--bottom-bar-bg)",

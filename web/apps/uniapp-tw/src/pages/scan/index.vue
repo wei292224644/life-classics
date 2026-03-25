@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { scanBarcode, ScanCancelledError } from "../../utils/scanner";
+import { scanBarcode, ScanCancelledError } from "@/utils/scanner";
 
 onMounted(async () => {
   try {

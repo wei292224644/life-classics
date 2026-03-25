@@ -1,91 +1,107 @@
 <template>
-  <view class="ingredient-section">
-    <text class="text-xl font-bold text-secondary-foreground">配料与风险</text>
-    <template v-for="levelKey in LEVEL_ORDER" :key="levelKey">
+  <view>
+    <view class="mb-3">
+      <text class="text-xl font-bold text-secondary-foreground"
+        >配料与风险</text
+      >
+    </view>
+    <template v-for="levelGroup in levelGroups" :key="levelGroup.levelKey">
       <view
-        v-if="groupedIngredients[levelKey]?.length"
-        :class="['risk-group', levelKey]"
+        v-if="levelGroup.levelIngredients?.length"
+        :class="[
+          'rounded-2xl p-3 mb-3 relative overflow-hidden border border-transparent',
+          `bg-risk-${levelGroup.levelKey}/10`,
+          `border-risk-${levelGroup.levelKey}/60`,
+        ]"
       >
         <!-- 组头 -->
-        <view class="risk-header">
-          <view :class="['risk-dot', levelKey]" />
-          <view :class="['risk-badge', levelKey]">{{
-            LEVEL_LABELS[levelKey]
-          }}</view>
-          <text class="risk-count"
-            >{{ groupedIngredients[levelKey].length }} 项</text
+        <view class="flex items-center gap-2 mb-3">
+          <view
+            :class="[
+              'w-2 h-2 rounded-full flex-shrink-0',
+              `bg-risk-${levelGroup.levelKey}`,
+              levelGroup.levelKey === 'unknown'
+                ? 'shadow-none'
+                : `shadow-risk-${levelGroup.levelKey}/20 shadow-[0_0_8px_var(--tw-shadow-color)]`,
+            ]"
+          />
+          <Tag
+            :class="{
+              'bg-risk-t4/40': levelGroup.levelKey === 't4',
+              'bg-risk-t3/40': levelGroup.levelKey === 't3',
+              'bg-risk-t2/40': levelGroup.levelKey === 't2',
+              'bg-risk-t1/40': levelGroup.levelKey === 't1',
+              'bg-risk-t0/40': levelGroup.levelKey === 't0',
+              'bg-risk-unknown/40': levelGroup.levelKey === 'unknown',
+            }"
+          >
+            {{ levelGroup.config.badge }}
+          </Tag>
+          <text class="text-xs ml-auto text-muted-foreground"
+            >{{ levelGroup.levelIngredients.length }} 项</text
           >
         </view>
 
         <!-- 横向滚动配料卡 -->
-        <scroll-view scroll-x class="ingredient-scroll">
-          <view class="ingredient-scroll-inner">
+        <scroll-view scroll-x class="ingredient-scroll" :show-scrollbar="false">
+          <view class="flex flex-row gap-4 w-max pb-1">
             <view
-              v-for="item in groupedIngredients[levelKey]"
+              v-for="item in levelGroup.levelIngredients"
               :key="item.id"
-              :class="['ingredient-card', levelKey]"
+              :class="[
+                'flex-none rounded-2xl p-3 px-2 relative overflow-hidden cursor-pointer min-w-36 box-border transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.96] bg-white/80 dark:bg-white/5 border',
+                `border-risk-${levelGroup.levelKey}/60`,
+              ]"
               @click="goToDetail(item.id)"
             >
               <!-- 左侧风险色条 -->
-              <view :class="['risk-bar', levelKey]" />
-
+              <view
+                :class="[
+                  'absolute left-0 top-0 bottom-0 w-1.5',
+                  `flow-bg-risk-${levelGroup.levelKey}`,
+                  // levelGroup.levelKey === 'unknown'
+                  //   ? 'shadow-none'
+                  //   : `shadow-risk-${levelGroup.levelKey}/20 shadow-[0_0_16rpx_var(--tw-shadow-color)]`,
+                ]"
+              />
+              <View
+                class="size-14 absolute -right-4 -top-4 bg-background rounded-full"
+              >
+              </View>
               <!-- 右上角箭头 -->
-              <view class="ingredient-arrow">
-                <Icon name="arrowRight" :size="20" />
+              <view
+                class="absolute right-2.5 top-2.5 w-4 h-4 opacity-40 text-muted-foreground"
+              >
+                <Icon name="arrowRight" :size="20" class="w-4 h-4" />
               </view>
 
               <!-- 内容 -->
-              <view class="ingredient-content">
-                <view class="ingredient-name">
-                  <!-- 低风险：叶子图标（stroke） -->
-                  <svg
-                    v-if="levelKey === 't0'"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    class="icon"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M6.5 21C3 17.5 3 12 6 8c2-2.5 5-4 8.5-4C18 4 21 7 21 10c0 2.5-1.5 4.5-3.5 5.5"
-                    />
-                    <path d="M12 22V12" />
-                  </svg>
-                  <!-- 未知：问号圆（fill） -->
-                  <svg
-                    v-else-if="levelKey === 'unknown'"
-                    viewBox="0 0 20 20"
-                    class="icon"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  <!-- 其余：警告三角（fill） -->
-                  <svg
-                    v-else
-                    viewBox="0 0 20 20"
-                    class="icon"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  <text class="ingredient-name-text">{{ item.name }}</text>
+              <view class="flex flex-col pl-2">
+                <view class="flex items-center gap-1 mb-2">
+                  <Icon
+                    :name="levelGroup.config.icon as any"
+                    :size="16"
+                    :class="'text-risk-' + levelGroup.levelKey"
+                  />
+                  <text class="text-sm font-medium text-foreground">{{
+                    item.name
+                  }}</text>
                 </view>
-                <view
-                  v-if="getReason(item)"
-                  :class="['ingredient-reason', levelKey]"
+                <Tag
+                  class="w-24"
+                  textClass="block max-w-full truncate"
+                  :class="{
+                    '!text-risk-t4 bg-risk-t4/10': levelGroup.levelKey === 't4',
+                    '!text-risk-t3 bg-risk-t3/10': levelGroup.levelKey === 't3',
+                    '!text-risk-t2 bg-risk-t2/10': levelGroup.levelKey === 't2',
+                    '!text-risk-t1 bg-risk-t1/10': levelGroup.levelKey === 't1',
+                    '!text-risk-t0 bg-risk-t0/10': levelGroup.levelKey === 't0',
+                    '!text-risk-unknown bg-risk-unknown/10':
+                      levelGroup.levelKey === 'unknown',
+                  }"
                 >
                   {{ getReason(item) }}
-                </view>
+                </Tag>
               </view>
             </view>
           </view>
@@ -97,28 +113,20 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { IngredientDetail } from "../types/product";
-import { useIngredientStore } from "../../../store/ingredient";
-import { useProductStore } from "../../../store/product";
-import Icon from "../../ui/Icon.vue";
+import type { IngredientDetail } from "@/types/product";
+import { useIngredientStore } from "@/store/ingredient";
+import { useProductStore } from "@/store/product";
+import { getRiskConfig } from "@/utils/riskLevel";
+import Icon from "@/components/ui/Icon.vue";
+import Tag from "@/components/ui/Tag.vue";
 
 const props = defineProps<{ ingredients: IngredientDetail[] }>();
 const ingStore = useIngredientStore();
 const productStore = useProductStore();
 
-const LEVEL_ORDER = ["t4", "t3", "t2", "t1", "t0", "unknown"] as const;
-
-const LEVEL_LABELS: Record<string, string> = {
-  t4: "严重风险",
-  t3: "较高风险",
-  t2: "中等风险",
-  t1: "低风险",
-  t0: "安全",
-  unknown: "未知",
-};
-
-const groupedIngredients = computed(() => {
-  const groups: Record<string, IngredientDetail[]> = {
+const levelGroups = computed(() => {
+  const order = ["t4", "t3", "t2", "t1", "t0", "unknown"] as const;
+  const groups: Record<(typeof order)[number], IngredientDetail[]> = {
     t4: [],
     t3: [],
     t2: [],
@@ -126,20 +134,26 @@ const groupedIngredients = computed(() => {
     t0: [],
     unknown: [],
   };
+
   const ingredients = props.ingredients ?? [];
   for (const ing of ingredients) {
-    const level = ing.analysis?.level ?? "unknown";
+    const level = (ing.analysis?.level ?? "unknown") as (typeof order)[number];
     if (groups[level] !== undefined) groups[level].push(ing);
-    else groups["unknown"].push(ing);
+    else groups.unknown.push(ing);
   }
-  return groups;
+
+  return order.map((levelKey) => ({
+    levelKey,
+    levelIngredients: groups[levelKey],
+    config: getRiskConfig(levelKey as any),
+  }));
 });
 
 function getReason(item: IngredientDetail): string {
-  if (!item.analysis?.results) return "";
-  const r = item.analysis.results as Record<string, unknown>;
-  if (typeof r.reason === "string") return r.reason;
-  return "";
+  // if (!item.analysis?.results) return "";
+  // const r = item.analysis.results as Record<string, unknown>;
+  // if (typeof r.reason === "string") return r.reason;
+  return "teetetetetetetetetteetetetetetetetet";
 }
 
 function goToDetail(id: number) {
@@ -157,6 +171,49 @@ function goToDetail(id: number) {
 </script>
 
 <style lang="scss" scoped>
+.flow-bg-risk-t4 {
+  background: linear-gradient(
+    to right,
+    color-mix(in oklch, var(--color-risk-t4) 80%, transparent) 0%,
+    color-mix(in oklch, var(--color-risk-t4) 12%, transparent) 100%
+  );
+}
+.flow-bg-risk-t3 {
+  background: linear-gradient(
+    to right,
+    color-mix(in oklch, var(--color-risk-t3) 80%, transparent) 0%,
+    color-mix(in oklch, var(--color-risk-t3) 12%, transparent) 100%
+  );
+}
+.flow-bg-risk-t2 {
+  background: linear-gradient(
+    to right,
+    color-mix(in oklch, var(--color-risk-t2) 80%, transparent) 0%,
+    color-mix(in oklch, var(--color-risk-t2) 12%, transparent) 100%
+  );
+}
+.flow-bg-risk-t1 {
+  background: linear-gradient(
+    to right,
+    color-mix(in oklch, var(--color-risk-t1) 80%, transparent) 0%,
+    color-mix(in oklch, var(--color-risk-t1) 12%, transparent) 100%
+  );
+}
+.flow-bg-risk-t0 {
+  background: linear-gradient(
+    to right,
+    color-mix(in oklch, var(--color-risk-t0) 80%, transparent) 0%,
+    color-mix(in oklch, var(--color-risk-t0) 12%, transparent) 100%
+  );
+}
+.flow-bg-risk-unknown {
+  background: linear-gradient(
+    to right,
+    color-mix(in oklch, var(--color-risk-unknown) 80%, transparent) 0%,
+    color-mix(in oklch, var(--color-risk-unknown) 12%, transparent) 100%
+  );
+}
+/*
 // ── 风险分组容器 ──────────────────────────────────────
 .risk-group {
   @apply rounded-[40rpx] p-6 mb-3 relative overflow-hidden;
@@ -206,6 +263,8 @@ function goToDetail(id: number) {
     border-color: rgba(156, 163, 175, 0.15);
   }
 }
+
+
 
 // ── 组头 ──────────────────────────────────────────────
 .risk-header {
@@ -388,12 +447,24 @@ function goToDetail(id: number) {
   }
 
   // 图标颜色：通过 currentColor 继承给 SVG path
-  .t4 & .icon { color: var(--color-risk-t4); }
-  .t3 & .icon { color: var(--color-risk-t3); }
-  .t2 & .icon { color: var(--color-risk-t2); }
-  .t1 & .icon { color: var(--color-risk-t1); }
-  .t0 & .icon { color: var(--color-risk-t0); }
-  .unknown & .icon { color: var(--color-risk-unknown); }
+  .t4 & .icon {
+    color: var(--color-risk-t4);
+  }
+  .t3 & .icon {
+    color: var(--color-risk-t3);
+  }
+  .t2 & .icon {
+    color: var(--color-risk-t2);
+  }
+  .t1 & .icon {
+    color: var(--color-risk-t1);
+  }
+  .t0 & .icon {
+    color: var(--color-risk-t0);
+  }
+  .unknown & .icon {
+    color: var(--color-risk-unknown);
+  }
 }
 
 .ingredient-name-text {
@@ -428,6 +499,17 @@ function goToDetail(id: number) {
   &.unknown {
     color: var(--color-risk-unknown);
     background: color-mix(in oklch, var(--color-risk-unknown) 12%, transparent);
+  }
+}
+*/
+
+.ingredient-scroll {
+  :deep(.uni-scroll-view:first-child) {
+    overflow: hidden;
+  }
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 </style>

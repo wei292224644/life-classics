@@ -82,7 +82,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useThemeStore } from "../../store/theme"
+import { useThemeStore } from "@/store/theme"
 import Icon from "@/components/ui/Icon.vue"
 
 // ── Types ─────────────────────────────────────────────

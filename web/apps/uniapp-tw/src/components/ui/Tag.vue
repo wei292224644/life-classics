@@ -1,142 +1,115 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import Icon from './Icon.vue'
-import type { IconName } from '../icons/iconsRegistry'
+import { computed } from "vue";
+import Icon from "./Icon.vue";
+import type { IconName } from "../icons/iconsRegistry";
 
-type TagVariant = 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'success' | 'warning'
-type TagSize = 'sm' | 'md' | 'lg'
+type TagVariant =
+  | "default"
+  | "secondary"
+  | "outline"
+  | "ghost"
+  | "destructive"
+  | "success"
+  | "warning";
+type TagSize = "sm" | "md" | "lg";
 
 interface Props {
-  variant?: TagVariant
-  size?: TagSize
-  removable?: boolean
-  icon?: IconName
-  class?: string
+  variant?: TagVariant;
+  size?: TagSize;
+  removable?: boolean;
+  icon?: IconName;
+  class?: string | Record<string, boolean | string>;
+  textClass?: string | Record<string, boolean | string>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  variant: 'default',
-  size: 'md',
+  variant: "default",
+  size: "md",
   removable: false,
   icon: undefined,
-  class: '',
-})
+  class: "",
+  textClass: "",
+});
 
 const emit = defineEmits<{
-  (e: 'remove'): void
-}>()
+  (e: "remove"): void;
+}>();
 
-const tagClass = computed(() => [
-  'tag',
-  `tag--${props.variant}`,
-  `tag--${props.size}`,
-  { 'tag--with-icon': props.icon },
-  props.class,
-])
+const variantClass = computed(() => {
+  switch (props.variant) {
+    case "default":
+      return "border-transparent text-muted";
+    case "secondary":
+      return "border-transparent text-secondary-foreground bg-[var(--secondary)]";
+    case "outline":
+      return "text-muted border-border bg-transparent";
+    case "ghost":
+      return "border-transparent text-muted bg-transparent";
+    case "destructive":
+      return "border-transparent text-muted bg-[var(--destructive)]";
+    case "success":
+      return "border-transparent text-muted bg-[var(--color-risk-t0)]";
+    case "warning":
+      return "border-transparent text-muted bg-[var(--color-risk-t2)]";
+    default:
+      return "border-transparent text-muted";
+  }
+});
+
+const sizeClasses = computed(() => {
+  switch (props.size) {
+    case "sm":
+      return {
+        tag: "px-2 py-0.5 text-xs gap-0.5",
+        icon: "w-3 h-3",
+        removeIcon: "w-3 h-3",
+      };
+    case "lg":
+      return {
+        tag: "px-4 py-1.5 text-sm gap-1.5",
+        icon: "w-4 h-4",
+        removeIcon: "w-4 h-4",
+      };
+    case "md":
+    default:
+      return {
+        tag: "px-3 py-1 text-xs gap-1",
+        icon: "w-3.5 h-3.5",
+        removeIcon: "w-3.5 h-3.5",
+      };
+  }
+});
+
+const iconClass = computed(() => ["flex-shrink-0", sizeClasses.value.icon]);
+const textClass = computed(() => ["leading-none"]);
+const removeClass = computed(() => [
+  "flex items-center justify-center rounded-full -mr-0.5 p-0.5",
+  "hover:opacity-80 active:opacity-60",
+  "transition-opacity duration-150 ease",
+]);
+const removeIconClass = computed(() => [
+  "opacity-70",
+  sizeClasses.value.removeIcon,
+]);
 </script>
 
 <template>
-  <view :class="tagClass">
-    <Icon v-if="icon" :name="icon" class="tag__icon" />
-    <text class="tag__text"><slot /></text>
-    <view v-if="removable" class="tag__remove" @tap="emit('remove')">
-      <Icon name="x" class="tag__remove-icon" />
+  <view
+    :class="[
+      'inline-flex items-center gap-1 font-medium border rounded-full',
+      'transition-all duration-150',
+      variantClass,
+      sizeClasses.tag,
+      props.icon ? 'gap-1' : '',
+      props.class,
+    ]"
+  >
+    <Icon v-if="icon" :name="icon" :class="iconClass" />
+    <text :class="['leading-none', props.textClass]">
+      <slot />
+    </text>
+    <view v-if="removable" :class="removeClass" @tap="emit('remove')">
+      <Icon name="x" :class="removeIconClass" />
     </view>
   </view>
 </template>
-
-<style lang="scss" scoped>
-// ── Base Tag ────────────────────────────────────────────────
-.tag {
-  @apply inline-flex items-center gap-1 font-medium;
-  @apply border rounded-full;
-  @apply transition-all duration-150;
-
-  // default — primary color
-  &--default {
-    @apply border-transparent text-white;
-    background: linear-gradient(135deg, var(--accent-pink-light) 0%, var(--accent-pink) 100%);
-  }
-
-  // secondary — muted background
-  &--secondary {
-    @apply border-transparent text-secondary-foreground;
-    background: var(--secondary);
-  }
-
-  // outline — transparent with border
-  &--outline {
-    @apply text-foreground border-border bg-transparent;
-  }
-
-  // ghost — fully transparent
-  &--ghost {
-    @apply border-transparent text-foreground bg-transparent;
-  }
-
-  // destructive — red
-  &--destructive {
-    @apply border-transparent text-white;
-    background: var(--destructive);
-  }
-
-  // success — green
-  &--success {
-    @apply border-transparent text-white;
-    background: var(--color-risk-t0);
-  }
-
-  // warning — orange/yellow
-  &--warning {
-    @apply border-transparent text-white;
-    background: var(--color-risk-t2);
-  }
-
-  // ── Sizes ─────────────────────────────────────────────────
-
-  &--sm {
-    @apply px-2 py-0.5 text-xs;
-    @apply gap-0.5;
-
-    .tag__icon { @apply w-3 h-3; }
-    .tag__remove-icon { @apply w-3 h-3; }
-  }
-
-  &--md {
-    @apply px-3 py-1 text-xs;
-    @apply gap-1;
-
-    .tag__icon { @apply w-3.5 h-3.5; }
-    .tag__remove-icon { @apply w-3.5 h-3.5; }
-  }
-
-  &--lg {
-    @apply px-4 py-1.5 text-sm;
-    @apply gap-1.5;
-
-    .tag__icon { @apply w-4 h-4; }
-    .tag__remove-icon { @apply w-4 h-4; }
-  }
-
-  // ── Elements ──────────────────────────────────────────────
-
-  &__icon {
-    @apply flex-shrink-0;
-  }
-
-  &__text {
-    @apply leading-none;
-  }
-
-  &__remove {
-    @apply flex items-center justify-center rounded-full;
-    @apply -mr-0.5 p-0.5;
-    @apply hover:opacity-80 active:opacity-60;
-    transition: opacity 0.15s ease;
-
-    &-icon {
-      @apply opacity-70;
-    }
-  }
-}
-</style>

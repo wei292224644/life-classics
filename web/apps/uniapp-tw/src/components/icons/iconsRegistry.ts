@@ -27,6 +27,14 @@ export const iconRegistry = {
   search: icons.search,
   messageCircle: icons.messageCircle,
   loader: icons.loader,
+  riskT0: icons.riskT0,
+  riskT1: icons.riskT1,
+  riskT2: icons.riskT2,
+  riskT3: icons.riskT3,
+  riskT4: icons.riskT4,
+  riskUnknown: icons.riskUnknown,
+  checkCircle: icons.checkCircle,
+  xCircle: icons.xCircle,
 } as const;
 
 export type IconName = keyof typeof iconRegistry;

@@ -2,27 +2,29 @@
 /**
  * Icon — Lucide-style icon component
  */
-import { computed } from 'vue';
-import { iconRegistry, type IconName } from '../icons/iconsRegistry';
+import { computed, useAttrs } from "vue";
+import { iconRegistry, type IconName } from "../icons/iconsRegistry";
 
 interface Props {
   name: IconName;
   size?: number | string;
   strokeWidth?: number | string;
   absoluteStrokeWidth?: boolean;
-  spin?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 24,
   strokeWidth: 2,
   absoluteStrokeWidth: false,
-  spin: false,
 });
+
+const attrs = useAttrs();
 
 const icon = computed(() => iconRegistry[props.name]);
 
-const isFilled = computed(() => icon.value?.contents.includes('fill="currentColor"') ?? false);
+const isFilled = computed(
+  () => icon.value?.contents.includes('fill="currentColor"') ?? false,
+);
 
 const effectiveStrokeWidth = computed(() => {
   if (props.absoluteStrokeWidth) {
@@ -35,8 +37,7 @@ const effectiveStrokeWidth = computed(() => {
 <template>
   <svg
     v-if="icon"
-    class="icon"
-    :class="{ 'icon--spin': spin }"
+    :class="['block', 'flex-shrink-0', 'leading-none', attrs.class]"
     viewBox="0 0 24 24"
     :width="size"
     :height="size"
@@ -48,28 +49,9 @@ const effectiveStrokeWidth = computed(() => {
     aria-hidden="true"
     v-html="icon.contents"
   />
-  <span v-else class="icon-placeholder">{{ name }}</span>
+  <span
+    v-else
+    :class="['inline-block', 'text-[0.75em]', 'opacity-50', attrs.class]"
+    >{{ name }}</span
+  >
 </template>
-
-<style lang="scss" scoped>
-.icon {
-  display: inline-block;
-  flex-shrink: 0;
-  vertical-align: middle;
-  color: currentColor;
-
-  &--spin {
-    animation: spin 1.2s linear infinite;
-  }
-}
-
-.icon-placeholder {
-  font-size: 0.75em;
-  opacity: 0.5;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-</style>

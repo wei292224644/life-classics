@@ -21,8 +21,8 @@
 </template>
 
 <script setup lang="ts">
-import type { IngredientDetail } from "../../../types/product";
-import RiskBadge from "../../../ui/RiskBadge.vue";
+import type { IngredientDetail } from "@/types/product";
+import RiskBadge from "@/components/ui/RiskBadge.vue";
 
 defineProps<{ ingredients: IngredientDetail[] }>();
 

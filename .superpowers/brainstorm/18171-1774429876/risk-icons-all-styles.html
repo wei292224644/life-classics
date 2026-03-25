@@ -1,0 +1,107 @@
+<h2>风险等级 Icon 四种风格对比</h2>
+<p class="subtitle">点击选择你喜欢的方向</p>
+
+<!-- Style A: 水滴风格 -->
+<div class="style-section">
+  <h3>A — 水滴风格</h3>
+  <p class="style-desc">圆润水滴形状，底部液面高度表示风险，柔和有机</p>
+  <div class="icons-row">
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z" stroke="#5E9E6B" stroke-width="1.8" fill="none"/><line x1="12" y1="14" x2="12" y2="18" stroke="#5E9E6B" stroke-width="1.8"/></svg><span>t0 安全</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><defs><clipPath id="drop1"><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z"/></clipPath></defs><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z" stroke="#6EAF85" stroke-width="1.8" fill="none"/><rect x="6" y="14" width="12" height="6" fill="#6EAF85" clip-path="url(#drop1)"/></svg><span>t1 低风险</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><defs><clipPath id="drop2"><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z"/></clipPath></defs><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z" stroke="#D4B84A" stroke-width="1.8" fill="none"/><rect x="6" y="12" width="12" height="8" fill="#D4B84A" clip-path="url(#drop2)"/></svg><span>t2 中等</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><defs><clipPath id="drop3"><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z"/></clipPath></defs><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z" stroke="#D97A2A" stroke-width="1.8" fill="none"/><rect x="6" y="8" width="12" height="12" fill="#D97A2A" clip-path="url(#drop3)"/></svg><span>t3 较高</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><defs><clipPath id="drop4"><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z"/></clipPath></defs><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z" stroke="#C4453A" stroke-width="1.8" fill="none"/><rect x="6" y="4" width="12" height="16" fill="#C4453A" clip-path="url(#drop4)"/></svg><span>t4 严重</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z" stroke="#8E8E9A" stroke-width="1.8" fill="none"/><text x="12" y="13" font-size="8" font-weight="bold" fill="#8E8E9A" text-anchor="middle">?</text></svg><span>未知</span></div>
+  </div>
+  <button class="select-btn" data-style="a" onclick="selectStyle('a')">选择 A</button>
+</div>
+
+<!-- Style B: 方块进度条 -->
+<div class="style-section">
+  <h3>B — 方块进度条</h3>
+  <p class="style-desc">类似电池图标，方块填充比例表示风险，直觉清晰</p>
+  <div class="icons-row">
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><rect x="4" y="6" width="16" height="12" rx="2" stroke="#5E9E6B" stroke-width="1.8" fill="none"/><rect x="20" y="9" width="2" height="6" rx="1" stroke="#5E9E6B" stroke-width="1.5" fill="none"/></svg><span>t0 安全</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><rect x="4" y="6" width="16" height="12" rx="2" stroke="#6EAF85" stroke-width="1.8" fill="none"/><rect x="20" y="9" width="2" height="6" rx="1" stroke="#6EAF85" stroke-width="1.5" fill="none"/><rect x="6" y="8" width="4" height="8" rx="1" fill="#6EAF85"/></svg><span>t1 低风险</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><rect x="4" y="6" width="16" height="12" rx="2" stroke="#D4B84A" stroke-width="1.8" fill="none"/><rect x="20" y="9" width="2" height="6" rx="1" stroke="#D4B84A" stroke-width="1.5" fill="none"/><rect x="6" y="8" width="8" height="8" rx="1" fill="#D4B84A"/></svg><span>t2 中等</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><rect x="4" y="6" width="16" height="12" rx="2" stroke="#D97A2A" stroke-width="1.8" fill="none"/><rect x="20" y="9" width="2" height="6" rx="1" stroke="#D97A2A" stroke-width="1.5" fill="none"/><rect x="6" y="8" width="12" height="8" rx="1" fill="#D97A2A"/></svg><span>t3 较高</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><rect x="4" y="6" width="16" height="12" rx="2" stroke="#C4453A" stroke-width="1.8" fill="none"/><rect x="20" y="9" width="2" height="6" rx="1" stroke="#C4453A" stroke-width="1.5" fill="none"/><rect x="6" y="8" width="14" height="8" rx="1" fill="#C4453A"/></svg><span>t4 严重</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><rect x="4" y="6" width="16" height="12" rx="2" stroke="#8E8E9A" stroke-width="1.8" fill="none"/><rect x="20" y="9" width="2" height="6" rx="1" stroke="#8E8E9A" stroke-width="1.5" fill="none"/><text x="12" y="15" font-size="8" font-weight="bold" fill="#8E8E9A" text-anchor="middle">?</text></svg><span>未知</span></div>
+  </div>
+  <button class="select-btn" data-style="b" onclick="selectStyle('b')">选择 B</button>
+</div>
+
+<!-- Style C: 感叹号递进 -->
+<div class="style-section">
+  <h3>C — 感叹号递进</h3>
+  <p class="style-desc">Shield 轮廓内感叹号数量递增，最直觉的风险表达</p>
+  <div class="icons-row">
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><path d="M12 2L4 6v5.5c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V6L12 2z" stroke="#5E9E6B" stroke-width="1.8" fill="none"/></svg><span>t0 安全</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><path d="M12 2L4 6v5.5c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V6L12 2z" stroke="#6EAF85" stroke-width="1.8" fill="none"/><line x1="12" y1="9" x2="12" y2="13" stroke="#6EAF85" stroke-width="2"/><circle cx="12" cy="16" r="1" fill="#6EAF85"/></svg><span>t1 低风险</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><path d="M12 2L4 6v5.5c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V6L12 2z" stroke="#D4B84A" stroke-width="1.8" fill="none"/><line x1="8" y1="9" x2="8" y2="13" stroke="#D4B84A" stroke-width="2"/><circle cx="8" cy="16" r="1" fill="#D4B84A"/><line x1="16" y1="9" x2="16" y2="13" stroke="#D4B84A" stroke-width="2"/><circle cx="16" cy="16" r="1" fill="#D4B84A"/></svg><span>t2 中等</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><path d="M12 2L4 6v5.5c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V6L12 2z" stroke="#D97A2A" stroke-width="1.8" fill="none"/><line x1="7" y1="9" x2="7" y2="13" stroke="#D97A2A" stroke-width="2"/><circle cx="7" cy="16" r="1" fill="#D97A2A"/><line x1="12" y1="9" x2="12" y2="13" stroke="#D97A2A" stroke-width="2"/><circle cx="12" cy="16" r="1" fill="#D97A2A"/><line x1="17" y1="9" x2="17" y2="13" stroke="#D97A2A" stroke-width="2"/><circle cx="17" cy="16" r="1" fill="#D97A2A"/></svg><span>t3 较高</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><path d="M12 2L4 6v5.5c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V6L12 2z" stroke="#C4453A" stroke-width="1.8" fill="none"/><line x1="6" y1="9" x2="6" y2="13" stroke="#C4453A" stroke-width="2"/><circle cx="6" cy="16" r="1" fill="#C4453A"/><line x1="10" y1="9" x2="10" y2="13" stroke="#C4453A" stroke-width="2"/><circle cx="10" cy="16" r="1" fill="#C4453A"/><line x1="14" y1="9" x2="14" y2="13" stroke="#C4453A" stroke-width="2"/><circle cx="14" cy="16" r="1" fill="#C4453A"/><line x1="18" y1="9" x2="18" y2="13" stroke="#C4453A" stroke-width="2"/><circle cx="18" cy="16" r="1" fill="#C4453A"/></svg><span>t4 严重</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><path d="M12 2L4 6v5.5c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V6L12 2z" stroke="#8E8E9A" stroke-width="1.8" fill="none"/><text x="12" y="14" font-size="8" font-weight="bold" fill="#8E8E9A" text-anchor="middle">?</text></svg><span>未知</span></div>
+  </div>
+  <button class="select-btn" data-style="c" onclick="selectStyle('c')">选择 C</button>
+</div>
+
+<!-- Style D: 环形进度 -->
+<div class="style-section">
+  <h3>D — 环形进度</h3>
+  <p class="style-desc">圆环填充弧度表示风险，类似活动环，现代简洁</p>
+  <div class="icons-row">
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="12" r="9" stroke="#5E9E6B" stroke-width="2" fill="none"/><path d="M12 3a9 9 0 019 9" stroke="none" fill="none"/></svg><span>t0 安全</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="12" r="9" stroke="#6EAF85" stroke-width="2" fill="none"/><path d="M12 3a9 9 0 019 9" stroke="#6EAF85" stroke-width="2" fill="none" stroke-linecap="round"/></svg><span>t1 低风险</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="12" r="9" stroke="#D4B84A" stroke-width="2" fill="none"/><path d="M12 3a9 9 0 019 9c0 5-4 9-9 9" stroke="#D4B84A" stroke-width="2" fill="none" stroke-linecap="round"/></svg><span>t2 中等</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="12" r="9" stroke="#D97A2A" stroke-width="2" fill="none"/><path d="M12 3a9 9 0 019 9c0 7-7 12-9 12" stroke="#D97A2A" stroke-width="2" fill="none" stroke-linecap="round"/></svg><span>t3 较高</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="12" r="9" stroke="#C4453A" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="9" stroke="#C4453A" stroke-width="2" fill="none" stroke-dasharray="56.5 56.5" stroke-linecap="round"/></svg><span>t4 严重</span></div>
+    <div class="icon-item"><svg viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="12" r="9" stroke="#8E8E9A" stroke-width="2" stroke-dasharray="4 4" fill="none"/><text x="12" y="16" font-size="10" font-weight="bold" fill="#8E8E9A" text-anchor="middle">?</text></svg><span>未知</span></div>
+  </div>
+  <button class="select-btn" data-style="d" onclick="selectStyle('d')">选择 D</button>
+</div>
+
+<style>
+.style-section {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.style-section h3 { margin: 0 0 4px 0; font-size: 15px; }
+.style-desc { margin: 0 0 16px 0; color: #888; font-size: 12px; }
+.icons-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 56px;
+}
+.icon-item span { font-size: 10px; color: #666; }
+.select-btn {
+  display: block;
+  margin: 0 auto;
+  padding: 6px 20px;
+  background: #333;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.select-btn:hover { background: #555; }
+</style>
+
+<script>
+function selectStyle(s) {
+  document.querySelectorAll('.select-btn').forEach(b => b.style.background = '#ccc');
+  document.querySelector('[data-style="' + s + '"]').style.background = '#4CAF50';
+}
+</script>

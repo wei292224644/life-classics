@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { useThemeStore } from "../../store/theme"
+import { useThemeStore } from "@/store/theme"
 import Icon from "@/components/ui/Icon.vue"
 
 const themeStore = useThemeStore()

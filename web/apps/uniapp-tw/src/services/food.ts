@@ -2,6 +2,8 @@ import type { ProductDetail } from "../types/product";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
+console.log(BASE_URL);
+
 export class ProductNotFoundError extends Error {
   constructor(barcode: string) {
     super(`Product not found: ${barcode}`);
@@ -23,6 +25,8 @@ export async function fetchProductByBarcode(barcode: string): Promise<ProductDet
       method: "GET",
       data: { barcode },
       success(res) {
+
+        console.log(res);
         if (res.statusCode === 200) {
           resolve(res.data as ProductDetail);
         } else if (res.statusCode === 404) {

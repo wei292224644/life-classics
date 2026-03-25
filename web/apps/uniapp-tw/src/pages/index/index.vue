@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useThemeStore } from "../../store/theme";
+import { useThemeStore } from "@/store/theme";
 import Icon from "@/components/ui/Icon.vue";
-import { scanBarcode, ScanCancelledError } from "../../utils/scanner";
+import { scanBarcode, ScanCancelledError } from "@/utils/scanner";
 
 // ── Types ─────────────────────────────────────────────
 interface RecentScan {
@@ -201,7 +201,11 @@ function handleRecentClick(item: RecentScan) {
             {{ formatTime(item.time) }}
           </text>
         </view>
-        <Icon name="arrowRight" class="h-4 w-4 flex-shrink-0 text-muted-foreground opacity-40" :size="16" />
+        <Icon
+          name="arrowRight"
+          class="h-4 w-4 flex-shrink-0 text-muted-foreground opacity-40"
+          :size="16"
+        />
       </view>
 
       <view v-if="!recentScans.length" class="pt-12 text-center">

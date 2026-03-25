@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>风险等级 Icon · 叶片枯萎版</title>
+<style>
+  :root {
+    --t0: #3D8B5A;
+    --t1: #52A86E;
+    --t2: #C9A92C;
+    --t3: #D4692A;
+    --t4: #B83A2E;
+    --unknown: #8E8E9A;
+    --bg: #0D0D0F;
+    --surface: #18181C;
+    --border: #2A2A30;
+    --text: #F0EDE8;
+    --text-muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    padding: 32px 16px 64px;
+  }
+
+  .header { text-align: center; margin-bottom: 40px; }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #3D8B5A, #C9A92C, #B83A2E);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header p { color: var(--text-muted); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .cards { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 120px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  }
+
+  .card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.15); }
+  .card-icon { width: 72px; height: 72px; }
+  .card-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; color: white; }
+  .card-label { font-size: 14px; font-weight: 500; color: var(--text); text-align: center; }
+  .card-sublabel { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: -6px; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+
+  .card:nth-child(1) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 0s; }
+  .card:nth-child(2) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 0.5s; }
+  .card:nth-child(3) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 1s; }
+  .card:nth-child(4) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 1.5s; }
+  .card:nth-child(5) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 2s; }
+  .card:nth-child(6) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 2.5s; }
+
+  .select-btn {
+    display: block;
+    margin: 32px auto 0;
+    padding: 10px 32px;
+    background: linear-gradient(135deg, #3D8B5A, #52A86E);
+    color: white;
+    border: none;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+
+  .light-section { background: #F5F3EF; border-radius: 24px; padding: 32px 16px; margin: 40px -16px 0; }
+  .light-card { background: white; border: 1px solid #E8E4DC; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+  .light-card::before { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.04), transparent); }
+  .light-card:hover { border-color: rgba(0,0,0,0.15); }
+  .light-card .card-label { color: #1A1A1A; }
+  .light-card .card-sublabel { color: #888; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 40px auto; width: 200px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Risk Level Icons</h1>
+  <p>Organic Science · 叶片枯萎递进</p>
+</div>
+
+<div class="cards">
+
+  <!-- t0: Healthy leaf, full green, smooth edges -->
+  <div class="card">
+    <div class="card-icon">
+      <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lc-t0" x1="36" y1="8" x2="36" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#3D8B5A" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#3D8B5A" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="36" cy="36" rx="27" ry="29" stroke="#3D8B5A" stroke-width="0.5" stroke-opacity="0.15" fill="none"/>
+        <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z"
+              fill="url(#lc-t0)" stroke="#3D8B5A" stroke-width="2.2" stroke-linejoin="round"/>
+        <!-- Smooth leaf -->
+        <path d="M36 54c-8-8-12-16-12-22a12 12 0 0124 0c0 6-4 14-12 22z"
+              stroke="#3D8B5A" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+        <!-- Central vein -->
+        <line x1="36" y1="54" x2="36" y2="32" stroke="#3D8B5A" stroke-width="1.6"/>
+        <!-- Side veins - simple, clean -->
+        <line x1="36" y1="48" x2="27" y2="40" stroke="#3D8B5A" stroke-width="1.1"/>
+        <line x1="36" y1="48" x2="45" y2="40" stroke="#3D8B5A" stroke-width="1.1"/>
+        <line x1="36" y1="42" x2="29" y2="35" stroke="#3D8B5A" stroke-width="1"/>
+        <line x1="36" y1="42" x2="43" y2="35" stroke="#3D8B5A" stroke-width="1"/>
+        <!-- Highlight -->
+        <path d="M30 38 Q32 34 34 38" stroke="white" stroke-width="0.8" fill="none" opacity="0.2"/>
+        <circle cx="36" cy="14" r="1.5" fill="#3D8B5A" opacity="0.35"/>
+      </svg>
+    </div>
+    <span class="card-badge" style="background:#3D8B5A">t0</span>
+    <div class="card-label">安全</div>
+    <div class="card-sublabel">叶片饱满 · 翠绿完整</div>
+  </div>
+
+  <!-- t1: Leaf turns yellowish, edges slightly rough -->
+  <div class="card">
+    <div class="card-icon">
+      <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lc-t1" x1="36" y1="8" x2="36" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#52A86E" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#52A86E" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="36" cy="36" rx="27" ry="29" stroke="#52A86E" stroke-width="0.5" stroke-opacity="0.15" fill="none"/>
+        <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z"
+              fill="url(#lc-t1)" stroke="#52A86E" stroke-width="2.2" stroke-linejoin="round"/>
+        <!-- Leaf with slightly wavy edges -->
+        <path d="M36 54c-7-7-11-14-11-20 Q25 30 27 29 Q30 31 33 30 Q36 28 39 30 Q42 31 45 29 Q47 30 47 34 Q46 42 43 46 Q40 50 36 54z"
+              stroke="#52A86E" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+        <line x1="36" y1="54" x2="36" y2="34" stroke="#52A86E" stroke-width="1.4"/>
+        <line x1="36" y1="48" x2="28" y2="40" stroke="#52A86E" stroke-width="0.9"/>
+        <line x1="36" y1="48" x2="44" y2="40" stroke="#52A86E" stroke-width="0.9"/>
+        <line x1="36" y1="42" x2="30" y2="36" stroke="#52A86E" stroke-width="0.9"/>
+        <line x1="36" y1="42" x2="42" y2="36" stroke="#52A86E" stroke-width="0.9"/>
+        <!-- Yellow spots -->
+        <circle cx="28" cy="45" r="2" fill="#C9A92C" opacity="0.3"/>
+        <circle cx="43" cy="43" r="1.5" fill="#C9A92C" opacity="0.25"/>
+        <circle cx="36" cy="14" r="1.5" fill="#52A86E" opacity="0.3"/>
+      </svg>
+    </div>
+    <span class="card-badge" style="background:#52A86E">t1</span>
+    <div class="card-label">低风险</div>
+    <div class="card-sublabel">叶片微黄 · 边缘起皱</div>
+  </div>
+
+  <!-- t2: Amber leaf, 2 veins broken, edges curled -->
+  <div class="card">
+    <div class="card-icon">
+      <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lc-t2" x1="36" y1="8" x2="36" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#C9A92C" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#C9A92C" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="36" cy="36" rx="27" ry="29" stroke="#C9A92C" stroke-width="0.5" stroke-opacity="0.18" fill="none"/>
+        <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z"
+              fill="url(#lc-t2)" stroke="#C9A92C" stroke-width="2.2" stroke-linejoin="round"/>
+        <!-- Amber leaf, curled edges -->
+        <path d="M36 53c-6-6-10-13-10-18 Q26 31 28 30 Q31 33 34 31 Q36 30 38 31 Q41 33 44 30 Q46 31 46 36 Q45 44 41 47 Q39 50 36 53z"
+              stroke="#C9A92C" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+        <!-- 4 veins, 2 solid + 2 broken -->
+        <line x1="36" y1="53" x2="36" y2="35" stroke="#C9A92C" stroke-width="1.4"/>
+        <line x1="36" y1="47" x2="28" y2="40" stroke="#C9A92C" stroke-width="0.9"/>
+        <line x1="36" y1="47" x2="44" y2="40" stroke="#C9A92C" stroke-width="0.9"/>
+        <!-- Broken veins - dashed -->
+        <line x1="36" y1="41" x2="30" y2="35" stroke="#C9A92C" stroke-width="0.7" stroke-dasharray="2.5 2"/>
+        <line x1="36" y1="41" x2="42" y2="35" stroke="#C9A92C" stroke-width="0.7" stroke-dasharray="2.5 2"/>
+        <!-- Brown spots -->
+        <circle cx="27" cy="46" r="2.5" fill="#8B6914" opacity="0.35"/>
+        <circle cx="43" cy="41" r="2" fill="#8B6914" opacity="0.3"/>
+        <circle cx="36" cy="14" r="1.5" fill="#C9A92C" opacity="0.4"/>
+      </svg>
+    </div>
+    <span class="card-badge" style="background:#C9A92C">t2</span>
+    <div class="card-label">中等风险</div>
+    <div class="card-sublabel">琥珀色 · 2 脉断裂</div>
+  </div>
+
+  <!-- t3: Orange wilted leaf, drooping tip, 4 veins left -->
+  <div class="card">
+    <div class="card-icon">
+      <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lc-t3" x1="36" y1="8" x2="36" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#D4692A" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#D4692A" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="36" cy="36" rx="27" ry="29" stroke="#D4692A" stroke-width="0.5" stroke-opacity="0.2" fill="none"/>
+        <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z"
+              fill="url(#lc-t3)" stroke="#D4692A" stroke-width="2.2" stroke-linejoin="round"/>
+        <!-- Wilted leaf - drooping tip shown by path shape -->
+        <path d="M36 51c-5-5-9-11-9-16 Q27 32 29 30 Q32 33 35 31 Q36 30 37 31 Q40 33 43 30 Q45 31 45 36 Q44 43 40 47 Q38 49 36 51z"
+              stroke="#D4692A" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+        <!-- Drooping tip curl -->
+        <path d="M36 51 Q38 56 34 59" stroke="#D4692A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <!-- 2 solid veins -->
+        <line x1="36" y1="51" x2="36" y2="35" stroke="#D4692A" stroke-width="1.3"/>
+        <line x1="36" y1="45" x2="29" y2="38" stroke="#D4692A" stroke-width="0.9"/>
+        <line x1="36" y1="45" x2="43" y2="38" stroke="#D4692A" stroke-width="0.9"/>
+        <!-- 6 broken veins - dashed -->
+        <line x1="36" y1="40" x2="31" y2="34" stroke="#D4692A" stroke-width="0.6" stroke-dasharray="2 2"/>
+        <line x1="36" y1="40" x2="41" y2="34" stroke="#D4692A" stroke-width="0.6" stroke-dasharray="2 2"/>
+        <line x1="36" y1="35" x2="32" y2="31" stroke="#D4692A" stroke-width="0.5" stroke-dasharray="1.5 2"/>
+        <line x1="36" y1="35" x2="40" y2="31" stroke="#D4692A" stroke-width="0.5" stroke-dasharray="1.5 2"/>
+        <!-- Rot spots -->
+        <circle cx="28" cy="44" r="2.5" fill="#A04010" opacity="0.4"/>
+        <circle cx="43" cy="39" r="2" fill="#A04010" opacity="0.35"/>
+        <circle cx="36" cy="14" r="2" fill="#D4692A" opacity="0.4"/>
+      </svg>
+    </div>
+    <span class="card-badge" style="background:#D4692A">t3</span>
+    <div class="card-label">较高风险</div>
+    <div class="card-sublabel">枯萎下垂 · 6 脉断裂</div>
+  </div>
+
+  <!-- t4: Nearly dead, dark red-brown, severely curled, only 2 veins -->
+  <div class="card">
+    <div class="card-icon">
+      <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lc-t4" x1="36" y1="8" x2="36" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#B83A2E" stop-opacity="0.22"/>
+            <stop offset="100%" stop-color="#B83A2E" stop-opacity="0.03"/>
+          </linearGradient>
+          <filter id="glow-lc4">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <ellipse cx="36" cy="40" rx="28" ry="30" stroke="#B83A2E" stroke-width="1" stroke-opacity="0.1" fill="none" filter="url(#glow-lc4)"/>
+        <ellipse cx="36" cy="36" rx="27" ry="29" stroke="#B83A2E" stroke-width="0.5" stroke-opacity="0.18" fill="none"/>
+        <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z"
+              fill="url(#lc-t4)" stroke="#B83A2E" stroke-width="2.2" stroke-linejoin="round"/>
+        <!-- Severely wilted, heavily curled edges -->
+        <path d="M36 50c-5-5-8-10-8-15 Q28 32 30 30 Q33 33 35 31 Q36 30 37 31 Q39 33 42 30 Q44 31 44 36 Q43 43 39 47 Q38 49 36 50z"
+              stroke="#B83A2E" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+        <!-- Severely drooping tip -->
+        <path d="M36 50 Q39 56 33 60 Q30 63 28 61" stroke="#B83A2E" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+        <!-- Only 2 veins remain -->
+        <line x1="36" y1="50" x2="36" y2="36" stroke="#B83A2E" stroke-width="1.2"/>
+        <line x1="36" y1="45" x2="30" y2="39" stroke="#B83A2E" stroke-width="0.8"/>
+        <!-- 8 broken vein remnants - very short dashes -->
+        <line x1="36" y1="40" x2="32" y2="35" stroke="#B83A2E" stroke-width="0.5" stroke-dasharray="1.5 2"/>
+        <line x1="36" y1="40" x2="40" y2="35" stroke="#B83A2E" stroke-width="0.5" stroke-dasharray="1.5 2"/>
+        <line x1="36" y1="36" x2="33" y2="33" stroke="#B83A2E" stroke-width="0.4" stroke-dasharray="1 2"/>
+        <line x1="36" y1="36" x2="39" y2="33" stroke="#B83A2E" stroke-width="0.4" stroke-dasharray="1 2"/>
+        <!-- Dark rot blotches -->
+        <circle cx="28" cy="43" r="3" fill="#7A2010" opacity="0.5"/>
+        <circle cx="43" cy="38" r="2.5" fill="#7A2010" opacity="0.45"/>
+        <circle cx="36" cy="33" r="2" fill="#7A2010" opacity="0.35"/>
+        <!-- Exclamation mark -->
+        <line x1="36" y1="22" x2="36" y2="33" stroke="#B83A2E" stroke-width="2.2" stroke-opacity="0.9" stroke-linecap="round"/>
+        <circle cx="36" cy="37" r="2" fill="#B83A2E" opacity="0.9"/>
+        <circle cx="36" cy="14" r="2.5" fill="#B83A2E" opacity="0.4"/>
+      </svg>
+    </div>
+    <span class="card-badge" style="background:#B83A2E">t4</span>
+    <div class="card-label">严重风险</div>
+    <div class="card-sublabel">枯死凋零 · 仅 2 脉</div>
+  </div>
+
+  <!-- Unknown -->
+  <div class="card">
+    <div class="card-icon">
+      <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lc-un" x1="36" y1="8" x2="36" y2="64" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#8E8E9A" stop-opacity="0.08"/>
+            <stop offset="100%" stop-color="#8E8E9A" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="36" cy="36" rx="26" ry="28" stroke="#8E8E9A" stroke-width="0.5" stroke-opacity="0.1" fill="none" stroke-dasharray="4 3"/>
+        <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z"
+              fill="url(#lc-un)" stroke="#8E8E9A" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="6 4"/>
+        <text x="36" y="46" font-size="22" font-family="Georgia, serif" font-weight="bold" fill="#8E8E9A" text-anchor="middle" opacity="0.6">?</text>
+        <circle cx="36" cy="14" r="1" fill="#8E8E9A" opacity="0.15"/>
+      </svg>
+    </div>
+    <span class="card-badge" style="background:#8E8E9A">?</span>
+    <div class="card-label">未知</div>
+    <div class="card-sublabel">暂无数据</div>
+  </div>
+
+</div>
+
+<button class="select-btn" onclick="this.textContent='✓ 已选择'; this.style.background='linear-gradient(135deg,#3D8B5A,#52A86E)'">选择此设计方案</button>
+
+<hr class="divider">
+
+<!-- LIGHT MODE -->
+<div class="light-section">
+  <div class="header">
+    <h1>Risk Level Icons</h1>
+    <p>Light Mode</p>
+  </div>
+
+  <div class="cards">
+
+    <div class="card light-card">
+      <div class="card-icon">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z" stroke="#3D8B5A" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M36 54c-8-8-12-16-12-22a12 12 0 0124 0c0 6-4 14-12 22z" stroke="#3D8B5A" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+          <line x1="36" y1="54" x2="36" y2="32" stroke="#3D8B5A" stroke-width="1.6"/>
+          <line x1="36" y1="48" x2="27" y2="40" stroke="#3D8B5A" stroke-width="1.1"/>
+          <line x1="36" y1="48" x2="45" y2="40" stroke="#3D8B5A" stroke-width="1.1"/>
+          <line x1="36" y1="42" x2="29" y2="35" stroke="#3D8B5A" stroke-width="1"/>
+          <line x1="36" y1="42" x2="43" y2="35" stroke="#3D8B5A" stroke-width="1"/>
+          <path d="M30 38 Q32 34 34 38" stroke="#3D8B5A" stroke-width="0.8" fill="none" opacity="0.25"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#3D8B5A">t0</span>
+      <div class="card-label">安全</div>
+      <div class="card-sublabel">叶片饱满</div>
+    </div>
+
+    <div class="card light-card">
+      <div class="card-icon">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z" stroke="#52A86E" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M36 54c-7-7-11-14-11-20 Q25 30 27 29 Q30 31 33 30 Q36 28 39 30 Q42 31 45 29 Q47 30 47 34 Q46 42 43 46 Q40 50 36 54z" stroke="#52A86E" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+          <line x1="36" y1="54" x2="36" y2="34" stroke="#52A86E" stroke-width="1.4"/>
+          <line x1="36" y1="48" x2="28" y2="40" stroke="#52A86E" stroke-width="0.9"/>
+          <line x1="36" y1="48" x2="44" y2="40" stroke="#52A86E" stroke-width="0.9"/>
+          <line x1="36" y1="42" x2="30" y2="36" stroke="#52A86E" stroke-width="0.9"/>
+          <line x1="36" y1="42" x2="42" y2="36" stroke="#52A86E" stroke-width="0.9"/>
+          <circle cx="28" cy="45" r="2" fill="#C9A92C" opacity="0.35"/>
+          <circle cx="43" cy="43" r="1.5" fill="#C9A92C" opacity="0.3"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#52A86E">t1</span>
+      <div class="card-label">低风险</div>
+      <div class="card-sublabel">微黄起皱</div>
+    </div>
+
+    <div class="card light-card">
+      <div class="card-icon">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z" stroke="#C9A92C" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M36 53c-6-6-10-13-10-18 Q26 31 28 30 Q31 33 34 31 Q36 30 38 31 Q41 33 44 30 Q46 31 46 36 Q45 44 41 47 Q39 50 36 53z" stroke="#C9A92C" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+          <line x1="36" y1="53" x2="36" y2="35" stroke="#C9A92C" stroke-width="1.4"/>
+          <line x1="36" y1="47" x2="28" y2="40" stroke="#C9A92C" stroke-width="0.9"/>
+          <line x1="36" y1="47" x2="44" y2="40" stroke="#C9A92C" stroke-width="0.9"/>
+          <line x1="36" y1="41" x2="30" y2="35" stroke="#C9A92C" stroke-width="0.7" stroke-dasharray="2.5 2"/>
+          <line x1="36" y1="41" x2="42" y2="35" stroke="#C9A92C" stroke-width="0.7" stroke-dasharray="2.5 2"/>
+          <circle cx="27" cy="46" r="2.5" fill="#8B6914" opacity="0.4"/>
+          <circle cx="43" cy="41" r="2" fill="#8B6914" opacity="0.35"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#C9A92C">t2</span>
+      <div class="card-label">中等风险</div>
+      <div class="card-sublabel">琥珀色</div>
+    </div>
+
+    <div class="card light-card">
+      <div class="card-icon">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z" stroke="#D4692A" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M36 51c-5-5-9-11-9-16 Q27 32 29 30 Q32 33 35 31 Q36 30 37 31 Q40 33 43 30 Q45 31 45 36 Q44 43 40 47 Q38 49 36 51z" stroke="#D4692A" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+          <path d="M36 51 Q38 56 34 59" stroke="#D4692A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          <line x1="36" y1="51" x2="36" y2="35" stroke="#D4692A" stroke-width="1.3"/>
+          <line x1="36" y1="45" x2="29" y2="38" stroke="#D4692A" stroke-width="0.9"/>
+          <line x1="36" y1="45" x2="43" y2="38" stroke="#D4692A" stroke-width="0.9"/>
+          <line x1="36" y1="40" x2="31" y2="34" stroke="#D4692A" stroke-width="0.6" stroke-dasharray="2 2"/>
+          <line x1="36" y1="40" x2="41" y2="34" stroke="#D4692A" stroke-width="0.6" stroke-dasharray="2 2"/>
+          <line x1="36" y1="35" x2="32" y2="31" stroke="#D4692A" stroke-width="0.5" stroke-dasharray="1.5 2"/>
+          <line x1="36" y1="35" x2="40" y2="31" stroke="#D4692A" stroke-width="0.5" stroke-dasharray="1.5 2"/>
+          <circle cx="28" cy="44" r="2.5" fill="#A04010" opacity="0.45"/>
+          <circle cx="43" cy="39" r="2" fill="#A04010" opacity="0.4"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#D4692A">t3</span>
+      <div class="card-label">较高风险</div>
+      <div class="card-sublabel">枯萎下垂</div>
+    </div>
+
+    <div class="card light-card">
+      <div class="card-icon">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z" stroke="#B83A2E" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M36 50c-5-5-8-10-8-15 Q28 32 30 30 Q33 33 35 31 Q36 30 37 31 Q39 33 42 30 Q44 31 44 36 Q43 43 39 47 Q38 49 36 50z" stroke="#B83A2E" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+          <path d="M36 50 Q39 56 33 60 Q30 63 28 61" stroke="#B83A2E" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+          <line x1="36" y1="50" x2="36" y2="36" stroke="#B83A2E" stroke-width="1.2"/>
+          <line x1="36" y1="45" x2="30" y2="39" stroke="#B83A2E" stroke-width="0.8"/>
+          <line x1="36" y1="40" x2="32" y2="35" stroke="#B83A2E" stroke-width="0.5" stroke-dasharray="1.5 2"/>
+          <line x1="36" y1="40" x2="40" y2="35" stroke="#B83A2E" stroke-width="0.5" stroke-dasharray="1.5 2"/>
+          <line x1="36" y1="36" x2="33" y2="33" stroke="#B83A2E" stroke-width="0.4" stroke-dasharray="1 2"/>
+          <line x1="36" y1="36" x2="39" y2="33" stroke="#B83A2E" stroke-width="0.4" stroke-dasharray="1 2"/>
+          <circle cx="28" cy="43" r="3" fill="#7A2010" opacity="0.5"/>
+          <circle cx="43" cy="38" r="2.5" fill="#7A2010" opacity="0.45"/>
+          <line x1="36" y1="22" x2="36" y2="33" stroke="#B83A2E" stroke-width="2.2" stroke-opacity="0.9" stroke-linecap="round"/>
+          <circle cx="36" cy="37" r="2" fill="#B83A2E" opacity="0.9"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#B83A2E">t4</span>
+      <div class="card-label">严重风险</div>
+      <div class="card-sublabel">枯死凋零</div>
+    </div>
+
+    <div class="card light-card">
+      <div class="card-icon">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M36 10L14 20v16c0 14 9.5 27 22 32 12.5-5 22-18 22-32V20L36 10z" stroke="#8E8E9A" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="6 4"/>
+          <text x="36" y="46" font-size="22" font-family="Georgia, serif" font-weight="bold" fill="#8E8E9A" text-anchor="middle" opacity="0.55">?</text>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#8E8E9A">?</span>
+      <div class="card-label">未知</div>
+      <div class="card-sublabel">暂无数据</div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

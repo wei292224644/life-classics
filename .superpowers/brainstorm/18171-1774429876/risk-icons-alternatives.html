@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>风险等级 Icon · 四种进度方案</title>
+<style>
+  :root {
+    --t0: #3D8B5A;
+    --t1: #52A86E;
+    --t2: #C9A92C;
+    --t3: #D4692A;
+    --t4: #B83A2E;
+    --unknown: #8E8E9A;
+    --bg: #0D0D0F;
+    --surface: #18181C;
+    --border: #2A2A30;
+    --text: #F0EDE8;
+    --text-muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    padding: 32px 16px 64px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #3D8B5A, #C9A92C, #B83A2E);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header p {
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Style sections */
+  .style-block {
+    margin-bottom: 56px;
+  }
+
+  .style-title {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .style-title h2 {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .style-title p {
+    font-size: 13px;
+    color: #555;
+  }
+
+  .cards {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 110px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255,255,255,0.15);
+  }
+
+  .card-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .card-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 20px;
+    color: white;
+  }
+
+  .card-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: center;
+  }
+
+  .card-sublabel {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: -4px;
+  }
+
+  /* SVG animations */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+
+  .card:nth-child(1) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 0s; }
+  .card:nth-child(2) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 0.4s; }
+  .card:nth-child(3) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 0.8s; }
+  .card:nth-child(4) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 1.2s; }
+  .card:nth-child(5) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 1.6s; }
+  .card:nth-child(6) .card-icon svg { animation: float 3s ease-in-out infinite; animation-delay: 2s; }
+
+  /* Select button */
+  .select-btn {
+    display: block;
+    margin: 40px auto 0;
+    padding: 10px 32px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+
+  .select-btn:hover { background: #555; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>风险 Icon · 四种进度方案</h1>
+  <p>Shield 家族 · 替换填充递进方式</p>
+</div>
+
+<!-- ======================== -->
+<!-- A: 环形扩散 Concentric Rings -->
+<!-- ======================== -->
+<div class="style-block">
+  <div class="style-title">
+    <h2>A · 环形扩散</h2>
+    <p>Shield 内从中心向外长出同心圆环，环数越多 = 风险越高</p>
+  </div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="a-t0" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#3D8B5A" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#3D8B5A" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#3D8B5A" stroke-width="2" fill="url(#a-t0)"/>
+          <!-- 0 rings -->
+          <circle cx="32" cy="36" r="3" fill="#3D8B5A" opacity="0.4"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#3D8B5A">t0</span>
+      <div class="card-label">安全</div>
+      <div class="card-sublabel">0 环</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="a-t1" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#52A86E" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#52A86E" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#52A86E" stroke-width="2" fill="url(#a-t1)"/>
+          <!-- 1 ring -->
+          <circle cx="32" cy="36" r="10" stroke="#52A86E" stroke-width="1.5" opacity="0.7"/>
+          <circle cx="32" cy="36" r="3" fill="#52A86E" opacity="0.5"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#52A86E">t1</span>
+      <div class="card-label">低风险</div>
+      <div class="card-sublabel">1 环</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="a-t2" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#C9A92C" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#C9A92C" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#C9A92C" stroke-width="2" fill="url(#a-t2)"/>
+          <!-- 2 rings -->
+          <circle cx="32" cy="36" r="7" stroke="#C9A92C" stroke-width="1.5" opacity="0.8"/>
+          <circle cx="32" cy="36" r="14" stroke="#C9A92C" stroke-width="1.5" opacity="0.5"/>
+          <circle cx="32" cy="36" r="3" fill="#C9A92C" opacity="0.6"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#C9A92C">t2</span>
+      <div class="card-label">中等风险</div>
+      <div class="card-sublabel">2 环</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="a-t3" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#D4692A" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#D4692A" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#D4692A" stroke-width="2" fill="url(#a-t3)"/>
+          <!-- 3 rings -->
+          <circle cx="32" cy="36" r="6" stroke="#D4692A" stroke-width="1.5" opacity="0.9"/>
+          <circle cx="32" cy="36" r="11" stroke="#D4692A" stroke-width="1.5" opacity="0.7"/>
+          <circle cx="32" cy="36" r="16" stroke="#D4692A" stroke-width="1.5" opacity="0.4"/>
+          <circle cx="32" cy="36" r="3" fill="#D4692A" opacity="0.8"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#D4692A">t3</span>
+      <div class="card-label">较高风险</div>
+      <div class="card-sublabel">3 环</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="a-t4" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#B83A2E" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#B83A2E" stop-opacity="0.05"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#B83A2E" stroke-width="2" fill="url(#a-t4)"/>
+          <!-- 4 rings -->
+          <circle cx="32" cy="36" r="5" stroke="#B83A2E" stroke-width="1.5" opacity="1"/>
+          <circle cx="32" cy="36" r="9" stroke="#B83A2E" stroke-width="1.5" opacity="0.85"/>
+          <circle cx="32" cy="36" r="13" stroke="#B83A2E" stroke-width="1.5" opacity="0.65"/>
+          <circle cx="32" cy="36" r="17" stroke="#B83A2E" stroke-width="1.5" opacity="0.4"/>
+          <circle cx="32" cy="36" r="2.5" fill="#B83A2E"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#B83A2E">t4</span>
+      <div class="card-label">严重风险</div>
+      <div class="card-sublabel">4 环</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#8E8E9A" stroke-width="2" stroke-dasharray="5 3"/>
+          <text x="32" y="40" font-size="18" font-family="Georgia, serif" font-weight="bold" fill="#8E8E9A" text-anchor="middle" opacity="0.7">?</text>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#8E8E9A">?</span>
+      <div class="card-label">未知</div>
+      <div class="card-sublabel">暂无数据</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================== -->
+<!-- B: 叶脉生长 Leaf Veins -->
+<!-- ======================== -->
+<div class="style-block">
+  <div class="style-title">
+    <h2>B · 叶脉生长</h2>
+    <p>叶片脉络的复杂程度表示风险——从一根主脉到多叉蔓延</p>
+  </div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="b-t0" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#3D8B5A" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#3D8B5A" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#3D8B5A" stroke-width="2" fill="url(#b-t0)"/>
+          <!-- Leaf shape + 1 vein -->
+          <path d="M32 52c-8-8-12-16-12-22a12 12 0 0124 0c0 6-4 14-12 22z" stroke="#3D8B5A" stroke-width="1.5" fill="none"/>
+          <line x1="32" y1="52" x2="32" y2="30" stroke="#3D8B5A" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#3D8B5A">t0</span>
+      <div class="card-label">安全</div>
+      <div class="card-sublabel">1 主脉</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="b-t1" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#52A86E" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#52A86E" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#52A86E" stroke-width="2" fill="url(#b-t1)"/>
+          <!-- Leaf + 2 veins -->
+          <path d="M32 52c-8-8-12-16-12-22a12 12 0 0124 0c0 6-4 14-12 22z" stroke="#52A86E" stroke-width="1.5" fill="none"/>
+          <line x1="32" y1="52" x2="32" y2="30" stroke="#52A86E" stroke-width="1.5"/>
+          <line x1="32" y1="38" x2="26" y2="32" stroke="#52A86E" stroke-width="1"/>
+          <line x1="32" y1="38" x2="38" y2="32" stroke="#52A86E" stroke-width="1"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#52A86E">t1</span>
+      <div class="card-label">低风险</div>
+      <div class="card-sublabel">2 侧脉</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="b-t2" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#C9A92C" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#C9A92C" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#C9A92C" stroke-width="2" fill="url(#b-t2)"/>
+          <!-- Leaf + 4 veins -->
+          <path d="M32 52c-8-8-12-16-12-22a12 12 0 0124 0c0 6-4 14-12 22z" stroke="#C9A92C" stroke-width="1.5" fill="none"/>
+          <line x1="32" y1="52" x2="32" y2="30" stroke="#C9A92C" stroke-width="1.5"/>
+          <line x1="32" y1="40" x2="24" y2="34" stroke="#C9A92C" stroke-width="1"/>
+          <line x1="32" y1="40" x2="40" y2="34" stroke="#C9A92C" stroke-width="1"/>
+          <line x1="32" y1="34" x2="26" y2="28" stroke="#C9A92C" stroke-width="1"/>
+          <line x1="32" y1="34" x2="38" y2="28" stroke="#C9A92C" stroke-width="1"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#C9A92C">t2</span>
+      <div class="card-label">中等风险</div>
+      <div class="card-sublabel">4 侧脉</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="b-t3" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#D4692A" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#D4692A" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#D4692A" stroke-width="2" fill="url(#b-t3)"/>
+          <!-- Leaf + 6 veins, more tangled -->
+          <path d="M32 52c-8-8-12-16-12-22a12 12 0 0124 0c0 6-4 14-12 22z" stroke="#D4692A" stroke-width="1.5" fill="none"/>
+          <line x1="32" y1="52" x2="32" y2="30" stroke="#D4692A" stroke-width="1.5"/>
+          <line x1="32" y1="44" x2="22" y2="36" stroke="#D4692A" stroke-width="1"/>
+          <line x1="32" y1="44" x2="42" y2="36" stroke="#D4692A" stroke-width="1"/>
+          <line x1="32" y1="38" x2="24" y2="30" stroke="#D4692A" stroke-width="1"/>
+          <line x1="32" y1="38" x2="40" y2="30" stroke="#D4692A" stroke-width="1"/>
+          <line x1="32" y1="32" x2="27" y2="25" stroke="#D4692A" stroke-width="1"/>
+          <line x1="32" y1="32" x2="37" y2="25" stroke="#D4692A" stroke-width="1"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#D4692A">t3</span>
+      <div class="card-label">较高风险</div>
+      <div class="card-sublabel">6 侧脉</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="b-t4" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#B83A2E" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#B83A2E" stop-opacity="0.05"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#B83A2E" stroke-width="2" fill="url(#b-t4)"/>
+          <!-- Leaf + 8 veins, full network -->
+          <path d="M32 52c-8-8-12-16-12-22a12 12 0 0124 0c0 6-4 14-12 22z" stroke="#B83A2E" stroke-width="1.5" fill="none"/>
+          <line x1="32" y1="52" x2="32" y2="30" stroke="#B83A2E" stroke-width="1.5"/>
+          <line x1="32" y1="46" x2="20" y2="36" stroke="#B83A2E" stroke-width="1"/>
+          <line x1="32" y1="46" x2="44" y2="36" stroke="#B83A2E" stroke-width="1"/>
+          <line x1="32" y1="42" x2="22" y2="32" stroke="#B83A2E" stroke-width="1"/>
+          <line x1="32" y1="42" x2="42" y2="32" stroke="#B83A2E" stroke-width="1"/>
+          <line x1="32" y1="38" x2="24" y2="28" stroke="#B83A2E" stroke-width="1"/>
+          <line x1="32" y1="38" x2="40" y2="28" stroke="#B83A2E" stroke-width="1"/>
+          <line x1="32" y1="34" x2="26" y2="24" stroke="#B83A2E" stroke-width="1"/>
+          <line x1="32" y1="34" x2="38" y2="24" stroke="#B83A2E" stroke-width="1"/>
+          <!-- Center dot -->
+          <circle cx="32" cy="30" r="2" fill="#B83A2E" opacity="0.6"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#B83A2E">t4</span>
+      <div class="card-label">严重风险</div>
+      <div class="card-sublabel">8 侧脉</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#8E8E9A" stroke-width="2" stroke-dasharray="5 3"/>
+          <text x="32" y="40" font-size="18" font-family="Georgia, serif" font-weight="bold" fill="#8E8E9A" text-anchor="middle" opacity="0.7">?</text>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#8E8E9A">?</span>
+      <div class="card-label">未知</div>
+      <div class="card-sublabel">暂无数据</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================== -->
+<!-- C: 圆点细胞 Cell Dots -->
+<!-- ======================== -->
+<div class="style-block">
+  <div class="style-title">
+    <h2>C · 圆点细胞</h2>
+    <p>Shield 内散布圆点，数量递增，像培养皿菌落密度</p>
+  </div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="c-t0" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#3D8B5A" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#3D8B5A" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#3D8B5A" stroke-width="2" fill="url(#c-t0)"/>
+          <!-- 0 dots — only center -->
+          <circle cx="32" cy="34" r="3" fill="#3D8B5A" opacity="0.5"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#3D8B5A">t0</span>
+      <div class="card-label">安全</div>
+      <div class="card-sublabel">0 细胞</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="c-t1" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#52A86E" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#52A86E" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#52A86E" stroke-width="2" fill="url(#c-t1)"/>
+          <!-- 3 dots scattered -->
+          <circle cx="32" cy="28" r="3.5" fill="#52A86E" opacity="0.6"/>
+          <circle cx="24" cy="38" r="3.5" fill="#52A86E" opacity="0.6"/>
+          <circle cx="40" cy="38" r="3.5" fill="#52A86E" opacity="0.6"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#52A86E">t1</span>
+      <div class="card-label">低风险</div>
+      <div class="card-sublabel">3 细胞</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="c-t2" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#C9A92C" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#C9A92C" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#C9A92C" stroke-width="2" fill="url(#c-t2)"/>
+          <!-- 6 dots -->
+          <circle cx="32" cy="26" r="3" fill="#C9A92C" opacity="0.7"/>
+          <circle cx="22" cy="34" r="3" fill="#C9A92C" opacity="0.7"/>
+          <circle cx="42" cy="34" r="3" fill="#C9A92C" opacity="0.7"/>
+          <circle cx="26" cy="44" r="3" fill="#C9A92C" opacity="0.7"/>
+          <circle cx="38" cy="44" r="3" fill="#C9A92C" opacity="0.7"/>
+          <circle cx="32" cy="36" r="2.5" fill="#C9A92C" opacity="0.5"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#C9A92C">t2</span>
+      <div class="card-label">中等风险</div>
+      <div class="card-sublabel">6 细胞</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="c-t3" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#D4692A" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#D4692A" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#D4692A" stroke-width="2" fill="url(#c-t3)"/>
+          <!-- 10 dots, more clustered -->
+          <circle cx="32" cy="24" r="3" fill="#D4692A" opacity="0.8"/>
+          <circle cx="20" cy="30" r="3" fill="#D4692A" opacity="0.8"/>
+          <circle cx="44" cy="30" r="3" fill="#D4692A" opacity="0.8"/>
+          <circle cx="24" cy="40" r="3" fill="#D4692A" opacity="0.8"/>
+          <circle cx="40" cy="40" r="3" fill="#D4692A" opacity="0.8"/>
+          <circle cx="32" cy="36" r="2.5" fill="#D4692A" opacity="0.6"/>
+          <circle cx="16" cy="36" r="2.5" fill="#D4692A" opacity="0.6"/>
+          <circle cx="48" cy="36" r="2.5" fill="#D4692A" opacity="0.6"/>
+          <circle cx="28" cy="48" r="2.5" fill="#D4692A" opacity="0.6"/>
+          <circle cx="36" cy="48" r="2.5" fill="#D4692A" opacity="0.6"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#D4692A">t3</span>
+      <div class="card-label">较高风险</div>
+      <div class="card-sublabel">10 细胞</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="c-t4" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#B83A2E" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#B83A2E" stop-opacity="0.05"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#B83A2E" stroke-width="2" fill="url(#c-t4)"/>
+          <!-- 15 dots, dense colony -->
+          <circle cx="32" cy="22" r="2.5" fill="#B83A2E" opacity="0.9"/>
+          <circle cx="22" cy="28" r="2.5" fill="#B83A2E" opacity="0.9"/>
+          <circle cx="42" cy="28" r="2.5" fill="#B83A2E" opacity="0.9"/>
+          <circle cx="18" cy="36" r="2.5" fill="#B83A2E" opacity="0.9"/>
+          <circle cx="46" cy="36" r="2.5" fill="#B83A2E" opacity="0.9"/>
+          <circle cx="24" cy="44" r="2.5" fill="#B83A2E" opacity="0.9"/>
+          <circle cx="40" cy="44" r="2.5" fill="#B83A2E" opacity="0.9"/>
+          <circle cx="32" cy="50" r="2.5" fill="#B83A2E" opacity="0.9"/>
+          <circle cx="32" cy="34" r="2" fill="#B83A2E" opacity="0.7"/>
+          <circle cx="26" cy="32" r="2" fill="#B83A2E" opacity="0.7"/>
+          <circle cx="38" cy="32" r="2" fill="#B83A2E" opacity="0.7"/>
+          <circle cx="20" cy="42" r="2" fill="#B83A2E" opacity="0.7"/>
+          <circle cx="44" cy="42" r="2" fill="#B83A2E" opacity="0.7"/>
+          <circle cx="28" cy="50" r="2" fill="#B83A2E" opacity="0.7"/>
+          <circle cx="36" cy="50" r="2" fill="#B83A2E" opacity="0.7"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#B83A2E">t4</span>
+      <div class="card-label">严重风险</div>
+      <div class="card-sublabel">15 细胞</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#8E8E9A" stroke-width="2" stroke-dasharray="5 3"/>
+          <text x="32" y="40" font-size="18" font-family="Georgia, serif" font-weight="bold" fill="#8E8E9A" text-anchor="middle" opacity="0.7">?</text>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#8E8E9A">?</span>
+      <div class="card-label">未知</div>
+      <div class="card-sublabel">暂无数据</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================== -->
+<!-- D: 波浪线 Wave Lines -->
+<!-- ======================== -->
+<div class="style-block">
+  <div class="style-title">
+    <h2>D · 波浪翻涌</h2>
+    <p>Shield 内水平波浪线数量和粗细递增，t0=平静细线，t4=翻涌粗线</p>
+  </div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="d-t0" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#3D8B5A" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#3D8B5A" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#3D8B5A" stroke-width="2" fill="url(#d-t0)"/>
+          <!-- 1 thin wave -->
+          <path d="M18 38 Q25 35 32 38 Q39 41 46 38" stroke="#3D8B5A" stroke-width="1" fill="none" opacity="0.5"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#3D8B5A">t0</span>
+      <div class="card-label">安全</div>
+      <div class="card-sublabel">1 细浪</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="d-t1" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#52A86E" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#52A86E" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#52A86E" stroke-width="2" fill="url(#d-t1)"/>
+          <!-- 2 waves -->
+          <path d="M16 34 Q23 31 30 34 Q37 37 44 34 Q51 31 50 28" stroke="#52A86E" stroke-width="1.2" fill="none" opacity="0.6"/>
+          <path d="M16 42 Q23 39 30 42 Q37 45 44 42 Q51 39 50 36" stroke="#52A86E" stroke-width="1.2" fill="none" opacity="0.6"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#52A86E">t1</span>
+      <div class="card-label">低风险</div>
+      <div class="card-sublabel">2 波纹</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="d-t2" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#C9A92C" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#C9A92C" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#C9A92C" stroke-width="2" fill="url(#d-t2)"/>
+          <!-- 3 waves -->
+          <path d="M14 28 Q22 24 30 28 Q38 32 46 28 Q52 24 50 20" stroke="#C9A92C" stroke-width="1.5" fill="none" opacity="0.7"/>
+          <path d="M14 36 Q22 32 30 36 Q38 40 46 36 Q52 32 50 28" stroke="#C9A92C" stroke-width="1.5" fill="none" opacity="0.7"/>
+          <path d="M14 44 Q22 40 30 44 Q38 48 46 44 Q52 40 50 36" stroke="#C9A92C" stroke-width="1.5" fill="none" opacity="0.7"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#C9A92C">t2</span>
+      <div class="card-label">中等风险</div>
+      <div class="card-sublabel">3 波纹</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="d-t3" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#D4692A" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#D4692A" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#D4692A" stroke-width="2" fill="url(#d-t3)"/>
+          <!-- 4 waves, thicker -->
+          <path d="M12 24 Q20 19 28 24 Q36 29 44 24 Q52 19 52 14" stroke="#D4692A" stroke-width="1.8" fill="none" opacity="0.8"/>
+          <path d="M12 32 Q20 27 28 32 Q36 37 44 32 Q52 27 52 22" stroke="#D4692A" stroke-width="1.8" fill="none" opacity="0.8"/>
+          <path d="M12 40 Q20 35 28 40 Q36 45 44 40 Q52 35 52 30" stroke="#D4692A" stroke-width="1.8" fill="none" opacity="0.8"/>
+          <path d="M12 48 Q20 43 28 48 Q36 53 44 48 Q52 43 52 38" stroke="#D4692A" stroke-width="1.8" fill="none" opacity="0.8"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#D4692A">t3</span>
+      <div class="card-label">较高风险</div>
+      <div class="card-sublabel">4 波纹</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="d-t4" x1="32" y1="8" x2="32" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#B83A2E" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#B83A2E" stop-opacity="0.05"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#B83A2E" stroke-width="2" fill="url(#d-t4)"/>
+          <!-- 5 waves, thick + erratic -->
+          <path d="M10 20 Q18 14 26 20 Q34 26 42 20 Q52 14 54 8" stroke="#B83A2E" stroke-width="2" fill="none" opacity="0.9"/>
+          <path d="M10 28 Q18 22 26 28 Q34 34 42 28 Q52 22 54 16" stroke="#B83A2E" stroke-width="2" fill="none" opacity="0.9"/>
+          <path d="M10 36 Q18 30 26 36 Q34 42 42 36 Q52 30 54 24" stroke="#B83A2E" stroke-width="2" fill="none" opacity="0.9"/>
+          <path d="M10 44 Q18 38 26 44 Q34 50 42 44 Q52 38 54 32" stroke="#B83A2E" stroke-width="2" fill="none" opacity="0.9"/>
+          <path d="M10 52 Q18 46 26 52 Q34 58 42 52 Q52 46 54 40" stroke="#B83A2E" stroke-width="2" fill="none" opacity="0.9"/>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#B83A2E">t4</span>
+      <div class="card-label">严重风险</div>
+      <div class="card-sublabel">5 波涛</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 8L12 16v12c0 12 8 21 20 28 12-7 20-16 20-28V16L32 8z" stroke="#8E8E9A" stroke-width="2" stroke-dasharray="5 3"/>
+          <text x="32" y="40" font-size="18" font-family="Georgia, serif" font-weight="bold" fill="#8E8E9A" text-anchor="middle" opacity="0.7">?</text>
+        </svg>
+      </div>
+      <span class="card-badge" style="background:#8E8E9A">?</span>
+      <div class="card-label">未知</div>
+      <div class="card-sublabel">暂无数据</div>
+    </div>
+
+  </div>
+</div>
+
+<button class="select-btn" onclick="this.textContent='✓ 已选择'; this.style.background='#3D8B5A'">选择此设计方案</button>
+
+</body>
+</html>
