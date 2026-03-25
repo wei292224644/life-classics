@@ -301,12 +301,29 @@ import Icon from "../../ui/Icon.vue";
 import RiskBadge from "./RiskBadge.vue";
 
 // Change to:
-import RiskBadge from "../../ui/RiskBadge.vue";
+import RiskBadge from "../../../ui/RiskBadge.vue";
 ```
 
 ---
 
-## Task 12: Verify build
+## Task 12: Update Icon.vue internal import
+
+**Files:**
+- Modify: `web/apps/uniapp-tw/src/components/ui/Icon.vue`
+
+- [ ] **Step 1: Update iconsRegistry import path**
+
+```typescript
+// Change from:
+import { iconRegistry, type IconName } from './icons/iconsRegistry';
+
+// Change to:
+import { iconRegistry, type IconName } from '../icons/iconsRegistry';
+```
+
+---
+
+## Task 13: Verify build
 
 **Files:**
 - Verify: `web/apps/uniapp-tw/src/`
