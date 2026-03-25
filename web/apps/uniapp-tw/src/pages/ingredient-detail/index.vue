@@ -8,7 +8,8 @@ import { useThemeStore } from "@/store/theme";
 import { getRiskConfig } from "@/utils/riskLevel";
 import Icon from "@/components/ui/Icon.vue";
 import Screen from "@/components/ui/Screen.vue";
-
+import Button from "@/components/ui/Button.vue";
+import StateView from "@/components/ui/StateView.vue";
 // ── Store ────────────────────────────────────────────────
 const ingStore = useIngredientStore();
 const productStore = useProductStore();
@@ -19,6 +20,14 @@ const fromProductName = computed(() => ingStore.fromProductName);
 
 // ── 加载态 ───────────────────────────────────────────────
 const isLoading = ref(false);
+const errorMessage = ref<string>();
+
+// ── 页面状态（用于 StateView） ───────────────────────────
+const pageState = computed(() => {
+  if (isLoading.value) return "loading";
+  if (!ingredient.value) return "not_found";
+  return "success";
+});
 
 // ── URL 路由参数（ingredientId 为必传，fromProductName 可选） ──
 onLoad(async (options) => {
@@ -62,7 +71,7 @@ onLoad(async (options) => {
       ingStore.set(data as any, fpn ?? undefined);
     }
   } catch {
-    // 静默失败，error-state 会兜底显示
+    errorMessage.value = "数据加载失败，请返回重试";
   } finally {
     isLoading.value = false;
   }
@@ -81,7 +90,6 @@ const headerSubtitle = computed(() => {
 });
 
 // ── Risk class ───────────────────────────────────────────
-const riskClass = computed(() => `risk-${riskConf.value.visualKey}`);
 
 const spectrumOpacityStyle = computed(() =>
   riskConf.value.needleLeft === null ? { opacity: "0.4" } : {},
@@ -302,69 +310,50 @@ function goToProduct(barcode: string) {
     <!-- #header slot -->
     <template #header>
       <view
-        class="ing-hdr sticky top-0 z-10 flex items-center gap-2.5 px-3.5 py-3"
-        :class="riskClass"
+        class="top-0 z-10 flex items-center gap-2.5 px-3.5 py-3"
+        :class="{
+          'bg-risk-t4': riskLevel === 't4',
+          'bg-risk-t3': riskLevel === 't3',
+          'bg-risk-t2': riskLevel === 't2',
+          'bg-risk-t1': riskLevel === 't1',
+          'bg-risk-t0': riskLevel === 't0',
+          'bg-risk-unknown': riskLevel === 'unknown',
+        }"
       >
-        <button
-          class="ing-hdr-btn w-[30px] h-[30px] rounded-[9px] flex items-center justify-center flex-shrink-0 cursor-pointer border-none p-0"
-          @click="goBack"
-        >
-          <Icon name="arrowLeft" class="w-3.5 h-3.5" :size="14" />
-        </button>
+        <Button size="icon" variant="ghost" @click="goBack">
+          <Icon name="arrowLeft" />
+        </Button>
         <view class="flex-1 flex flex-col">
-          <text class="ing-hdr-title text-[14px] font-bold">{{
-            ingredient?.name ?? "配料详情"
-          }}</text>
-          <text class="ing-hdr-sub text-[10px] font-semibold mt-px">{{
-            headerSubtitle
-          }}</text>
+          <text class="text-sm font-bold">{{ ingredient?.name }}</text>
+          <text class="text-xs font-semibold">{{ headerSubtitle }}</text>
         </view>
-        <button
-          class="ing-hdr-btn w-[30px] h-[30px] rounded-[9px] flex items-center justify-center flex-shrink-0 cursor-pointer border-none p-0"
-          @click="shareToFriend"
-        >
-          <Icon name="share" class="w-3.5 h-3.5" :size="14" />
-        </button>
+        <Button size="icon" variant="ghost" @click="shareToFriend">
+          <Icon name="share" />
+        </Button>
       </view>
     </template>
 
     <!-- #content slot -->
     <template #content>
-      <!-- 加载态 -->
-      <view
-        v-if="isLoading"
-        class="flex-1 flex items-center justify-center"
+      <StateView
+        :state="pageState"
+        :message="errorMessage"
+        go-back-label="返回"
+        @go-back="goBack"
       >
-        <text class="text-xl text-muted-foreground">加载中...</text>
-      </view>
-
-      <!-- 无数据错误态 -->
-      <view
-        v-else-if="!ingredient"
-        class="flex-1 flex flex-col items-center justify-center gap-8 px-12 py-20"
-      >
-        <text class="text-xl text-secondary text-center"
-          >数据加载失败，请返回重试</text
-        >
-        <button
-          class="px-12 py-5 rounded-xl bg-card border border-border text-foreground text-xl"
-          @click="goBack"
-        >
-          返回
-        </button>
-      </view>
-
-      <!-- 内容区 -->
-      <view v-else class="px-3 flex flex-col gap-3">
+        <template #default>
+          <!-- 内容区 -->
+          <view class="px-3 flex flex-col gap-3">
         <!-- Hero 风险卡 -->
         <view class="sec-card">
           <view
             class="hero-top p-3"
-            :class="[`hero-top-${riskConf.visualKey}`, themeStore.isDark ? 'dark-mode' : 'light-mode']"
+            :class="[
+              `hero-top-${riskConf.visualKey}`,
+              themeStore.isDark ? 'dark-mode' : 'light-mode',
+            ]"
           >
-            <view
-              class="flex items-start justify-between mb-2"
-            >
+            <view class="flex items-start justify-between mb-2">
               <view>
                 <text class="text-[18px] font-extrabold text-text-primary">{{
                   ingredient.name
@@ -393,7 +382,9 @@ function goToProduct(barcode: string) {
                 :style="needleStyle"
               />
             </view>
-            <view class="flex justify-between text-[9px] text-text-muted px-0.5">
+            <view
+              class="flex justify-between text-[9px] text-text-muted px-0.5"
+            >
               <text>低风险</text>
               <text>中等</text>
               <text>高风险</text>
@@ -607,14 +598,14 @@ function goToProduct(barcode: string) {
             >
               <view
                 class="w-[18px] h-[18px] rounded-[5px] flex items-center justify-center flex-shrink-0 mt-px"
-                :class="
-                  s.type === 'positive' ? 'dot-good' : 'dot-warn'
-                "
+                :class="s.type === 'positive' ? 'dot-good' : 'dot-warn'"
               >
                 <Icon
                   name="check"
                   class="w-2.5 h-2.5"
-                  :class="s.type === 'positive' ? 'text-green-500' : 'text-yellow-500'"
+                  :class="
+                    s.type === 'positive' ? 'text-green-500' : 'text-yellow-500'
+                  "
                   :size="10"
                 />
               </view>
@@ -668,9 +659,7 @@ function goToProduct(barcode: string) {
                   v-if="p.riskTag"
                   class="text-[9px] font-medium px-[5px] py-px rounded inline-block"
                   :class="
-                    p.riskTag === '高风险'
-                      ? 'chip chip-red'
-                      : 'chip chip-warn'
+                    p.riskTag === '高风险' ? 'chip chip-red' : 'chip chip-warn'
                   "
                 >
                   {{ p.riskTag }}
@@ -679,7 +668,8 @@ function goToProduct(barcode: string) {
             </view>
           </view>
         </view>
-      </view>
+        </template>
+      </StateView>
     </template>
 
     <!-- #footer slot -->
@@ -696,7 +686,14 @@ function goToProduct(barcode: string) {
         </button>
         <button
           class="flex-1 rounded-xl py-3 text-[12px] font-semibold text-white text-center cursor-pointer active:scale-[0.97]"
-          style="background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink)); box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3)"
+          style="
+            background: linear-gradient(
+              135deg,
+              var(--accent-pink-light),
+              var(--accent-pink)
+            );
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+          "
           @click="goToSearch"
         >
           查看相关食品
@@ -767,7 +764,11 @@ function goToProduct(barcode: string) {
   border-bottom: 1px solid #7f1d1d;
 }
 .light-mode .hero-top {
-  background: linear-gradient(135deg, rgba(255, 244, 240, 0.6) 0%, transparent 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 244, 240, 0.6) 0%,
+    transparent 100%
+  );
   border-bottom: 1px solid #fecaca;
 }
 
@@ -775,65 +776,113 @@ function goToProduct(barcode: string) {
 .hero-top-t4,
 .hero-top-critical {
   &.dark-mode {
-    background: linear-gradient(135deg, rgba(26, 8, 8, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(26, 8, 8, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #7f1d1d;
   }
   &.light-mode {
-    background: linear-gradient(135deg, rgba(255, 244, 240, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 244, 240, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #fecaca;
   }
 }
 .hero-top-t3,
 .hero-top-high {
   &.dark-mode {
-    background: linear-gradient(135deg, rgba(26, 8, 8, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(26, 8, 8, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #7f1d1d;
   }
   &.light-mode {
-    background: linear-gradient(135deg, rgba(255, 244, 240, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 244, 240, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #fecaca;
   }
 }
 .hero-top-t2,
 .hero-top-medium {
   &.dark-mode {
-    background: linear-gradient(135deg, rgba(26, 20, 8, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(26, 20, 8, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #78350f;
   }
   &.light-mode {
-    background: linear-gradient(135deg, rgba(255, 251, 235, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 251, 235, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #fde68a;
   }
 }
 .hero-top-t1,
 .hero-top-low {
   &.dark-mode {
-    background: linear-gradient(135deg, rgba(5, 20, 10, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(5, 20, 10, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #166534;
   }
   &.light-mode {
-    background: linear-gradient(135deg, rgba(240, 253, 244, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(240, 253, 244, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #bbf7d0;
   }
 }
 .hero-top-t0,
 .hero-top-safe {
   &.dark-mode {
-    background: linear-gradient(135deg, rgba(5, 20, 10, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(5, 20, 10, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #166534;
   }
   &.light-mode {
-    background: linear-gradient(135deg, rgba(240, 253, 244, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(240, 253, 244, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #bbf7d0;
   }
 }
 .hero-top-unknown {
   &.dark-mode {
-    background: linear-gradient(135deg, rgba(20, 20, 20, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(20, 20, 20, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #374151;
   }
   &.light-mode {
-    background: linear-gradient(135deg, rgba(245, 245, 245, 0.6) 0%, transparent 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(245, 245, 245, 0.6) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid #e5e7eb;
   }
 }
@@ -842,7 +891,11 @@ function goToProduct(barcode: string) {
 .ai-label {
   font-size: 9.5px;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink));
+  background: linear-gradient(
+    135deg,
+    var(--accent-pink-light),
+    var(--accent-pink)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
