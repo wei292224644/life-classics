@@ -1,50 +1,58 @@
 <script setup lang="ts">
-import { icons, type IconName } from "../utils/icons";
+/**
+ * Icon — Lucide-style icon component
+ */
+import { computed } from 'vue';
+import { iconRegistry, type IconName } from './icons/iconsRegistry';
 
 interface Props {
   name: IconName;
-  size?: string | number;
+  size?: number | string;
+  strokeWidth?: number | string;
+  absoluteStrokeWidth?: boolean;
   spin?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 20,
+  size: 24,
+  strokeWidth: 2,
+  absoluteStrokeWidth: false,
   spin: false,
 });
 
-const icon = icons[props.name];
+const icon = computed(() => iconRegistry[props.name]);
+
+const isFilled = computed(() => icon.value?.contents.includes('fill="currentColor"') ?? false);
+
+const effectiveStrokeWidth = computed(() => {
+  if (props.absoluteStrokeWidth) {
+    return Number(props.strokeWidth) * (24 / Number(props.size));
+  }
+  return props.strokeWidth;
+});
 </script>
 
 <template>
   <svg
-    class="icon-svg"
-    :class="{ 'icon-svg--spin': spin }"
-    :viewBox="icon.viewBox"
+    v-if="icon"
+    class="icon"
+    :class="{ 'icon--spin': spin }"
+    viewBox="0 0 24 24"
     :width="size"
     :height="size"
+    :fill="isFilled ? 'currentColor' : 'none'"
+    :stroke="isFilled ? undefined : 'currentColor'"
+    :stroke-width="isFilled ? undefined : effectiveStrokeWidth"
+    :stroke-linecap="isFilled ? undefined : 'round'"
+    :stroke-linejoin="isFilled ? undefined : 'round'"
     aria-hidden="true"
-    fill="none"
-    stroke="currentColor"
-    :stroke-width="(icon as any).strokeWidth ?? 2"
-    v-if="!icon.filled"
-  >
-    <path :d="icon.paths" stroke-linecap="round" stroke-linejoin="round" />
-  </svg>
-  <svg
-    class="icon-svg"
-    :class="{ 'icon-svg--spin': spin }"
-    :viewBox="icon.viewBox"
-    :width="size"
-    :height="size"
-    aria-hidden="true"
-    v-else
-  >
-    <path :d="icon.paths" fill="currentColor" />
-  </svg>
+    v-html="icon.contents"
+  />
+  <span v-else class="icon-placeholder">{{ name }}</span>
 </template>
 
 <style lang="scss" scoped>
-.icon-svg {
+.icon {
   display: inline-block;
   flex-shrink: 0;
   vertical-align: middle;
@@ -53,6 +61,11 @@ const icon = icons[props.name];
   &--spin {
     animation: spin 1.2s linear infinite;
   }
+}
+
+.icon-placeholder {
+  font-size: 0.75em;
+  opacity: 0.5;
 }
 
 @keyframes spin {
