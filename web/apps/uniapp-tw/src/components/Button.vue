@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Icon from './Icon.vue'
-import type { IconName } from '../utils/icons'
+import type { IconName } from './icons/iconsRegistry'
 
 type ButtonVariant = 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive'
 type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
