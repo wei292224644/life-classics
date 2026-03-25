@@ -12,13 +12,23 @@ export default <Config>{
     // 风险色：背景类（不带透明度）
     { pattern: /^bg-risk-(t0|t1|t2|t3|t4|unknown)$/ },
     // 风险色：背景类（带透明度 /xx）
-    { pattern: /^bg-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/ },
-    { pattern: /^border-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/ },
-    { pattern: /^shadow-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/ },
+    {
+      pattern:
+        /^bg-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/,
+    },
+    {
+      pattern:
+        /^border-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/,
+    },
+    {
+      pattern:
+        /^shadow-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/,
+    },
   ],
   theme: {
     extend: {
       colors: {
+        root: "var(--root)",
         // shadcn 语义变量命名
         background: "var(--background)",
         foreground: "var(--foreground)",

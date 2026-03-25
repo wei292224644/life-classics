@@ -88,7 +88,21 @@
                     }}</text>
                   </view>
                 </view>
-                <button
+
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  class="w-full mt-4 hover:!bg-transparent"
+                  @click="nutrExpanded = !nutrExpanded"
+                >
+                  <view class="flex items-center justify-center gap-2">
+                    <Icon name="chevronDown" :size="20" />
+                    <text class="text-sm font-medium text-muted-foreground">{{
+                      nutrExpanded ? "收起详细营养成分" : "查看详细营养成分"
+                    }}</text>
+                  </view>
+                </Button>
+                <!-- <button
                   type="button"
                   class="w-full flex items-center justify-center gap-2 py-2 bg-transparent cursor-pointer active:bg-muted/10"
                   :aria-expanded="nutrExpanded"
@@ -102,7 +116,7 @@
                   <text class="text-sm font-medium text-muted-foreground">{{
                     nutrExpanded ? "收起详细营养成分" : "查看详细营养成分"
                   }}</text>
-                </button>
+                </button> -->
                 <view
                   v-show="nutrExpanded"
                   class="border-t border-border pt-4 mt-1"
@@ -193,6 +207,7 @@ import StateView from "@/components/ui/StateView.vue";
 import { formatDecimalString } from "@/utils/numberFormat";
 import { useToast } from "@/composables/useToast";
 import ToastContainer from "@/components/ui/ToastContainer.vue";
+import Button from "@/components/ui/Button.vue";
 
 const toast = useToast();
 const store = useProductStore();
@@ -519,8 +534,8 @@ const mockIngredients = computed(() =>
 .nutrition-card {
   background: linear-gradient(
     145deg,
-    color-mix(in srgb, var(--color-risk-t0) 2%, transparent 20%) 0%,
-    color-mix(in srgb, var(--color-risk-t0) 5%, transparent 20%) 100%
+    color-mix(in srgb, var(--color-risk-t0) 10%, transparent 10%) 0%,
+    color-mix(in srgb, var(--color-risk-t0) 5%, transparent 10%) 100%
   );
 }
 

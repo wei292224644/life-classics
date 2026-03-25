@@ -59,18 +59,15 @@
                 :class="[
                   'absolute left-0 top-0 bottom-0 w-1.5',
                   `flow-bg-risk-${levelGroup.levelKey}`,
-                  // levelGroup.levelKey === 'unknown'
-                  //   ? 'shadow-none'
-                  //   : `shadow-risk-${levelGroup.levelKey}/20 shadow-[0_0_16rpx_var(--tw-shadow-color)]`,
                 ]"
               />
               <View
-                class="size-14 absolute -right-4 -top-4 bg-background rounded-full"
+                class="size-14 absolute -right-4 -top-4 bg-background opacity-70 rounded-full"
               >
               </View>
               <!-- 右上角箭头 -->
               <view
-                class="absolute right-2.5 top-2.5 w-4 h-4 opacity-40 text-muted-foreground"
+                class="absolute right-2.5 top-2.5 w-4 h-4 opacity-40 text-secondary-foreground"
               >
                 <Icon name="arrowRight" :size="20" class="w-4 h-4" />
               </view>

@@ -56,7 +56,7 @@ const buttonClass = computed(() => {
 
   const variantClass: Record<ButtonVariant, string> = {
     default:
-      'text-white border-transparent bg-[linear-gradient(135deg,var(--accent-pink-light)_0%,var(--accent-pink)_100%)] shadow-[0_2rpx_8rpx_rgba(0,0,0,0.1),0_4rpx_16rpx_color-mix(in_oklch,var(--accent-pink)_25%,transparent)] hover:shadow-[0_4rpx_12rpx_rgba(0,0,0,0.15),0_8rpx_24rpx_color-mix(in_oklch,var(--accent-pink)_35%,transparent)] focus-visible:ring-accent-pink',
+      'text-foreground border-transparent bg-[linear-gradient(135deg,var(--accent-pink-light)_0%,var(--accent-pink)_100%)] shadow-[0_2rpx_8rpx_rgba(0,0,0,0.1),0_4rpx_16rpx_color-mix(in_oklch,var(--accent-pink)_25%,transparent)] hover:shadow-[0_4rpx_12rpx_rgba(0,0,0,0.15),0_8rpx_24rpx_color-mix(in_oklch,var(--accent-pink)_35%,transparent)] focus-visible:ring-accent-pink',
     secondary:
       'text-foreground border-border bg-secondary hover:bg-[color-mix(in_oklch,var(--secondary)_85%,transparent)] focus-visible:ring-ring',
     outline:

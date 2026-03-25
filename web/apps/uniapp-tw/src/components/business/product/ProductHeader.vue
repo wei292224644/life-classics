@@ -35,7 +35,7 @@ function handleShare() {
 <template>
   <view class="fixed top-0 left-0 right-0 z-50 pointer-events-none">
     <view
-      class="flex items-center px-3 py-2 bg-transparent pointer-events-auto transition-[background,box-shadow] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+      class="flex items-center px-3 py-2 bg-transparent pointer-events-auto transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
       :class="{ 'header--scrolled': isScrolled }"
       :style="{ top: `${statusBarHeight}px` }"
     >
@@ -66,12 +66,6 @@ function handleShare() {
 
 <style lang="scss" scoped>
 .header--scrolled {
-  background: var(--header-scrolled-bg);
-  backdrop-filter: saturate(180%) blur(16px);
-  -webkit-backdrop-filter: saturate(180%) blur(16px);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow:
-    0 8rpx 48rpx rgba(0, 0, 0, 0.08),
-    0 1px 0 rgba(0, 0, 0, 0.04);
+  @apply bg-background  border-b border-border shadow-md;
 }
 </style>
