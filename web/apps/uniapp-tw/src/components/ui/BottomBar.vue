@@ -26,7 +26,17 @@ const emit = defineEmits<{
 
 <style lang="scss" scoped>
 .bottom-bar {
-  @apply absolute bottom-0 left-0 right-0 z-50 flex items-center gap-3 px-3 py-3 bg-white;
+  @apply absolute bottom-0 left-0 right-0 z-50 flex items-center gap-3 px-3 py-3;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--color-border);
+
+  .dark & {
+    background: rgba(15, 15, 15, 0.95);
+    box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.4);
+  }
 }
 
 .action-btn {

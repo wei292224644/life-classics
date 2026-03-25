@@ -36,7 +36,7 @@
       @scroll="onScroll"
     >
       <!-- ── Banner ─────────────────────────────────── -->
-      <view class="banner">
+      <view class="banner" :class="overallRiskLevel">
         <image
           v-if="store.product.image_url_list?.[0]"
           :src="store.product.image_url_list[0]"
@@ -49,7 +49,8 @@
             store.product.name
           }}</text>
         </view>
-        <view class="banner-badge" :class="overallRiskLevel">
+        <!-- 风险徽章 -->
+        <view class="banner-badge">
           <Icon name="badgeCheck" class="badge-icon" />
           <text class="badge-text">{{ riskLabel }}</text>
         </view>
@@ -57,8 +58,9 @@
 
       <!-- ── 内容区 ────────────────────────────────── -->
       <view class="content">
-        <!-- 营养成分 -->
-        <view class="nutrition-card">
+        <!-- 营养成分卡片 -->
+        <view class="nutrition-card" :class="overallRiskLevel">
+          <view class="nutrition-glow" />
           <text class="section-title">营养成分</text>
           <view class="nutrition-grid">
             <view
@@ -80,7 +82,7 @@
             :aria-expanded="nutrExpanded"
             @click="nutrExpanded = !nutrExpanded"
           >
-            <text>{{
+            <text class="toggle-label">{{
               nutrExpanded ? "收起详细营养成分" : "查看详细营养成分"
             }}</text>
             <Icon name="chevronDown" class="chevron" />
@@ -98,26 +100,26 @@
         </view>
 
         <!-- 配料与风险 -->
-        <!-- <text class="section-title">配料与风险</text> -->
+        <text class="section-title">配料与风险</text>
         <IngredientSection :ingredients="mockIngredients" />
 
-        <!-- 健康益处 -->
-        <view class="analysis-card">
-          <text class="section-title">健康益处</text>
-          <view class="analysis-list">
+        <!-- 健康益处卡片 -->
+        <view class="health-card">
+          <text class="health-title">健康益处</text>
+          <view class="health-list">
             <view
               v-for="(text, idx) in healthTexts"
               :key="idx"
-              class="analysis-item"
+              class="health-item"
             >
-              <Icon name="check" class="item-icon item-icon--check" />
-              <text class="item-text">{{ text }}</text>
+              <Icon name="check" class="health-icon" />
+              <text class="health-text">{{ text }}</text>
             </view>
           </view>
         </view>
 
-        <!-- 食用建议 -->
-        <view class="analysis-card">
+        <!-- AI 健康建议卡片 -->
+        <view class="advice-card">
           <view class="advice-header">
             <Icon name="star" class="star-icon" />
             <text>AI 健康建议</text>
@@ -490,31 +492,34 @@ const mockIngredients = computed(() =>
 
 // ── Banner ────────────────────────────────────────────
 .banner {
-  @apply relative overflow-hidden;
+  @apply relative overflow-hidden flex flex-col items-center justify-center;
   width: 100%;
   height: 520rpx;
-  background: var(--banner-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 
-  &::before {
-    content: "";
-    @apply absolute inset-0 z-[1];
+  .t4 & {
+    background: linear-gradient(145deg, #fee2e2 0%, #fecaca 50%, #fca5a5 100%);
+  }
+  .t3 & {
+    background: linear-gradient(145deg, #ffedd5 0%, #fed7aa 50%, #fcd34d 100%);
+  }
+  .t2 & {
+    background: linear-gradient(145deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%);
+  }
+  .t0 & {
+    background: linear-gradient(145deg, #dcfce7 0%, #bbf7d0 50%, #86efac 100%);
+  }
+  .unknown &,
+  .t1 & {
+    background: linear-gradient(145deg, #e5e7eb 0%, #d1d5db 50%, #9ca3af 100%);
   }
 
-  .dark &::before {
-    background:
-      radial-gradient(
-        ellipse 80% 60% at 50% 0%,
-        color-mix(in oklch, var(--color-risk-t0) 8%, transparent) 0%,
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse 60% 40% at 80% 80%,
-        color-mix(in oklch, var(--color-accent) 5%, transparent) 0%,
-        transparent 50%
-      );
+  .dark & {
+    &.t4 { background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%); }
+    &.t3 { background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%); }
+    &.t2 { background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%); }
+    &.t0 { background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%); }
+    &.unknown,
+    &.t1 { background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%); }
   }
 }
 
@@ -536,41 +541,47 @@ const mockIngredients = computed(() =>
 }
 
 .banner-label {
-  @apply text-lg tracking-widest;
-  color: var(--banner-label);
+  @apply text-sm tracking-widest;
+  color: rgba(0, 0, 0, 0.5);
+
+  .dark & {
+    color: rgba(255, 255, 255, 0.4);
+  }
 }
 
+// 风险徽章
 .banner-badge {
   @apply absolute right-[32rpx] bottom-[32rpx] rounded-[32rpx] px-[32rpx] py-[14rpx] flex items-center gap-[10rpx] z-[2];
   animation: slideUpBadge 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: translateY(10px);
-  border: 1px solid transparent;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
-  &.t4 {
-    background: color-mix(in oklch, var(--color-risk-t4) 24%, white);
-    border-color: color-mix(in oklch, var(--color-risk-t4) 40%, white);
+  .t4 & {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.3));
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow: 0 8rpx 36rpx rgba(239, 68, 68, 0.2);
   }
-  &.t3 {
-    background: color-mix(in oklch, var(--color-risk-t3) 24%, white);
-    border-color: color-mix(in oklch, var(--color-risk-t3) 40%, white);
+  .t3 & {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.3));
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    box-shadow: 0 8rpx 36rpx rgba(249, 115, 22, 0.2);
   }
-  &.t2 {
-    background: color-mix(in oklch, var(--color-risk-t2) 24%, white);
-    border-color: color-mix(in oklch, var(--color-risk-t2) 40%, white);
+  .t2 & {
+    background: linear-gradient(135deg, rgba(202, 138, 4, 0.2), rgba(234, 179, 8, 0.3));
+    border: 1px solid rgba(202, 138, 4, 0.3);
+    box-shadow: 0 8rpx 36rpx rgba(202, 138, 4, 0.2);
   }
-  &.t0 {
-    background: linear-gradient(
-      135deg,
-      rgba(134, 239, 172, 0.5),
-      rgba(74, 222, 128, 0.55)
-    );
-    border-color: rgba(34, 197, 94, 0.35);
+  .t0 & {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.3));
+    border: 1px solid rgba(34, 197, 94, 0.3);
     box-shadow: 0 8rpx 36rpx rgba(34, 197, 94, 0.2);
   }
-  &.unknown {
-    background: oklch(100% 0 0 / 85%);
-    border: 1px solid oklch(14.5% 0.016 265 / 10%);
+  .unknown & {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
   }
 }
 
@@ -578,42 +589,21 @@ const mockIngredients = computed(() =>
   @apply w-[24rpx] h-[24rpx] flex-shrink-0;
   fill: currentColor;
 
-  .banner-badge.t0 & {
-    color: var(--color-risk-t0);
-  }
-  .banner-badge.t2 & {
-    color: var(--color-risk-t2);
-  }
-  .banner-badge.t3 & {
-    color: var(--color-risk-t3);
-  }
-  .banner-badge.t4 & {
-    color: var(--color-risk-t4);
-  }
-  .banner-badge.unknown & {
-    color: var(--color-risk-unknown);
-  }
+  .t4 & { color: var(--color-risk-t4); }
+  .t3 & { color: var(--color-risk-t3); }
+  .t2 & { color: var(--color-risk-t2); }
+  .t0 & { color: var(--color-risk-t0); }
+  .unknown & { color: var(--color-risk-unknown); }
 }
 
 .badge-text {
   @apply text-sm font-semibold;
-  color: currentColor;
 
-  .banner-badge.t0 & {
-    color: var(--color-risk-t0);
-  }
-  .banner-badge.t2 & {
-    color: var(--color-risk-t2);
-  }
-  .banner-badge.t3 & {
-    color: var(--color-risk-t3);
-  }
-  .banner-badge.t4 & {
-    color: var(--color-risk-t4);
-  }
-  .banner-badge.unknown & {
-    color: var(--color-risk-unknown);
-  }
+  .t4 & { color: var(--color-risk-t4); }
+  .t3 & { color: var(--color-risk-t3); }
+  .t2 & { color: var(--color-risk-t2); }
+  .t0 & { color: var(--color-risk-t0); }
+  .unknown & { color: var(--color-risk-unknown); }
 }
 
 // ── 内容区 ────────────────────────────────────────────
@@ -627,41 +617,66 @@ const mockIngredients = computed(() =>
 }
 
 .section-title {
-  @apply block font-bold tracking-tight text-foreground text-base;
+  @apply block font-bold tracking-tight text-foreground;
+  font-size: 40rpx;
   margin-top: 40rpx;
-  margin-bottom: 20rpx;
-
-  &:first-child {
-    margin-top: 0;
-  }
+  margin-bottom: 28rpx;
 }
 
 // ── 营养卡片 ──────────────────────────────────────────
 .nutrition-card {
-  @apply relative overflow-hidden rounded-[32rpx] p-5 mb-0;
+  @apply relative overflow-hidden rounded-[48rpx] p-5 mb-0;
   animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: translateY(16px);
-  background: var(--nutrition-bg);
-  border: 1px solid var(--nutrition-border);
 
-  &::before {
-    content: "";
-    @apply absolute top-0 left-0 right-0 h-px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      var(--nutrition-glow),
-      transparent
-    );
+  .t4 & {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.04), rgba(220, 38, 38, 0.02));
+    border: 1px solid rgba(239, 68, 68, 0.12);
   }
+  .t3 & {
+    background: linear-gradient(145deg, rgba(249, 115, 22, 0.04), rgba(234, 88, 12, 0.02));
+    border: 1px solid rgba(249, 115, 22, 0.12);
+  }
+  .t2 & {
+    background: linear-gradient(145deg, rgba(202, 138, 4, 0.04), rgba(234, 179, 8, 0.02));
+    border: 1px solid rgba(202, 138, 4, 0.12);
+  }
+  .t0 & {
+    background: linear-gradient(145deg, rgba(34, 197, 94, 0.04), rgba(22, 163, 74, 0.02));
+    border: 1px solid rgba(34, 197, 94, 0.12);
+  }
+  .unknown &,
+  .t1 & {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.01));
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .dark & {
+    &.t4 { background: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.1); }
+    &.t3 { background: rgba(249, 115, 22, 0.06); border-color: rgba(249, 115, 22, 0.1); }
+    &.t2 { background: rgba(202, 138, 4, 0.06); border-color: rgba(202, 138, 4, 0.1); }
+    &.t0 { background: rgba(34, 197, 94, 0.06); border-color: rgba(34, 197, 94, 0.1); }
+    &.unknown,
+    &.t1 { background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.06); }
+  }
+}
+
+.nutrition-glow {
+  @apply absolute top-0 left-0 right-0 h-px;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.3), transparent);
+
+  .t4 & { background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.3), transparent); }
+  .t3 & { background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.3), transparent); }
+  .t2 & { background: linear-gradient(90deg, transparent, rgba(202, 138, 4, 0.3), transparent); }
+  .t0 & { background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.3), transparent); }
 }
 
 .nutrition-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24rpx 32rpx;
-  margin-bottom: 24rpx;
+  gap: 40rpx;
+  margin-bottom: 32rpx;
 }
 
 .nutrition-cell {
@@ -669,36 +684,41 @@ const mockIngredients = computed(() =>
 }
 
 .nutrition-label {
-  @apply text-[22rpx] tracking-[0.08em] mb-0.5 text-muted-foreground;
+  @apply text-[22rpx] tracking-[0.08em] uppercase mb-0.5;
+  color: var(--color-muted-foreground);
 }
 
 .nutrition-value {
-  @apply text-[56rpx] font-bold tracking-tighter text-foreground leading-none mt-0.5;
+  @apply text-[64rpx] font-bold tracking-[-0.03em] leading-none mt-0.5;
   font-variant-numeric: tabular-nums;
+  color: var(--color-foreground);
 }
 
 .nutrition-unit {
-  @apply text-[22rpx] mt-0.5 text-muted-foreground;
+  @apply text-[22rpx] mt-0.5;
+  color: var(--color-muted-foreground);
 }
 
 .nutrition-toggle {
-  @apply w-full flex items-center justify-center gap-2 py-[10rpx] bg-transparent border-none text-[26rpx] font-medium rounded-xl text-muted-foreground cursor-pointer;
-  -webkit-appearance: none;
-  appearance: none;
+  @apply w-full flex items-center justify-center gap-2 py-[20rpx] bg-transparent border-none cursor-pointer;
   font-family: inherit;
-  transition: background 0.2s;
 
   &:active {
-    background: color-mix(in oklch, oklch(55% 0.02 265) 10%, transparent);
+    background: rgba(128, 128, 128, 0.08);
   }
   &:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
 
+  .toggle-label {
+    @apply text-[26rpx] font-medium;
+    color: var(--color-muted-foreground);
+  }
+
   .chevron {
-    @apply w-4 h-4 transition-transform duration-300;
-    stroke: var(--color-muted);
+    @apply w-[32rpx] h-[32rpx] transition-transform duration-300;
+    color: var(--color-muted-foreground);
   }
 
   &.expanded .chevron {
@@ -711,7 +731,7 @@ const mockIngredients = computed(() =>
 }
 
 .nutrition-row {
-  @apply flex justify-between py-3 border-b border-border text-sm;
+  @apply flex justify-between py-[20rpx] border-b border-border text-sm;
   &:last-child {
     @apply border-b-0;
   }
@@ -725,55 +745,82 @@ const mockIngredients = computed(() =>
   }
 }
 
-// ── 健康益处 / 食用建议卡片 ────────────────────────────
-.analysis-card {
-  @apply rounded-[32rpx] p-[36rpx] mb-0;
+// ── 健康益处卡片 ───────────────────────────────────────
+.health-card {
+  @apply rounded-[40rpx] p-[36rpx] mb-7;
   animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: translateY(16px);
 
-  @apply bg-card border border-border;
-  box-shadow: var(--shadow-sm);
+  .dark & {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .light & {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  }
+}
+
+.health-title {
+  @apply text-[30rpx] font-semibold tracking-tight mb-4;
+  color: var(--color-foreground);
+}
+
+.health-list {
+  @apply flex flex-col gap-3.5;
+}
+
+.health-item {
+  @apply flex items-start gap-3;
+}
+
+.health-icon {
+  @apply w-[36rpx] h-[36rpx] flex-shrink-0 mt-0.5;
+  fill: var(--color-risk-t0);
+}
+
+.health-text {
+  @apply text-sm leading-[1.5] flex-1;
+  color: var(--color-secondary);
+}
+
+// ── AI 建议卡片 ───────────────────────────────────────
+.advice-card {
+  @apply rounded-[40rpx] p-[36rpx] mb-7;
+  animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  transform: translateY(16px);
+
+  .dark & {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .light & {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  }
 }
 
 .advice-header {
-  @apply flex items-center gap-2 mb-4 text-[30rpx] font-semibold text-foreground;
+  @apply flex items-center gap-2 mb-[28rpx];
+  color: var(--color-foreground);
 
   .star-icon {
     @apply w-[36rpx] h-[36rpx] flex-shrink-0;
-    fill: oklch(70% 0.18 85);
-  }
-}
-
-.analysis-list {
-  @apply flex flex-col gap-4;
-}
-
-.analysis-item {
-  @apply flex items-start gap-3;
-
-  .item-icon {
-    @apply w-[28rpx] h-[28rpx] flex-shrink-0 mt-0.5;
-
-    &--check {
-      fill: var(--color-risk-t0);
-    }
-    &--dot {
-      fill: var(--color-muted);
-    }
+    fill: #f59e0b;
   }
 
-  .item-text {
-    @apply text-sm leading-relaxed text-secondary-foreground flex-1;
+  .advice-title-text {
+    @apply text-[30rpx] font-semibold;
   }
 }
 
 .advice-text {
-  @apply text-sm leading-relaxed text-secondary-foreground;
-}
-
-.empty-text {
-  @apply text-sm text-muted-foreground;
+  @apply text-sm leading-[1.65];
+  color: var(--color-secondary);
 }
 
 // ── 动画 ─────────────────────────────────────────────
@@ -781,7 +828,8 @@ const mockIngredients = computed(() =>
   .banner-emoji,
   .banner-badge,
   .nutrition-card,
-  .analysis-card {
+  .health-card,
+  .advice-card {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
