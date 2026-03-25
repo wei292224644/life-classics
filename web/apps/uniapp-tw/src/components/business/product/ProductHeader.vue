@@ -61,11 +61,12 @@ function handleShare() {
   height: 128rpx;
   padding-left: 28rpx;
   padding-right: 28rpx;
-  background: transparent;
+  background: var(--header-bg, transparent);
   transition:
     background 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: auto;
+  z-index: 100;
 
   &--scrolled {
     background: var(--header-scrolled-bg);
@@ -82,7 +83,7 @@ function handleShare() {
   @apply rounded-2xl flex items-center justify-center bg-transparent border-none shadow-none outline-none appearance-none cursor-pointer flex-shrink-0;
   width: 60rpx;
   height: 60rpx;
-  color: var(--color-foreground);
+  color: var(--foreground);
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   -webkit-appearance: none;
   appearance: none;
@@ -101,7 +102,7 @@ function handleShare() {
 .header-title {
   @apply flex-1 font-semibold tracking-tight;
   font-size: 34rpx;
-  color: var(--color-foreground);
+  color: var(--foreground);
   line-height: 1.15;
 }
 </style>

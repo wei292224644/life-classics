@@ -61,7 +61,7 @@
         <!-- 营养成分卡片 -->
         <view class="nutrition-card" :class="overallRiskLevel">
           <view class="nutrition-glow" />
-          <text class="section-title">营养成分</text>
+          <text class="nutrition-title">营养成分</text>
           <view class="nutrition-grid">
             <view
               v-for="item in primaryNutritions"
@@ -619,13 +619,21 @@ const mockIngredients = computed(() =>
 .section-title {
   @apply block font-bold tracking-tight text-foreground;
   font-size: 40rpx;
-  margin-top: 40rpx;
+  line-height: 1.2;
+  margin-top: 48rpx;
   margin-bottom: 28rpx;
+}
+
+.nutrition-title {
+  @apply block font-bold tracking-tight text-foreground;
+  font-size: 40rpx;
+  line-height: 1.2;
+  margin-bottom: 40rpx;
 }
 
 // ── 营养卡片 ──────────────────────────────────────────
 .nutrition-card {
-  @apply relative overflow-hidden rounded-[48rpx] p-5 mb-0;
+  @apply relative overflow-hidden rounded-[40rpx] p-5 mb-0;
   animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: translateY(16px);
@@ -684,19 +692,16 @@ const mockIngredients = computed(() =>
 }
 
 .nutrition-label {
-  @apply text-[22rpx] tracking-[0.08em] uppercase mb-0.5;
-  color: var(--color-muted-foreground);
+  @apply text-[22rpx] tracking-[0.08em] uppercase mb-0.5 text-muted-foreground;
 }
 
 .nutrition-value {
-  @apply text-[64rpx] font-bold tracking-[-0.03em] leading-none mt-0.5;
+  @apply text-[64rpx] font-bold tracking-[-0.03em] leading-none mt-0.5 text-foreground;
   font-variant-numeric: tabular-nums;
-  color: var(--color-foreground);
 }
 
 .nutrition-unit {
-  @apply text-[22rpx] mt-0.5;
-  color: var(--color-muted-foreground);
+  @apply text-[22rpx] mt-0.5 text-muted-foreground;
 }
 
 .nutrition-toggle {
@@ -707,18 +712,15 @@ const mockIngredients = computed(() =>
     background: rgba(128, 128, 128, 0.08);
   }
   &:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+    @apply outline-accent outline-offset-2;
   }
 
   .toggle-label {
-    @apply text-[26rpx] font-medium;
-    color: var(--color-muted-foreground);
+    @apply text-[26rpx] font-medium text-muted-foreground;
   }
 
   .chevron {
-    @apply w-[32rpx] h-[32rpx] transition-transform duration-300;
-    color: var(--color-muted-foreground);
+    @apply w-[32rpx] h-[32rpx] transition-transform duration-300 text-muted-foreground;
   }
 
   &.expanded .chevron {
@@ -764,8 +766,7 @@ const mockIngredients = computed(() =>
 }
 
 .health-title {
-  @apply text-[30rpx] font-semibold tracking-tight mb-4;
-  color: var(--color-foreground);
+  @apply text-[30rpx] font-semibold tracking-tight mb-4 text-foreground;
 }
 
 .health-list {
@@ -782,8 +783,7 @@ const mockIngredients = computed(() =>
 }
 
 .health-text {
-  @apply text-sm leading-[1.5] flex-1;
-  color: var(--color-secondary);
+  @apply text-sm leading-[1.5] flex-1 text-secondary;
 }
 
 // ── AI 建议卡片 ───────────────────────────────────────
@@ -805,8 +805,7 @@ const mockIngredients = computed(() =>
 }
 
 .advice-header {
-  @apply flex items-center gap-2 mb-[28rpx];
-  color: var(--color-foreground);
+  @apply flex items-center gap-2 mb-[28rpx] text-foreground;
 
   .star-icon {
     @apply w-[36rpx] h-[36rpx] flex-shrink-0;
@@ -819,8 +818,7 @@ const mockIngredients = computed(() =>
 }
 
 .advice-text {
-  @apply text-sm leading-[1.65];
-  color: var(--color-secondary);
+  @apply text-sm leading-[1.65] text-secondary;
 }
 
 // ── 动画 ─────────────────────────────────────────────

@@ -398,7 +398,7 @@ function goToDetail(id: number) {
 
 .ingredient-name-text {
   @apply text-[26rpx] font-semibold;
-  color: var(--color-foreground);
+  color: var(--foreground);
 }
 
 // ── 原因标签 ──────────────────────────────────────────
