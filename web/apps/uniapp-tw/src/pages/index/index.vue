@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useThemeStore } from "../../store/theme";
-import Icon from "../../components/Icon.vue";
+import Icon from "@/components/ui/Icon.vue";
 import { scanBarcode, ScanCancelledError } from "../../utils/scanner";
 
 // ── Types ─────────────────────────────────────────────

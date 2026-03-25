@@ -98,9 +98,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { IngredientDetail } from "../types/product";
-import { useIngredientStore } from "../store/ingredient";
-import { useProductStore } from "../store/product";
-import Icon from "./Icon.vue";
+import { useIngredientStore } from "../../../store/ingredient";
+import { useProductStore } from "../../../store/product";
+import Icon from "../../ui/Icon.vue";
 
 const props = defineProps<{ ingredients: IngredientDetail[] }>();
 const ingStore = useIngredientStore();

@@ -6,7 +6,7 @@ import { useIngredientStore } from '../../store/ingredient'
 import { useProductStore } from '../../store/product'
 import { useThemeStore } from '../../store/theme'
 import { getRiskConfig } from '../../utils/riskLevel'
-import Icon from '../../components/Icon.vue'
+import Icon from "@/components/ui/Icon.vue"
 
 // ── Store ────────────────────────────────────────────────
 const ingStore = useIngredientStore()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useSystemInfo } from '../utils/system'
-import Icon from './Icon.vue'
+import { useSystemInfo } from '../../../utils/system'
+import Icon from '../../ui/Icon.vue'
 
 interface Props {
   name: string

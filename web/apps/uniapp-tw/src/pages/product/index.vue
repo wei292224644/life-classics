@@ -137,10 +137,10 @@
 import { ref, computed, onMounted } from "vue";
 import { useProductStore } from "../../store/product";
 import type { NutritionDetail, IngredientDetail } from "../../types/product";
-import ProductHeader from "../../components/ProductHeader.vue";
-import IngredientSection from "../../components/IngredientSection.vue";
-import BottomBar from "../../components/BottomBar.vue";
-import Icon from "../../components/Icon.vue";
+import ProductHeader from "@/components/business/product/ProductHeader.vue";
+import IngredientSection from "@/components/business/ingredient/IngredientSection.vue";
+import BottomBar from "@/components/ui/BottomBar.vue";
+import Icon from "@/components/ui/Icon.vue";
 
 const store = useProductStore();
 const headerRef = ref<any>(null);

@@ -3,7 +3,7 @@
  * Icon — Lucide-style icon component
  */
 import { computed } from 'vue';
-import { iconRegistry, type IconName } from './icons/iconsRegistry';
+import { iconRegistry, type IconName } from '../icons/iconsRegistry';
 
 interface Props {
   name: IconName;

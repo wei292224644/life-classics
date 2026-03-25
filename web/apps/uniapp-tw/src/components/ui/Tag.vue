@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Icon from './Icon.vue'
-import type { IconName } from './icons/iconsRegistry'
+import type { IconName } from '../icons/iconsRegistry'
 
 type TagVariant = 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'success' | 'warning'
 type TagSize = 'sm' | 'md' | 'lg'

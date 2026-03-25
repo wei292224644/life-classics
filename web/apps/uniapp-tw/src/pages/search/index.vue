@@ -83,7 +83,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useThemeStore } from "../../store/theme"
-import Icon from "../../components/Icon.vue"
+import Icon from "@/components/ui/Icon.vue"
 
 // ── Types ─────────────────────────────────────────────
 interface SearchResult {
