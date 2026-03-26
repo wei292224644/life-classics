@@ -232,20 +232,21 @@ class AnalysisDetail(Base):
     __tablename__ = "analysis_details"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    target_id: Mapped[int] = mapped_column(BigInteger, nullable=False)  # food_id 或 ingredient_id
-    analysis_target: Mapped[str] = mapped_column(analysis_target_enum, nullable=False)  # 'food' or 'ingredient'
+    target_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    analysis_target: Mapped[str] = mapped_column(analysis_target_enum, nullable=False)
     analysis_type: Mapped[str] = mapped_column(analysis_type_enum, nullable=False)
     analysis_version: Mapped[str] = mapped_column(analysis_version_enum, nullable=False)
     ai_model: Mapped[str] = mapped_column(String(255), nullable=False)
-    results: Mapped[dict] = mapped_column(JSONB, nullable=False)
+
+    result: Mapped[str] = mapped_column(Text, nullable=False)
+    source: Mapped[str | None] = mapped_column(Text, nullable=True)
     level: Mapped[str] = mapped_column(level_enum, nullable=False, default="unknown")
     confidence_score: Mapped[int] = mapped_column(Integer, nullable=False)
+
     raw_output: Mapped[dict] = mapped_column(JSONB, nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
-    last_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by_user: Mapped[str] = mapped_column(Uuid, nullable=False)
-    last_updated_by_user: Mapped[str | None] = mapped_column(Uuid, nullable=True)
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 
