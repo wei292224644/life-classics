@@ -108,7 +108,7 @@ def test_product_response_contains_ingredients():
 
     assert len(response.ingredients) == 1
     assert response.ingredients[0].name == "小麦粉"
-    assert response.ingredients[0].who_level == "Unknown"
+    assert response.ingredients[0].level.value == "unknown"
     # 精简版不应包含 full ingredient 的字段
     assert not hasattr(response.ingredients[0], "alias")
     assert not hasattr(response.ingredients[0], "is_additive")
