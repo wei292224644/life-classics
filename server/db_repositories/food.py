@@ -37,8 +37,10 @@ class ProductIngredientDetail:
 class AnalysisSummary:
     id: int
     analysis_type: str
-    results: dict
+    result: str
+    source: str | None
     level: str
+    confidence_score: int
 
 
 @dataclass
@@ -100,20 +102,19 @@ class FoodRepository:
                     ingredient_analysis_map[a.target_id] = AnalysisSummary(
                         id=a.id,
                         analysis_type=a.analysis_type,
-                        results=a.results,
+                        result=a.result,
+                        source=a.source,
                         level=a.level,
+                        confidence_score=a.confidence_score,
                     )
 
         ingredients = []
         for fi in food.food_ingredients:
             ing_analysis = ingredient_analysis_map.get(fi.ingredient.id)
             if ing_analysis:
-                # 提取 reason（从 results dict 中取，若无则 None）
-                raw_results = ing_analysis.results
-                reason = raw_results.get("reason") if isinstance(raw_results, dict) else None
                 analysis = ProductIngredientAnalysisDetail(
                     level=ing_analysis.level,
-                    reason=reason,
+                    reason=ing_analysis.result,
                 )
             else:
                 analysis = None
@@ -143,8 +144,10 @@ class FoodRepository:
             AnalysisSummary(
                 id=a.id,
                 analysis_type=a.analysis_type,
-                results=a.results,
+                result=a.result,
+                source=a.source,
                 level=a.level,
+                confidence_score=a.confidence_score,
             )
             for a in food_analyses
         ]
