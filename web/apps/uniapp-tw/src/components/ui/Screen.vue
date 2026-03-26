@@ -1,5 +1,5 @@
 <template>
-  <view class="w-screen h-screen flex flex-col overflow-hidden">
+  <view class="w-screen h-screen flex flex-col overflow-hidden bg-background">
     <view class="shrink-0">
       <slot name="header" />
     </view>

@@ -12,7 +12,7 @@
       <!-- success: 渲染默认 slot -->
 
       <!-- loading -->
-      <template v-if="true">
+      <template v-if="state === 'loading'">
         <slot name="loading">
           <up-loading-icon mode="circle" />
           <text class="text-xl text-muted-foreground text-center">

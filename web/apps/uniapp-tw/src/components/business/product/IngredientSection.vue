@@ -95,17 +95,13 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { IngredientDetail } from "@/types/product";
-import { useIngredientStore } from "@/store/ingredient";
-import { useProductStore } from "@/store/product";
+import type { ProductIngredient } from "@/types/product";
 import { getRiskConfig, riskCls } from "@/utils/riskLevel";
 import { cn } from "@/utils/cn";
 import DIcon from "@/components/ui/DIcon.vue";
 import Tag from "@/components/ui/Tag.vue";
 
-const props = defineProps<{ ingredients: IngredientDetail[] }>();
-const ingStore = useIngredientStore();
-const productStore = useProductStore();
+const props = defineProps<{ ingredients: ProductIngredient[] }>();
 
 const levelGroups = computed(() => {
   const order = ["t4", "t3", "t2", "t1", "t0", "unknown"] as const;
@@ -120,7 +116,7 @@ const levelGroups = computed(() => {
 
   const ingredients = props.ingredients ?? [];
   for (const ing of ingredients) {
-    const level = (ing.analysis?.level ?? "unknown") as (typeof order)[number];
+    const level = (ing.level ?? "unknown") as (typeof order)[number];
     if (groups[level] !== undefined) groups[level].push(ing);
     else groups.unknown.push(ing);
   }
@@ -140,15 +136,8 @@ function getReason(item: IngredientDetail): string {
 }
 
 function goToDetail(id: number) {
-  const ing = props.ingredients.find((i) => i.id === id);
-  if (!ing) return;
-  const productName = productStore.product?.name;
-  ingStore.set(ing, productName);
-  const fpn = productName
-    ? `&fromProductName=${encodeURIComponent(productName)}`
-    : "";
   uni.navigateTo({
-    url: `/pages/ingredient-detail/index?ingredientId=${id}${fpn}`,
+    url: `/pages/ingredient-detail/index?ingredientId=${id}`,
   });
 }
 </script>

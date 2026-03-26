@@ -1,0 +1,167 @@
+<h2>加载状态方案对比</h2>
+<p class="subtitle">左：当前方案（中心 Spinner）| 右：骨架屏方案</p>
+
+<div class="split">
+  <!-- 方案A: 当前方案 -->
+  <div class="mockup">
+    <div class="mockup-header">方案 A：中心 Spinner（当前）</div>
+    <div class="mockup-body" style="background: #fafafa; font-family: -apple-system, sans-serif;">
+      <!-- Phone Frame -->
+      <div style="width: 375px; height: 812px; background: #fafafa; position: relative; overflow: hidden; border-radius: 40px; border: 8px solid #1a1a1a; margin: 0 auto;">
+        <!-- Status Bar -->
+        <div style="height: 44px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 0 24px;">
+          <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 600;">9:41</span>
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <span style="font-size: 12px;">📶</span>
+              <span style="font-size: 12px;">🔋</span>
+            </div>
+          </div>
+        </div>
+        <!-- Header -->
+        <div style="height: 44px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 12px; gap: 8px;">
+          <div style="width: 32px; height: 32px; background: #f3f4f6; border-radius: 8px;"></div>
+          <div style="flex: 1;">
+            <div style="height: 12px; width: 60px; background: #e5e7eb; border-radius: 4px; margin-bottom: 4px;"></div>
+            <div style="height: 10px; width: 40px; background: #f3f4f6; border-radius: 4px;"></div>
+          </div>
+        </div>
+        <!-- Content Area - EMPTY with Spinner -->
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
+          <!-- Spinner -->
+          <div style="width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #ec4899; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <div style="height: 14px; width: 80px; background: #e5e7eb; border-radius: 4px;"></div>
+          <div style="height: 20px; width: 120px; background: #f3f4f6; border-radius: 6px; color: #71717a; font-size: 14px; display: flex; align-items: center; justify-content: center;">
+            加载中...
+          </div>
+        </div>
+      </div>
+      <style>
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      </style>
+    </div>
+    <div class="pros-cons" style="margin-top: 12px;">
+      <div class="cons">
+        <h4>问题</h4>
+        <ul>
+          <li>页面完全空白，感知停滞</li>
+          <li>不知道要等多久，焦虑</li>
+          <li>内容结构不可预期</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案B: 骨架屏 -->
+  <div class="mockup">
+    <div class="mockup-header">方案 B：骨架屏（推荐）</div>
+    <div class="mockup-body" style="background: #fafafa; font-family: -apple-system, sans-serif;">
+      <!-- Phone Frame -->
+      <div style="width: 375px; height: 812px; background: #fafafa; position: relative; overflow: hidden; border-radius: 40px; border: 8px solid #1a1a1a; margin: 0 auto;">
+        <!-- Status Bar -->
+        <div style="height: 44px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 0 24px;">
+          <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 600;">9:41</span>
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <span style="font-size: 12px;">📶</span>
+              <span style="font-size: 12px;">🔋</span>
+            </div>
+          </div>
+        </div>
+        <!-- Header -->
+        <div style="height: 44px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 12px; gap: 8px;">
+          <div style="width: 32px; height: 32px; background: #f3f4f6; border-radius: 8px;"></div>
+          <div style="flex: 1;">
+            <div style="height: 12px; width: 60px; background: #e5e7eb; border-radius: 4px; margin-bottom: 4px;"></div>
+            <div style="height: 10px; width: 40px; background: #f3f4f6; border-radius: 4px;"></div>
+          </div>
+        </div>
+        <!-- Content Area - Skeleton -->
+        <div style="flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px;">
+          <!-- Hero Card Skeleton -->
+          <div style="background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden;">
+            <div style="padding: 16px; border-bottom: 1px solid #f3f4f6;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                <div>
+                  <div style="height: 24px; width: 140px; background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; margin-bottom: 6px;"></div>
+                  <div style="height: 12px; width: 80px; background: #f3f4f6; border-radius: 4px;"></div>
+                </div>
+                <div style="height: 28px; width: 70px; background: #f3f4f6; border-radius: 8px;"></div>
+              </div>
+              <!-- Risk Bar Skeleton -->
+              <div style="height: 6px; background: #f3f4f6; border-radius: 3px; margin-bottom: 8px;"></div>
+              <div style="height: 10px; width: 100%; background: #f3f4f6; border-radius: 4px;"></div>
+            </div>
+          </div>
+          <!-- Description Card Skeleton -->
+          <div style="background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; padding: 16px;">
+            <div style="height: 14px; width: 60px; background: #f3f4f6; border-radius: 4px; margin-bottom: 16px;"></div>
+            <div style="height: 12px; width: 100%; background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 8px;"></div>
+            <div style="height: 12px; width: 85%; background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 8px;"></div>
+            <div style="height: 12px; width: 60%; background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+          </div>
+          <!-- AI Analysis Card Skeleton -->
+          <div style="background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <div style="height: 14px; width: 80px; background: #f3f4f6; border-radius: 4px;"></div>
+              <div style="height: 18px; width: 40px; background: linear-gradient(135deg, #f472b6, #ec4899); border-radius: 4px;"></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; gap: 8px; align-items: flex-start;">
+                <div style="width: 16px; height: 16px; background: #fee2e2; border-radius: 4px;"></div>
+                <div style="height: 12px; flex: 1; background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: flex-start;">
+                <div style="width: 16px; height: 16px; background: #fee2e2; border-radius: 4px;"></div>
+                <div style="height: 12px; flex: 1; background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <style>
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      </style>
+    </div>
+    <div class="pros-cons" style="margin-top: 12px;">
+      <div class="pros">
+        <h4>优势</h4>
+        <ul>
+          <li>提前展示内容结构</li>
+          <li>骨架动画减少等待焦虑</li>
+          <li>数据填充时有过渡感</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top: 24px;">选择加载方案</h3>
+<div class="options">
+  <div class="option" data-choice="skeleton" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>骨架屏（推荐）</h3>
+      <p>主要数据页面（配料详情、产品详情）使用骨架屏</p>
+    </div>
+  </div>
+  <div class="option" data-choice="spinner" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>局部 Spinner</h3>
+      <p>仅在局部小操作（按钮 loading）使用 spinner</p>
+    </div>
+  </div>
+  <div class="option" data-choice="both" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>两者结合</h3>
+      <p>骨架屏用于主要区块，局部小区域用小 spinner</p>
+    </div>
+  </div>
+</div>

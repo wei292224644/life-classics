@@ -12,7 +12,7 @@ withDefaults(
 </script>
 
 <template>
-  <view :class="cn('skimmer', dclass)" />
+  <view :class="cn('skimmer rounded-sm', dclass)" />
 </template>
 
 <style lang="scss" scoped>
@@ -29,7 +29,6 @@ withDefaults(
   background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
   background-size: 200% 100%;
   animation: skimmer 2s ease-in-out infinite;
-  border-radius: 8px;
 }
 
 .dark .skimmer {

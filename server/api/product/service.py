@@ -4,6 +4,7 @@ from api.product.models import (
     ProductIngredientAnalysis,
     ProductResponse,
 )
+from enums import RiskLevel
 from db_repositories.food import FoodDetail, FoodRepository, ProductIngredientDetail
 from db_repositories.ingredient import IngredientDetail, IngredientRepository
 
@@ -32,10 +33,8 @@ class ProductService:
             nutritions=[
                 {
                     "name": n.name,
-                    "alias": n.alias,
                     "value": n.value,
                     "value_unit": n.value_unit,
-                    "reference_type": n.reference_type,
                     "reference_unit": n.reference_unit,
                 }
                 for n in d.nutritions
@@ -43,10 +42,8 @@ class ProductService:
             ingredients=[self._to_product_ingredient(i) for i in d.ingredients],
             analysis=[
                 {
-                    "id": a.id,
                     "analysis_type": a.analysis_type,
                     "results": a.results,
-                    "level": a.level,
                 }
                 for a in d.analysis
             ],
@@ -54,17 +51,13 @@ class ProductService:
 
     def _to_product_ingredient(self, i: ProductIngredientDetail) -> ProductIngredient:
         if i.analysis:
-            analysis = ProductIngredientAnalysis(level=i.analysis.level, reason=i.analysis.reason)
-        else:
-            analysis = None
-        return ProductIngredient(
-            id=i.id,
-            name=i.name,
-            who_level=i.who_level,
-            function_type=i.function_type,
-            allergen_info=i.allergen_info,
-            analysis=analysis,
-        )
+            return ProductIngredient(
+                id=i.id,
+                name=i.name,
+                level=RiskLevel.from_str(i.analysis.level),
+                reason=i.analysis.reason,
+            )
+        return ProductIngredient(id=i.id, name=i.name, level=RiskLevel.UNKNOWN, reason=None)
 
 
 class IngredientService:
@@ -86,7 +79,7 @@ class IngredientService:
                 "id": d.analysis["id"],
                 "analysis_type": d.analysis["analysis_type"],
                 "results": d.analysis["results"],
-                "level": d.analysis["level"],
+                "level": RiskLevel.from_str(d.analysis["level"]),
             }
         return IngredientResponse(
             id=d.id,

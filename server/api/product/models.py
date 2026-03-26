@@ -1,14 +1,22 @@
 from pydantic import BaseModel
 
+from enums import RiskLevel
+
+
+# ── 配料详情（/api/ingredient/{id} 用）─────────────────────────────────────────
 
 class IngredientAnalysis(BaseModel):
+    """配料分析结果."""
+
     id: int
     analysis_type: str
     results: dict
-    level: str
+    level: RiskLevel
 
 
 class IngredientResponse(BaseModel):
+    """配料完整信息（API 输出用）."""
+
     id: int
     name: str
     alias: list[str]
@@ -21,34 +29,32 @@ class IngredientResponse(BaseModel):
     analysis: IngredientAnalysis | None
 
 
+# ── 产品接口（/api/product 用）───────────────────────────────────────────────
+
 class ProductIngredientAnalysis(BaseModel):
-    level: str
+    level: RiskLevel
     reason: str | None
 
 
 class ProductIngredient(BaseModel):
+    """配料简要信息（扁平结构，API 输出用）."""
+
     id: int
     name: str
-    who_level: str | None
-    function_type: str | None
-    allergen_info: str | None
-    analysis: "ProductIngredientAnalysis | None"
+    level: RiskLevel
+    reason: str | None
 
 
 class NutritionResponse(BaseModel):
     name: str
-    alias: list[str]
     value: str
     value_unit: str
-    reference_type: str
     reference_unit: str
 
 
 class AnalysisResponse(BaseModel):
-    id: int
     analysis_type: str
     results: dict
-    level: str
 
 
 class ProductResponse(BaseModel):

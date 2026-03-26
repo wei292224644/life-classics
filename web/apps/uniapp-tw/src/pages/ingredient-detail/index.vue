@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { IngredientAnalysis } from "@/types/product";
+import type { IngredientAnalysis, IngredientDetail } from "@/types/ingredient";
 import { onLoad } from "@dcloudio/uni-app";
 import { computed, ref } from "vue";
 import DButton from "@/components/ui/DButton.vue";
@@ -7,8 +7,6 @@ import Card from "@/components/ui/card/Card.vue";
 import DIcon from "@/components/ui/DIcon.vue";
 import Screen from "@/components/ui/Screen.vue";
 import StateView from "@/components/ui/StateView.vue";
-import { useIngredientStore } from "@/store/ingredient";
-import { useProductStore } from "@/store/product";
 import { useThemeStore } from "@/store/theme";
 import { getRiskConfig, riskCls, RiskLevel } from "@/utils/riskLevel";
 import { cn } from "@/utils/cn";
@@ -19,12 +17,10 @@ import AITag from "@/components/ui/AITag.vue";
 import RiskTag from "@/components/ui/RiskTag.vue";
 import TopBar from "@/components/ui/TopBar.vue";
 import BottomBar from "@/components/ui/BottomBar.vue";
+import { fetchIngredientById } from "@/services/ingredient";
+import { MOCK_RESULTS, MOCK_RELATED_PRODUCTS } from "@/mocks/ingredient";
 // ── Store ────────────────────────────────────────────────
-const ingStore = useIngredientStore();
-const productStore = useProductStore();
-const themeStore = useThemeStore();
-
-const ingredient = computed(() => ingStore.current);
+const ingredient = ref<IngredientDetail | null>(null);
 
 // ── 加载态 ───────────────────────────────────────────────
 const isLoading = ref(false);
@@ -49,29 +45,9 @@ onLoad(async (options) => {
     return;
   }
 
-  const fromProduct = productStore.product?.ingredients?.find(
-    (i) => i.id === id,
-  );
-  if (fromProduct) {
-    ingStore.set(fromProduct, productStore.product?.name);
-    return;
-  }
-
   isLoading.value = true;
   try {
-    const res = await new Promise<UniApp.RequestSuccessCallbackResult>(
-      (resolve, reject) => {
-        uni.request({
-          url: `${import.meta.env.VITE_API_BASE_URL}/api/ingredient/${id}`,
-          success: resolve,
-          fail: reject,
-        });
-      },
-    );
-    if (res.statusCode === 200 && res.data) {
-      const data = res.data as Record<string, unknown>;
-      ingStore.set(data as any, undefined);
-    }
+    ingredient.value = await fetchIngredientById(id);
   } catch {
     errorMessage.value = "数据加载失败，请返回重试";
   } finally {
@@ -121,59 +97,10 @@ function safeResults(
   return {};
 }
 
-// Mock 兜底数据
-const MOCK_RESULTS: Record<string, unknown> = {
-  summary:
-    "香草精是一种广泛使用的食品香料，主要成分为香兰素（vanillin），可天然提取自香草豆荚，也可人工合成。常用于烘焙食品、甜点、饮料、冰淇淋等中增香。天然香草精含有超过200种风味化合物，香气更为复杂细腻。",
-  risk_factors: [
-    "市售香草精多为人工合成香兰素，与天然香草精成分存在差异",
-    "长期大量摄入人工合成香兰素可能对肝脏产生轻微影响",
-    "极少数人群可能出现过敏反应，表现为皮肤瘙痒或消化不适",
-  ],
-  suggestions: [
-    { text: "正常烹饪用量（每次数滴）在成人中是安全的", type: "positive" },
-    {
-      text: "购买时注意区分天然香草精（vanilla extract）与人工香草精（artificial vanilla）",
-      type: "conditional",
-    },
-    { text: "婴幼儿辅食建议使用天然来源香料并控制用量", type: "conditional" },
-  ],
-};
-
 const results = computed<Record<string, unknown>>(() => {
   const raw = safeResults(ingredient.value?.analysis);
   const hasRealData = raw.summary || raw.risk_factors || raw.suggestions;
   return hasRealData ? raw : MOCK_RESULTS;
-});
-
-const summary = computed(() => {
-  const s = results.value.summary;
-  return typeof s === "string" ? s : null;
-});
-
-const pregnancyWarning = computed(() => {
-  const w = results.value.pregnancy_warning;
-  return typeof w === "string" ? w : null;
-});
-
-const source = computed(() => {
-  const s = results.value.source;
-  return typeof s === "string" ? s : "化学合成";
-});
-
-const maternalLevel = computed(() => {
-  const v = results.value.maternal_level;
-  return typeof v === "string" ? v : null;
-});
-
-const usageLimit = computed(() => {
-  const v = results.value.usage_limit;
-  return typeof v === "string" ? v : null;
-});
-
-const applicableRegion = computed(() => {
-  const v = results.value.applicable_region;
-  return typeof v === "string" ? v : null;
 });
 
 const riskFactors = computed(() => {
@@ -201,58 +128,6 @@ const suggestions = computed((): Suggestion[] => {
     return { text, type };
   });
 });
-
-const hasRiskMgmt = computed(
-  () =>
-    !!(
-      ingredient.value?.who_level ||
-      ingredient.value?.allergen_info ||
-      ingredient.value?.standard_code ||
-      maternalLevel.value ||
-      usageLimit.value ||
-      applicableRegion.value
-    ),
-);
-
-interface RelatedProduct {
-  id: number;
-  name: string;
-  barcode: string;
-  emoji: string;
-  riskTag?: string;
-  image_url_list?: string[];
-}
-
-const MOCK_RELATED_PRODUCTS: RelatedProduct[] = [
-  {
-    id: 1,
-    name: "午餐肉罐头",
-    barcode: "6901234567890",
-    emoji: "🥫",
-    riskTag: "t4",
-  },
-  {
-    id: 2,
-    name: "火腿肠",
-    barcode: "6901234567891",
-    emoji: "🌭",
-    riskTag: "t4",
-  },
-  {
-    id: 3,
-    name: "培根片",
-    barcode: "6901234567892",
-    emoji: "🥩",
-    riskTag: "t3",
-  },
-  {
-    id: 4,
-    name: "烤肠",
-    barcode: "6901234567893",
-    emoji: "🍖",
-    riskTag: "t4",
-  },
-];
 
 const relatedProducts = computed(() => {
   if (!ingredient.value) {
@@ -282,15 +157,6 @@ function goToAI() {
   }
   uni.navigateTo({
     url: `/pages/chat/index?context=${encodeURIComponent(ingredient.value.name)}`,
-  });
-}
-
-function goToSearch() {
-  if (!ingredient.value) {
-    return;
-  }
-  uni.navigateTo({
-    url: `/pages/search/index?ingredientId=${ingredient.value.id}`,
   });
 }
 
@@ -410,7 +276,7 @@ function goToProduct(barcode: string) {
             <Separator dclass="my-0" />
             <view class="flex flex-col gap-3 px-4 pb-4 mt-3">
               <text class="text-foreground text-sm">
-                {{ summary }}
+                {{ (ingredient?.analysis?.results?.summary as string) ?? "" }}
               </text>
             </view>
           </Card>
@@ -473,47 +339,17 @@ function goToProduct(barcode: string) {
             </Cell>
             <Separator dclass="my-0" />
             <view class="flex flex-col mb-1">
-              <Cell
-                size="sm"
-                dclass="px-4"
-                title="WHO 致癌等级"
-                :value="ingredient?.who_level"
-              />
+              <Cell size="sm" dclass="px-4" title="WHO 致癌等级" value="" />
               <Separator dclass="my-0" />
-              <Cell
-                size="sm"
-                dclass="px-4"
-                title="母婴等级"
-                :value="maternalLevel"
-              />
+              <Cell size="sm" dclass="px-4" title="母婴等级" value="" />
               <Separator dclass="my-0" />
-              <Cell
-                size="sm"
-                dclass="px-4"
-                title="使用限量"
-                :value="usageLimit"
-              />
+              <Cell size="sm" dclass="px-4" title="使用限量" value="" />
               <Separator dclass="my-0" />
-              <Cell
-                size="sm"
-                dclass="px-4"
-                title="适用区域"
-                :value="applicableRegion"
-              />
+              <Cell size="sm" dclass="px-4" title="适用区域" value="" />
               <Separator dclass="my-0" />
-              <Cell
-                size="sm"
-                dclass="px-4"
-                title="过敏信息"
-                :value="ingredient?.allergen_info"
-              />
+              <Cell size="sm" dclass="px-4" title="过敏信息" value="" />
               <Separator dclass="my-0" />
-              <Cell
-                size="sm"
-                dclass="px-4"
-                title="执行标准"
-                :value="ingredient?.standard_code"
-              />
+              <Cell size="sm" dclass="px-4" title="执行标准" value="" />
             </view>
           </Card>
           <!-- AI 使用建议 -->
@@ -620,12 +456,7 @@ function goToProduct(barcode: string) {
 
     <!-- #footer slot -->
     <template #footer>
-      <BottomBar
-        primary-label="查看相关食品"
-        secondary-label="咨询 AI 助手"
-        @primary="goToSearch"
-        @secondary="goToAI"
-      />
+      <BottomBar secondary-label="咨询 AI 助手" @secondary="goToAI" />
     </template>
   </Screen>
 </template>
