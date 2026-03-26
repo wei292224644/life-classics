@@ -1,153 +1,153 @@
 # 产品设计规范 — 2026 Design System
 
-> 本规范基于 product-detail 页面设计总结提炼，适用于 life-classics 全栈应用（UniApp / Console / Web）。
+> 本规范基于 `style.scss` + `tailwind.config.ts` 代码实现总结提炼，适用于 life-classics 全栈应用（UniApp / Console / Web）。
 > 所有新增页面和组件须遵循此规范。
 
 ---
 
-## 1. 设计原则
+## 1. 色彩系统
 
-1. **功能优先** — 每个视觉决策都服务功能，无纯装饰
-2. **一致性** — 全 app 共用同一设计语言，克制个性化表达
-3. **可访问** — WCAG 2.1 AA 为最低标准
-4. **性能友好** — 动画仅用 `transform` / `opacity`，尊重 `prefers-reduced-motion`
+### 1.1 主题变量
 
----
+#### 亮色模式 (`:root`)
 
-## 2. 色彩系统
+| Token | oklch 值 | hex 近似值 | 用途 |
+|-------|----------|------------|------|
+| `--background` | `oklch(0.96 0 0)` | `#fafafa` | 页面背景 |
+| `--foreground` | `oklch(0.147 0.004 49.3)` | `#111827` | 主文字 |
+| `--card` | `oklch(1 0 0)` | `#ffffff` | 卡片背景 |
+| `--card-foreground` | `oklch(0.147 0.004 49.3)` | `#111827` | 卡片文字 |
+| `--popover` | `oklch(1 0 0)` | `#ffffff` | 浮层背景 |
+| `--popover-foreground` | `oklch(0.147 0.004 49.3)` | `#111827` | 浮层文字 |
+| `--primary` | `#ec4899` | `#ec4899` | 主题色（固定值） |
+| `--primary-foreground` | `oklch(0.971 0.014 343.198)` | `#fff5f7` | 主色上文字 |
+| `--secondary` | `oklch(0.967 0.001 286.375)` | `#f3f4f6` | 次要背景 |
+| `--secondary-foreground` | `oklch(0.41 0.006 285.885)` | `#6b7280` | 次要文字 |
+| `--muted` | `oklch(0.96 0.002 17.2)` | `#f4f4f5` | 弱化背景 |
+| `--muted-foreground` | `oklch(0.547 0.021 43.1)` | `#71717a` | 弱化文字 |
+| `--accent` | `oklch(0.96 0.002 17.2)` | `#f4f4f5` | 强调背景 |
+| `--accent-foreground` | `oklch(0.214 0.009 43.1)` | `#1f2937` | 强调文字 |
+| `--destructive` | `oklch(0.577 0.245 27.325)` | `#dc2626` | 危险/错误 |
+| `--border` | `oklch(0.922 0.005 34.3)` | `#e5e7eb` | 边框 |
+| `--input` | `oklch(0.922 0.005 34.3)` | `#e5e7eb` | 输入框边框 |
+| `--ring` | `oklch(0.714 0.014 41.2)` | `#a1a1aa` | 焦点环 |
 
-### 2.1 风险等级色板
+#### 暗色模式 (`.dark`)
+
+| Token | oklch 值 | hex 近似值 | 用途 |
+|-------|----------|------------|------|
+| `--background` | `oklch(0.147 0.004 49.3)` | `#111827` | 页面背景 |
+| `--foreground` | `oklch(0.986 0.002 67.8)` | `#f4f4f5` | 主文字 |
+| `--card` | `oklch(0.214 0.009 43.1)` | `#1f2937` | 卡片背景 |
+| `--card-foreground` | `oklch(0.986 0.002 67.8)` | `#f4f4f5` | 卡片文字 |
+| `--primary` | `oklch(0.459 0.187 3.815)` | `#be185d` | 主题色（暗） |
+| `--primary-foreground` | `oklch(0.971 0.014 343.198)` | `#fff5f7` | 主色上文字 |
+| `--secondary` | `oklch(0.274 0.006 286.033)` | `#1f1f1f` | 次要背景 |
+| `--secondary-foreground` | `oklch(0.985 0 0)` | `#fafafa` | 次要文字 |
+| `--muted` | `oklch(0.268 0.011 36.5)` | `#18181b` | 弱化背景 |
+| `--muted-foreground` | `oklch(0.714 0.014 41.2)` | `#a1a1aa` | 弱化文字 |
+| `--destructive` | `oklch(0.704 0.191 22.216)` | `#b91c1c` | 危险/错误 |
+| `--border` | `oklch(1 0 0 / 10%)` | `rgba(255,255,255,0.1)` | 边框 |
+| `--input` | `oklch(1 0 0 / 15%)` | `rgba(255,255,255,0.15)` | 输入框边框 |
+| `--ring` | `oklch(0.547 0.021 43.1)` | `#71717a` | 焦点环 |
+
+### 1.2 风险等级色板
 
 后端枚举：`t4 / t3 / t2 / t1 / t0 / unknown`（`server/database/models.py`）。前端保留 5 档独立视觉等级，`unknown` 为特殊回退态。
 
-| level | 视觉 key | 语义 | CSS 变量 (暗) | CSS 变量 (亮) |
-|-------|---------|------|--------------|--------------|
-| `t4` | `critical` | 极高风险 | `--risk-t4: #ef4444` | `--risk-t4: #dc2626` |
-| `t3` | `high` | 高风险 | `--risk-t3: #f97316` | `--risk-t3: #ea580c` |
-| `t2` | `medium` | 中等风险 | `--risk-t2: #eab308` | `--risk-t2: #ca8a04` |
-| `t1` | `low` | 低风险 | `--risk-t1: #86efac` | `--risk-t1: #16a34a` |
-| `t0` | `safe` | 安全 | `--risk-t0: #22c55e` | `--risk-t0: #059669` |
-| `unknown` | `unknown` | 暂无评级 | `--risk-unknown: #9ca3af` | `--risk-unknown: #9ca3af` |
+#### 全局 CSS 变量（`style.scss`）
 
-### 2.2 主题变量
+| level | Token | 亮色 oklch | 暗色 oklch |
+|-------|-------|------------|------------|
+| `t4` | `--color-risk-t4` | `oklch(50% 0.22 25)` | `oklch(70% 0.22 25)` |
+| `t3` | `--color-risk-t3` | `oklch(55% 0.2 50)` | `oklch(70% 0.22 50)` |
+| `t2` | `--color-risk-t2` | `oklch(60% 0.18 85)` | `oklch(75% 0.18 85)` |
+| `t1` | `--color-risk-t1` | `oklch(65% 0.16 145)` | `oklch(75% 0.16 145)` |
+| `t0` | `--color-risk-t0` | `oklch(55% 0.15 145)` | `oklch(65% 0.16 145)` |
+| `unknown` | `--color-risk-unknown` | `oklch(60% 0.01 265)` | `oklch(55% 0.01 265)` |
 
-```css
-/* 暗色模式 */
---bg-base: #0f0f0f;
---bg-card: #1a1a1a;
---bg-card-hover: #222;
---text-primary: #f5f5f5;
---text-secondary: #a1a1a1;
---text-muted: #6b7280;
---border-color: rgba(255,255,255,0.08);
+#### Tailwind 扩展色（`tailwind.config.ts`）
 
-/* 亮色模式 */
---bg-base: #f5f5f5;
---bg-card: #ffffff;
---bg-card-hover: #f9fafb;
---text-primary: #111;
---text-secondary: #4b5563;
---text-muted: #9ca3af;
---border-color: rgba(0,0,0,0.06);
+```ts
+risk: {
+  t4: "oklch(50% 0.22 25 / <alpha-value>)",
+  t3: "oklch(55% 0.2 50 / <alpha-value>)",
+  t2: "oklch(60% 0.18 85 / <alpha-value>)",
+  t1: "oklch(65% 0.16 145 / <alpha-value>)",
+  t0: "oklch(55% 0.15 145 / <alpha-value>)",
+  unknown: "oklch(60% 0.01 265 / <alpha-value>)",
+}
 ```
 
-### 2.3 强调色
+支持透明度的写法：`bg-risk-t4/20`、`text-risk-t3`、`border-risk-t2/50`
 
-```css
-/* 暗色模式 */
---accent-pink: #ec4899;
---accent-pink-light: #f472b6;
+### 1.3 风险分组背景/边框（IngredientSection）
 
-/* 亮色模式 */
---accent-pink: #db2777;
---accent-pink-light: #ec4899;
-```
+| 等级 | 亮色背景 | 亮色边框 | 暗色背景 | 暗色边框 |
+|------|----------|----------|----------|----------|
+| `t4` | `oklch(97% 0.02 25 / 4%)` | `oklch(97% 0.02 25 / 10%)` | `oklch(75% 0.12 25 / 8%)` | `oklch(75% 0.12 25 / 15%)` |
+| `t3` | `oklch(97% 0.02 50 / 4%)` | `oklch(97% 0.02 50 / 10%)` | `oklch(75% 0.12 50 / 8%)` | `oklch(75% 0.12 50 / 15%)` |
+| `t2` | `oklch(97% 0.02 85 / 4%)` | `oklch(97% 0.02 85 / 10%)` | `oklch(75% 0.1 85 / 8%)` | `oklch(75% 0.1 85 / 15%)` |
+| `t1` | `oklch(97% 0.02 145 / 4%)` | `oklch(97% 0.02 145 / 10%)` | `oklch(75% 0.1 145 / 8%)` | `oklch(75% 0.1 145 / 15%)` |
+| `t0` | `oklch(97% 0.02 145 / 4%)` | `oklch(97% 0.02 145 / 10%)` | `oklch(75% 0.1 145 / 8%)` | `oklch(75% 0.1 145 / 15%)` |
+| `unknown` | `oklch(97% 0.01 265 / 4%)` | `oklch(97% 0.01 265 / 10%)` | `oklch(75% 0.01 265 / 8%)` | `oklch(75% 0.01 265 / 15%)` |
 
-### 2.5 ingredient-detail 风险色 token
+### 1.4 调色板色（SectionHeader 图标背景）
 
-ingredient-detail 页面的 Header、风险徽章、谱条等元素使用组件级 CSS custom properties，不污染全局变量。以下为完整 6 状态 × 亮色/暗色映射：
+| Token | oklch 值 | 用途 |
+|-------|----------|------|
+| `--palette-blue-500` | `oklch(60% 0.15 250)` | 蓝色图标背景 |
+| `--palette-purple-500` | `oklch(55% 0.2 300)` | 紫色图标背景 |
+| `--palette-green-500` | `oklch(60% 0.15 145)` | 绿色图标背景 |
+| `--palette-orange-500` | `oklch(60% 0.18 50)` | 橙色图标背景 |
 
-#### Header 背景与描边
+### 1.5 强调色（accent pink）
 
-| 视觉 key | 亮色 `--risk-bg` | 亮色 `--risk-border` | 暗色 `--risk-bg` | 暗色 `--risk-border` |
-|---------|----------------|---------------------|----------------|---------------------|
-| `critical` | `#fff1f2` | `#fca5a5` | `#1a0505` | `#991b1b` |
-| `high` | `#fff4f0` | `#fecaca` | `#1a0808` | `#7f1d1d` |
-| `medium` | `#fefce8` | `#fde68a` | `#1a1500` | `#713f12` |
-| `low` | `#f0fdf4` | `#bbf7d0` | `#051a0a` | `#14532d` |
-| `safe` | `#ecfdf5` | `#6ee7b7` | `#022c22` | `#065f46` |
-| `unknown` | `#f9fafb` | `#d1d5db` | `#111827` | `#374151` |
+| Token | 亮色 | 暗色 | 用途 |
+|-------|------|------|------|
+| `--accent-pink-light` | `#ec4899` | `#f472b6` | 浅粉色/hover 态 |
+| `--accent-pink` | `#db2777` | `#ec4899` | 主粉色 |
 
-#### Header 文字颜色
+### 1.6 组件级 Token
 
-| 视觉 key | 亮色 `--risk-title` | 亮色 `--risk-sub` | 暗色 `--risk-title` | 暗色 `--risk-sub` |
-|---------|--------------------|--------------------|--------------------|--------------------|
-| `critical` | `#7f1d1d` | `#dc2626` | `#fecaca` | `#f87171` |
-| `high` | `#7f1d1d` | `#ef4444` | `#fca5a5` | `#f87171` |
-| `medium` | `#713f12` | `#a16207` | `#fde68a` | `#fbbf24` |
-| `low` | `#14532d` | `#16a34a` | `#86efac` | `#4ade80` |
-| `safe` | `#065f46` | `#059669` | `#6ee7b7` | `#34d399` |
-| `unknown` | `#374151` | `#6b7280` | `#9ca3af` | `#6b7280` |
-
-#### Header 图标按钮背景
-
-| 视觉 key | 亮色 `--risk-btn` | 暗色 `--risk-btn` |
-|---------|------------------|------------------|
-| `critical` | `rgba(220,38,38,0.15)` | `rgba(248,113,113,0.2)` |
-| `high` | `rgba(220,38,38,0.1)` | `rgba(248,113,113,0.15)` |
-| `medium` | `rgba(202,138,4,0.1)` | `rgba(251,191,36,0.15)` |
-| `low` | `rgba(22,163,74,0.1)` | `rgba(74,222,128,0.15)` |
-| `safe` | `rgba(5,150,105,0.1)` | `rgba(52,211,153,0.15)` |
-| `unknown` | `rgba(107,114,128,0.1)` | `rgba(156,163,175,0.15)` |
-
-#### 风险徽章
-
-| 视觉 key | 文案 | 图标 | 徽章背景 |
-|---------|------|------|---------|
-| `critical` | 极高风险 | ⛔ 禁止符 | `#dc2626` |
-| `high` | 高风险 | ⚠ 警告符 | `#ef4444` |
-| `medium` | 中等风险 | ⚠ 警告符 | `#f59e0b` |
-| `low` | 低风险 | ✓ 勾选 | `#22c55e` |
-| `safe` | 安全 | ✓ 勾选 | `#10b981` |
-| `unknown` | 暂无评级 | ? 问号 | `#9ca3af` |
-
-#### 风险谱条指示针位置
-
-谱条方向：左端 = 安全（绿），右端 = 极高风险（红）。指示针绝对定位，`left%` 为针**中心点**百分比（配合 `transform: translateX(-50%)`）：
-
-| 视觉 key | `left` |
-|---------|--------|
-| `safe` | `8%` |
-| `low` | `22%` |
-| `medium` | `50%` |
-| `high` | `72%` |
-| `critical` | `88%` |
-| `unknown` | 隐藏针，谱条透明度降至 40% |
-
-### 2.4 暗色 / 亮色切换
-
-```css
-html { color-scheme: dark; }
-html:has(.light-mode) { color-scheme: light; }
-```
+| Token | 亮色 | 暗色 | 用途 |
+|-------|------|------|------|
+| `--bottom-bar-bg` | `oklch(100% 0 0 / 95%)` | `oklch(98% 0.003 265 / 95%)` | 底部栏毛玻璃背景 |
+| `--bottom-bar-border` | `oklch(14.5% 0.016 265 / 6%)` | `oklch(100% 0 0 / 6%)` | 底部栏边框 |
+| `--header-scrolled-bg` | `oklch(100% 0 0 / 90%)` | `oklch(93% 0.005 265 / 88%)` | 滚动后头部背景 |
+| `--ai-label-bg` | `linear-gradient(135deg, #8b5cf6, #7c3aed)` | 同左 | AI 标签渐变背景 |
+| `--nutrition-bg` | `oklch(65% 0.16 145 / 4%)` | `oklch(75% 0.16 145 / 6%)` | 营养卡片背景 |
+| `--nutrition-border` | `oklch(65% 0.16 145 / 12%)` | `oklch(75% 0.16 145 / 10%)` | 营养卡片边框 |
+| `--nutrition-glow` | `oklch(65% 0.16 145 / 30%)` | `oklch(75% 0.16 145 / 20%)` | 营养卡片发光线 |
+| `--banner-bg` | `linear-gradient(145deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%)` | `linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%)` | Banner 背景 |
+| `--banner-label` | `#713f12` | `oklch(45% 0.012 265)` | Banner 标签文字 |
+| `--banner-badge-bg` | `oklch(100% 0 0 / 85%)` | `oklch(12% 0.005 265 / 90%)` | Banner 徽章背景 |
+| `--banner-badge-border` | `oklch(100% 0 0 / 20%)` | `oklch(100% 0 0 / 10%)` | Banner 徽章边框 |
+| `--banner-badge-shadow` | `0 4px 24px rgba(0, 0, 0, 0.15)` | `0 4px 24px rgba(0, 0, 0, 0.4)` | Banner 徽章阴影 |
+| `--accent-glow` | `oklch(45% 0.18 330 / 40%)` | `oklch(70% 0.24 330 / 30%)` | 强调发光效果 |
 
 ---
 
-## 3. 字体系统
+## 2. 字体系统
 
 - **主字体**: DM Sans (Google Fonts)，回退 `-apple-system, sans-serif`
-- **字号梯度**（设计稿 px，UniApp 对应 rpx 见第 13 节）:
-  - 章节标题: 20px / 700 / `letter-spacing: -0.02em`
-  - Header 标题: 17px / 600 / `letter-spacing: -0.02em`
-  - 配料卡片名称: 13px / 600
-  - 正文: 14px / 400 / `line-height: 1.5`
-  - 小标签 / 风险徽章: 12px / 600
-  - 营养标签 / 单位: 11px / 500 / `uppercase` / `letter-spacing: 0.08em`
-  - 营养数值: 32px / 700 / `letter-spacing: -0.03em` / `font-variant-numeric: tabular-nums`
+- **图标字体**: Remix Icon（本地加载 `remixicon.css`）
+
+### 字号梯度（设计稿 px，UniApp 对应 rpx 见第 8 节）
+
+| 用途 | 设计稿 | 字重 | 字间距 |
+|------|--------|------|--------|
+| 章节标题 | 20px | 700 | `-0.02em` |
+| Header 标题 | 17px | 600 | `-0.02em` |
+| 配料卡片名称 | 13px | 600 | — |
+| 正文 | 14px | 400 | `line-height: 1.5` |
+| 小标签 / 风险徽章 | 12px | 600 | — |
+| 营养标签 / 单位 | 11px | 500 | `uppercase` / `0.08em` |
+| 营养数值 | 32px | 700 | `-0.03em` / `tabular-nums` |
 
 ---
 
-## 4. 间距系统
+## 3. 间距系统
 
 基于 4px 网格（设计稿 px）：
 
@@ -163,7 +163,7 @@ html:has(.light-mode) { color-scheme: light; }
 | 内容区水平 padding | 20px |
 | 内容区底部 padding | 40px（滚动内容结束处） |
 
-圆角：
+### 圆角
 
 | 用途 | 设计稿值 |
 |------|---------|
@@ -174,9 +174,29 @@ html:has(.light-mode) { color-scheme: light; }
 | 营养卡片 | 24px |
 | Banner 风险徽章 | 14px |
 
+### CSS / Tailwind Token
+
+```scss
+// style.scss
+--radius-sm: 0.5rem;  // 7px (14rpx)
+--radius-md: 0.625rem; // 10px (20rpx)
+--radius-lg: 0.875rem; // 14px (28rpx)
+--radius-xl: 1.125rem; // 18px (36rpx)
+```
+
+```ts
+// tailwind.config.ts
+borderRadius: {
+  sm: "var(--radius-sm)",
+  md: "var(--radius-md)",
+  lg: "var(--radius-lg)",
+  xl: "var(--radius-xl)",
+},
+```
+
 ---
 
-## 5. 阴影系统
+## 4. 阴影系统
 
 ### 暗色模式
 ```css
@@ -210,7 +230,7 @@ box-shadow: 0 4px 20px rgba(236,72,153,0.3);
 
 ---
 
-## 6. 动画规范
+## 5. 动画规范
 
 ### 入场动画原则
 - 使用 `transform` + `opacity` 组合（GPU 加速）
@@ -218,10 +238,11 @@ box-shadow: 0 4px 20px rgba(236,72,153,0.3);
 - 避免 `transition: all`
 
 ### 标准动画
+
 ```css
 /* 卡片入场：slideUp */
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(16rpx); }
   to   { opacity: 1; transform: translateY(0); }
 }
 /* 使用：animation: slideUp 0.5s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards */
@@ -239,303 +260,433 @@ box-shadow: 0 4px 20px rgba(236,72,153,0.3);
   to   { opacity: 1; transform: translateY(0); }
 }
 /* 使用：animation: slideUpBadge 0.6s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards */
+
+/* Toast 进度条：shrink */
+@keyframes shrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+/* 使用：animation: shrink linear forwards */
 ```
 
 ### 尊重运动偏好
 ```css
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+  .banner-emoji, .nutrition-card, .health-card, .advice-card, .banner-badge {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .animate-shrink {
+    animation: none !important;
   }
 }
 ```
 
 ---
 
-## 7. 组件规范
+## 6. 组件规范
 
-### 7.1 按钮
+### 6.1 DButton
 
-**主按钮 (primary)**
-- 背景: 渐变 `linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink))`
-- 文字: 白色
-- 圆角: 14px
-- 内边距: 14px 16px
-- 字号: 14px / 600
-- Hover: `box-shadow` 增强 + `translateY(-1px)`
-- Active: `transform: scale(0.97)`
+**文件**: `components/ui/DButton.vue`
 
-**次按钮 (secondary)**
-- 暗色: `background: rgba(255,255,255,0.06)` + `border: 1px solid rgba(255,255,255,0.1)` + `color: var(--text-primary)`
-- 亮色: `background: rgba(0,0,0,0.04)` + `border: 1px solid rgba(0,0,0,0.08)` + `color: #111`
-- Hover: 背景加深
+**Variants**:
 
-**所有按钮必须:**
-- 设置 `type="button"`（防默认提交行为）
-- 有 `:focus-visible` 样式: `outline: 2px solid var(--accent-pink); outline-offset: 2px`
-- icon-only 按钮加 `aria-label`
+| variant | 说明 | 样式 |
+|---------|------|------|
+| `default` | 渐变粉色主按钮 | `bg-[linear-gradient(135deg,var(--accent-pink-light),var(--accent-pink))]` + 粉色阴影 |
+| `secondary` | 次要按钮 | `bg-secondary border-border` |
+| `outline` | 描边按钮 | `border-border bg-transparent` |
+| `ghost` | 幽灵按钮 | `bg-transparent border-transparent` |
+| `destructive` | 危险按钮 | `bg-destructive text-white` |
 
-### 7.2 风险分组卡片
+**Sizes**:
 
-**结构:**
-```
-.risk-group (t4|t3|t2|t0|unknown)
-  .risk-header
-    .risk-dot (8px 圆点 + box-shadow glow，暗色专用)
-    .risk-badge (文字 + 半透明背景)
-    .risk-count ("N 项"，margin-left: auto)
-  .ingredient-scroll (横向滚动容器，scroll-snap-type: x mandatory)
-    .ingredient-card (每个配料，min-width: 140px)
-```
+| size | 高度 | padding | 字号 | 圆角 | 用途 |
+|------|------|---------|------|------|------|
+| `sm` | 32px | `px-3` | 12px | `rounded-md` | 小按钮 |
+| `md` | 40px | `px-4` | 14px | `rounded-lg` | 默认 |
+| `lg` | 48px | `px-6` | 16px | `rounded-xl` | 大按钮 |
+| `icon` | 40px | `p-0` | — | `rounded-lg` | 图标按钮 |
 
-**风险分组背景色（暗色）:**
-```css
-.t4: background: rgba(239,68,68,0.08);   border: 1px solid rgba(239,68,68,0.15);
-.t3: background: rgba(249,115,22,0.08);  border: 1px solid rgba(249,115,22,0.15);
-.t2: background: rgba(234,179,8,0.08);   border: 1px solid rgba(234,179,8,0.15);
-.t0: background: rgba(34,197,94,0.08);   border: 1px solid rgba(34,197,94,0.15);
-unknown: background: rgba(156,163,175,0.08); border: 1px solid rgba(156,163,175,0.15);
-```
+**Props**:
 
-**风险分组背景色（亮色）:**
-```css
-.t4: background: rgba(254,226,226);    border: 1px solid rgba(252,165,165,0.3);
-.t3: background: rgba(254,235,200);    border: 1px solid rgba(252,196,110,0.4);
-.t2: background: rgba(254,249,195);    border: 1px solid rgba(250,240,137,0.4);
-.t0: background: rgba(220,252,231);    border: 1px solid rgba(187,247,208,0.5);
-unknown: background: rgba(229,231,235); border: 1px solid rgba(209,213,219,0.5);
-```
-
-**配料卡片左侧风险条:**
-- 宽度: 3px（`position: absolute; left:0; top:0; bottom:0`）
-- 暗色加 `box-shadow: 0 0 8px var(--risk-tN)` glow
-- 亮色不加 glow
-
-**配料卡片右上角装饰圆（伪元素）:**
-- `position: absolute; top: -15px; right: -15px; width: 50px; height: 50px; border-radius: 50%; opacity: 0.1`
-- 颜色为对应风险色
-
-### 7.3 营养卡片
-
-- 圆角: 24px
-- 顶部 1px 发光线: `background: linear-gradient(90deg, transparent, var(--nutrition-glow), transparent)`
-- 2 列网格，gap: 20px，显示卡路里 / 蛋白质 / 脂肪 / 碳水
-- 数值: 32px / 700 / `letter-spacing: -0.03em` / `font-variant-numeric: tabular-nums`
-- 展开按钮: `aria-expanded` + `aria-controls`，chevron 旋转 180° 表示展开
-
-### 7.4 健康益处 / 食用建议卡片
-
-**暗色:**
-```css
-background: rgba(255,255,255,0.02);
-border: 1px solid rgba(255,255,255,0.06);
-```
-
-**亮色:**
-```css
-background: #ffffff;
-border: 1px solid rgba(0,0,0,0.06);
-box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-```
-
-- 章节标题（"健康益处" / "食用建议"）位于卡片**外部**，由页面统一管理
-- 食用建议卡有内部小标题行（星星图标 + "AI 健康建议"）
-- 列表行: 图标左对齐 + 文字 `line-height: 1.5`
-
-### 7.5 Header（导航栏）
-
-- `position: fixed`，`top: statusBarHeight`，`z-index: 50`
-- 初始: `background: transparent`
-- 滚动后（scrollTop > 60）: `background: var(--header-scrolled-bg)` + `backdrop-filter: saturate(180%) blur(16px)`
-- 暗色 scrolled shadow: `0 4px 24px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.06)`
-- 亮色 scrolled shadow: `0 4px 24px rgba(0,0,0,0.08), 0 1px 0 rgba(0,0,0,0.04)`
-- 图标颜色: 未滚动时白色（含 text-shadow 增强可读性），滚动后 `var(--text-primary)`
-- 图标按钮触摸区 40×40px，`border-radius: 12px`
-
-### 7.6 Banner
-
-- 高度: 260px（设计稿）
-- 暗色背景: `linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #151515 100%)`
-- 亮色背景: `linear-gradient(145deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%)`
-- 有产品图时: `image` 全覆盖，`mode="aspectFill"`
-- 无图时: emoji（80px）+ 副标题"产品图片"（居中，vertically centered）
-- 右下角风险徽章: `position: absolute; right: 20px; bottom: 20px`，带 slideUpBadge 入场动画
-
-### 7.7 Bottom Bar（底部操作栏）
-
-- `position: fixed`，`bottom: 0`，`z-index: 40`
-- `padding: 16px 20px`，`padding-bottom: calc(16px + env(safe-area-inset-bottom))`
-- 毛玻璃: `backdrop-filter: saturate(180%) blur(16px)`
-- 暗色: `background: rgba(15,15,15,0.95)`，`border-top: 1px solid rgba(255,255,255,0.06)`
-- 亮色: `background: rgba(255,255,255,0.95)`，`border-top: 1px solid rgba(0,0,0,0.06)`
-- 两按钮各占 `flex: 1`，`gap: 12px`
-
-### 7.8 ingredient-detail 页面
-
-**页面路径：** `pages/ingredient-detail/index.vue`
-
-**信息流：** Identity（Hero 风险卡）→ Risk（AI 风险分析）→ Detail（风险管理信息 + AI 建议）→ Related（含此配料的产品）
-
-**入口与路由参数：**
-
-| 入口 | 路由参数 | Header 副标题 |
-|------|----------|--------------|
-| 产品详情页配料列表点入 | `ingredientId` + `fromProductName` | "来自：{fromProductName}" |
-| 独立搜索 / AI 对话跳转 | `ingredientId` 只 | 按视觉 key 动态渲染（见 2.5 风险徽章文案列） |
-
-**Header：**
-- 使用 `--risk-*` 组件级变量（见 2.5），随 `analysis.level` 动态切换
-- 结构：返回按钮 + 标题"配料详情" + 副标题 + 分享按钮
-- 无渐变，纯色背景 + 2px 底部描边
-
-**Hero 风险卡结构：**
-```
-.hero-card
-  .hero-top（risk-bg 背景，risk-border 底边）
-    成分名称（20px / 800）+ 风险徽章（右对齐）
-    风险谱条（8px 高，渐变色 + 指示针）
-    谱条标签（低风险 / 中等 / 高风险，10px）
-  .chips（10px 12px 内边距）
-    功能 chip（function_type，红色）
-    来源 chip（灰色中性）
-    警告 chip（孕妇禁用等，黄色）
-    别名 chips（alias[]，灰色中性）
-```
-
-**Section 卡片统一结构：**
-```
-.section-card（border-radius: 14px，1px border，轻阴影）
-  .section-header（图标 20×20 + 标题 13px/700 + 可选 AI 渐变标签）
-  .section-body（具体内容）
-```
-
-**AI 分析内容图标语义（见 2.1 图标规范扩展）：**
-
-| 场景 | 图标 | 颜色 |
-|------|------|------|
-| 风险项列表 | ✕ 圆形（filled） | `--risk-t4`（#ef4444） |
-| 正向建议（type=positive） | ✓ 圆形（filled） | `--risk-t0`（#22c55e） |
-| 条件性建议（type=conditional） | ✓ 圆形（filled） | `--risk-t2`（#eab308） |
-
-**含此配料的产品横向卡片：**
-- 卡片宽度：`86px`（172rpx）
-- 图示高度：`48px`（96rpx），emoji 居中
-- 无匹配时 `v-if` 隐藏整个 section
-
-**底部 sticky bar：**
-- 与 BottomBar 组件规范相同（见 7.7）
-- 左按钮：咨询 AI 助手 → `/pages/chat/index?context={name}`
-- 右按钮：查看相关食品 → `/pages/search/index?ingredientId={id}`（数据库主键）
-
-**暗色模式切换：**
-- 初始化：`uni.getSystemInfoSync().theme`
-- 运行时监听：`uni.onThemeChange()` + `onUnmounted` 调用 `uni.offThemeChange()`
-
----
-
-## 8. 无障碍规范
-
-### 必须项
-- 所有 icon-only 按钮: `aria-label`
-- 装饰性 SVG: `aria-hidden="true"`
-- 交互状态按钮: `aria-expanded`（展开类）、`aria-pressed`（切换类）
-- `prefers-reduced-motion` 支持
-
-### 触摸优化
-```css
-* {
-  -webkit-tap-highlight-color: rgba(0,0,0,0);
-}
-body {
-  touch-action: manipulation; /* 消除双击缩放延迟 */
+```ts
+interface Props {
+  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
+  disabled?: boolean;
+  loading?: boolean;
+  iconLeft?: IconName;   // 左侧图标
+  iconRight?: IconName;  // 右侧图标
+  icon?: IconName;       // iconLeft 的别名
+  dclass?: string;       // 自定义 tailwind class
 }
 ```
 
-### 焦点管理
-- `:focus-visible` 替代 `:focus`（避免点击时出现焦点圈）
-- 焦点样式: `outline: 2px solid var(--accent-pink); outline-offset: 2px`
+**Events**:
+- `click(event: Event)` — 点击事件
+
+**行为**:
+- `disabled || loading` 时添加 `opacity-50 pointer-events-none`
+- `loading` 态显示旋转 loader 图标
+- Active 态：`active:scale-[0.97]`
+- Focus 态：`focus-visible:ring-accent-pink`
 
 ---
 
-## 9. HTML 模板规范
+### 6.2 DIcon
 
-```html
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0f0f0f">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-  <!-- 暗色 / 亮色模式容器 -->
-</body>
-</html>
+**文件**: `components/ui/DIcon.vue`
+
+Remix Icon 的 Vue 封装，支持 `line`（描边）和 `fill`（填充）两种类型。
+
+**Props**:
+
+```ts
+interface Props {
+  name: string;                    // 图标名称（camelCase，自动转 kebab-case）
+  type?: 'line' | 'fill';         // 图标类型，默认 'line'
+  dclass?: string;                // 自定义 tailwind class
+}
+```
+
+**图标名称**（`iconsRegistry.ts`）:
+
+```ts
+arrowLeft, arrowRight, x, check, chevronDown, share, star, badgeCheck,
+leaf, helpCircle, alertTriangle, info, alertCircle, shoppingCart, scan,
+user, menu, users, bookmark, settings, search, messageCircle, loader,
+riskT0, riskT1, riskT2, riskT3, riskT4, riskUnknown, checkCircle, xCircle
+```
+
+**使用示例**:
+```vue
+<DIcon name="arrowLeft" />
+<DIcon name="check" type="fill" />
+<DIcon name="riskT4" dclass="text-risk-t4" />
 ```
 
 ---
 
-## 10. 产品详情页结构（参考实现）
+### 6.3 AITag
 
-```
-┌─────────────────────────────┐
-│  status-bar (native)        │
-├─────────────────────────────┤
-│  header (透明→毛玻璃)        │
-│  [←返回] [标题] [分享]       │
-├─────────────────────────────┤
-│  scroll-area (全屏，z:1)     │
-│  ├─ banner (260px)           │
-│  │   emoji/图片 + 风险徽章   │
-│  └─ content (pad 24 20 40)  │
-│      ├─ 章节标题"营养成分"   │
-│      ├─ 营养卡片             │
-│      ├─ 章节标题"配料信息"   │
-│      ├─ IngredientSection   │
-│      │   ├─ 严重风险组       │
-│      │   ├─ 高风险组         │
-│      │   ├─ 低风险组         │
-│      │   └─ 未知组           │
-│      ├─ 章节标题"健康益处"   │
-│      ├─ 健康益处卡           │
-│      ├─ 章节标题"食用建议"   │
-│      └─ 食用建议卡           │
-├─────────────────────────────┤
-│  bottom-bar (fixed, z:40)   │
-│  [添加到记录] [咨询 AI 助手] │
-└─────────────────────────────┘
-```
+**文件**: `components/ui/AITag.vue`
 
-**产品详情页组件划分（UniApp）：**
+AI 标签组件，显示"AI"渐变文字。
 
-| 文件 | 职责 |
-|------|------|
-| `pages/product/index.vue` | 页面入口：数据加载、滚动监听、banner、营养成分、健康/建议卡 |
-| `components/ProductHeader.vue` | 固定顶部导航，滚动透明度切换 |
-| `components/IngredientSection.vue` | 配料区：风险分组 + 横向滚动配料卡片 |
-| `components/BottomBar.vue` | 固定底部操作栏 |
+**样式**:
+- 字号：9.5px / 700
+- 背景：`linear-gradient(135deg, var(--accent-pink-light), var(--accent-pink))`
+- 文字：`-webkit-background-clip: text` + `-webkit-text-fill-color: transparent`
 
 ---
 
-## 11. 图标规范
+### 6.4 TopBar
 
-| 用途 | 图标类型 | 样式 |
-|------|---------|------|
-| 严重/高/中风险 | 警告三角形（filled） | `fill: var(--risk-tN)` |
-| 低风险 | 叶子（stroke） | `stroke: var(--risk-t0)` |
-| 未知 | 问号圆（filled） | `fill: var(--risk-unknown)` |
-| 健康益处 | 绿色对勾圆 | `fill: var(--risk-t0)` |
-| AI 建议标题 | 金色星星 | `fill: #f59e0b` |
-| 返回 | 左箭头 chevron | `stroke: currentColor` |
-| 分享 | 分享图标 | `stroke: currentColor` |
-| 展开/收起 | 下/上 chevron | `stroke: currentColor`，旋转动画 |
-| 配料卡片导航 | 右箭头 chevron | `stroke: currentColor`，opacity 0.4 |
+**文件**: `components/ui/TopBar.vue`
+
+状态栏占位组件，用于适配不同设备的刘海屏高度。
+
+**实现**: 读取系统 `statusBarHeight`，渲染对应高度的占位 view。
 
 ---
 
-## 12. UniApp 单位换算规范
+### 6.5 Screen
+
+**文件**: `components/ui/Screen.vue`
+
+页面布局容器，提供 header / content / footer 三插槽结构。
+
+**Slots**:
+- `header` — 顶部区域（固定）
+- `content` — 滚动内容区（`<scroll-view>`）
+- `footer` — 底部区域（固定）
+
+**Events**:
+- `scroll(event)` — 滚动事件，参数 `{ detail: { scrollTop: number } }`
+
+**Props**:
+```ts
+interface Props {
+  header?: VNode;
+  content?: VNode;
+  footer?: VNode;
+}
+```
+
+---
+
+### 6.6 BottomBar
+
+**文件**: `components/ui/BottomBar.vue`
+
+固定底部操作栏，与 design system 规范一致。
+
+**Props**:
+
+| prop | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `primaryLabel` | `string` | `"咨询 AI 助手"` | 主按钮文字 |
+| `secondaryLabel` | `string` | `"添加到记录"` | 次按钮文字 |
+
+**Events**:
+
+| event | 说明 |
+|-------|------|
+| `primary` | 主按钮点击 |
+| `secondary` | 次按钮点击 |
+
+**样式**:
+- 毛玻璃：`backdrop-saturate-[180%] backdrop-blur-[16px]`
+- 亮色：`bg-white/95 border-t border-border shadow-[0_-8rpx_32rpx_rgba(0,0,0,0.06)]`
+- 暗色：`bg-black/95 border-t border-border shadow-[0_-8rpx_32rpx_rgba(0,0,0,0.4)]`
+
+---
+
+### 6.7 RiskBadge
+
+**文件**: `components/ui/RiskBadge.vue`
+
+风险等级徽章组件，显示等级文字 + 对应颜色。
+
+| 视觉 key | 文案 | 图标 |
+|---------|------|------|
+| `critical` | 极高风险 | ⛔ |
+| `high` | 高风险 | ⚠ |
+| `medium` | 中等风险 | ⚠ |
+| `low` | 低风险 | ✓ |
+| `safe` | 安全 | ✓ |
+| `unknown` | 暂无评级 | ? |
+
+---
+
+### 6.8 SectionHeader
+
+**文件**: `components/ui/SectionHeader.vue`
+
+章节标题组件。
+
+**Props**:
+```ts
+interface Props {
+  title: string;           // 标题文字
+  icon?: IconName;         // 左侧图标
+  iconBg?: string;          // 图标背景色（palette-*）
+  aiLabel?: boolean;       // 是否显示 AI 标签
+}
+```
+
+---
+
+### 6.9 RiskTag
+
+**文件**: `components/ui/RiskTag.vue`
+
+风险标签组件（与 RiskBadge 不同，RiskTag 是小标签样式）。
+
+---
+
+### 6.10 Tag
+
+**文件**: `components/ui/Tag.vue`
+
+通用标签组件。
+
+---
+
+### 6.11 StateView
+
+**文件**: `components/ui/StateView.vue`
+
+加载/错误状态视图组件。
+
+---
+
+### 6.12 Toast / ToastContainer
+
+**文件**: `components/ui/Toast.vue`, `ToastContainer.vue`
+
+轻提示组件。`ToastContainer` 是容器，`Toast` 是单个提示。
+
+---
+
+### 6.13 HorizontalScroller
+
+**文件**: `components/ui/HorizontalScroller.vue`
+
+横向滚动容器组件。
+
+---
+
+### 6.14 InfoCard / InfoChip
+
+**文件**: `components/ui/InfoCard.vue`, `InfoChip.vue`
+
+信息卡片和信息标签组件。
+
+---
+
+### 6.15 NutritionTable
+
+**文件**: `components/ui/NutritionTable.vue`
+
+营养成分表格组件。
+
+---
+
+### 6.16 Cell / ListItem / Separator
+
+**文件**: `components/ui/Cell.vue`, `ListItem.vue`, `Separator.vue`
+
+列表相关基础组件。
+
+---
+
+---
+
+## 7. Card 组件
+
+**文件**: `components/ui/card/`
+
+基于 shadcn/card 模式的卡片组件系列。
+
+### Card
+
+**Props**:
+
+| prop | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `variant` | `'default' \| 'elevated' \| 'outlined'` | `'default'` | 卡片变体 |
+| `hoverable` | `boolean` | `false` | 是否可 hover（带悬停动效） |
+| `dclass` | `string` | `''` | 自定义 tailwind class |
+
+**Variant 样式**:
+
+| variant | 样式 |
+|---------|------|
+| `default` | `bg-card border border-border shadow-sm` |
+| `elevated` | `bg-card border border-transparent shadow-[0_4rpx_12rpx_rgba(0,0,0,0.08),0_8rpx_24rpx_rgba(0,0,0,0.06)]` |
+| `outlined` | `bg-card border border-border shadow-none` |
+
+**hoverable 动效**:
+- `hover:-translate-y-[2rpx] hover:shadow-[...]`
+- `active:translate-y-0`
+- 曲线：`cubic-bezier(0.34, 1.56, 0.64, 1)`
+
+### CardHeader / CardTitle / CardDescription / CardContent / CardFooter
+
+子组件，用于构建完整卡片结构：
+
+```vue
+<Card>
+  <CardHeader>
+    <CardTitle>标题</CardTitle>
+    <CardDescription>描述文字</CardDescription>
+  </CardHeader>
+  <CardContent>
+    内容区
+  </CardContent>
+  <CardFooter>
+    页脚
+  </CardFooter>
+</Card>
+```
+
+---
+
+## 8. 工具函数
+
+### cn()
+
+**文件**: `utils/cn.ts`
+
+Tailwind class 合并工具，基于 `tailwind-merge`。
+
+```ts
+import { cn } from '@/utils/cn'
+
+// 合并多个 class，解决同组属性冲突（如 py-3 py-0 → py-0）
+// 后面的 class 优先级更高
+cn('px-4 py-2', isActive && 'bg-primary', 'px-4 py-0')
+// → "py-0 bg-primary"（如果 isActive 为 true）
+```
+
+**签名**:
+```ts
+function cn(...inputs: (string | undefined | null | false)[]): string
+```
+
+---
+
+### riskCls() / getRiskConfig()
+
+**文件**: `utils/riskLevel.ts`
+
+风险等级工具函数集。
+
+**RiskLevel 类型**:
+```ts
+type RiskLevel = "t4" | "t3" | "t2" | "t1" | "t0" | "unknown";
+type VisualKey = "critical" | "high" | "medium" | "low" | "safe" | "unknown";
+```
+
+**getRiskConfig(level)** — 获取风险等级完整配置：
+
+```ts
+interface RiskLevelConfig {
+  visualKey: VisualKey;
+  badge: string;           // 风险徽章文案
+  icon: string;            // 风险徽章图标名
+  subtitleNoProduct: string; // 无产品上下文时 Header 副标题
+  needleLeft: string | null; // 谱条指针 left%，null 表示隐藏
+}
+
+getRiskConfig('t2')
+// → { visualKey: 'medium', badge: '中等风险', icon: 'riskT2', subtitleNoProduct: '⚠ 中等风险 · 适量摄入', needleLeft: '50%' }
+```
+
+**riskCls(level, recipe)** — 动态生成风险色 Tailwind class：
+
+```ts
+// recipe 中使用 risk 色前缀（bg/10 border 等），自动替换为对应风险色
+riskCls('t2', 'bg/10 border')
+// → 'bg-risk-t2/10 border-risk-t2'
+
+riskCls('t4', 'bg/30')
+// → 'bg-risk-t4/30'
+
+// 支持 variant 前缀
+riskCls('t1', 'dark:bg/5 dark:border hover:bg/20')
+// → 'dark:bg-risk-t1/5 dark:border-risk-t1 hover:bg-risk-t1/20'
+```
+
+**LEVEL → VISUALKEY 映射**:
+
+| Level | VisualKey |
+|-------|-----------|
+| t4 | critical |
+| t3 | high |
+| t2 | medium |
+| t1 | low |
+| t0 | safe |
+| unknown | unknown |
+
+**谱条指针位置**:
+
+| VisualKey | needleLeft |
+|-----------|------------|
+| safe | `8%` |
+| low | `22%` |
+| medium | `50%` |
+| high | `72%` |
+| critical | `88%` |
+| unknown | `null`（隐藏） |
+
+---
+
+## 9. UniApp 单位换算规范
 
 > UniApp 以 **750rpx** 为设计基准宽度（等同 375px 的物理像素宽度手机）。
 > 本设计规范基于 **375px** 宽手机设计稿，因此换算关系为：
@@ -570,26 +721,150 @@ body {
 3. **`env(safe-area-inset-bottom)` 保持原样**，这是浏览器/系统变量，不转换
 4. **动画 `transform` 中的 `px` 值**（如 `translateY(16px)`）可保留，动画偏移量不影响响应式布局
 
-### SCSS 变量对应
+---
 
-`design-system.scss` 中已有 rpx 变量，使用时优先引用：
+## 10. 无障碍规范
 
-```scss
-$radius-sm: 24rpx;   // 12px
-$radius-md: 32rpx;   // 16px
-$radius-lg: 40rpx;   // 20px
-$radius-xl: 48rpx;   // 24px
-$ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+### 必须项
+- 所有 icon-only 按钮: `aria-label`
+- 装饰性 SVG: `aria-hidden="true"`
+- 交互状态按钮: `aria-expanded`（展开类）、`aria-pressed`（切换类）
+- `prefers-reduced-motion` 支持
+
+### 触摸优化
+```css
+* {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+body {
+  touch-action: manipulation; /* 消除双击缩放延迟 */
+}
 ```
+
+### 焦点管理
+- `:focus-visible` 替代 `:focus`（避免点击时出现焦点圈）
+- 焦点样式: `outline: 2px solid var(--accent-pink); outline-offset: 2px`
 
 ---
 
-## 13. 设计文件索引
+## 11. 图标规范
+
+| 用途 | 图标类型 | 样式 |
+|------|---------|------|
+| 严重/高/中风险 | 警告三角形（filled） | `fill: var(--risk-tN)` |
+| 低风险 | 叶子（stroke） | `stroke: var(--risk-t0)` |
+| 未知 | 问号圆（filled） | `fill: var(--risk-unknown)` |
+| 健康益处 | 绿色对勾圆 | `fill: var(--risk-t0)` |
+| AI 建议标题 | 金色星星 | `fill: #f59e0b` |
+| 返回 | 左箭头 chevron | `stroke: currentColor` |
+| 分享 | 分享图标 | `stroke: currentColor` |
+| 展开/收起 | 下/上 chevron | `stroke: currentColor`，旋转动画 |
+| 配料卡片导航 | 右箭头 chevron | `stroke: currentColor`，opacity 0.4 |
+
+---
+
+## 12. 暗色 / 亮色切换
+
+```css
+html { color-scheme: dark; }
+html:has(.light-mode) { color-scheme: light; }
+```
+
+初始化：`uni.getSystemInfoSync().theme`
+运行时监听：`uni.onThemeChange()` + `onUnmounted` 调用 `uni.offThemeChange()`
+
+---
+
+## 13. Tailwind Safelist
+
+风险色动态 class 的 safelist 配置（`tailwind.config.ts`）：
+
+```ts
+safelist: [
+  {
+    pattern: /^(bg|text|border|shadow|ring|outline|fill|stroke|from|to|via)-risk-(t0|t1|t2|t3|t4|unknown)(\/([0-9]|[1-9][0-9]|100))?$/,
+    variants: ['hover', 'active', 'focus', 'dark', 'group-hover', 'group-active'],
+  },
+],
+```
+
+这确保了动态拼接的风险 class（如 `bg-risk-t4/20`）不会被 Tailwind  purge。
+
+---
+
+## 14. 设计文件索引
 
 | 文件 | 版本 | 说明 |
 |------|------|------|
-| `product-detail-v14.html` | v14 | 最终版，含暗色/亮色双模式，位于 `.superpowers/brainstorm/23968-1774164668/` |
-| `ingredient-detail-final.html` | v1 | ingredient-detail 最终设计稿（亮色+暗色），位于 `.superpowers/brainstorm/98391-1774235561/` |
-| `docs/superpowers/specs/2026-03-23-ingredient-detail-redesign.md` | — | ingredient-detail 完整设计规格文档 |
+| `web/apps/uniapp-tw/src/style.scss` | — | CSS 变量定义（源码） |
+| `web/apps/uniapp-tw/tailwind.config.ts` | — | Tailwind 配置（源码） |
+| `web/apps/uniapp-tw/src/components/ui/*.vue` | — | UI 组件实现 |
+| `web/apps/uniapp-tw/src/utils/cn.ts` | — | class 合并工具 |
+| `web/apps/uniapp-tw/src/components/icons/iconsRegistry.ts` | — | 图标注册表 |
 
-> product-detail 历史版本 (v1–v13) 存于 `.superpowers/brainstorm/23968-1774164668/`
+---
+
+## 15. 页面结构参考
+
+### 产品详情页
+
+```
+┌─────────────────────────────┐
+│  status-bar (native)        │
+├─────────────────────────────┤
+│  header (透明→毛玻璃)        │
+│  [←返回] [标题] [分享]       │
+├─────────────────────────────┤
+│  scroll-area (全屏，z:1)     │
+│  ├─ banner (260px)           │
+│  │   emoji/图片 + 风险徽章   │
+│  └─ content (pad 24 20 40)  │
+│      ├─ 章节标题"营养成分"   │
+│      ├─ 营养卡片             │
+│      ├─ 章节标题"配料信息"   │
+│      ├─ IngredientSection   │
+│      │   ├─ 严重风险组       │
+│      │   ├─ 高风险组         │
+│      │   ├─ 低风险组         │
+│      │   └─ 未知组           │
+│      ├─ 章节标题"健康益处"   │
+│      ├─ 健康益处卡           │
+│      ├─ 章节标题"食用建议"   │
+│      └─ 食用建议卡           │
+├─────────────────────────────┤
+│  bottom-bar (fixed, z:40)   │
+│  [添加到记录] [咨询 AI 助手] │
+└─────────────────────────────┘
+```
+
+### ingredient-detail 页面
+
+**页面路径：** `pages/ingredient-detail/index.vue`
+
+**信息流：** Identity（Hero 风险卡）→ Risk（AI 风险分析）→ Detail（风险管理信息 + AI 建议）→ Related（含此配料的产品）
+
+**入口与路由参数：**
+
+| 入口 | 路由参数 | Header 副标题 |
+|------|----------|--------------|
+| 产品详情页配料列表点入 | `ingredientId` + `fromProductName` | "来自：{fromProductName}" |
+| 独立搜索 / AI 对话跳转 | `ingredientId` 只 | 按视觉 key 动态渲染 |
+
+**Hero 风险卡结构：**
+```
+.hero-card
+  .hero-top（risk-bg 背景，risk-border 底边）
+    成分名称（20px / 800）+ 风险徽章（右对齐）
+    风险谱条（8px 高，渐变色 + 指示针）
+    谱条标签（低风险 / 中等 / 高风险，10px）
+  .chips（10px 12px 内边距）
+    功能 chip（function_type，红色）
+    来源 chip（灰色中性）
+    警告 chip（孕妇禁用等，黄色）
+    别名 chips（alias[]，灰色中性）
+```
+
+**底部 sticky bar：**
+- 与 BottomBar 组件规范相同
+- 左按钮：咨询 AI 助手 → `/pages/chat/index?context={name}`
+- 右按钮：查看相关食品 → `/pages/search/index?ingredientId={id}`

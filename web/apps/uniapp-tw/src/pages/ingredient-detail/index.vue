@@ -18,6 +18,7 @@ import { CardHeader } from "@/components/ui/card";
 import AITag from "@/components/ui/AITag.vue";
 import RiskTag from "@/components/ui/RiskTag.vue";
 import TopBar from "@/components/ui/TopBar.vue";
+import BottomBar from "@/components/ui/BottomBar.vue";
 // ── Store ────────────────────────────────────────────────
 const ingStore = useIngredientStore();
 const productStore = useProductStore();
@@ -324,14 +325,6 @@ function goToProduct(barcode: string) {
                 {{ riskConf.subtitleNoProduct }}
               </text>
             </view>
-            <!-- <DButton
-            size="icon"
-            variant="ghost"
-            @click="shareToFriend"
-            :dclass="cn('rounded-sm size-8', riskCls(riskLevel, 'bg/30'))"
-          >
-            <DIcon name="share" :dclass="riskCls(riskLevel, 'text')" />
-          </DButton> -->
           </view>
         </view>
       </view>
@@ -396,42 +389,6 @@ function goToProduct(barcode: string) {
                 <text>中等</text>
                 <text>高风险</text>
               </view>
-            </view>
-
-            <!-- Chips -->
-            <view class="flex flex-wrap gap-1 p-3">
-              <!-- <text
-                v-if="ingredient?.additive_code"
-                class="chip chip-red rounded-md px-2 py-0.5 text-xs font-medium"
-              >
-                {{ ingredient?.additive_code }}
-              </text>
-              <text
-                v-if="ingredient?.function_type"
-                class="chip chip-red rounded-md px-2 py-0.5 text-xs font-medium"
-              >
-                {{ ingredient?.function_type }}
-              </text>
-              <text
-                class="chip chip-neu rounded-md px-2 py-0.5 text-xs font-medium"
-              >
-                {{ source }}
-              </text>
-              <text
-                v-if="pregnancyWarning"
-                class="chip chip-warn rounded-md px-2 py-0.5 text-xs font-medium"
-              >
-                {{ pregnancyWarning }}
-              </text>
-              <template v-if="ingredient?.alias?.length">
-                <text
-                  v-for="alias in ingredient?.alias"
-                  :key="alias"
-                  class="chip chip-neu rounded-md px-2 py-0.5 text-xs font-medium"
-                >
-                  别名：{{ alias }}
-                </text>
-              </template> -->
             </view>
           </Card>
           <!-- 描述 -->
@@ -518,42 +475,42 @@ function goToProduct(barcode: string) {
             <view class="flex flex-col mb-1">
               <Cell
                 size="sm"
-                class="px-4"
+                dclass="px-4"
                 title="WHO 致癌等级"
                 :value="ingredient?.who_level"
               />
               <Separator dclass="my-0" />
               <Cell
                 size="sm"
-                class="px-4"
+                dclass="px-4"
                 title="母婴等级"
                 :value="maternalLevel"
               />
               <Separator dclass="my-0" />
               <Cell
                 size="sm"
-                class="px-4"
+                dclass="px-4"
                 title="使用限量"
                 :value="usageLimit"
               />
               <Separator dclass="my-0" />
               <Cell
                 size="sm"
-                class="px-4"
+                dclass="px-4"
                 title="适用区域"
                 :value="applicableRegion"
               />
               <Separator dclass="my-0" />
               <Cell
                 size="sm"
-                class="px-4"
+                dclass="px-4"
                 title="过敏信息"
                 :value="ingredient?.allergen_info"
               />
               <Separator dclass="my-0" />
               <Cell
                 size="sm"
-                class="px-4"
+                dclass="px-4"
                 title="执行标准"
                 :value="ingredient?.standard_code"
               />
@@ -663,19 +620,12 @@ function goToProduct(barcode: string) {
 
     <!-- #footer slot -->
     <template #footer>
-      <view
-        class="flex items-center gap-3 px-3 py-3 bg-white/95 dark:bg-black/95 backdrop-saturate-[180%] backdrop-blur-[16px] shadow-[0_-8rpx_32rpx_rgba(0,0,0,0.06)] dark:shadow-[0_-8rpx_32rpx_rgba(0,0,0,0.4)] border-t border-border"
-      >
-        <DButton variant="secondary" dclass="flex-1 rounded-md" @click="goToAI"
-          >咨询 AI 助手</DButton
-        >
-        <DButton
-          variant="default"
-          dclass="flex-1 rounded-md text-white"
-          @click="goToSearch"
-          >查看相关食品</DButton
-        >
-      </view>
+      <BottomBar
+        primary-label="查看相关食品"
+        secondary-label="咨询 AI 助手"
+        @primary="goToSearch"
+        @secondary="goToAI"
+      />
     </template>
   </Screen>
 </template>

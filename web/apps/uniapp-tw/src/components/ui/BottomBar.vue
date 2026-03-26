@@ -1,9 +1,20 @@
 <script setup lang="ts">
 import DButton from "./DButton.vue";
 
+withDefaults(
+  defineProps<{
+    primaryLabel?: string;
+    secondaryLabel?: string;
+  }>(),
+  {
+    primaryLabel: "咨询 AI 助手",
+    secondaryLabel: "添加到记录",
+  },
+);
+
 const emit = defineEmits<{
-  (e: "add-record"): void;
-  (e: "chat"): void;
+  (e: "primary"): void;
+  (e: "secondary"): void;
 }>();
 </script>
 
@@ -14,17 +25,17 @@ const emit = defineEmits<{
     <DButton
       variant="secondary"
       dclass="flex-1 rounded-md"
-      @click="emit('add-record')"
+      @click="emit('secondary')"
     >
-      添加到记录
+      {{ secondaryLabel }}
     </DButton>
 
     <DButton
       variant="default"
       dclass="flex-1 rounded-md text-white text-sm"
-      @click="emit('chat')"
+      @click="emit('primary')"
     >
-      咨询 AI 助手
+      {{ primaryLabel }}
     </DButton>
   </view>
 </template>

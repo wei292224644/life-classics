@@ -142,7 +142,9 @@
               </Card>
 
               <!-- 配料与风险 -->
-              <IngredientSection :ingredients="mockIngredients" />
+              <IngredientSection
+                :ingredients="store.product?.ingredients ?? []"
+              />
 
               <!-- 健康益处卡片 -->
               <Card
@@ -187,7 +189,12 @@
       </view>
     </template>
     <template #footer>
-      <BottomBar @add-record="handleAddRecord" @chat="handleChat" />
+      <BottomBar
+        primary-label="咨询 AI 助手"
+        secondary-label="添加到记录"
+        @primary="handleChat"
+        @secondary="handleAddRecord"
+      />
     </template>
   </Screen>
 </template>
@@ -195,7 +202,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useProductStore } from "@/store/product";
-import type { NutritionDetail } from "@/types/product";
 import { getRiskConfig, riskCls } from "@/utils/riskLevel";
 import { cn } from "@/utils/cn";
 import ProductHeader from "@/components/business/product/ProductHeader.vue";
@@ -210,7 +216,6 @@ import { extractText } from "@/utils/object";
 import { useToast } from "@/composables/useToast";
 import ToastContainer from "@/components/ui/ToastContainer.vue";
 import DButton from "@/components/ui/DButton.vue";
-import { FALLBACK_INGREDIENTS } from "@/mock/ingredients";
 
 const toast = useToast();
 const store = useProductStore();
@@ -227,186 +232,6 @@ const UNIT_LABELS: Record<string, string> = {
   kcal: "千卡",
   mL: "毫升",
 };
-
-const FALLBACK_NUTRITIONS: NutritionDetail[] = [
-  {
-    name: "热量",
-    alias: [],
-    value: "52",
-    value_unit: "kcal",
-    reference_type: "PER_100_WEIGHT",
-    reference_unit: "100g",
-  },
-  {
-    name: "碳水",
-    alias: [],
-    value: "14",
-    value_unit: "g",
-    reference_type: "PER_100_WEIGHT",
-    reference_unit: "100g",
-  },
-  {
-    name: "膳食纤维",
-    alias: [],
-    value: "2.4",
-    value_unit: "g",
-    reference_type: "PER_100_WEIGHT",
-    reference_unit: "100g",
-  },
-  {
-    name: "维生素C",
-    alias: [],
-    value: "4.6",
-    value_unit: "mg",
-    reference_type: "PER_100_WEIGHT",
-    reference_unit: "100g",
-  },
-  {
-    name: "蛋白质",
-    alias: [],
-    value: "0.3",
-    value_unit: "g",
-    reference_type: "PER_100_WEIGHT",
-    reference_unit: "100g",
-  },
-  {
-    name: "脂肪",
-    alias: [],
-    value: "0.2",
-    value_unit: "g",
-    reference_type: "PER_100_WEIGHT",
-    reference_unit: "100g",
-  },
-  {
-    name: "糖",
-    alias: [],
-    value: "10",
-    value_unit: "g",
-    reference_type: "PER_100_WEIGHT",
-    reference_unit: "100g",
-  },
-  {
-    name: "钠",
-    alias: [],
-    value: "1",
-    value_unit: "mg",
-    reference_type: "PER_100_WEIGHT",
-    reference_unit: "100g",
-  },
-  {
-    name: "钾",
-    alias: [],
-    value: "107",
-    value_unit: "mg",
-    reference_type: "PER_100_WEIGHT",
-    reference_unit: "100g",
-  },
-  {
-    name: "水分",
-    alias: [],
-    value: "85.6",
-    value_unit: "g",
-    reference_type: "PER_100_WEIGHT",
-    reference_unit: "100g",
-  },
-];
-
-const FALLBACK_HEALTH_TEXTS = [
-  "富含膳食纤维，有助于肠道健康",
-  "含有抗氧化剂，可延缓细胞衰老",
-  "维生素C有助于增强免疫力",
-];
-
-const FALLBACK_ADVICE_TEXT =
-  "建议每日食用1-2个中等大小的苹果，约200-300克为宜。餐前30分钟食用可增加饱腹感，有助于控制热量摄入。";
-
-const FALLBACK_INGREDIENTS: IngredientDetail[] = [
-  {
-    id: 9001,
-    name: "亚硝酸钠",
-    alias: [],
-    is_additive: true,
-    additive_code: null,
-    who_level: "Group 2A",
-    allergen_info: null,
-    function_type: "防腐剂",
-    standard_code: null,
-    analysis: {
-      id: 9101,
-      analysis_type: "risk_assessment",
-      level: "t4",
-      results: { reason: "可能致癌" },
-    },
-  },
-  {
-    id: 9002,
-    name: "焦糖色",
-    alias: [],
-    is_additive: true,
-    additive_code: null,
-    who_level: "Group 2B",
-    allergen_info: null,
-    function_type: "着色剂",
-    standard_code: null,
-    analysis: {
-      id: 9102,
-      analysis_type: "risk_assessment",
-      level: "t3",
-      results: { reason: "潜在致癌" },
-    },
-  },
-  {
-    id: 9003,
-    name: "天然香料",
-    alias: [],
-    is_additive: false,
-    additive_code: null,
-    who_level: "Unknown",
-    allergen_info: null,
-    function_type: "增香",
-    standard_code: null,
-    analysis: {
-      id: 9103,
-      analysis_type: "risk_assessment",
-      level: "t0",
-      results: {},
-    },
-  },
-  {
-    id: 9004,
-    name: "复合调味料",
-    alias: [],
-    is_additive: false,
-    additive_code: null,
-    who_level: "Unknown",
-    allergen_info: null,
-    function_type: "调味",
-    standard_code: null,
-    analysis: {
-      id: 9104,
-      analysis_type: "risk_assessment",
-      level: "t0",
-      results: {},
-    },
-  },
-  {
-    id: 9005,
-    name: "其他添加剂",
-    alias: [],
-    is_additive: true,
-    additive_code: null,
-    who_level: "Unknown",
-    allergen_info: null,
-    function_type: "复配",
-    standard_code: null,
-    analysis: {
-      id: 9105,
-      analysis_type: "risk_assessment",
-      level: "unknown",
-      results: {},
-    },
-  },
-];
 
 function formatNutritionUnit(item: {
   value_unit: string;
@@ -475,15 +300,11 @@ const overallRiskLevel = computed(() => {
 const riskConfig = computed(() => getRiskConfig(overallRiskLevel.value));
 
 const primaryNutritions = computed(() =>
-  ((store.product?.nutritions?.length ?? 0) > 0
-    ? store.product?.nutritions
-    : FALLBACK_NUTRITIONS)!.slice(0, PRIMARY_NUTRITION_COUNT),
+  (store.product?.nutritions ?? []).slice(0, PRIMARY_NUTRITION_COUNT),
 );
 
 const detailNutritions = computed(() =>
-  ((store.product?.nutritions?.length ?? 0) > PRIMARY_NUTRITION_COUNT
-    ? store.product?.nutritions
-    : FALLBACK_NUTRITIONS)!.slice(PRIMARY_NUTRITION_COUNT),
+  (store.product?.nutritions ?? []).slice(PRIMARY_NUTRITION_COUNT),
 );
 
 const healthItems = computed(() =>
@@ -502,25 +323,17 @@ const adviceItems = computed(() =>
   ),
 );
 
-const healthTexts = computed(() => {
-  const texts = healthItems.value
+const healthTexts = computed(() =>
+  healthItems.value
     .map((item) => extractText(item.results, "summary"))
-    .filter(Boolean);
-  return texts.length > 0 ? texts : FALLBACK_HEALTH_TEXTS;
-});
+    .filter(Boolean),
+);
 
-const adviceText = computed(() => {
-  const fromAnalysis =
+const adviceText = computed(
+  () =>
     adviceItems.value
       .map((item) => extractText(item.results, "advice", "summary"))
-      .find(Boolean) ?? "";
-  return fromAnalysis || FALLBACK_ADVICE_TEXT;
-});
-
-const mockIngredients = computed(() =>
-  (store.product?.ingredients?.length ?? 0) > 0
-    ? store.product!.ingredients
-    : FALLBACK_INGREDIENTS,
+      .find(Boolean) ?? "",
 );
 </script>
 
