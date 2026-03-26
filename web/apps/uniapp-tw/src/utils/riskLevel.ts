@@ -1,6 +1,7 @@
 // web/apps/uniapp/src/utils/riskLevel.ts
 // 纯函数，无副作用，无外部依赖
-
+// process.env.UNI_PLATFORM 由 Vite 在编译时静态替换，不会进入运行时
+import { isMp } from "./paltform";
 export type RiskLevel = "t4" | "t3" | "t2" | "t1" | "t0" | "unknown";
 export type VisualKey =
   | "critical"
@@ -94,6 +95,36 @@ export function getRiskConfig(
   return RISK_CONFIG[levelToVisualKey(level)];
 }
 
-export function getTextColorRiskLevel(level: RiskLevel): string {
-  return `text-${level}`;
+/**
+ * 生成风险等级对应的 Tailwind class 字符串。
+ * safelist 已覆盖所有 risk 色前缀 × variant × 透明度组合，可自由动态拼接。
+ *
+ * @example
+ * riskCls('t2', 'bg/10 border')
+ * // → 'bg-risk-t2/10 border-risk-t2'
+ *
+ * riskCls('t2', 'bg/10 border dark:bg/5 dark:border hover:bg/20')
+ * // → 'bg-risk-t2/10 border-risk-t2 dark:bg-risk-t2/5 dark:border-risk-t2 hover:bg-risk-t2/20'
+ */
+export function riskCls(
+  level: RiskLevel | null | undefined,
+  recipe: string,
+): string {
+  const l = level ?? "unknown";
+  // 小程序中 weapp-tailwindcss 将 CSS 选择器里的 `/` 转义为 `_f`，动态生成的 class 需同步处理
+  const opacitySep = isMp ? "_f" : "/";
+  return recipe
+    .trim()
+    .split(/\s+/)
+    .map((token) => {
+      const colonIdx = token.lastIndexOf(":");
+      const variant = colonIdx !== -1 ? token.slice(0, colonIdx + 1) : "";
+      const rest = colonIdx !== -1 ? token.slice(colonIdx + 1) : token;
+      const [prefix, opacity] = rest.split("/");
+      const cls = opacity
+        ? `${prefix}-risk-${l}${opacitySep}${opacity}`
+        : `${prefix}-risk-${l}`;
+      return `${variant}${cls}`;
+    })
+    .join(" ");
 }

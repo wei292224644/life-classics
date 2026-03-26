@@ -1,19 +1,19 @@
 <script setup lang="ts">
+import { cn } from '@/utils/cn'
+
+defineOptions({
+  options: { virtualHost: true, addGlobalClass: true },
+})
+
 interface Props {
-  class?: string
+  dclass?: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 </script>
 
 <template>
-  <view class="card-content" :class="class">
+  <view :class="cn('p-5 pt-0', props.dclass)">
     <slot />
   </view>
 </template>
-
-<style lang="scss" scoped>
-.card-content {
-  @apply p-5 pt-0;
-}
-</style>

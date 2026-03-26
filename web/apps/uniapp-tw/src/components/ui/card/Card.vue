@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { cn } from "@/utils/cn";
+
+defineOptions({
+  options: { virtualHost: true, addGlobalClass: true },
+})
 
 type CardVariant = "default" | "elevated" | "outlined";
 
 interface Props {
   variant?: CardVariant;
   hoverable?: boolean;
-  class?: string;
+  dclass?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: "default",
   hoverable: false,
-  class: "",
+  dclass: "",
 });
 
 const cardClass = computed(() => {
@@ -29,9 +34,7 @@ const cardClass = computed(() => {
     ? "cursor-pointer transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-[2rpx] hover:shadow-[0_8rpx_24rpx_rgba(0,0,0,0.1),0_16rpx_48rpx_rgba(0,0,0,0.06)] active:translate-y-0"
     : "";
 
-  return [base, variantClass[props.variant], hoverableClass, props.class]
-    .filter(Boolean)
-    .join(" ");
+  return cn(base, variantClass[props.variant], hoverableClass, props.dclass);
 });
 </script>
 

@@ -32,20 +32,24 @@
                 mode="aspectFill"
               />
               <view
-                :class="[
-                  'absolute right-4 bottom-4 rounded-sm px-4 py-2 flex items-center gap-2 z-10 border border-border shadow-md',
-                  `bg-risk-${overallRiskLevel}/10`,
-                  `border-risk-${overallRiskLevel}/60`,
-                  `shadow-risk-${overallRiskLevel}/20`,
-                ]"
+                :class="
+                  cn(
+                    'absolute right-4 bottom-4 rounded-sm px-4 py-2 flex items-center gap-2 z-10 border border-border shadow-md',
+                    riskCls(overallRiskLevel, 'bg/10 border/60 shadow/20'),
+                  )
+                "
               >
-                <Icon
+                <DIcon
                   :name="riskConfig.icon as any"
-                  size="22"
-                  :class="'text-risk-' + overallRiskLevel"
+                  :dclass="riskCls(overallRiskLevel, 'text')"
                 />
                 <text
-                  :class="`text-sm font-semibold text-risk-${overallRiskLevel}`"
+                  :class="
+                    cn(
+                      'text-sm font-semibold',
+                      riskCls(overallRiskLevel, 'text'),
+                    )
+                  "
                   >{{ riskConfig.badge }}</text
                 >
               </view>
@@ -55,7 +59,7 @@
             <view class="px-3 gap-4 flex flex-col pt-4">
               <!-- 营养成分卡片 -->
               <Card
-                class="animate-[slideUp_0.5s_cubic-bezier(0.34,1.56,0.64,1)_forwards] nutrition-card"
+                dclass="animate-[slideUp_0.5s_cubic-bezier(0.34,1.56,0.64,1)_forwards] nutrition-card"
               >
                 <view
                   class="nutrition-glow absolute top-0 left-0 right-0 h-px"
@@ -89,26 +93,26 @@
                   </view>
                 </view>
 
-                <Button
+                <DButton
                   size="lg"
                   variant="ghost"
-                  class="w-full mt-4 hover:!bg-transparent"
+                  dclass="w-full mt-4 hover:!bg-transparent"
                   @click="nutrExpanded = !nutrExpanded"
                 >
                   <view class="flex items-center justify-center gap-2">
-                    <Icon name="chevronDown" :size="20" />
+                    <DIcon name="arrow-down-s" :size="20" />
                     <text class="text-sm font-medium text-muted-foreground">{{
                       nutrExpanded ? "收起详细营养成分" : "查看详细营养成分"
                     }}</text>
                   </view>
-                </Button>
+                </DButton>
                 <!-- <button
                   type="button"
                   class="w-full flex items-center justify-center gap-2 py-2 bg-transparent cursor-pointer active:bg-muted/10"
                   :aria-expanded="nutrExpanded"
                   @click="nutrExpanded = !nutrExpanded"
                 >
-                  <Icon
+                  <DIcon
                     name="chevronDown"
                     class="w-4 h-4 transition-transform duration-300 text-muted-foreground"
                     :class="{ 'rotate-180': nutrExpanded }"
@@ -142,7 +146,7 @@
 
               <!-- 健康益处卡片 -->
               <Card
-                class="animate-[slideUp_0.5s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"
+                dclass="animate-[slideUp_0.5s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"
               >
                 <view class="mb-3">
                   <text class="font-semibold tracking-tight text-foreground"
@@ -155,7 +159,7 @@
                     :key="idx"
                     class="flex items-center gap-3"
                   >
-                    <Icon name="check" :size="24" />
+                    <DIcon name="check" :size="24" />
                     <text
                       class="text-sm leading-relaxed flex-1 text-secondary-foreground"
                       >{{ text }}</text
@@ -166,14 +170,10 @@
 
               <!-- AI 健康建议卡片 -->
               <Card
-                class="animate-[slideUp_0.5s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"
+                dclass="animate-[slideUp_0.5s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"
               >
                 <view class="mb-3 flex items-center gap-0.5">
-                  <Icon
-                    name="star"
-                    :size="20"
-                    class="shrink-0 text-orange-500"
-                  />
+                  <DIcon name="star" dclass="shrink-0 text-orange-500" />
                   <text class="font-semibold">AI 健康建议</text>
                 </view>
                 <text
@@ -195,19 +195,22 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useProductStore } from "@/store/product";
-import type { NutritionDetail, IngredientDetail } from "@/types/product";
-import { getRiskConfig } from "@/utils/riskLevel";
+import type { NutritionDetail } from "@/types/product";
+import { getRiskConfig, riskCls } from "@/utils/riskLevel";
+import { cn } from "@/utils/cn";
 import ProductHeader from "@/components/business/product/ProductHeader.vue";
 import IngredientSection from "@/components/business/product/IngredientSection.vue";
 import BottomBar from "@/components/ui/BottomBar.vue";
-import Icon from "@/components/ui/Icon.vue";
+import DIcon from "@/components/ui/DIcon.vue";
 import Card from "@/components/ui/card/Card.vue";
 import Screen from "@/components/ui/Screen.vue";
 import StateView from "@/components/ui/StateView.vue";
 import { formatDecimalString } from "@/utils/numberFormat";
+import { extractText } from "@/utils/object";
 import { useToast } from "@/composables/useToast";
 import ToastContainer from "@/components/ui/ToastContainer.vue";
-import Button from "@/components/ui/Button.vue";
+import DButton from "@/components/ui/DButton.vue";
+import { FALLBACK_INGREDIENTS } from "@/mock/ingredients";
 
 const toast = useToast();
 const store = useProductStore();
@@ -455,15 +458,6 @@ function handleChat() {
   });
 }
 
-function extractText(results: unknown, ...keys: string[]): string {
-  if (!results || typeof results !== "object") return "";
-  const r = results as Record<string, unknown>;
-  for (const key of keys) {
-    if (typeof r[key] === "string") return r[key] as string;
-  }
-  return "";
-}
-
 // ── Computed ─────────────────────────────────────────
 
 const overallRiskLevel = computed(() => {
@@ -530,7 +524,7 @@ const mockIngredients = computed(() =>
 );
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .nutrition-card {
   background: linear-gradient(
     145deg,

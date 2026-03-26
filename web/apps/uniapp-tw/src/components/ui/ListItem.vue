@@ -1,15 +1,15 @@
 <template>
   <view class="list-item">
     <view :class="['list-item-icon', `icon-${icon}`]">
-      <Icon v-if="icon === 'x'" name="x" :size="24" />
-      <Icon v-else name="check" :size="24" />
+      <DIcon v-if="icon === 'x'" name="x" :size="24" />
+      <DIcon v-else name="check" :size="24" />
     </view>
     <text class="list-item-text">{{ text }}</text>
   </view>
 </template>
 
 <script setup lang="ts">
-import Icon from './Icon.vue'
+import DIcon from './DIcon.vue'
 
 defineProps<{
   icon: 'x' | 'check-green' | 'check-yellow';

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useThemeStore } from "@/store/theme";
-import Icon from "@/components/ui/Icon.vue";
+import DIcon from "@/components/ui/DIcon.vue";
 import { scanBarcode, ScanCancelledError } from "@/utils/scanner";
 
 // ── Types ─────────────────────────────────────────────
@@ -201,9 +201,9 @@ function handleRecentClick(item: RecentScan) {
             {{ formatTime(item.time) }}
           </text>
         </view>
-        <Icon
+        <DIcon
           name="arrowRight"
-          class="h-4 w-4 flex-shrink-0 text-muted-foreground opacity-40"
+          dclass="h-4 w-4 flex-shrink-0 text-muted-foreground opacity-40"
           :size="16"
         />
       </view>

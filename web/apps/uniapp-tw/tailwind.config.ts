@@ -7,22 +7,19 @@ export default <Config>{
   darkMode: "class",
   content: ["./index.html", "./src/**/*.{html,js,ts,jsx,tsx,vue}"],
   safelist: [
-    // 风险色：文字类
-    { pattern: /^text-risk-(t0|t1|t2|t3|t4|unknown)$/ },
-    // 风险色：背景类（不带透明度）
-    { pattern: /^bg-risk-(t0|t1|t2|t3|t4|unknown)$/ },
-    // 风险色：背景类（带透明度 /xx）
+    // 风险色全集：所有前缀 × 所有等级 × 所有标准透明度（含不带透明度）
+    // variants 覆盖常用交互与暗色模式，动态拼接 risk class 时无需担心扫描问题
     {
       pattern:
-        /^bg-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/,
-    },
-    {
-      pattern:
-        /^border-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/,
-    },
-    {
-      pattern:
-        /^shadow-risk-(t0|t1|t2|t3|t4|unknown)\/(10|20|30|40|50|60|70|80|90)$/,
+        /^(bg|text|border|shadow|ring|outline|fill|stroke|from|to|via)-risk-(t0|t1|t2|t3|t4|unknown)(\/([0-9]|[1-9][0-9]|100))?$/,
+      variants: [
+        "hover",
+        "active",
+        "focus",
+        "dark",
+        "group-hover",
+        "group-active",
+      ],
     },
   ],
   theme: {
@@ -107,6 +104,9 @@ export default <Config>{
       },
       boxShadow: {
         sm: "var(--shadow-sm)",
+      },
+      spacing: {
+        topbar: "var(--topbar-height)",
       },
     },
   },

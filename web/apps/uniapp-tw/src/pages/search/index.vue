@@ -5,7 +5,7 @@
       <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
       <view class="header-content">
         <button class="header-btn" @click="goBack">
-          <Icon name="arrowLeft" :size="24" />
+          <DIcon name="arrow-left" :size="24" />
         </button>
         <text class="header-title">搜索食品或配料</text>
         <view class="header-spacer" />
@@ -15,7 +15,7 @@
     <!-- ── 搜索框 ─────────────────────────── -->
     <view class="search-input-wrap">
       <view class="search-input-box">
-        <Icon name="search" class="search-icon" :size="20" />
+        <DIcon name="search" dclass="search-icon" :size="20" />
         <input
           v-model="keyword"
           class="search-input"
@@ -26,7 +26,7 @@
           @input="handleInput"
         />
         <button v-if="keyword" class="clear-btn" @click="clearKeyword">
-          <Icon name="x" :size="20" />
+          <DIcon name="x" :size="20" />
         </button>
       </view>
     </view>
@@ -49,7 +49,7 @@
             <text class="result-name">{{ item.name }}</text>
             <text class="result-desc">{{ item.description }}</text>
           </view>
-          <Icon name="arrowRight" class="result-arrow" :size="20" />
+          <DIcon name="arrow-right" dclass="result-arrow" :size="20" />
         </view>
         <view v-if="results.length === 0" class="empty-results">
           <text class="empty-text">未找到相关结果</text>
@@ -83,7 +83,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useThemeStore } from "@/store/theme"
-import Icon from "@/components/ui/Icon.vue"
+import DIcon from "@/components/ui/DIcon.vue"
 
 // ── Types ─────────────────────────────────────────────
 interface SearchResult {

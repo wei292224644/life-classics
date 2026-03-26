@@ -10,8 +10,7 @@
         v-if="levelGroup.levelIngredients?.length"
         :class="[
           'rounded-2xl p-3 mb-3 relative overflow-hidden border border-transparent',
-          `bg-risk-${levelGroup.levelKey}/10`,
-          `border-risk-${levelGroup.levelKey}/60`,
+          riskCls(levelGroup.levelKey, 'bg/10 border/60'),
         ]"
       >
         <!-- 组头 -->
@@ -19,22 +18,16 @@
           <view
             :class="[
               'w-2 h-2 rounded-full flex-shrink-0',
-              `bg-risk-${levelGroup.levelKey}`,
+              riskCls(levelGroup.levelKey, 'bg'),
               levelGroup.levelKey === 'unknown'
                 ? 'shadow-none'
-                : `shadow-risk-${levelGroup.levelKey}/20 shadow-[0_0_8px_var(--tw-shadow-color)]`,
+                : cn(
+                    riskCls(levelGroup.levelKey, 'shadow/20'),
+                    'shadow-[0_0_8px_var(--tw-shadow-color)]',
+                  ),
             ]"
           />
-          <Tag
-            :class="{
-              'bg-risk-t4/40': levelGroup.levelKey === 't4',
-              'bg-risk-t3/40': levelGroup.levelKey === 't3',
-              'bg-risk-t2/40': levelGroup.levelKey === 't2',
-              'bg-risk-t1/40': levelGroup.levelKey === 't1',
-              'bg-risk-t0/40': levelGroup.levelKey === 't0',
-              'bg-risk-unknown/40': levelGroup.levelKey === 'unknown',
-            }"
-          >
+          <Tag :dclass="riskCls(levelGroup.levelKey, 'bg/40')">
             {{ levelGroup.config.badge }}
           </Tag>
           <text class="text-xs ml-auto text-muted-foreground"
@@ -50,7 +43,7 @@
               :key="item.id"
               :class="[
                 'flex-none rounded-2xl p-3 px-2 relative overflow-hidden cursor-pointer min-w-36 box-border transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.96] bg-white/80 dark:bg-white/5 border',
-                `border-risk-${levelGroup.levelKey}/60`,
+                riskCls(levelGroup.levelKey, 'border/60'),
               ]"
               @click="goToDetail(item.id)"
             >
@@ -69,33 +62,25 @@
               <view
                 class="absolute right-2.5 top-2.5 w-4 h-4 opacity-40 text-secondary-foreground"
               >
-                <Icon name="arrowRight" :size="20" class="w-4 h-4" />
+                <DIcon name="arrow-right" :size="20" dclass="w-4 h-4" />
               </view>
 
               <!-- 内容 -->
               <view class="flex flex-col pl-2">
                 <view class="flex items-center gap-1 mb-2">
-                  <Icon
+                  <DIcon
                     :name="levelGroup.config.icon as any"
-                    :size="16"
-                    :class="'text-risk-' + levelGroup.levelKey"
+                    :dclass="'text-risk-' + levelGroup.levelKey"
                   />
                   <text class="text-sm font-medium text-foreground">{{
                     item.name
                   }}</text>
                 </view>
                 <Tag
-                  class="w-24"
+                  :dclass="
+                    cn(riskCls(levelGroup.levelKey, 'bg/10 text'), 'w-24')
+                  "
                   textClass="block max-w-full truncate"
-                  :class="{
-                    '!text-risk-t4 bg-risk-t4/10': levelGroup.levelKey === 't4',
-                    '!text-risk-t3 bg-risk-t3/10': levelGroup.levelKey === 't3',
-                    '!text-risk-t2 bg-risk-t2/10': levelGroup.levelKey === 't2',
-                    '!text-risk-t1 bg-risk-t1/10': levelGroup.levelKey === 't1',
-                    '!text-risk-t0 bg-risk-t0/10': levelGroup.levelKey === 't0',
-                    '!text-risk-unknown bg-risk-unknown/10':
-                      levelGroup.levelKey === 'unknown',
-                  }"
                 >
                   {{ getReason(item) }}
                 </Tag>
@@ -113,8 +98,9 @@ import { computed } from "vue";
 import type { IngredientDetail } from "@/types/product";
 import { useIngredientStore } from "@/store/ingredient";
 import { useProductStore } from "@/store/product";
-import { getRiskConfig } from "@/utils/riskLevel";
-import Icon from "@/components/ui/Icon.vue";
+import { getRiskConfig, riskCls } from "@/utils/riskLevel";
+import { cn } from "@/utils/cn";
+import DIcon from "@/components/ui/DIcon.vue";
 import Tag from "@/components/ui/Tag.vue";
 
 const props = defineProps<{ ingredients: IngredientDetail[] }>();

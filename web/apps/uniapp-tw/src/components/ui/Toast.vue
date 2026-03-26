@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import Icon from './Icon.vue'
+import DIcon from './DIcon.vue'
 import type { ToastType } from '@/store/toast'
+import { cn } from '@/utils/cn'
 
 interface Props {
   type: ToastType
@@ -43,10 +44,9 @@ const iconBg = computed(() => iconBgClass[props.type])
   <view class="toast-item relative flex items-start gap-3 w-full max-w-[340px] px-4 py-3 rounded-xl border border-border bg-white dark:bg-gray-800 shadow-lg">
     <!-- Icon Badge -->
     <view
-      class="toast-icon flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl text-white"
-      :class="[iconBg]"
+      :class="cn('toast-icon flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl text-white', iconBg)"
     >
-      <Icon :name="iconName" :size="20" :class="isLoading ? 'animate-spin' : ''" />
+      <DIcon :name="iconName" :size="20" :dclass="isLoading ? 'animate-spin' : ''" />
     </view>
 
     <!-- Content -->
@@ -78,7 +78,7 @@ const iconBg = computed(() => iconBgClass[props.type])
       class="toast-close flex-shrink-0 p-1 -mr-1 -mt-1 rounded-lg opacity-60 active:opacity-100"
       @tap="emit('close')"
     >
-      <Icon name="x" :size="16" class="text-gray-400" />
+      <DIcon name="x" :size="16" dclass="text-gray-400" />
     </view>
 
     <!-- Progress bar for auto-dismiss -->

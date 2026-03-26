@@ -9,15 +9,24 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "@/assets/fonts/remixicon.css";
+
 uni-button {
   &::after {
     content: none !important;
   }
 }
 
+*,
+::before,
+::after {
+  box-sizing: border-box;
+  border-color: var(--border);
+}
 
 :root {
   --root: oklch(1 0 0);
+  --topbar-height: 2.75rem; // 44px (2.75rem = 88rpx)
   // ── shadcn 语义色 ───────────────────────────────
   --background: oklch(0.96 0 0);
   --foreground: oklch(0.147 0.004 49.3);
@@ -65,10 +74,10 @@ uni-button {
   --color-risk-unknown: oklch(60% 0.01 265);
 
   // ── 圆角 ───────────────────────────────────
-  --radius-sm: 0.5rem; // 10px (20rpx)
-  --radius-md: 0.875rem; // 14px (28rpx)
-  --radius-lg: 1.125rem; // 18px (36rpx)
-  --radius-xl: 1.25rem; // 20px (40rpx)
+  --radius-sm: 0.5rem; // 7px (14rpx)
+  --radius-md: 0.625rem; // 10px (20rpx)
+  --radius-lg: 0.875rem; // 14px (28rpx)
+  --radius-xl: 1.125rem; // 18px (36rpx)
 
   // ── 阴影 & 动效 ───────────────────────────────
   --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -272,7 +281,6 @@ uni-button {
 
 // ── Reduced Motion ───────────────────────────────────────────
 @media (prefers-reduced-motion: reduce) {
-
   .banner-emoji,
   .nutrition-card,
   .health-card,

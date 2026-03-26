@@ -5,14 +5,14 @@
     @click="$emit('click')"
   >
     <up-loading-icon v-if="loading" class="action-btn__loading" />
-    <Icon v-else-if="iconName" :name="iconName" class="action-btn__icon" :size="iconSize" />
+    <DIcon v-else-if="iconName" :name="iconName" dclass="action-btn__icon" :size="iconSize" />
     <text>{{ label }}</text>
   </button>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import Icon from './Icon.vue'
+import DIcon from './DIcon.vue'
 
 const props = withDefaults(
   defineProps<{

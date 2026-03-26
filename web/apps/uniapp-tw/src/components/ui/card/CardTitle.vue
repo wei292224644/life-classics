@@ -1,29 +1,19 @@
 <script setup lang="ts">
+import { cn } from '@/utils/cn'
+
+defineOptions({
+  options: { virtualHost: true, addGlobalClass: true },
+})
+
 interface Props {
-  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
-  class?: string
+  dclass?: string
 }
 
-withDefaults(defineProps<Props>(), {
-  as: 'h3',
-})
+const props = defineProps<Props>()
 </script>
 
 <template>
-  <component :is="as" class="card-title" :class="class">
+  <text :class="cn('font-semibold text-foreground leading-none tracking-tight text-base', props.dclass)">
     <slot />
-  </component>
+  </text>
 </template>
-
-<style lang="scss" scoped>
-.card-title {
-  @apply font-semibold text-foreground leading-none tracking-tight;
-  font-size: 1.125em; // 18px at base
-  line-height: 1.2;
-
-  &.h1 { @apply text-xl; }
-  &.h2 { @apply text-lg; }
-  &.h3 { @apply text-base; }
-  &.h4 { @apply text-sm; }
-}
-</style>

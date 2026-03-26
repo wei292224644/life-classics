@@ -5,7 +5,7 @@
       <view :style="{ height: themeStore.statusBarHeight + 'px' }" />
       <view class="header-content">
         <button class="header-btn" @click="goBack">
-          <Icon name="arrowLeft" :size="24" />
+          <DIcon name="arrowLeft" :size="24" />
         </button>
         <text class="header-title">我的</text>
         <view class="header-spacer" />
@@ -19,7 +19,7 @@
         <!-- 登录卡片 -->
         <view class="login-card" @click="handleLogin">
           <view class="login-avatar">
-            <Icon name="user" :size="48" />
+            <DIcon name="user" :size="48" />
           </view>
           <text class="login-text">点击登录</text>
         </view>
@@ -28,34 +28,34 @@
         <view class="menu-list">
           <view class="menu-item" @click="handleScanRecord">
             <view class="menu-item-left">
-              <Icon name="menu" class="menu-icon" :size="20" />
+              <DIcon name="menu" dclass="menu-icon" :size="20" />
               <text class="menu-text">扫描记录</text>
             </view>
-            <Icon name="arrowRight" class="menu-arrow" :size="20" />
+            <DIcon name="arrow-right" dclass="menu-arrow" :size="20" />
           </view>
 
           <view class="menu-item disabled" @click="handleUpcoming">
             <view class="menu-item-left">
-              <Icon name="users" class="menu-icon" :size="20" />
+              <DIcon name="users" dclass="menu-icon" :size="20" />
               <text class="menu-text">家庭成员管理</text>
             </view>
-            <Icon name="arrowRight" class="menu-arrow" :size="20" />
+            <DIcon name="arrow-right" dclass="menu-arrow" :size="20" />
           </view>
 
           <view class="menu-item disabled" @click="handleUpcoming">
             <view class="menu-item-left">
-              <Icon name="bookmark" class="menu-icon" :size="20" />
+              <DIcon name="bookmark" dclass="menu-icon" :size="20" />
               <text class="menu-text">收藏夹</text>
             </view>
-            <Icon name="arrowRight" class="menu-arrow" :size="20" />
+            <DIcon name="arrow-right" dclass="menu-arrow" :size="20" />
           </view>
 
           <view class="menu-item disabled" @click="handleUpcoming">
             <view class="menu-item-left">
-              <Icon name="settings" class="menu-icon" :size="20" />
+              <DIcon name="settings" dclass="menu-icon" :size="20" />
               <text class="menu-text">设置</text>
             </view>
-            <Icon name="arrowRight" class="menu-arrow" :size="20" />
+            <DIcon name="arrow-right" dclass="menu-arrow" :size="20" />
           </view>
         </view>
 
@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { useThemeStore } from "@/store/theme"
-import Icon from "@/components/ui/Icon.vue"
+import DIcon from "@/components/ui/DIcon.vue"
 
 const themeStore = useThemeStore()
 

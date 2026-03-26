@@ -21,7 +21,7 @@
 
       <!-- not_found -->
       <template v-else-if="state === 'not_found'">
-        <Icon
+        <DIcon
           v-if="icon"
           :name="icon"
           :size="64"
@@ -50,7 +50,7 @@
 
       <!-- empty / idle -->
       <template v-else-if="state === 'empty' || state === 'idle'">
-        <Icon
+        <DIcon
           v-if="icon"
           :name="icon"
           :size="64"
@@ -70,7 +70,7 @@
 
       <!-- error -->
       <template v-else-if="state === 'error'">
-        <Icon
+        <DIcon
           v-if="icon"
           :name="icon"
           :size="64"
@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import Icon from "./Icon.vue";
+import DIcon from "./DIcon.vue";
 import type { IconName } from "../icons/iconsRegistry";
 
 withDefaults(

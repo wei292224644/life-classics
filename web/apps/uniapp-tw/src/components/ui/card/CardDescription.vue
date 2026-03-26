@@ -1,20 +1,19 @@
 <script setup lang="ts">
+import { cn } from '@/utils/cn'
+
+defineOptions({
+  options: { virtualHost: true, addGlobalClass: true },
+})
+
 interface Props {
-  class?: string
+  dclass?: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 </script>
 
 <template>
-  <view class="card-description" :class="class">
+  <view :class="cn('text-sm text-muted-foreground leading-relaxed', props.dclass)">
     <slot />
   </view>
 </template>
-
-<style lang="scss" scoped>
-.card-description {
-  @apply text-sm text-muted-foreground;
-  line-height: 1.5;
-}
-</style>

@@ -1,55 +1,44 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue";
+import { cn } from "@/utils/cn";
 
-type CellOrientation = 'horizontal' | 'vertical'
-type CellSize = 'sm' | 'md' | 'lg'
+defineOptions({
+  options: { virtualHost: true, addGlobalClass: true },
+});
+
+type CellOrientation = "horizontal" | "vertical";
+type CellSize = "sm" | "md" | "lg";
 
 interface Props {
-  title?: string
-  value?: string | number | null | undefined
-  class?: string
-  orientation?: CellOrientation
-  size?: CellSize
+  title?: string;
+  value?: string | number | null | undefined;
+  dclass?: string;
+  orientation?: CellOrientation;
+  size?: CellSize;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: '',
-  value: '',
-  class: '',
-  orientation: 'horizontal',
-  size: 'md',
-})
+  title: "",
+  value: "",
+  dclass: "",
+  orientation: "horizontal",
+  size: "md",
+});
 
-const cellClass = computed(() => {
-  const base = 'flex items-center justify-between p-3'
-  const orientationClass = props.orientation === 'horizontal' ? 'flex-row' : 'flex-col'
-  const sizeClass = {
-    sm: 'text-xs py-2',
-    md: 'text-sm py-3',
-    lg: 'text-base py-3',
-  }
-  return [base, orientationClass, sizeClass, props.class]
-    .filter(Boolean)
-    .join(' ')
-})
+const sizeClass: Record<CellSize, string> = {
+  sm: "text-xs h-10 px-3",
+  md: "text-sm h-12 px-3",
+  lg: "text-base h-14 px-3",
+};
 
-const titleClass = computed(() => {
-  const sizeClass = {
-    sm: 'text-xs',
-    md: 'text-sm',
-    lg: 'text-base',
-  }
-  return `text-foreground font-medium ${sizeClass[props.size]}`
-})
-
-const valueClass = computed(() => {
-  const sizeClass = {
-    sm: 'text-xs',
-    md: 'text-sm',
-    lg: 'text-base',
-  }
-  return `text-muted-foreground ${sizeClass[props.size]}`
-})
+const cellClass = computed(() =>
+  cn(
+    "flex items-center justify-between",
+    props.orientation === "horizontal" ? "flex-row" : "flex-col",
+    sizeClass[props.size],
+    props.dclass,
+  ),
+);
 </script>
 
 <template>
@@ -58,7 +47,9 @@ const valueClass = computed(() => {
     <view v-if="$slots.title" class="flex-shrink-0">
       <slot name="title" />
     </view>
-    <text v-else-if="title" :class="titleClass">{{ title }}</text>
+    <text v-else-if="title" class="text-foreground font-medium">{{
+      title
+    }}</text>
 
     <!-- default slot -->
     <slot />
@@ -67,8 +58,10 @@ const valueClass = computed(() => {
     <view v-if="$slots.value" class="flex-shrink-0">
       <slot name="value" />
     </view>
-    <text v-else-if="value !== '' && value !== null && value !== undefined"
-      :class="[valueClass, 'text-right', orientation === 'horizontal' ? 'ml-4' : 'mt-1']">
+    <text
+      v-else-if="value !== '' && value !== null && value !== undefined"
+      class="text-foreground text-sm text-right"
+    >
       {{ value }}
     </text>
   </view>
