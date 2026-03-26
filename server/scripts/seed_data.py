@@ -170,7 +170,7 @@ def make_food_nutrition(food_id: int, nutrition_id: int) -> FoodNutritionEntry:
     )
 
 
-def make_analysis_detail(target_id: int, target_type: str, index: int) -> AnalysisDetail:
+def make_analysis_detail(target_id: int, target_type: str, index: int, analysis_type: str | None = None) -> AnalysisDetail:
     """生成一条 AnalysisDetail 记录。"""
     analysis_types = [
         "usage_advice_summary", "health_summary", "pregnancy_safety",
@@ -183,7 +183,6 @@ def make_analysis_detail(target_id: int, target_type: str, index: int) -> Analys
         "为人体提供必需的能量来源",
         "参与代谢过程，有助于维持身体机能",
         "含有的活性成分对健康有一定益处",
-        None, None,
     ]
     reasons = [
         "在允许范围内使用，符合国家标准",
@@ -195,20 +194,27 @@ def make_analysis_detail(target_id: int, target_type: str, index: int) -> Analys
         "过量摄入可能对特定人群产生不良影响",
         "部分人群可能出现过敏反应",
         "长期大量摄入需注意",
-        None, None,
     ]
     suggestions = [
         {"text": "正常烹饪用量在成人中是安全的", "type": "positive"},
         {"text": "特定人群请遵医嘱食用", "type": "conditional"},
         {"text": "注意控制每日摄入量", "type": "warning"},
     ]
+
+    # 如果未指定类型，则随机选择
+    if analysis_type is None:
+        analysis_type = fake.random_element(analysis_types)
+
+    # result 直接用字符串
+    result = fake.sentence(nb_words=15)
+
     return AnalysisDetail(
         target_id=target_id,
         analysis_target=target_type,
-        analysis_type=fake.random_element(analysis_types),
+        analysis_type=analysis_type,
         analysis_version="v1",
         ai_model=fake.random_element(["gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet"]),
-        result=fake.text(max_nb_chars=200),
+        result=result,
         source=fake.random_element(["WHO食品添加剂评估", "FAO/JECFA报告", "EFSA评估报告"]) if fake.random.random() > 0.3 else None,
         level=fake.random_element(levels),
         confidence_score=fake.random_int(min=60, max=99),
@@ -304,18 +310,21 @@ async def seed():
         # ── 6. 生成 AnalysisDetail ────────────────────────────────────────
         print("生成 AnalysisDetail 数据...")
         analyses = []
-        # 每个食品生成 3~8 条分析
+        # 每个食品生成 8~15 条分析
         for food_id in food_ids:
             import random
             random.seed(food_id + 2000)
-            for _ in range(random.randint(3, 8)):
+            for _ in range(random.randint(8, 15)):
                 analyses.append(make_analysis_detail(food_id, "food", food_id))
-        # 每个配料生成 2 条分析
+        # 每个配料生成 3 条分析，其中 1 条必须是 ingredient_summary
         for ing_id in ingredient_ids:
             import random
             random.seed(ing_id + 3000)
-            for _ in range(2):
-                analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id))
+            # 第1条：ingredient_summary（保证有评级）
+            analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id, "ingredient_summary"))
+            # 第2条和第3条：随机类型
+            analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id))
+            analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id))
         session.add_all(analyses)
         print(f"  完成：{len(analyses)} 条 AnalysisDetail")
 

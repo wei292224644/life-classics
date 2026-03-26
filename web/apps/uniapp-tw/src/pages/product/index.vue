@@ -307,14 +307,20 @@ const adviceItems = computed(() =>
 
 const healthTexts = computed(() =>
   healthItems.value
-    .map((item) => extractText(item.results, "summary"))
+    .map((item) => {
+      if (typeof item.result === "string") return item.result;
+      return extractText(item.result, "summary");
+    })
     .filter(Boolean),
 );
 
 const adviceText = computed(
   () =>
     adviceItems.value
-      .map((item) => extractText(item.results, "advice", "summary"))
+      .map((item) => {
+        if (typeof item.result === "string") return item.result;
+        return extractText(item.result, "advice", "summary");
+      })
       .find(Boolean) ?? "",
 );
 </script>

@@ -16,7 +16,7 @@ export interface ProductIngredient {
 
 export interface AnalysisSummary {
   analysis_type: string;
-  results: unknown;
+  result: unknown;
 }
 
 export interface ProductDetail {

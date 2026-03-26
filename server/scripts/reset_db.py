@@ -10,6 +10,11 @@
 """
 import argparse
 import asyncio
+import sys
+import os
+
+# Add the parent directory (server) to sys.path so that 'database' module can be found
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
