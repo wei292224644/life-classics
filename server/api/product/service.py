@@ -43,7 +43,10 @@ class ProductService:
             analysis=[
                 {
                     "analysis_type": a.analysis_type,
-                    "results": a.results,
+                    "result": a.result,
+                    "source": a.source,
+                    "level": a.level,
+                    "confidence_score": a.confidence_score,
                 }
                 for a in d.analysis
             ],
@@ -78,8 +81,10 @@ class IngredientService:
             analysis_data = {
                 "id": d.analysis["id"],
                 "analysis_type": d.analysis["analysis_type"],
-                "results": d.analysis["results"],
+                "result": d.analysis["result"],
+                "source": d.analysis.get("source"),
                 "level": RiskLevel.from_str(d.analysis["level"]),
+                "confidence_score": d.analysis["confidence_score"],
             }
         return IngredientResponse(
             id=d.id,
