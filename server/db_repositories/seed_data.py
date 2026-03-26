@@ -10,7 +10,6 @@ TODO: 上线前删除此脚本。
 
 from __future__ import annotations
 
-import json
 from uuid import uuid4
 
 from sqlalchemy import select, text
@@ -91,7 +90,8 @@ async def upsert_analysis(session, ingredient_id: int, who_level: str | None) ->
     if result.scalar_one_or_none():
         return
 
-    results_json = json.dumps({"summary": "mock summary", "reason": "mock reason"})
+    result_text = "mock summary"
+    source_text = "WHO mock source"
     level = LEVEL_MAP.get(who_level, "unknown")
     uid = str(uuid4())
 
@@ -99,12 +99,12 @@ async def upsert_analysis(session, ingredient_id: int, who_level: str | None) ->
         text("""
             INSERT INTO analysis_details
               (target_id, analysis_target, analysis_type, analysis_version,
-               ai_model, results, level, confidence_score, raw_output, created_by_user)
+               ai_model, result, source, level, confidence_score, raw_output, created_by_user)
             VALUES
               (:tid, 'ingredient', 'ingredient_summary', 'v1',
-               'faker-seed', CAST(:results AS JSONB), :level, 80, '{}'::JSONB, CAST(:uid AS UUID))
+               'faker-seed', :result, :source, :level, 80, '{}'::JSONB, CAST(:uid AS UUID))
         """),
-        {"tid": ingredient_id, "results": results_json, "level": level, "uid": uid}
+        {"tid": ingredient_id, "result": result_text, "source": source_text, "level": level, "uid": uid}
     )
 
 
