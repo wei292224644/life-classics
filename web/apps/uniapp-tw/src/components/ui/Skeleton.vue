@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import { cn } from "@/utils/cn";
+
 withDefaults(
   defineProps<{
     dclass?: string;
   }>(),
   {
-    dclass: '',
+    dclass: "",
   },
 );
 </script>
 
 <template>
-  <div :class="['skimmer', dclass]" />
+  <view :class="cn('skimmer', dclass)" />
 </template>
 
 <style lang="scss" scoped>
@@ -26,9 +28,9 @@ withDefaults(
 .skimmer {
   background: linear-gradient(
     90deg,
-    theme("colors.gray.200") 25%,
-    theme("colors.gray.100") 50%,
-    theme("colors.gray.200") 75%
+    #e5e7eb 25%,
+    #f3f4f6 50%,
+    #e5e7eb 75%
   );
   background-size: 200% 100%;
   animation: skimmer 1.5s ease-in-out infinite;
@@ -38,9 +40,9 @@ withDefaults(
 .dark .skimmer {
   background: linear-gradient(
     90deg,
-    theme("colors.gray.800") 25%,
-    theme("colors.gray.700") 50%,
-    theme("colors.gray.800") 75%
+    #1f2937 25%,
+    #374151 50%,
+    #1f2937 75%
   );
   background-size: 200% 100%;
 }
