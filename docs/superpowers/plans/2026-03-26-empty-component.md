@@ -74,8 +74,7 @@ const rootClass = computed(() =>
     <DIcon
       v-else
       :name="icon"
-      :size="64"
-      dclass="text-muted-foreground opacity-60"
+      dclass="text-[64rpx] text-muted-foreground opacity-60"
     />
     <!-- 文案 -->
     <text class="text-xl text-muted-foreground text-center">
@@ -98,7 +97,7 @@ git commit -m "feat(uniapp-tw): add Empty component for empty state placeholder"
 
 - [ ] Props 接口与 spec 一致（`image`、`icon`、`message`、`dclass`）
 - [ ] `image` 优先渲染，`icon` 作为回退
-- [ ] `DIcon` 使用 `size=64`、`dclass="text-muted-foreground opacity-60"`
+- [ ] `DIcon` 使用 `dclass="text-[64rpx] text-muted-foreground opacity-60"`（通过 dclass 控制尺寸）
 - [ ] 根容器 `gap-3`，文案 `text-xl text-muted-foreground text-center`
 - [ ] `defineOptions({ virtualHost: true, addGlobalClass: true })` 与现有组件一致
 - [ ] 使用 `cn` utility 合并 class
