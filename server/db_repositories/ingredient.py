@@ -48,8 +48,10 @@ class IngredientRepository:
             analysis_data = {
                 "id": a.id,
                 "analysis_type": a.analysis_type,
-                "results": a.results,
+                "result": a.result,
+                "source": a.source,
                 "level": a.level,
+                "confidence_score": a.confidence_score,
             }
 
         return IngredientDetail(
