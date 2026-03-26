@@ -208,15 +208,8 @@ def make_analysis_detail(target_id: int, target_type: str, index: int) -> Analys
         analysis_type=fake.random_element(analysis_types),
         analysis_version="v1",
         ai_model=fake.random_element(["gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet"]),
-        results={
-            "summary": fake.text(max_nb_chars=200),
-            "risk_level": fake.random_element(levels),
-            "reason": fake.random_element(reasons),
-            "health_benefit": fake.random_element(health_benefits),
-            "advice": fake.sentence(nb_words=20),
-            "risk_factors": [rf for rf in risk_factors if rf],
-            "suggestions": suggestions,
-        },
+        result=fake.text(max_nb_chars=200),
+        source=fake.random_element(["WHO食品添加剂评估", "FAO/JECFA报告", "EFSA评估报告"]) if fake.random.random() > 0.3 else None,
         level=fake.random_element(levels),
         confidence_score=fake.random_int(min=60, max=99),
         raw_output={
