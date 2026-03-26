@@ -47,7 +47,9 @@ MOCK_FOOD = FoodDetail(
         AnalysisSummary(
             id=1,
             analysis_type="health_summary",
-            results={"summary": "普通零食"},
+            result="普通零食",
+            source="WHO评估报告",
+            confidence_score=85,
             level="t1",
         )
     ],
