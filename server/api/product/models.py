@@ -10,8 +10,10 @@ class IngredientAnalysis(BaseModel):
 
     id: int
     analysis_type: str
-    results: dict
+    result: str
+    source: str | None
     level: RiskLevel
+    confidence_score: int
 
 
 class IngredientResponse(BaseModel):
@@ -54,7 +56,10 @@ class NutritionResponse(BaseModel):
 
 class AnalysisResponse(BaseModel):
     analysis_type: str
-    results: dict
+    result: str
+    source: str | None
+    level: RiskLevel
+    confidence_score: int
 
 
 class ProductResponse(BaseModel):
