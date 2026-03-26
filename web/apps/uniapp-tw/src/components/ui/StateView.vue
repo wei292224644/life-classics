@@ -12,11 +12,13 @@
       <!-- success: 渲染默认 slot -->
 
       <!-- loading -->
-      <template v-if="state === 'loading'">
-        <up-loading-icon mode="circle" />
-        <text class="text-xl text-muted-foreground text-center">
-          {{ message || "加载中..." }}
-        </text>
+      <template v-if="true">
+        <slot name="loading">
+          <up-loading-icon mode="circle" />
+          <text class="text-xl text-muted-foreground text-center">
+            {{ message || "加载中..." }}
+          </text>
+        </slot>
       </template>
 
       <!-- not_found -->
