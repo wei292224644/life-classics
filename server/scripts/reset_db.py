@@ -26,6 +26,20 @@ from database.models import (
     IarcAgent, IarcCancerSite, IarcAgentLink,
 )
 
+# 所有枚举类型定义（名称 -> 值列表）
+ENUM_TYPES = {
+    "who_level": ["Group 1", "Group 2A", "Group 2B", "Group 3", "Group 4", "Unknown"],
+    "reference_unit": ["g", "mg", "kcal", "mL", "kJ", "serving", "day"],
+    "unit": ["g", "mg", "kcal", "mL", "kJ"],
+    "reference_type": ["PER_100_WEIGHT", "PER_100_ENERGY", "PER_SERVING", "PER_DAY"],
+    "analysis_target": ["food", "ingredient"],
+    "analysis_type": ["usage_advice_summary", "health_summary", "pregnancy_safety", "risk_summary", "recent_risk_summary", "ingredient_summary", "overall_risk"],
+    "analysis_version": ["v1"],
+    "level": ["t4", "t3", "t2", "t1", "t0", "unknown"],
+    "iarc_agent_group": ["1", "2A", "2B", "3", "unknown"],
+    "iarc_agent_link_type": ["see", "see_also"],
+}
+
 
 def get_postgres_url(with_db: bool = True) -> str:
     user = "admin"
@@ -48,6 +62,40 @@ async def ensure_database() -> None:
             print("数据库 life-classics 创建成功")
         else:
             print("数据库 life-classics 已存在")
+    await engine.dispose()
+
+
+async def create_enum_types() -> None:
+    """创建所有枚举类型（如果不存在）"""
+    engine = create_async_engine(get_postgres_url())
+    async with engine.begin() as conn:
+        for enum_name, values in ENUM_TYPES.items():
+            # 检查类型是否已存在
+            result = await conn.execute(
+                text("SELECT 1 FROM pg_type WHERE typname = :enum_name"),
+                {"enum_name": enum_name}
+            )
+            if result.scalar() is None:
+                values_str = ", ".join(f"'{v}'" for v in values)
+                await conn.execute(text(f"CREATE TYPE {enum_name} AS ENUM ({values_str})"))
+                print(f"枚举类型 {enum_name} 创建成功")
+            else:
+                print(f"枚举类型 {enum_name} 已存在")
+    await engine.dispose()
+
+
+async def drop_enum_types() -> None:
+    """删除所有枚举类型"""
+    engine = create_async_engine(get_postgres_url())
+    async with engine.begin() as conn:
+        for enum_name in ENUM_TYPES.keys():
+            result = await conn.execute(
+                text("SELECT 1 FROM pg_type WHERE typname = :enum_name"),
+                {"enum_name": enum_name}
+            )
+            if result.scalar() is not None:
+                await conn.execute(text(f"DROP TYPE {enum_name}"))
+                print(f"枚举类型 {enum_name} 已删除")
     await engine.dispose()
 
 
@@ -76,6 +124,8 @@ async def main(rebuild: bool) -> None:
     await ensure_database()
     if rebuild:
         await drop_tables()
+        await drop_enum_types()
+    await create_enum_types()
     await create_tables()
 
 

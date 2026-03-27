@@ -91,21 +91,30 @@ def make_ingredient(index: int) -> Ingredient:
         "防腐剂", "增稠剂", "乳化剂", "抗氧化剂", "着色剂",
         "甜味剂", "酸度调节剂", "香料", "营养强化剂", "稳定剂",
     ]
+    allergen_infos = [
+        "含有麸质", "含有乳糖", "含有大豆", "含有花生", "含有甲壳类",
+        "含有鱼类", "含有蛋类", "含有坚果",
+    ]
+    origin_types = ["天然", "合成", "半合成"]
+    descriptions = [
+        "这是一种广泛使用的食品配料，具有增香、防腐或改善口感的作用。",
+        "天然提取物，来自植物或动物来源，经过精制加工而成。",
+        "人工合成添加剂，在合法范围内使用安全性已得到验证。",
+        "常见的食品添加剂之一，主要用于改善食品的色泽、口感和保质期。",
+        "营养强化剂，可补充食品中的特定营养成分，满足人体健康需求。",
+    ]
     is_additive = fake.boolean(chance_of_getting_true=60)
     return Ingredient(
         name=fake.unique.first_name() + fake.random_element(["酸", "酯", "醇", "盐", "糖", "素"]),
         alias=[fake.name(), fake.name()] if fake.boolean() else [],
-        description=fake.text(max_nb_chars=120) if fake.boolean() else None,
+        description=fake.random_element(descriptions),
         is_additive=is_additive,
         additive_code=fake.random_element(additive_codes) if is_additive else None,
         standard_code=f"GB {fake.random_int(min=1000, max=9999)}" if fake.boolean() else None,
         who_level=fake.random_element(who_levels),
-        allergen_info=fake.random_element([
-            "含有麸质", "含有乳糖", "含有大豆", "含有花生", "含有甲壳类",
-            "含有鱼类", "含有蛋类", "含有坚果", None, None, None,
-        ]),
-        function_type=fake.random_element(function_types),
-        origin_type=fake.random_element(["天然", "合成", "半合成", None]),
+        allergen_info=fake.random_elements(allergen_infos, length=fake.random_int(0, 3), unique=True),
+        function_type=fake.random_elements(function_types, length=fake.random_int(1, 3), unique=True),
+        origin_type=fake.random_element(origin_types) if fake.boolean() else None,
         limit_usage=f"{fake.random_int(1, 100)}mg/kg" if fake.boolean() else None,
         legal_region=fake.random_element(["中国", "欧盟", "美国", "日本", "Codex"]),
     )
@@ -190,12 +199,12 @@ def make_analysis_detail(target_id: int, target_type: str, index: int, analysis_
         "适量摄入对人体无害",
         "经权威机构认证，安全性已验证",
     ]
-    risk_factors = [
+    risk_factors_list = [
         "过量摄入可能对特定人群产生不良影响",
         "部分人群可能出现过敏反应",
         "长期大量摄入需注意",
     ]
-    suggestions = [
+    suggestions_list = [
         {"text": "正常烹饪用量在成人中是安全的", "type": "positive"},
         {"text": "特定人群请遵医嘱食用", "type": "conditional"},
         {"text": "注意控制每日摄入量", "type": "warning"},
@@ -205,8 +214,16 @@ def make_analysis_detail(target_id: int, target_type: str, index: int, analysis_
     if analysis_type is None:
         analysis_type = fake.random_element(analysis_types)
 
-    # result 直接用字符串
-    result = fake.sentence(nb_words=15)
+    import json
+    # ingredient_summary 类型的 result 需要是包含 summary/risk_factors/suggestions 的对象
+    if analysis_type == "ingredient_summary":
+        result = json.dumps({
+            "summary": fake.sentence(nb_words=20),
+            "risk_factors": fake.random_elements(risk_factors_list, length=min(2, len(risk_factors_list)), unique=True),
+            "suggestions": suggestions_list,
+        })
+    else:
+        result = fake.sentence(nb_words=15)
 
     return AnalysisDetail(
         target_id=target_id,
@@ -310,13 +327,14 @@ async def seed():
         # ── 6. 生成 AnalysisDetail ────────────────────────────────────────
         print("生成 AnalysisDetail 数据...")
         analyses = []
-        # 每个食品生成 8~15 条分析
+        # 每个食品生成 8~15 条随机分析 + 1 条 overall_risk
         for food_id in food_ids:
             import random
             random.seed(food_id + 2000)
             for _ in range(random.randint(8, 15)):
                 analyses.append(make_analysis_detail(food_id, "food", food_id))
-        # 每个配料生成 3 条分析，其中 1 条必须是 ingredient_summary
+            analyses.append(make_analysis_detail(food_id, "food", food_id, "overall_risk"))
+        # 每个配料生成 4 条分析：ingredient_summary、2 条随机类型、1 条 overall_risk
         for ing_id in ingredient_ids:
             import random
             random.seed(ing_id + 3000)
@@ -325,6 +343,8 @@ async def seed():
             # 第2条和第3条：随机类型
             analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id))
             analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id))
+            # 第4条：overall_risk（综合结论）
+            analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id, "overall_risk"))
         session.add_all(analyses)
         print(f"  完成：{len(analyses)} 条 AnalysisDetail")
 
