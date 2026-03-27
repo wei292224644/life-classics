@@ -18,7 +18,7 @@ class IngredientDetail:
     function_type: list[str]
     origin_type: str | None
     standard_code: str | None
-    analyses: list[dict]          # 所有分析记录（原 analysis: dict | None）
+    analyses: list[dict]  # 所有分析类型的原始记录
     related_products: list[dict]  # [{id, name, barcode, image_url, category}]
 
 

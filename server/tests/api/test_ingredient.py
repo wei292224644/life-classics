@@ -1,6 +1,5 @@
 """测试 IngredientService（通过 mock repository）。"""
 import pytest
-from unittest.mock import AsyncMock
 
 from db_repositories.ingredient import IngredientDetail
 from api.product.service import IngredientService
