@@ -11,13 +11,20 @@ class IngredientDetail:
     id: int
     name: str
     alias: list[str]
+    description: str | None
     is_additive: bool
     additive_code: str | None
+    standard_code: str | None
     who_level: str | None
     allergen_info: list[str]
     function_type: list[str]
     origin_type: str | None
-    standard_code: str | None
+    limit_usage: str | None
+    legal_region: str | None
+    cas: str | None
+    applications: str | None
+    notes: str | None
+    safety_info: str | None
     analyses: list[dict]  # 所有分析类型的原始记录
     related_products: list[dict]  # [{id, name, barcode, image_url, category}]
 
@@ -76,13 +83,20 @@ class IngredientRepository:
             id=ingredient.id,
             name=ingredient.name,
             alias=ingredient.alias or [],
+            description=ingredient.description,
             is_additive=ingredient.is_additive or False,
             additive_code=ingredient.additive_code,
+            standard_code=ingredient.standard_code,
             who_level=ingredient.who_level,
             allergen_info=ingredient.allergen_info or [],
             function_type=ingredient.function_type or [],
             origin_type=ingredient.origin_type,
-            standard_code=ingredient.standard_code,
+            limit_usage=ingredient.limit_usage,
+            legal_region=ingredient.legal_region,
+            cas=ingredient.cas,
+            applications=ingredient.applications,
+            notes=ingredient.notes,
+            safety_info=ingredient.safety_info,
             analyses=analyses_data,
             related_products=related_products,
         )

@@ -20,13 +20,20 @@ class IngredientResponse(BaseModel):
     id: int
     name: str
     alias: list[str]
+    description: str | None
     is_additive: bool
     additive_code: str | None
+    standard_code: str | None
     who_level: str | None
     allergen_info: list[str]
     function_type: list[str]
     origin_type: str | None
-    standard_code: str | None
+    limit_usage: str | None
+    legal_region: str | None
+    cas: str | None
+    applications: str | None
+    notes: str | None
+    safety_info: str | None
     analyses: list["AnalysisResponse"]
     related_products: list[RelatedProductSimple] = []
 
