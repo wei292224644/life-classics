@@ -15,28 +15,7 @@
         @action="load"
       >
         <template #loading>
-          <view class="w-full">
-            <view
-              class="h-topbar bg-root shadow-md mb-3 flex items-center px-3 gap-2"
-            >
-              <Skeleton dclass="w-6 h-6" />
-              <Skeleton dclass="w-12 h-6" />
-            </view>
-            <view class="flex flex-col gap-4 w-full px-3">
-              <template v-for="i in 2" :key="i">
-                <Card>
-                  <view class="flex items-center justify-between">
-                    <Skeleton dclass="w-1/2 h-6" />
-                    <Skeleton dclass="w-14 h-6" />
-                  </view>
-                  <Skeleton dclass="w-1/3 h-4 mt-2 " />
-                  <Skeleton dclass="w-2/3 h-2 mt-6 " />
-                  <Skeleton dclass="w-full h-4 mt-2 " />
-                  <Skeleton dclass="w-2/3 h-4 mt-2 " />
-                </Card>
-              </template>
-            </view>
-          </view>
+          <SkeletonGroup />
         </template>
         <view class="pb-10 bg-background min-h-full">
           <ProductHeader
@@ -221,7 +200,7 @@ import { formatNutritionUnit } from "@/utils/nutrition";
 import { useToast } from "@/composables/useToast";
 import ToastContainer from "@/components/ui/ToastContainer.vue";
 import DButton from "@/components/ui/DButton.vue";
-import Skeleton from "@/components/ui/Skeleton.vue";
+import SkeletonGroup from "@/components/SkeletonGroup.vue";
 
 const toast = useToast();
 const store = useProductStore();
@@ -275,17 +254,11 @@ function handleChat() {
 
 // ── Computed ─────────────────────────────────────────
 
-const overallRiskLevel = computed(() => {
-  const levels = (store.product?.ingredients ?? [])
-    .map((i) => i.level)
-    .filter(Boolean) as string[];
-  if (levels.includes("t4")) return "t4";
-  if (levels.includes("t3")) return "t3";
-  if (levels.includes("t2")) return "t2";
-  if (levels.includes("t0")) return "t0";
-  if (levels.includes("t1")) return "t1";
-  return "unknown";
-});
+const overallRiskLevel = computed(
+  () =>
+    store.product?.analysis.find((a) => a.analysis_type === "overall_risk")
+      ?.level ?? "unknown",
+);
 
 const riskConfig = computed(() => getRiskConfig(overallRiskLevel.value));
 
