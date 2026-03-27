@@ -15,6 +15,7 @@ import SkeletonGroup from "@/components/SkeletonGroup.vue";
 import ProductCard from "@/components/business/product/ProductCard.vue";
 import InfiniteScrollView from "@/components/ui/InfiniteScrollView.vue";
 import { cn } from "@/utils/cn";
+import Tag from "@/components/ui/Tag.vue";
 
 // ── 常量 ─────────────────────────────────────────────────
 const HISTORY_KEY = "search_history";
@@ -246,14 +247,15 @@ onHide(() => {
           </text>
         </view>
         <view class="flex flex-wrap gap-2 px-4">
-          <view
+          <Tag
+            variant="outline"
             v-for="(kw, i) in HOT_KEYWORDS"
             :key="i"
-            class="h-8 px-3.5 rounded-full text-sm font-medium flex items-center bg-background border border-border text-foreground"
             @click="handleHistoryClick(kw)"
+            dclass="text-secondary-foreground"
           >
             {{ kw }}
-          </view>
+          </Tag>
         </view>
       </view>
 
@@ -285,6 +287,7 @@ onHide(() => {
     :is-refreshing="isRefreshing"
     :is-loading="isLoading"
     :has-more="hasMore"
+    :is-empty="items.length === 0"
     @refresh="refresh"
     @load-more="loadMore"
   >
@@ -295,7 +298,7 @@ onHide(() => {
     />
 
     <template v-else>
-      <text class="text-xs text-muted-foreground px-4 pt-3 pb-2 block">
+      <text v-if="items.length > 0" class="text-xs text-muted-foreground px-4 pt-3 pb-2 block">
         找到 {{ items.length }} 条结果{{ hasMore ? "…" : "" }}
       </text>
       <view class="flex flex-col gap-2 px-4">

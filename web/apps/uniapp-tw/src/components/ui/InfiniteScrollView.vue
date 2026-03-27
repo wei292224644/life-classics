@@ -14,7 +14,7 @@
     <!-- 底部状态 -->
     <view class="flex items-center justify-center py-4">
       <text v-if="isLoading" class="text-xs text-muted-foreground">加载中…</text>
-      <text v-else-if="!hasMore" class="text-xs text-muted-foreground">— 到底了 —</text>
+      <text v-else-if="!hasMore && !isEmpty" class="text-xs text-muted-foreground">— 到底了 —</text>
     </view>
   </scroll-view>
 </template>
@@ -26,6 +26,7 @@ defineProps<{
   isRefreshing?: boolean;
   isLoading?: boolean;
   hasMore?: boolean;
+  isEmpty?: boolean;
 }>();
 
 const emit = defineEmits<{
