@@ -22,13 +22,13 @@ const emit = defineEmits<{
   <view
     class="flex items-center gap-3 px-3 py-3 bg-white/95 dark:bg-black/95 backdrop-saturate-[180%] backdrop-blur-[16px] shadow-[0_-8rpx_32rpx_rgba(0,0,0,0.06)] dark:shadow-[0_-8rpx_32rpx_rgba(0,0,0,0.4)] border-t border-border"
   >
-    <DButton
+    <!-- <DButton
       variant="secondary"
       dclass="flex-1 rounded-md"
       @click="emit('secondary')"
     >
       {{ secondaryLabel }}
-    </DButton>
+    </DButton> -->
 
     <DButton
       variant="default"

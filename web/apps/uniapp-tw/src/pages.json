@@ -60,13 +60,14 @@
         "text": "搜索",
         "iconPath": "static/tab-search.png",
         "selectedIconPath": "static/tab-search-active.png"
-      },
-      {
-        "pagePath": "pages/profile/index",
-        "text": "我的",
-        "iconPath": "static/tab-profile.png",
-        "selectedIconPath": "static/tab-profile-active.png"
       }
+      // ,
+      // {
+      //   "pagePath": "pages/profile/index",
+      //   "text": "我的",
+      //   "iconPath": "static/tab-profile.png",
+      //   "selectedIconPath": "static/tab-profile-active.png"
+      // }
     ]
   },
   "globalStyle": {
