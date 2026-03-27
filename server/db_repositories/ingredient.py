@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import AnalysisDetail, Ingredient
+from database.models import AnalysisDetail, Ingredient, Food, FoodIngredient
 
 
 @dataclass
@@ -18,6 +18,7 @@ class IngredientDetail:
     function_type: str | None
     standard_code: str | None
     analysis: dict | None  # first ingredient_summary analysis or None
+    related_products: list[dict]  # [{id, name, barcode, image_url, category}]
 
 
 class IngredientRepository:
@@ -54,6 +55,25 @@ class IngredientRepository:
                 "confidence_score": a.confidence_score,
             }
 
+        # 查询关联产品（通过 FoodIngredient -> Food）
+        food_query = (
+            select(Food.id, Food.name, Food.barcode, Food.image_url_list, Food.product_category)
+            .join(FoodIngredient, FoodIngredient.food_id == Food.id)
+            .where(FoodIngredient.ingredient_id == ingredient_id)
+            .limit(6)
+        )
+        food_result = await self._session.execute(food_query)
+        related_products = [
+            {
+                "id": row.id,
+                "name": row.name,
+                "barcode": row.barcode,
+                "image_url": row.image_url_list[0] if row.image_url_list else None,
+                "category": row.product_category,
+            }
+            for row in food_result.all()
+        ]
+
         return IngredientDetail(
             id=ingredient.id,
             name=ingredient.name,
@@ -65,4 +85,5 @@ class IngredientRepository:
             function_type=ingredient.function_type,
             standard_code=ingredient.standard_code,
             analysis=analysis_data,
+            related_products=related_products,
         )
