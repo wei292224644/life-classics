@@ -144,7 +144,7 @@
                 <view
                   v-for="(text, idx) in healthTexts"
                   :key="idx"
-                  class="flex items-center gap-3"
+                  class="flex items-baseline gap-3"
                 >
                   <DIcon name="check" :size="24" />
                   <text

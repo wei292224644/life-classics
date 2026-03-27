@@ -20,6 +20,7 @@ import BottomBar from "@/components/ui/BottomBar.vue";
 import { fetchIngredientById } from "@/services/ingredient";
 import { extractText } from "@/utils/object";
 import SkeletonGroup from "@/components/SkeletonGroup.vue";
+import Tag from "@/components/ui/Tag.vue";
 // ── Store ────────────────────────────────────────────────
 const ingredient = ref<IngredientDetail | null>(null);
 
@@ -97,9 +98,7 @@ const analysisItems = computed(() => {
 
 const analysisResult = computed(() => {
   const item = analysisItems.value.find(
-    (a) =>
-      a.analysis_type === "description" ||
-      a.analysis_type === "overview",
+    (a) => a.analysis_type === "description" || a.analysis_type === "overview",
   );
   if (!item) return "";
   if (typeof item.result === "string") return item.result;
@@ -264,6 +263,29 @@ function goToProduct(barcode: string) {
                 <text>高风险</text>
               </view>
             </view>
+
+            <view class="flex flex-wrap gap-2 p-3">
+              <template v-for="type in ingredient?.function_type" :key="type">
+                <Tag
+                  dclass=" bg-risk-t3/70 border-risk-t3 text-white"
+                  variant="secondary"
+                >
+                  {{ type }}
+                </Tag>
+              </template>
+              <template v-if="ingredient?.origin_type">
+                <Tag variant="secondary"
+                  >来源：{{ ingredient?.origin_type }}</Tag
+                >
+              </template>
+              <template v-for="value in ingredient?.allergen_info" :key="value">
+                <Tag
+                  dclass="bg-risk-t2/70 border-risk-t2 text-white"
+                  variant="secondary"
+                  >{{ value }}</Tag
+                >
+              </template>
+            </view>
           </Card>
           <!-- 描述 -->
           <Card dclass="p-0">
@@ -284,7 +306,7 @@ function goToProduct(barcode: string) {
             <Separator dclass="my-0" />
             <view class="flex flex-col gap-3 px-4 pb-4 mt-3">
               <text class="text-foreground text-sm">
-                {{ analysisResult }}
+                {{ ingredient?.description }}
               </text>
             </view>
           </Card>
@@ -347,17 +369,47 @@ function goToProduct(barcode: string) {
             </Cell>
             <Separator dclass="my-0" />
             <view class="flex flex-col mb-1">
-              <Cell size="sm" dclass="px-4" title="WHO 致癌等级" value="" />
+              <Cell
+                size="sm"
+                dclass="px-4"
+                title="WHO 致癌等级"
+                :value="ingredient?.who_level"
+              />
               <Separator dclass="my-0" />
-              <Cell size="sm" dclass="px-4" title="母婴等级" value="" />
+              <!-- <Cell
+                size="sm"
+                dclass="px-4"
+                title="母婴等级"
+                :value="ingredient?.pregnancy_safety"
+              />
+              <Separator dclass="my-0" /> -->
+              <Cell
+                size="sm"
+                dclass="px-4"
+                title="使用限量"
+                :value="ingredient?.limit_usage"
+              />
               <Separator dclass="my-0" />
-              <Cell size="sm" dclass="px-4" title="使用限量" value="" />
+              <Cell
+                size="sm"
+                dclass="px-4"
+                title="适用区域"
+                :value="ingredient?.legal_region"
+              />
               <Separator dclass="my-0" />
-              <Cell size="sm" dclass="px-4" title="适用区域" value="" />
+              <Cell
+                size="sm"
+                dclass="px-4"
+                title="过敏信息"
+                :value="ingredient?.allergen_info?.join(', ')"
+              />
               <Separator dclass="my-0" />
-              <Cell size="sm" dclass="px-4" title="过敏信息" value="" />
-              <Separator dclass="my-0" />
-              <Cell size="sm" dclass="px-4" title="执行标准" value="" />
+              <Cell
+                size="sm"
+                dclass="px-4"
+                title="执行标准"
+                :value="ingredient?.standard_code"
+              />
             </view>
           </Card>
           <!-- AI 使用建议 -->
@@ -471,3 +523,240 @@ function goToProduct(barcode: string) {
     </template>
   </Screen>
 </template>
+
+<style lang="scss" scoped>
+// ── Hero Top ─────────────────────────────────────────────
+.hero-top {
+  border-bottom: 1px solid #fecaca;
+}
+
+.dark-mode .hero-top {
+  background: linear-gradient(135deg, rgba(26, 8, 8, 0.6) 0%, transparent 100%);
+  border-bottom: 1px solid #7f1d1d;
+}
+
+.light-mode .hero-top {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 244, 240, 0.6) 0%,
+    transparent 100%
+  );
+  border-bottom: 1px solid #fecaca;
+}
+
+// Risk-level specific overrides
+.hero-top-t4,
+.hero-top-critical {
+  &.dark-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(26, 8, 8, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #7f1d1d;
+  }
+
+  &.light-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 244, 240, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #fecaca;
+  }
+}
+
+.hero-top-t3,
+.hero-top-high {
+  &.dark-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(26, 8, 8, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #7f1d1d;
+  }
+
+  &.light-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 244, 240, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #fecaca;
+  }
+}
+
+.hero-top-t2,
+.hero-top-medium {
+  &.dark-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(26, 20, 8, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #78350f;
+  }
+
+  &.light-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 251, 235, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #fde68a;
+  }
+}
+
+.hero-top-t1,
+.hero-top-low {
+  &.dark-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(5, 20, 10, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #166534;
+  }
+
+  &.light-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(240, 253, 244, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #bbf7d0;
+  }
+}
+
+.hero-top-t0,
+.hero-top-safe {
+  &.dark-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(5, 20, 10, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #166534;
+  }
+
+  &.light-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(240, 253, 244, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #bbf7d0;
+  }
+}
+
+.hero-top-unknown {
+  &.dark-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(20, 20, 20, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #374151;
+  }
+
+  &.light-mode {
+    background: linear-gradient(
+      135deg,
+      rgba(245, 245, 245, 0.6) 0%,
+      transparent 100%
+    );
+    border-bottom: 1px solid #e5e7eb;
+  }
+}
+
+// ── AI 标签 ──────────────────────────────────────────────
+
+// ── Chips ────────────────────────────────────────────────
+.dark-mode .chip-red {
+  background: #450a0a;
+  color: #fca5a5;
+  border: 1px solid transparent;
+}
+
+.dark-mode .chip-warn {
+  background: #3b1a00;
+  color: #fcd34d;
+  border: 1px solid transparent;
+}
+
+.dark-mode .chip-neu {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.light-mode .chip-red {
+  background: #fff0f0;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.light-mode .chip-warn {
+  background: #fefce8;
+  color: #a16207;
+  border: 1px solid #fde68a;
+}
+
+.light-mode .chip-neu {
+  background: rgba(0, 0, 0, 0.04);
+  color: #4b5563;
+}
+
+// ── 风险谱条 ─────────────────────────────────────────────
+.spectrum-bar {
+  background: linear-gradient(
+    to right,
+    #22c55e 0%,
+    #86efac 20%,
+    #facc15 45%,
+    #fb923c 65%,
+    #ef4444 82%,
+    #dc2626 100%
+  );
+}
+
+// ── 建议图标 ─────────────────────────────────────────────
+.dot-good {
+  background: #f0fdf4;
+}
+
+.dark-mode .dot-good {
+  background: #052e16;
+}
+
+.dot-warn {
+  background: #fffbeb;
+}
+
+.dark-mode .dot-warn {
+  background: #3b1a00;
+}
+
+// ── 底部栏 ───────────────────────────────────────────────
+.bot-bar {
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dark-mode .bot-bar {
+  background: rgba(26, 26, 26, 0.98);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .btn-out {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.light-mode .btn-out {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
+}
+</style>
