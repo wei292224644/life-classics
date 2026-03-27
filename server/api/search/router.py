@@ -1,13 +1,19 @@
 import json
+from typing import Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.search.models import (
     ChatRequest, ChatResponse,
     SearchRequest, SearchResponse, SearchResult,
+    SearchResultItem,
 )
-from api.search.service import ChatService, SearchService
+from api.search.service import ChatService, SearchService, UnifiedSearchService
+from api.shared import Paginated
+from database.session import get_async_session
+from db_repositories.search import SearchRepository
 
 router = APIRouter()
 
@@ -48,3 +54,29 @@ async def chat_stream(session_id: str):
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
     )
+
+
+def _get_search_repository(
+    session: AsyncSession = Depends(get_async_session),
+) -> SearchRepository:
+    return SearchRepository(session)
+
+
+def _get_unified_search_service(
+    repo: SearchRepository = Depends(_get_search_repository),
+) -> UnifiedSearchService:
+    return UnifiedSearchService(repo)
+
+
+@router.get("/search", response_model=Paginated[SearchResultItem], tags=["Search"])
+async def unified_search(
+    q: str = Query(..., min_length=1, max_length=100),
+    result_type: Literal["all", "product", "ingredient"] = Query(default="all", alias="type"),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=50),
+    svc: UnifiedSearchService = Depends(_get_unified_search_service),
+):
+    """按关键词搜索食品和配料，支持分页。type 参数过滤结果类型。"""
+    if not q.strip():
+        raise HTTPException(status_code=400, detail="q must not be blank")
+    return await svc.search(q=q.strip(), result_type=result_type, offset=offset, limit=limit)
