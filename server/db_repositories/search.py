@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from sqlalchemy import func, literal, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import AnalysisDetail, Food, FoodIngredient, Ingredient
@@ -12,6 +12,7 @@ class FoodSearchResult:
     barcode: str
     name: str
     product_category: str | None
+    image_url: str | None
     risk_level: str
     high_risk_count: int
 
@@ -31,7 +32,7 @@ class SearchRepository:
     async def search_foods(self, q: str) -> list[FoodSearchResult]:
         """按名称搜索食品，并附带 overall_risk 风险等级和高风险配料数。"""
         foods_result = await self._session.execute(
-            select(Food.id, Food.barcode, Food.name, Food.product_category)
+            select(Food.id, Food.barcode, Food.name, Food.product_category, Food.image_url_list)
             .where(
                 Food.name.ilike(f"%{q}%"),
                 Food.deleted_at.is_(None),
@@ -53,9 +54,9 @@ class SearchRepository:
         )
         risk_map: dict[int, str] = {r.target_id: r.level for r in risk_result.all()}
 
-        # 统计每个食品的高风险配料数（ingredient_summary level 为 t3 或 t4）
+        # 统计每个食品的高风险配料数（同一配料有多条记录时只计一次）
         high_risk_result = await self._session.execute(
-            select(FoodIngredient.food_id, func.count().label("cnt"))
+            select(FoodIngredient.food_id, func.count(func.distinct(FoodIngredient.ingredient_id)).label("cnt"))
             .join(
                 AnalysisDetail,
                 (AnalysisDetail.target_id == FoodIngredient.ingredient_id)
@@ -77,6 +78,7 @@ class SearchRepository:
                 barcode=f.barcode,
                 name=f.name,
                 product_category=f.product_category,
+                image_url=f.image_url_list[0] if f.image_url_list else None,
                 risk_level=risk_map.get(f.id, "unknown"),
                 high_risk_count=high_risk_map.get(f.id, 0),
             )
@@ -84,13 +86,15 @@ class SearchRepository:
         ]
 
     async def search_ingredients(self, q: str) -> list[IngredientSearchResult]:
-        """按名称或别名搜索配料，并附带 ingredient_summary 风险等级。"""
+        """按名称搜索配料，并附带 overall_risk 风险等级。
+
+        注意：别名（alias）搜索暂未实现，因为 PostgreSQL 的 alias 是保留关键字，
+        literal(q).op("= ANY")(Ingredient.alias) 生成的 SQL 语法有问题。
+        后续需要用 UNNEST + ILIKE 子查询来正确实现别名部分匹配。
+        """
         ings_result = await self._session.execute(
             select(Ingredient.id, Ingredient.name, Ingredient.function_type).where(
-                or_(
-                    Ingredient.name.ilike(f"%{q}%"),
-                    literal(q).op("= ANY")(Ingredient.alias),
-                )
+                Ingredient.name.ilike(f"%{q}%")
             )
         )
         ings = ings_result.all()
@@ -103,7 +107,7 @@ class SearchRepository:
             select(AnalysisDetail.target_id, AnalysisDetail.level).where(
                 AnalysisDetail.target_id.in_(ing_ids),
                 AnalysisDetail.analysis_target == "ingredient",
-                AnalysisDetail.analysis_type == "ingredient_summary",
+                AnalysisDetail.analysis_type == "overall_risk",
             )
         )
         risk_map: dict[int, str] = {r.target_id: r.level for r in risk_result.all()}

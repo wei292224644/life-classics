@@ -366,9 +366,16 @@ onShow(() => {
                 @click="navigateToItem(item)"
               >
                 <view
-                  class="w-12 h-12 rounded-xl bg-background flex items-center justify-center shrink-0"
+                  class="w-12 h-12 rounded-xl bg-background flex items-center justify-center shrink-0 overflow-hidden"
                 >
+                  <image
+                    v-if="item.type === 'product' && item.imageUrl"
+                    :src="item.imageUrl"
+                    class="w-full h-full object-cover"
+                    mode="aspectFill"
+                  />
                   <DIcon
+                    v-else
                     :name="item.type === 'product' ? 'shopping-cart' : 'leaf'"
                     dclass="text-muted-foreground"
                   />

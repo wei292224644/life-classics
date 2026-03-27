@@ -12,6 +12,8 @@ export interface SearchResultItem {
   name: string;
   /** 食品：品类；配料：功能类型 */
   subtitle: string;
+  /** 食品：产品图片 URL */
+  imageUrl?: string;
   /** 风险等级 t4/t3/t2/t1/t0/unknown */
   riskLevel: string;
   /** 食品：高风险配料数量 */

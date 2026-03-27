@@ -34,7 +34,7 @@ async def test_search_foods_maps_risk_and_high_risk_count():
 
     foods_result = MagicMock()
     foods_result.all.return_value = [
-        SimpleNamespace(id=1, barcode="6901234", name="测试饼干", product_category="零食")
+        SimpleNamespace(id=1, barcode="6901234", name="测试饼干", product_category="零食", image_url_list=[])
     ]
     risk_result = MagicMock()
     risk_result.all.return_value = [
@@ -66,7 +66,7 @@ async def test_search_foods_defaults_unknown_when_no_analysis():
 
     foods_result = MagicMock()
     foods_result.all.return_value = [
-        SimpleNamespace(id=5, barcode="999", name="无分析食品", product_category=None)
+        SimpleNamespace(id=5, barcode="999", name="无分析食品", product_category=None, image_url_list=[])
     ]
     risk_result = MagicMock()
     risk_result.all.return_value = []  # 无分析

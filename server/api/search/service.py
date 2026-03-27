@@ -205,6 +205,7 @@ class UnifiedSearchService:
                 barcode=f.barcode,
                 name=f.name,
                 subtitle=f.product_category or "",
+                imageUrl=f.image_url,
                 riskLevel=f.risk_level,
                 highRiskCount=f.high_risk_count if f.high_risk_count > 0 else None,
             )

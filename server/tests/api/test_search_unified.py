@@ -10,8 +10,8 @@ from db_repositories.search import FoodSearchResult, IngredientSearchResult
 
 
 MOCK_FOODS = [
-    FoodSearchResult(id=1, barcode="111", name="测试饼干", product_category="饼干", risk_level="t2", high_risk_count=1),
-    FoodSearchResult(id=2, barcode="222", name="测试糖果", product_category=None, risk_level="unknown", high_risk_count=0),
+    FoodSearchResult(id=1, barcode="111", name="测试饼干", product_category="饼干", image_url=None, risk_level="t2", high_risk_count=1),
+    FoodSearchResult(id=2, barcode="222", name="测试糖果", product_category=None, image_url=None, risk_level="unknown", high_risk_count=0),
 ]
 
 MOCK_INGREDIENTS = [
@@ -111,7 +111,7 @@ async def test_search_offset_beyond_total_returns_empty():
 async def test_search_high_risk_count_none_when_zero():
     mock_repo = AsyncMock()
     mock_repo.search_foods.return_value = [
-        FoodSearchResult(id=2, barcode="222", name="测试糖果", product_category=None, risk_level="unknown", high_risk_count=0),
+        FoodSearchResult(id=2, barcode="222", name="测试糖果", product_category=None, image_url=None, risk_level="unknown", high_risk_count=0),
     ]
     mock_repo.search_ingredients.return_value = []
 
@@ -125,7 +125,7 @@ async def test_search_high_risk_count_none_when_zero():
 async def test_search_high_risk_count_set_when_nonzero():
     mock_repo = AsyncMock()
     mock_repo.search_foods.return_value = [
-        FoodSearchResult(id=1, barcode="111", name="测试饼干", product_category="饼干", risk_level="t2", high_risk_count=3),
+        FoodSearchResult(id=1, barcode="111", name="测试饼干", product_category="饼干", image_url=None, risk_level="t2", high_risk_count=3),
     ]
     mock_repo.search_ingredients.return_value = []
 
@@ -167,7 +167,7 @@ async def test_search_ingredient_empty_function_type_gives_empty_subtitle():
 async def test_search_product_barcode_included():
     mock_repo = AsyncMock()
     mock_repo.search_foods.return_value = [
-        FoodSearchResult(id=1, barcode="6920152420245", name="可口可乐", product_category="碳酸饮料", risk_level="unknown", high_risk_count=0),
+        FoodSearchResult(id=1, barcode="6920152420245", name="可口可乐", product_category="碳酸饮料", image_url=None, risk_level="unknown", high_risk_count=0),
     ]
     mock_repo.search_ingredients.return_value = []
 

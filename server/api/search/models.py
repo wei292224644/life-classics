@@ -42,5 +42,6 @@ class SearchResultItem(BaseModel):
     barcode: str | None = None
     name: str
     subtitle: str
+    imageUrl: str | None = None
     riskLevel: str = "unknown"
     highRiskCount: int | None = None
