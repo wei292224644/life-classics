@@ -1,4 +1,5 @@
-from typing import Any, Optional
+from typing import Any, Literal, Optional
+
 from pydantic import BaseModel
 
 
@@ -33,3 +34,13 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     sources: Optional[list[SearchResult]] = None
+
+
+class SearchResultItem(BaseModel):
+    type: Literal["product", "ingredient"]
+    id: int
+    barcode: str | None = None
+    name: str
+    subtitle: str
+    risk_level: str
+    high_risk_count: int | None = None

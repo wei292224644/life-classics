@@ -4,7 +4,7 @@ import asyncio
 import json
 import time
 import uuid
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
@@ -12,7 +12,9 @@ from config import settings
 from kb.clients import get_chroma_client
 from kb.embeddings import embed_batch
 from llm import chat as llm_chat, chat_stream
-from api.search.models import ChatRequest, SearchResult
+from api.search.models import ChatRequest, SearchResult, SearchResultItem
+from api.shared import Paginated
+from db_repositories.search import FoodSearchResult, IngredientSearchResult, SearchRepository
 
 _chat_sessions: Dict[str, Dict[str, Any]] = {}
 
@@ -175,3 +177,56 @@ class ChatService:
             traceback.print_exc()
             error_data = json.dumps({"type": "error", "data": str(e)}, ensure_ascii=False)
             yield f"data: {error_data}\n\n"
+
+
+class UnifiedSearchService:
+    def __init__(self, repo: SearchRepository):
+        self._repo = repo
+
+    async def search(
+        self,
+        q: str,
+        result_type: Literal["all", "product", "ingredient"] = "all",
+        offset: int = 0,
+        limit: int = 20,
+    ) -> Paginated[SearchResultItem]:
+        food_results: list[FoodSearchResult] = []
+        ing_results: list[IngredientSearchResult] = []
+
+        if result_type in ("all", "product"):
+            food_results = await self._repo.search_foods(q)
+        if result_type in ("all", "ingredient"):
+            ing_results = await self._repo.search_ingredients(q)
+
+        all_items: list[SearchResultItem] = [
+            SearchResultItem(
+                type="product",
+                id=f.id,
+                barcode=f.barcode,
+                name=f.name,
+                subtitle=f.product_category or "",
+                risk_level=f.risk_level,
+                high_risk_count=f.high_risk_count if f.high_risk_count > 0 else None,
+            )
+            for f in food_results
+        ] + [
+            SearchResultItem(
+                type="ingredient",
+                id=i.id,
+                name=i.name,
+                subtitle="/".join(i.function_type) if i.function_type else "",
+                risk_level=i.risk_level,
+            )
+            for i in ing_results
+        ]
+
+        total = len(all_items)
+        page = all_items[offset : offset + limit]
+
+        return Paginated(
+            items=page,
+            total=total,
+            offset=offset,
+            limit=limit,
+            has_more=(offset + limit) < total,
+        )
