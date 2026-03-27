@@ -5,24 +5,13 @@ from enums import RiskLevel
 
 # ── 配料详情（/api/ingredient/{id} 用）─────────────────────────────────────────
 
-class IngredientAnalysis(BaseModel):
-    """配料分析结果."""
-
-    id: int
-    analysis_type: str
-    result: dict | str  # ingredient_summary 时为 dict，其他情况为 str
-    source: str | None
-    level: RiskLevel
-    confidence_score: int
-
-
 class RelatedProductSimple(BaseModel):
     """配料关联的简化产品信息"""
     id: int
     name: str
     barcode: str
-    image_url: str | None  # 取第一张图片
-    category: str | None  # product_category
+    image_url: str | None
+    category: str | None
 
 
 class IngredientResponse(BaseModel):
@@ -34,10 +23,11 @@ class IngredientResponse(BaseModel):
     is_additive: bool
     additive_code: str | None
     who_level: str | None
-    allergen_info: str | None
-    function_type: str | None
+    allergen_info: list[str]
+    function_type: list[str]
+    origin_type: str | None
     standard_code: str | None
-    analysis: IngredientAnalysis | None
+    analyses: list["AnalysisResponse"]
     related_products: list[RelatedProductSimple] = []
 
 

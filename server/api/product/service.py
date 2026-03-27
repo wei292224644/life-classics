@@ -1,5 +1,5 @@
-import json
 from api.product.models import (
+    AnalysisResponse,
     IngredientResponse,
     ProductIngredient,
     ProductIngredientAnalysis,
@@ -77,24 +77,6 @@ class IngredientService:
         return self._to_ingredient_response(detail)
 
     def _to_ingredient_response(self, d: IngredientDetail) -> IngredientResponse:
-        # d.analysis 已经是 dict | None 格式（IngredientRepository 返回时已转换）
-        analysis_data = None
-        if d.analysis:
-            result_val = d.analysis["result"]
-            # 如果是 JSON 字符串则解析为 dict
-            if isinstance(result_val, str):
-                try:
-                    result_val = json.loads(result_val)
-                except json.JSONDecodeError:
-                    pass
-            analysis_data = {
-                "id": d.analysis["id"],
-                "analysis_type": d.analysis["analysis_type"],
-                "result": result_val,
-                "source": d.analysis.get("source"),
-                "level": RiskLevel.from_str(d.analysis["level"]),
-                "confidence_score": d.analysis["confidence_score"],
-            }
         return IngredientResponse(
             id=d.id,
             name=d.name,
@@ -104,9 +86,17 @@ class IngredientService:
             who_level=d.who_level,
             allergen_info=d.allergen_info,
             function_type=d.function_type,
+            origin_type=d.origin_type,
             standard_code=d.standard_code,
-            analysis=analysis_data,
-            related_products=[
-                RelatedProductSimple(**p) for p in d.related_products
+            analyses=[
+                AnalysisResponse(
+                    analysis_type=a["analysis_type"],
+                    result=a["result"],
+                    source=a.get("source"),
+                    level=RiskLevel.from_str(a["level"]),
+                    confidence_score=a["confidence_score"],
+                )
+                for a in d.analyses
             ],
+            related_products=[RelatedProductSimple(**p) for p in d.related_products],
         )
