@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { IngredientAnalysis, IngredientDetail } from "@/types/ingredient";
+import type { IngredientDetail } from "@/types/ingredient";
 import { onLoad } from "@dcloudio/uni-app";
 import { computed, ref } from "vue";
 import DButton from "@/components/ui/DButton.vue";
@@ -18,7 +18,7 @@ import RiskTag from "@/components/ui/RiskTag.vue";
 import TopBar from "@/components/ui/TopBar.vue";
 import BottomBar from "@/components/ui/BottomBar.vue";
 import { fetchIngredientById } from "@/services/ingredient";
-import { MOCK_RESULTS, MOCK_RELATED_PRODUCTS } from "@/mocks/ingredient";
+import SkeletonGroup from "@/components/SkeletonGroup.vue";
 // ── Store ────────────────────────────────────────────────
 const ingredient = ref<IngredientDetail | null>(null);
 
@@ -80,34 +80,24 @@ const needleStyle = computed(() =>
   needleRight.value ? { right: needleRight.value } : {},
 );
 
-// ── 解析 analysis.results ────────────────────────────────
-function safeResults(
-  analysis: IngredientAnalysis | undefined,
-): Record<string, unknown> {
-  if (!analysis?.results) {
-    return {};
+const analysisResult = computed(() => {
+  const result = ingredient.value?.analysis?.result;
+  if (typeof result === "string") return result;
+  if (typeof result === "object" && result !== null) {
+    return ((result as Record<string, unknown>).summary as string) ?? "";
   }
-  if (
-    typeof analysis.results === "object" &&
-    analysis.results !== null &&
-    !Array.isArray(analysis.results)
-  ) {
-    return analysis.results as Record<string, unknown>;
-  }
-  return {};
-}
-
-const results = computed<Record<string, unknown>>(() => {
-  const raw = safeResults(ingredient.value?.analysis);
-  const hasRealData = raw.summary || raw.risk_factors || raw.suggestions;
-  return hasRealData ? raw : MOCK_RESULTS;
+  return "";
 });
 
-const riskFactors = computed(() => {
-  const rf = results.value.risk_factors;
-  return Array.isArray(rf)
-    ? rf.filter((x): x is string => typeof x === "string")
-    : [];
+const analysisRiskFactors = computed(() => {
+  const result = ingredient.value?.analysis?.result;
+  if (typeof result === "object" && result !== null) {
+    const rf = (result as Record<string, unknown>).risk_factors;
+    if (Array.isArray(rf)) {
+      return rf.filter((x): x is string => typeof x === "string");
+    }
+  }
+  return [];
 });
 
 interface Suggestion {
@@ -115,25 +105,25 @@ interface Suggestion {
   type: "positive" | "conditional";
 }
 
-const suggestions = computed((): Suggestion[] => {
-  const raw = results.value.suggestions;
-  if (!Array.isArray(raw)) {
-    return [];
+const analysisSuggestions = computed((): Suggestion[] => {
+  const result = ingredient.value?.analysis?.result;
+  if (typeof result === "object" && result !== null) {
+    const raw = (result as Record<string, unknown>).suggestions;
+    if (Array.isArray(raw)) {
+      return raw.map((item: unknown) => {
+        const s = item as Record<string, unknown>;
+        const text = typeof s?.text === "string" ? s.text : String(item);
+        const type: "positive" | "conditional" =
+          s?.type === "positive" ? "positive" : "conditional";
+        return { text, type };
+      });
+    }
   }
-  return raw.map((item: unknown) => {
-    const s = item as Record<string, unknown>;
-    const text = typeof s?.text === "string" ? s.text : String(item);
-    const type: "positive" | "conditional" =
-      s?.type === "positive" ? "positive" : "conditional";
-    return { text, type };
-  });
+  return [];
 });
 
 const relatedProducts = computed(() => {
-  if (!ingredient.value) {
-    return [];
-  }
-  return MOCK_RELATED_PRODUCTS;
+  return ingredient.value?.related_products ?? [];
 });
 
 // ── 导航 ─────────────────────────────────────────────────
@@ -171,29 +161,31 @@ function goToProduct(barcode: string) {
   <Screen>
     <!-- #header slot -->
     <template #header>
-      <view class="bg-white dark:bg-black">
-        <view class="border-b" :class="riskCls(riskLevel, 'bg/10 border')">
-          <TopBar />
-          <view class="flex items-center gap-2.5 px-3 h-topbar">
-            <DButton
-              size="icon"
-              variant="ghost"
-              @click="goBack"
-              :dclass="cn('rounded-sm size-8', riskCls(riskLevel, 'bg/30'))"
-            >
-              <DIcon name="arrow-left" :dclass="riskCls(riskLevel, 'text')" />
-            </DButton>
-            <view class="flex flex-1 flex-col">
-              <text class="text-foreground text-sm font-bold">
-                {{ ingredient?.name }}
-              </text>
-              <text class="text-muted-foreground text-xs font-semibold">
-                {{ riskConf.subtitleNoProduct }}
-              </text>
+      <template v-if="pageState === 'success'">
+        <view class="bg-white dark:bg-black">
+          <view class="border-b" :class="riskCls(riskLevel, 'bg/10 border')">
+            <TopBar />
+            <view class="flex items-center gap-2.5 px-3 h-topbar">
+              <DButton
+                size="icon"
+                variant="ghost"
+                @click="goBack"
+                :dclass="cn('rounded-sm size-8', riskCls(riskLevel, 'bg/30'))"
+              >
+                <DIcon name="arrow-left" :dclass="riskCls(riskLevel, 'text')" />
+              </DButton>
+              <view class="flex flex-1 flex-col">
+                <text class="text-foreground text-sm font-bold">
+                  {{ ingredient?.name }}
+                </text>
+                <text class="text-muted-foreground text-xs font-semibold">
+                  {{ riskConf.subtitleNoProduct }}
+                </text>
+              </view>
             </view>
           </view>
         </view>
-      </view>
+      </template>
     </template>
 
     <!-- #content slot -->
@@ -204,6 +196,9 @@ function goToProduct(barcode: string) {
         go-back-label="返回"
         @go-back="goBack"
       >
+        <template #loading>
+          <SkeletonGroup />
+        </template>
         <!-- 内容区 -->
         <view class="flex flex-col gap-3 bg-background p-3 pb-10">
           <Card dclass="p-0 overflow-hidden">
@@ -276,12 +271,12 @@ function goToProduct(barcode: string) {
             <Separator dclass="my-0" />
             <view class="flex flex-col gap-3 px-4 pb-4 mt-3">
               <text class="text-foreground text-sm">
-                {{ (ingredient?.analysis?.results?.summary as string) ?? "" }}
+                {{ analysisResult }}
               </text>
             </view>
           </Card>
           <!-- AI 风险分析 -->
-          <Card dclass="p-0">
+          <Card v-if="analysisRiskFactors.length > 0" dclass="p-0">
             <Cell size="sm" dclass="px-4 pt-4 pb-3">
               <template #title>
                 <view class="flex items-center gap-2">
@@ -303,7 +298,7 @@ function goToProduct(barcode: string) {
             <Separator dclass="my-0" />
 
             <view class="flex flex-col gap-3 px-4 pb-4 mt-3">
-              <template v-for="(item, i) in riskFactors" :key="i">
+              <template v-for="(item, i) in analysisRiskFactors" :key="i">
                 <view class="flex items-start gap-2">
                   <view
                     class="mt-px flex size-4 items-center justify-center rounded-sm bg-red-100"
@@ -353,7 +348,7 @@ function goToProduct(barcode: string) {
             </view>
           </Card>
           <!-- AI 使用建议 -->
-          <Card dclass="p-0">
+          <Card v-if="analysisSuggestions.length > 0" dclass="p-0">
             <Cell size="sm" dclass="px-4 pt-4 pb-3">
               <template #title>
                 <view class="flex items-center gap-2">
@@ -375,7 +370,7 @@ function goToProduct(barcode: string) {
 
             <view class="flex flex-col gap-3 px-4 pb-4 mt-3">
               <view
-                v-for="(s, i) in suggestions"
+                v-for="(s, i) in analysisSuggestions"
                 :key="i"
                 class="flex items-start gap-2"
               >
