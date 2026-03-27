@@ -29,16 +29,16 @@ export interface RiskLevelConfig {
 export const RISK_CONFIG: Record<VisualKey, RiskLevelConfig> = {
   critical: {
     visualKey: "critical",
-    badge: "极高风险",
+    badge: "高风险",
     icon: "riskT4",
-    subtitleNoProduct: "极高风险 · 不建议摄入",
-    needleLeft: "88%",
+    subtitleNoProduct: "高风险 · 不建议摄入",
+    needleLeft: "92%",
   },
   high: {
     visualKey: "high",
-    badge: "高风险",
+    badge: "中高风险",
     icon: "riskT3",
-    subtitleNoProduct: "高风险 · 谨慎摄入",
+    subtitleNoProduct: "中高风险 · 谨慎摄入",
     needleLeft: "72%",
   },
   medium: {

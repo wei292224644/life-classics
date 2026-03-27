@@ -7,12 +7,10 @@ import Card from "@/components/ui/card/Card.vue";
 import DIcon from "@/components/ui/DIcon.vue";
 import Screen from "@/components/ui/Screen.vue";
 import StateView from "@/components/ui/StateView.vue";
-import { useThemeStore } from "@/store/theme";
 import { getRiskConfig, riskCls, RiskLevel } from "@/utils/riskLevel";
 import { cn } from "@/utils/cn";
 import Separator from "@/components/ui/Separator.vue";
 import Cell from "@/components/ui/Cell.vue";
-import { CardHeader } from "@/components/ui/card";
 import AITag from "@/components/ui/AITag.vue";
 import RiskTag from "@/components/ui/RiskTag.vue";
 import TopBar from "@/components/ui/TopBar.vue";
@@ -219,7 +217,7 @@ function goToProduct(barcode: string) {
               class="p-3 border-b"
               :class="riskCls(riskLevel, 'bg/10 border')"
             >
-              <view class="mb-2 flex items-start justify-between">
+              <view class="flex items-center justify-between">
                 <view class="flex flex-col gap-0.5">
                   <text class="text-foreground text-2xl font-extrabold">
                     {{ ingredient?.name }}
@@ -244,24 +242,26 @@ function goToProduct(barcode: string) {
               </view>
 
               <!-- 风险谱条 -->
-              <view class="relative mt-1">
+              <template v-if="riskLevel !== 'unknown'">
+                <view class="relative mt-2">
+                  <view
+                    class="spectrum-bar h-1.5 rounded-full"
+                    :style="spectrumOpacityStyle"
+                  />
+                  <view
+                    class="spectrum-needle bg-card absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
+                    :class="riskCls(riskLevel, 'border')"
+                    :style="needleStyle"
+                  />
+                </view>
                 <view
-                  class="spectrum-bar h-1.5 rounded-full"
-                  :style="spectrumOpacityStyle"
-                />
-                <view
-                  class="spectrum-needle bg-card absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
-                  :class="riskCls(riskLevel, 'border')"
-                  :style="needleStyle"
-                />
-              </view>
-              <view
-                class="text-muted-foreground flex justify-between px-0.5 text-xs mt-2"
-              >
-                <text>低风险</text>
-                <text>中等</text>
-                <text>高风险</text>
-              </view>
+                  class="text-muted-foreground flex justify-between px-0.5 text-xs mt-2"
+                >
+                  <text>低风险</text>
+                  <text>中等</text>
+                  <text>高风险</text>
+                </view>
+              </template>
             </view>
 
             <view class="flex flex-wrap gap-2 p-3">

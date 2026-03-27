@@ -1,0 +1,264 @@
+<h2>空状态页设计（无搜索词时）</h2>
+<p class="subtitle">包含：搜索历史 + 热门搜索词 + 最近查看。选择布局方向。</p>
+
+<style>
+  .phone-frame {
+    width: 375px;
+    background: #fafafa;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    font-family: -apple-system, sans-serif;
+    font-size: 14px;
+    color: #111827;
+  }
+
+  /* shared */
+  .sec-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px 8px;
+  }
+  .sec-title { font-size: 14px; font-weight: 700; color: #111827; }
+  .sec-action { font-size: 12px; color: #9ca3af; }
+
+  /* history tags */
+  .tags-wrap { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 14px; }
+  .tag-chip {
+    height: 30px; padding: 0 12px; background: white; border: 1px solid #e5e7eb;
+    border-radius: 999px; font-size: 13px; color: #374151;
+    display: flex; align-items: center; cursor: pointer;
+  }
+  .tag-chip.hot { background: oklch(50% 0.22 25 / 8%); border-color: oklch(50% 0.22 25 / 20%); color: oklch(50% 0.22 25); }
+
+  /* recent cards - horizontal scroll */
+  .recent-scroll { display: flex; gap: 10px; padding: 0 16px 16px; overflow-x: auto; }
+  .recent-card {
+    width: 90px; flex-shrink: 0; background: white; border: 1px solid #e5e7eb;
+    border-radius: 10px; padding: 8px; text-align: center;
+  }
+  .recent-card .img { width: 100%; height: 64px; background: #f3f4f6; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 6px; }
+  .recent-card .rname { font-size: 11px; font-weight: 600; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .recent-card .rtype { font-size: 10px; color: #9ca3af; margin-top: 2px; }
+  .risk-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 3px; }
+
+  /* divider */
+  .divider { height: 1px; background: #f3f4f6; margin: 0 16px; }
+
+  /* option B: two-column recent */
+  .recent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 16px 16px; }
+  .recent-row {
+    display: flex; align-items: center; gap: 8px;
+    background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 8px;
+  }
+  .recent-row .img { width: 36px; height: 36px; background: #f3f4f6; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .recent-row .info { min-width: 0; }
+  .recent-row .rname { font-size: 12px; font-weight: 600; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .recent-row .rtype { font-size: 10px; color: #9ca3af; }
+
+  /* option C: list style recent */
+  .recent-list-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f9fafb;
+  }
+  .recent-list-item .img { width: 36px; height: 36px; background: #f3f4f6; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .recent-list-item .info { flex: 1; min-width: 0; }
+  .recent-list-item .rname { font-size: 13px; font-weight: 600; color: #111827; }
+  .recent-list-item .rtype { font-size: 11px; color: #9ca3af; }
+  .risk-badge-sm { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+  .risk-t4 { background: oklch(50% 0.22 25 / 12%); color: oklch(50% 0.22 25); }
+  .risk-t1 { background: oklch(55% 0.15 145 / 12%); color: oklch(55% 0.15 145); }
+
+  .cards { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+  .card { cursor: pointer; border-radius: 12px; border: 2px solid #e5e7eb; overflow: hidden; transition: border-color 0.15s; }
+  .card:hover { border-color: #ec4899; }
+  .card.selected { border-color: #ec4899; }
+  .card-image { padding: 16px; background: #f9fafb; }
+  .card-body { padding: 12px 16px; border-top: 1px solid #f3f4f6; background: white; }
+  .card-body h3 { font-size: 15px; font-weight: 700; color: #111827; margin: 0 0 4px; }
+  .card-body p { font-size: 13px; color: #6b7280; margin: 0; }
+</style>
+
+<div class="cards">
+
+  <!-- Option A: 历史+热门 chip，最近查看横向滚动卡片 -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="phone-frame">
+        <div class="sec-header">
+          <span class="sec-title">搜索历史</span>
+          <span class="sec-action">清空</span>
+        </div>
+        <div class="tags-wrap">
+          <span class="tag-chip">苯甲酸钠</span>
+          <span class="tag-chip">可口可乐</span>
+          <span class="tag-chip">阿斯巴甜</span>
+          <span class="tag-chip">方便面</span>
+        </div>
+        <div class="divider"></div>
+        <div class="sec-header">
+          <span class="sec-title">🔥 热门搜索</span>
+        </div>
+        <div class="tags-wrap">
+          <span class="tag-chip hot">阿斯巴甜</span>
+          <span class="tag-chip hot">反式脂肪</span>
+          <span class="tag-chip hot">防腐剂</span>
+          <span class="tag-chip hot">色素</span>
+          <span class="tag-chip hot">糖精钠</span>
+        </div>
+        <div class="divider"></div>
+        <div class="sec-header">
+          <span class="sec-title">最近查看</span>
+        </div>
+        <div class="recent-scroll">
+          <div class="recent-card">
+            <div class="img">🍝</div>
+            <div class="rname">康师傅方便面</div>
+            <div class="rtype">食品</div>
+          </div>
+          <div class="recent-card">
+            <div class="img">🧪</div>
+            <div class="rname">苯甲酸钠</div>
+            <div class="rtype">配料</div>
+          </div>
+          <div class="recent-card">
+            <div class="img">🥤</div>
+            <div class="rname">可口可乐</div>
+            <div class="rtype">食品</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — 最近查看横向卡片</h3>
+      <p>历史+热门用 chip，最近查看用横向滚动小卡片</p>
+    </div>
+  </div>
+
+  <!-- Option B: 历史+热门 chip，最近查看 2列网格 -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="phone-frame">
+        <div class="sec-header">
+          <span class="sec-title">搜索历史</span>
+          <span class="sec-action">清空</span>
+        </div>
+        <div class="tags-wrap">
+          <span class="tag-chip">苯甲酸钠</span>
+          <span class="tag-chip">可口可乐</span>
+          <span class="tag-chip">阿斯巴甜</span>
+        </div>
+        <div class="divider"></div>
+        <div class="sec-header">
+          <span class="sec-title">🔥 热门搜索</span>
+        </div>
+        <div class="tags-wrap">
+          <span class="tag-chip hot">阿斯巴甜</span>
+          <span class="tag-chip hot">反式脂肪</span>
+          <span class="tag-chip hot">防腐剂</span>
+          <span class="tag-chip hot">色素</span>
+        </div>
+        <div class="divider"></div>
+        <div class="sec-header">
+          <span class="sec-title">最近查看</span>
+        </div>
+        <div class="recent-grid">
+          <div class="recent-row">
+            <div class="img">🍝</div>
+            <div class="info">
+              <div class="rname">康师傅方便面</div>
+              <div class="rtype">食品</div>
+            </div>
+          </div>
+          <div class="recent-row">
+            <div class="img">🧪</div>
+            <div class="info">
+              <div class="rname">苯甲酸钠</div>
+              <div class="rtype">配料</div>
+            </div>
+          </div>
+          <div class="recent-row">
+            <div class="img">🥤</div>
+            <div class="info">
+              <div class="rname">可口可乐</div>
+              <div class="rtype">食品</div>
+            </div>
+          </div>
+          <div class="recent-row">
+            <div class="img">🍪</div>
+            <div class="info">
+              <div class="rname">奥利奥饼干</div>
+              <div class="rtype">食品</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — 最近查看 2列网格</h3>
+      <p>历史+热门用 chip，最近查看用两列紧凑网格</p>
+    </div>
+  </div>
+
+  <!-- Option C: 最近查看带风险 badge 列表 -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="phone-frame">
+        <div class="sec-header">
+          <span class="sec-title">搜索历史</span>
+          <span class="sec-action">清空</span>
+        </div>
+        <div class="tags-wrap">
+          <span class="tag-chip">苯甲酸钠</span>
+          <span class="tag-chip">可口可乐</span>
+          <span class="tag-chip">阿斯巴甜</span>
+        </div>
+        <div class="divider"></div>
+        <div class="sec-header">
+          <span class="sec-title">🔥 热门搜索</span>
+        </div>
+        <div class="tags-wrap">
+          <span class="tag-chip hot">阿斯巴甜</span>
+          <span class="tag-chip hot">反式脂肪</span>
+          <span class="tag-chip hot">防腐剂</span>
+        </div>
+        <div class="divider"></div>
+        <div class="sec-header">
+          <span class="sec-title">最近查看</span>
+        </div>
+        <div class="recent-list-item">
+          <div class="img">🍝</div>
+          <div class="info">
+            <div class="rname">康师傅红烧牛肉面</div>
+            <div class="rtype">食品</div>
+          </div>
+          <span class="risk-badge-sm risk-t4">高风险</span>
+        </div>
+        <div class="recent-list-item">
+          <div class="img">🧪</div>
+          <div class="info">
+            <div class="rname">苯甲酸钠</div>
+            <div class="rtype">配料</div>
+          </div>
+          <span class="risk-badge-sm risk-t4">高风险</span>
+        </div>
+        <div class="recent-list-item">
+          <div class="img">🥤</div>
+          <div class="info">
+            <div class="rname">可口可乐（330ml）</div>
+            <div class="rtype">食品</div>
+          </div>
+          <span class="risk-badge-sm risk-t1">低风险</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — 最近查看带风险列表</h3>
+      <p>历史+热门用 chip，最近查看带风险 badge 的竖向列表</p>
+    </div>
+  </div>
+
+</div>

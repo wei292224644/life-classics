@@ -20,7 +20,7 @@ export interface SearchResultItem {
   highRiskCount?: number;
 }
 
-interface PaginatedResponse<T> {
+export interface PaginatedResponse<T> {
   items: T[];
   total: number;
   offset: number;
@@ -28,25 +28,20 @@ interface PaginatedResponse<T> {
   has_more: boolean;
 }
 
-/** 真实 API 调用 */
 export async function fetchSearch(
   keyword: string,
-  _type: FilterType = "all",
-): Promise<SearchResultItem[]> {
+  type: FilterType = "all",
+  offset = 0,
+  limit = 20,
+): Promise<PaginatedResponse<SearchResultItem>> {
   return new Promise((resolve, reject) => {
     uni.request({
       url: `${BASE_URL}/api/search`,
       method: "GET",
-      data: {
-        q: keyword,
-        type: _type,
-        offset: 0,
-        limit: 50,
-      },
+      data: { q: keyword, type, offset, limit },
       success(res: any) {
         if (res.statusCode === 200) {
-          const data = res.data as PaginatedResponse<SearchResultItem>;
-          resolve(data.items);
+          resolve(res.data as PaginatedResponse<SearchResultItem>);
         } else {
           reject(new Error(`Unexpected status: ${res.statusCode}`));
         }

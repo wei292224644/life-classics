@@ -1,0 +1,294 @@
+<style>
+  .phones-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 8px 0 24px;
+  }
+  .phone-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    border-radius: 12px;
+    padding: 12px;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .phone-wrap:hover { border-color: var(--accent, #6366f1); }
+  .phone-wrap.selected { border-color: var(--accent, #6366f1); background: rgba(99,102,241,0.06); }
+  .phone-label { font-weight: 600; font-size: 13px; color: var(--text, #1a1a2e); }
+  .phone-desc { font-size: 11px; color: var(--muted, #888); text-align: center; max-width: 140px; }
+
+  /* Phone shell */
+  .phone {
+    width: 200px;
+    height: 380px;
+    background: #fff;
+    border-radius: 28px;
+    border: 2px solid #e0e0e0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, sans-serif;
+  }
+
+  /* Status bar */
+  .phone-status {
+    height: 20px;
+    background: #f8f8f8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    font-size: 8px;
+    color: #666;
+    flex-shrink: 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  /* Nav bar */
+  .phone-nav {
+    height: 34px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border-bottom: 1px solid #f0f0f0;
+    flex-shrink: 0;
+  }
+  .phone-nav .back { font-size: 9px; color: #007aff; margin-right: 6px; }
+  .phone-nav .title { font-size: 11px; font-weight: 600; color: #111; flex: 1; }
+  .phone-nav .nav-action { font-size: 9px; color: #007aff; }
+
+  /* Scroll area */
+  .phone-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: #f8f8f8;
+  }
+
+  /* Content */
+  .ingredient-name {
+    background: #fff;
+    padding: 8px 10px 6px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .ingredient-name .name { font-size: 13px; font-weight: 700; color: #111; }
+  .ingredient-name .alias { font-size: 9px; color: #999; margin-top: 2px; }
+
+  .risk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .risk-medium { background: #fff3e0; color: #e65100; }
+  .risk-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  .section-card {
+    background: #fff;
+    margin: 4px 6px;
+    border-radius: 8px;
+    padding: 7px 9px;
+  }
+  .section-title { font-size: 9px; font-weight: 700; color: #333; margin-bottom: 4px; }
+  .section-text { font-size: 8px; color: #666; line-height: 1.5; }
+
+  .tag-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+  .tag {
+    background: #f0f0f0;
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 7px;
+    color: #555;
+  }
+
+  /* Bottom bar */
+  .phone-bottom {
+    background: #fff;
+    border-top: 1px solid #eee;
+    padding: 6px 10px;
+    padding-bottom: 10px;
+    flex-shrink: 0;
+  }
+  .btn-row { display: flex; gap: 6px; }
+  .btn-primary {
+    flex: 1;
+    background: #1a73e8;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 7px 0;
+    font-size: 9px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .btn-secondary {
+    flex: 1;
+    background: #f0f4ff;
+    color: #1a73e8;
+    border: 1px solid #c5d5f8;
+    border-radius: 20px;
+    padding: 7px 0;
+    font-size: 9px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: #888;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-size: 8px;
+    text-align: center;
+  }
+
+  /* FAB */
+  .fab {
+    position: absolute;
+    bottom: 12px;
+    right: 10px;
+    width: 34px;
+    height: 34px;
+    background: #1a73e8;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 8px rgba(26,115,232,0.4);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  /* Bookmark icon in nav */
+  .bookmark-icon {
+    font-size: 13px;
+    color: #666;
+  }
+</style>
+
+<h2>按钮位置方案</h2>
+<p class="subtitle">去掉「添加到记录」后，「咨询AI助手」放在哪里更合适？</p>
+
+<div class="phones-row">
+
+  <!-- Option A: 单个底部主按钮 -->
+  <div class="phone-wrap" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter" style="display:none">A</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●●</span></div>
+      <div class="phone-nav">
+        <span class="back">‹ 返回</span>
+        <span class="title">配料详情</span>
+      </div>
+      <div class="phone-body">
+        <div class="ingredient-name">
+          <div class="name">阿斯巴甜</div>
+          <div class="alias">Aspartame · E951</div>
+          <div class="risk-badge risk-medium"><span class="risk-dot"></span>中等风险</div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">功能用途</div>
+          <div class="section-text">人工甜味剂，甜度约为蔗糖200倍，常用于无糖饮料和食品。</div>
+          <div class="tag-row">
+            <span class="tag">甜味剂</span>
+            <span class="tag">人工合成</span>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">风险评估</div>
+          <div class="section-text">苯丙酮尿症患者禁用。WHO 2023年列为可能致癌物（2B类）。</div>
+        </div>
+      </div>
+      <div class="phone-bottom">
+        <div class="btn-primary">咨询 AI 助手</div>
+      </div>
+    </div>
+    <div class="phone-label">方案 A · 底部主按钮</div>
+    <div class="phone-desc">全宽主按钮，简洁聚焦</div>
+  </div>
+
+  <!-- Option B: 导航栏收藏 + 底部AI -->
+  <div class="phone-wrap" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter" style="display:none">B</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●●</span></div>
+      <div class="phone-nav">
+        <span class="back">‹ 返回</span>
+        <span class="title">配料详情</span>
+        <span class="bookmark-icon">🔖</span>
+      </div>
+      <div class="phone-body">
+        <div class="ingredient-name">
+          <div class="name">阿斯巴甜</div>
+          <div class="alias">Aspartame · E951</div>
+          <div class="risk-badge risk-medium"><span class="risk-dot"></span>中等风险</div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">功能用途</div>
+          <div class="section-text">人工甜味剂，甜度约为蔗糖200倍，常用于无糖饮料和食品。</div>
+          <div class="tag-row">
+            <span class="tag">甜味剂</span>
+            <span class="tag">人工合成</span>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">风险评估</div>
+          <div class="section-text">苯丙酮尿症患者禁用。WHO 2023年列为可能致癌物（2B类）。</div>
+        </div>
+      </div>
+      <div class="phone-bottom">
+        <div class="btn-primary">咨询 AI 助手</div>
+      </div>
+    </div>
+    <div class="phone-label">方案 B · 收藏挪到导航栏</div>
+    <div class="phone-desc">收藏用图标放右上角，底部只留AI</div>
+  </div>
+
+  <!-- Option C: FAB浮动按钮 -->
+  <div class="phone-wrap" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter" style="display:none">C</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>●●●</span></div>
+      <div class="phone-nav">
+        <span class="back">‹ 返回</span>
+        <span class="title">配料详情</span>
+      </div>
+      <div class="phone-body" style="position:relative">
+        <div class="ingredient-name">
+          <div class="name">阿斯巴甜</div>
+          <div class="alias">Aspartame · E951</div>
+          <div class="risk-badge risk-medium"><span class="risk-dot"></span>中等风险</div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">功能用途</div>
+          <div class="section-text">人工甜味剂，甜度约为蔗糖200倍，常用于无糖饮料和食品。</div>
+          <div class="tag-row">
+            <span class="tag">甜味剂</span>
+            <span class="tag">人工合成</span>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">风险评估</div>
+          <div class="section-text">苯丙酮尿症患者禁用。WHO 2023年列为可能致癌物（2B类）。</div>
+        </div>
+        <div class="fab">💬</div>
+      </div>
+    </div>
+    <div class="phone-label">方案 C · 悬浮按钮 (FAB)</div>
+    <div class="phone-desc">内容区悬浮，不占底部空间</div>
+  </div>
+
+</div>

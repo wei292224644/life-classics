@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>搜索页完整布局方案</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f0f0f0; font-family: -apple-system, 'PingFang SC', sans-serif; padding: 24px; }
+h2 { font-size: 20px; font-weight: 700; color: #111; margin-bottom: 6px; }
+.subtitle { font-size: 14px; color: #6b7280; margin-bottom: 24px; }
+
+.phones-row { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 32px; }
+
+.phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; }
+.phone-label { font-size: 14px; font-weight: 700; color: #374151; }
+.phone-sub { font-size: 12px; color: #9ca3af; text-align: center; max-width: 375px; }
+
+.phone {
+  width: 375px;
+  background: #fafafa;
+  border-radius: 40px;
+  border: 3px solid #d1d5db;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.phone:hover { border-color: #ec4899; box-shadow: 0 8px 40px rgba(236,72,153,0.2); }
+.phone.selected { border-color: #ec4899; box-shadow: 0 8px 40px rgba(236,72,153,0.3); }
+.phone.dark { background: #111827; }
+
+/* notch */
+.notch { height: 44px; background: inherit; display: flex; align-items: center; justify-content: center; }
+.notch-bar { width: 120px; height: 34px; background: #1a1a1a; border-radius: 999px; }
+.phone.dark .notch-bar { background: #000; }
+
+/* status bar */
+.status { height: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+.status-l { font-size: 11px; font-weight: 600; color: #111; }
+.status-r { font-size: 11px; color: #111; display: flex; gap: 4px; }
+.phone.dark .status-l, .phone.dark .status-r { color: #f4f4f5; }
+
+/* search header */
+.search-header {
+  padding: 12px 16px 0;
+  background: #fafafa;
+}
+.phone.dark .search-header { background: #111827; }
+
+.search-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.search-page-title { font-size: 22px; font-weight: 800; color: #111827; letter-spacing: -0.02em; }
+.phone.dark .search-page-title { color: #f4f4f5; }
+
+.search-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: white; border: 1.5px solid #e5e7eb; border-radius: 14px;
+  padding: 0 14px; height: 44px; margin-bottom: 10px;
+}
+.phone.dark .search-bar { background: #1f2937; border-color: rgba(255,255,255,0.1); }
+.search-icon { font-size: 16px; color: #9ca3af; }
+.search-placeholder { font-size: 14px; color: #9ca3af; flex: 1; }
+
+/* filter chips */
+.filter-chips { display: flex; gap: 6px; padding-bottom: 10px; overflow-x: auto; }
+.filter-chips::-webkit-scrollbar { display: none; }
+.chip {
+  height: 28px; padding: 0 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; white-space: nowrap; flex-shrink: 0;
+  border: 1.5px solid transparent;
+}
+.chip.active { background: #ec4899; color: white; border-color: #ec4899; }
+.chip.inactive { background: white; color: #374151; border-color: #e5e7eb; }
+.phone.dark .chip.inactive { background: #1f2937; color: #d1d5db; border-color: rgba(255,255,255,0.12); }
+
+/* section */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px 6px;
+}
+.sec-title { font-size: 13px; font-weight: 700; color: #111827; }
+.sec-action { font-size: 12px; color: #9ca3af; }
+.phone.dark .sec-title { color: #f4f4f5; }
+
+/* history + hot chips */
+.chips-area { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
+.h-chip {
+  height: 28px; padding: 0 12px; background: white; border: 1px solid #e5e7eb;
+  border-radius: 999px; font-size: 12px; color: #374151; display: flex; align-items: center;
+}
+.h-chip.hot { background: oklch(50% 0.22 25 / 8%); border-color: oklch(50% 0.22 25 / 25%); color: oklch(50% 0.22 25); }
+.phone.dark .h-chip { background: #1f2937; border-color: rgba(255,255,255,0.1); color: #d1d5db; }
+.phone.dark .h-chip.hot { background: oklch(70% 0.22 25 / 12%); color: oklch(70% 0.22 25); border-color: oklch(70% 0.22 25 / 25%); }
+
+/* divider */
+.divider { height: 1px; background: #f3f4f6; margin: 0 16px; }
+.phone.dark .divider { background: rgba(255,255,255,0.06); }
+
+/* recent/result item - rich card style */
+.result-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f9fafb;
+}
+.phone.dark .result-item { border-bottom-color: rgba(255,255,255,0.04); }
+.result-item:last-child { border-bottom: none; }
+
+.item-img {
+  width: 48px; height: 48px; border-radius: 10px; background: #f3f4f6;
+  display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+}
+.phone.dark .item-img { background: #1f2937; }
+
+.item-meta { flex: 1; min-width: 0; }
+.item-name { font-size: 14px; font-weight: 600; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-sub { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+.item-chips { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+.phone.dark .item-name { color: #f4f4f5; }
+
+.chip-sm { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 6px; }
+.chip-cat { background: #f3f4f6; color: #374151; }
+.chip-t4 { background: oklch(50% 0.22 25 / 12%); color: oklch(50% 0.22 25); }
+.chip-t3 { background: oklch(55% 0.2 50 / 12%); color: oklch(55% 0.2 50); }
+.chip-t1 { background: oklch(55% 0.15 145 / 12%); color: oklch(55% 0.15 145); }
+.phone.dark .chip-cat { background: rgba(255,255,255,0.08); color: #d1d5db; }
+
+/* layout A: 页面标题在搜索框上方 */
+/* layout B: 无页面标题，搜索框在顶部，更紧凑 */
+
+/* results count */
+.results-meta {
+  padding: 8px 16px 4px;
+  font-size: 12px; color: #9ca3af;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* selection overlay */
+.selected-badge {
+  position: absolute; top: 12px; right: 12px;
+  background: #ec4899; color: white; font-size: 12px; font-weight: 700;
+  padding: 4px 10px; border-radius: 999px;
+  display: none;
+}
+.phone.selected .selected-badge { display: block; }
+
+/* tab bar at bottom */
+.tab-bar {
+  display: flex; background: white; border-top: 1px solid #f3f4f6;
+  padding: 6px 0 20px;
+}
+.phone.dark .tab-bar { background: #1f2937; border-top-color: rgba(255,255,255,0.06); }
+.tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.tab-icon { font-size: 20px; }
+.tab-label { font-size: 10px; font-weight: 500; color: #9ca3af; }
+.tab-label.active { color: #ec4899; }
+.tab-icon.active { filter: none; }
+
+/* state labels */
+.state-label {
+  display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: #9ca3af; padding: 4px 10px; background: #f3f4f6;
+  border-radius: 4px; margin: 8px 16px;
+}
+
+.option-select-hint {
+  margin-top: 12px; font-size: 13px; color: #6b7280; text-align: center;
+  padding: 10px 16px; background: white; border-radius: 8px; border: 1px dashed #e5e7eb;
+  cursor: pointer;
+}
+.option-select-hint:hover { border-color: #ec4899; color: #ec4899; }
+</style>
+</head>
+<body>
+<h2>搜索页完整布局方案</h2>
+<p class="subtitle">点击手机框选择你喜欢的方案（亮色 + 暗色对比）</p>
+
+<div class="phones-row">
+
+  <!-- ── Layout A: 有页面标题，空状态 ── -->
+  <div class="phone-wrap">
+    <div class="phone-label">方案 A — 空状态（有搜索历史）</div>
+    <div class="phone" id="phoneA" onclick="selectPhone('A')">
+      <div class="selected-badge">✓ 已选</div>
+      <div class="notch"><div class="notch-bar"></div></div>
+      <div class="status">
+        <span class="status-l">9:41</span>
+        <span class="status-r">● ● ▮</span>
+      </div>
+      <div class="search-header">
+        <div class="search-title-row">
+          <span class="search-page-title">搜索</span>
+        </div>
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <span class="search-placeholder">搜索食品或配料名称…</span>
+        </div>
+        <div class="filter-chips">
+          <span class="chip active">全部</span>
+          <span class="chip inactive">🍱 食品</span>
+          <span class="chip inactive">🧪 配料</span>
+        </div>
+      </div>
+
+      <div style="overflow-y:auto;flex:1">
+        <div class="section-header">
+          <span class="sec-title">搜索历史</span>
+          <span class="sec-action">清空</span>
+        </div>
+        <div class="chips-area">
+          <span class="h-chip">苯甲酸钠</span>
+          <span class="h-chip">可口可乐</span>
+          <span class="h-chip">阿斯巴甜</span>
+          <span class="h-chip">方便面</span>
+          <span class="h-chip">防腐剂</span>
+        </div>
+        <div class="divider"></div>
+        <div class="section-header">
+          <span class="sec-title">🔥 热门搜索</span>
+        </div>
+        <div class="chips-area">
+          <span class="h-chip hot">阿斯巴甜</span>
+          <span class="h-chip hot">反式脂肪酸</span>
+          <span class="h-chip hot">防腐剂</span>
+          <span class="h-chip hot">色素</span>
+          <span class="h-chip hot">糖精钠</span>
+          <span class="h-chip hot">亚硝酸盐</span>
+        </div>
+        <div class="divider"></div>
+        <div class="section-header">
+          <span class="sec-title">最近查看</span>
+        </div>
+        <div class="result-item">
+          <div class="item-img">🍝</div>
+          <div class="item-meta">
+            <div class="item-name">康师傅红烧牛肉面</div>
+            <div class="item-sub">方便食品</div>
+            <div class="item-chips">
+              <span class="chip-sm chip-cat">食品</span>
+              <span class="chip-sm chip-t4">高风险配料 ×3</span>
+            </div>
+          </div>
+        </div>
+        <div class="result-item">
+          <div class="item-img">🧪</div>
+          <div class="item-meta">
+            <div class="item-name">苯甲酸钠</div>
+            <div class="item-sub">防腐剂</div>
+            <div class="item-chips">
+              <span class="chip-sm chip-cat">配料</span>
+              <span class="chip-sm chip-t4">高风险</span>
+            </div>
+          </div>
+        </div>
+        <div class="result-item">
+          <div class="item-img">🥤</div>
+          <div class="item-meta">
+            <div class="item-name">可口可乐（330ml）</div>
+            <div class="item-sub">碳酸饮料</div>
+            <div class="item-chips">
+              <span class="chip-sm chip-cat">食品</span>
+              <span class="chip-sm chip-t1">低风险</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-label">首页</span></div>
+        <div class="tab-item"><span class="tab-icon">🔍</span><span class="tab-label active" style="color:#ec4899">搜索</span></div>
+        <div class="tab-item"><span class="tab-icon">👤</span><span class="tab-label">我的</span></div>
+      </div>
+    </div>
+    <div class="phone-sub">空状态 · 有历史记录</div>
+  </div>
+
+  <!-- ── Layout A: 搜索结果状态 ── -->
+  <div class="phone-wrap">
+    <div class="phone-label">方案 A — 搜索结果状态</div>
+    <div class="phone" id="phoneA2" onclick="selectPhone('A2')">
+      <div class="selected-badge">✓ 已选</div>
+      <div class="notch"><div class="notch-bar"></div></div>
+      <div class="status">
+        <span class="status-l">9:41</span>
+        <span class="status-r">● ● ▮</span>
+      </div>
+      <div class="search-header">
+        <div class="search-title-row">
+          <span class="search-page-title">搜索</span>
+        </div>
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <span class="search-placeholder" style="color:#111827;font-weight:500">苯甲酸</span>
+          <span style="font-size:14px;color:#9ca3af;margin-left:auto">✕</span>
+        </div>
+        <div class="filter-chips">
+          <span class="chip active">全部 5</span>
+          <span class="chip inactive">🍱 食品 2</span>
+          <span class="chip inactive">🧪 配料 3</span>
+        </div>
+      </div>
+
+      <div class="results-meta">
+        <span>找到 5 条结果</span>
+      </div>
+
+      <div style="overflow-y:auto">
+        <div class="result-item">
+          <div class="item-img">🧪</div>
+          <div class="item-meta">
+            <div class="item-name">苯甲酸钠</div>
+            <div class="item-sub">防腐剂</div>
+            <div class="item-chips">
+              <span class="chip-sm chip-cat">配料</span>
+              <span class="chip-sm chip-t4">高风险</span>
+            </div>
+          </div>
+        </div>
+        <div class="result-item">
+          <div class="item-img">🧪</div>
+          <div class="item-meta">
+            <div class="item-name">苯甲酸</div>
+            <div class="item-sub">防腐剂</div>
+            <div class="item-chips">
+              <span class="chip-sm chip-cat">配料</span>
+              <span class="chip-sm chip-t3">中风险</span>
+            </div>
+          </div>
+        </div>
+        <div class="result-item">
+          <div class="item-img">🍝</div>
+          <div class="item-meta">
+            <div class="item-name">康师傅红烧牛肉面</div>
+            <div class="item-sub">方便食品</div>
+            <div class="item-chips">
+              <span class="chip-sm chip-cat">食品</span>
+              <span class="chip-sm chip-t4">高风险配料 ×3</span>
+            </div>
+          </div>
+        </div>
+        <div class="result-item">
+          <div class="item-img">🥫</div>
+          <div class="item-meta">
+            <div class="item-name">午餐肉罐头</div>
+            <div class="item-sub">肉制加工品</div>
+            <div class="item-chips">
+              <span class="chip-sm chip-cat">食品</span>
+              <span class="chip-sm chip-t4">高风险配料 ×2</span>
+            </div>
+          </div>
+        </div>
+        <div class="result-item">
+          <div class="item-img">🧪</div>
+          <div class="item-meta">
+            <div class="item-name">苯甲酸钾</div>
+            <div class="item-sub">防腐剂</div>
+            <div class="item-chips">
+              <span class="chip-sm chip-cat">配料</span>
+              <span class="chip-sm chip-t4">高风险</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-label">首页</span></div>
+        <div class="tab-item"><span class="tab-icon">🔍</span><span class="tab-label active" style="color:#ec4899">搜索</span></div>
+        <div class="tab-item"><span class="tab-icon">👤</span><span class="tab-label">我的</span></div>
+      </div>
+    </div>
+    <div class="phone-sub">搜索结果 · 过滤 chip 显示数量</div>
+  </div>
+
+  <!-- ── Dark mode ── -->
+  <div class="phone-wrap">
+    <div class="phone-label">暗色模式效果</div>
+    <div class="phone dark" id="phoneDark" onclick="selectPhone('Dark')">
+      <div class="selected-badge">✓ 已选</div>
+      <div class="notch"><div class="notch-bar"></div></div>
+      <div class="status">
+        <span class="status-l">9:41</span>
+        <span class="status-r">● ● ▮</span>
+      </div>
+      <div class="search-header" style="background:#111827">
+        <div class="search-title-row">
+          <span class="search-page-title">搜索</span>
+        </div>
+        <div class="search-bar">
+          <span class="search-icon" style="color:#6b7280">🔍</span>
+          <span class="search-placeholder">搜索食品或配料名称…</span>
+        </div>
+        <div class="filter-chips">
+          <span class="chip active">全部</span>
+          <span class="chip inactive">🍱 食品</span>
+          <span class="chip inactive">🧪 配料</span>
+        </div>
+      </div>
+
+      <div style="overflow-y:auto">
+        <div class="section-header">
+          <span class="sec-title">搜索历史</span>
+          <span class="sec-action">清空</span>
+        </div>
+        <div class="chips-area">
+          <span class="h-chip">苯甲酸钠</span>
+          <span class="h-chip">可口可乐</span>
+          <span class="h-chip">阿斯巴甜</span>
+        </div>
+        <div class="divider"></div>
+        <div class="section-header">
+          <span class="sec-title">🔥 热门搜索</span>
+        </div>
+        <div class="chips-area">
+          <span class="h-chip hot">阿斯巴甜</span>
+          <span class="h-chip hot">反式脂肪酸</span>
+          <span class="h-chip hot">防腐剂</span>
+          <span class="h-chip hot">色素</span>
+        </div>
+        <div class="divider"></div>
+        <div class="section-header">
+          <span class="sec-title">最近查看</span>
+        </div>
+        <div class="result-item">
+          <div class="item-img">🍝</div>
+          <div class="item-meta">
+            <div class="item-name">康师傅红烧牛肉面</div>
+            <div class="item-sub">方便食品</div>
+            <div class="item-chips">
+              <span class="chip-sm chip-cat">食品</span>
+              <span class="chip-sm chip-t4">高风险配料 ×3</span>
+            </div>
+          </div>
+        </div>
+        <div class="result-item">
+          <div class="item-img">🧪</div>
+          <div class="item-meta">
+            <div class="item-name">苯甲酸钠</div>
+            <div class="item-sub">防腐剂</div>
+            <div class="item-chips">
+              <span class="chip-sm chip-cat">配料</span>
+              <span class="chip-sm chip-t4">高风险</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-label">首页</span></div>
+        <div class="tab-item"><span class="tab-icon">🔍</span><span class="tab-label active" style="color:#ec4899">搜索</span></div>
+        <div class="tab-item"><span class="tab-icon">👤</span><span class="tab-label">我的</span></div>
+      </div>
+    </div>
+    <div class="phone-sub">暗色模式 · 空状态</div>
+  </div>
+
+</div>
+
+<div class="option-select-hint" onclick="document.getElementById('confirm').scrollIntoView({behavior:'smooth'})">
+  👆 以上为统一方案，点击任意手机框标记确认，或在终端告知调整意见
+</div>
+
+<script>
+function selectPhone(id) {
+  document.querySelectorAll('.phone').forEach(p => p.classList.remove('selected'));
+  if (id === 'A' || id === 'A2') {
+    document.getElementById('phoneA').classList.add('selected');
+    document.getElementById('phoneA2').classList.add('selected');
+  } else {
+    document.getElementById('phone' + id).classList.add('selected');
+  }
+  // record selection
+  if (window.recordChoice) recordChoice(id, 'Phone ' + id);
+}
+</script>
+
+</body>
+</html>

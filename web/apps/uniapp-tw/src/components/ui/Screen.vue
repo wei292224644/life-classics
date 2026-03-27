@@ -1,5 +1,12 @@
 <template>
-  <view class="w-screen h-screen flex flex-col overflow-hidden bg-background">
+  <view
+    :class="
+      cn(
+        'w-screen  flex flex-col overflow-hidden bg-background',
+        isRootPage ? 'flex-1' : 'h-screen',
+      )
+    "
+  >
     <view class="shrink-0">
       <slot name="header" />
     </view>
@@ -18,10 +25,13 @@
 </template>
 
 <script setup lang="ts">
+import { cn } from "@/utils/cn";
+
 defineProps<{
   header?: VNode;
   content?: VNode;
   footer?: VNode;
+  isRootPage?: boolean;
 }>();
 
 defineEmits<{

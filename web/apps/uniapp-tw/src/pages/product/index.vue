@@ -133,9 +133,9 @@
 
             <!-- 健康益处卡片 -->
             <Card
-              dclass="animate-[slideUp_0.5s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"
+              dclass="animate-[slideUp_0.5s_cubic-bezier(0.34,1.56,0.64,1)_forwards] p-0"
             >
-              <view class="mb-3">
+              <!-- <view class="mb-3">
                 <text class="font-semibold tracking-tight text-foreground"
                   >健康益处</text
                 >
@@ -152,20 +152,70 @@
                     >{{ text }}</text
                   >
                 </view>
+              </view> -->
+
+              <Cell size="sm" dclass="px-4 pt-4  ">
+                <template #title>
+                  <view class="flex items-center gap-2">
+                    <view
+                      class="flex size-6 items-center justify-center rounded-sm bg-red-100"
+                    >
+                      <DIcon name="heart-pulse" dclass="text-red-400" />
+                    </view>
+                    <text class="text-base text-foreground font-medium"
+                      >AI 健康建议</text
+                    >
+                  </view>
+                </template>
+                <template #value>
+                  <AITag />
+                </template>
+              </Cell>
+
+              <Separator />
+
+              <view class="px-4 pb-4 flex flex-col gap-2">
+                <template v-for="item in healthTexts" :key="item">
+                  <text
+                    class="text-sm leading-relaxed text-secondary-foreground"
+                    >{{ item }}</text
+                  >
+                </template>
               </view>
             </Card>
 
             <!-- AI 健康建议卡片 -->
             <Card
-              dclass="animate-[slideUp_0.5s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"
+              dclass="animate-[slideUp_0.5s_cubic-bezier(0.34,1.56,0.64,1)_forwards] p-0"
             >
-              <view class="mb-3 flex items-center gap-0.5">
-                <DIcon name="star" dclass="shrink-0 text-orange-500" />
-                <text class="font-semibold">AI 健康建议</text>
+              <Cell size="sm" dclass="px-4 pt-4  ">
+                <template #title>
+                  <view class="flex items-center gap-2">
+                    <view
+                      class="flex size-6 items-center justify-center rounded-sm bg-orange-100"
+                    >
+                      <DIcon name="star" dclass="text-orange-400" />
+                    </view>
+                    <text class="text-base text-foreground font-medium"
+                      >AI 健康建议</text
+                    >
+                  </view>
+                </template>
+                <template #value>
+                  <AITag />
+                </template>
+              </Cell>
+
+              <Separator />
+
+              <view class="px-4 pb-4 flex flex-col gap-2">
+                <template v-for="item in adviceText" :key="item">
+                  <text
+                    class="text-sm leading-relaxed text-secondary-foreground"
+                    >{{ item }}</text
+                  >
+                </template>
               </view>
-              <text class="text-sm leading-relaxed text-secondary-foreground">{{
-                adviceText
-              }}</text>
             </Card>
           </view>
         </view>
@@ -201,6 +251,9 @@ import { useToast } from "@/composables/useToast";
 import ToastContainer from "@/components/ui/ToastContainer.vue";
 import DButton from "@/components/ui/DButton.vue";
 import SkeletonGroup from "@/components/SkeletonGroup.vue";
+import Cell from "@/components/ui/Cell.vue";
+import AITag from "@/components/ui/AITag.vue";
+import Separator from "@/components/ui/Separator.vue";
 
 const toast = useToast();
 const store = useProductStore();
@@ -287,14 +340,11 @@ const healthTexts = computed(() =>
     .filter(Boolean),
 );
 
-const adviceText = computed(
-  () =>
-    adviceItems.value
-      .map((item) => {
-        if (typeof item.result === "string") return item.result;
-        return extractText(item.result, "advice", "summary");
-      })
-      .find(Boolean) ?? "",
+const adviceText = computed(() =>
+  adviceItems.value.map((item) => {
+    if (typeof item.result === "string") return item.result;
+    return extractText(item.result, "advice", "summary");
+  }),
 );
 </script>
 

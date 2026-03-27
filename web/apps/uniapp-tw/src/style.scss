@@ -17,6 +17,16 @@ uni-button {
   }
 }
 
+uni-app {
+  @apply bg-background;
+}
+
+uni-page-body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 *,
 ::before,
 ::after {
