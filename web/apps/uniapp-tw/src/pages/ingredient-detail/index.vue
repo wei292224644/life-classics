@@ -58,7 +58,7 @@ onLoad(async (options) => {
 
 // ── 风险等级 ─────────────────────────────────────────────
 const overallRisk = computed(() =>
-  ingredient.value?.analysis?.find((a) => a.analysis_type === "overall_risk"),
+  ingredient.value?.analyses?.find((a) => a.analysis_type === "overall_risk"),
 );
 const riskLevel = computed(() => overallRisk.value?.level ?? "unknown");
 const riskConf = computed(() => getRiskConfig(riskLevel.value));
@@ -90,7 +90,7 @@ const relatedProducts = computed(() => {
 
 // ── Analysis 数据处理 ─────────────────────────────────────
 const analysisItems = computed(() => {
-  const analysis = ingredient.value?.analysis;
+  const analysis = ingredient.value?.analyses;
   if (Array.isArray(analysis)) return analysis;
   return [];
 });
