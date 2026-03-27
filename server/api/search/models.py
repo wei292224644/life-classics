@@ -1,6 +1,6 @@
 from typing import Any, Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SearchRequest(BaseModel):
@@ -42,5 +42,5 @@ class SearchResultItem(BaseModel):
     barcode: str | None = None
     name: str
     subtitle: str
-    risk_level: str
-    high_risk_count: int | None = None
+    riskLevel: str = "unknown"
+    highRiskCount: int | None = None

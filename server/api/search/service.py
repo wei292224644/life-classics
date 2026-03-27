@@ -205,8 +205,8 @@ class UnifiedSearchService:
                 barcode=f.barcode,
                 name=f.name,
                 subtitle=f.product_category or "",
-                risk_level=f.risk_level,
-                high_risk_count=f.high_risk_count if f.high_risk_count > 0 else None,
+                riskLevel=f.risk_level,
+                highRiskCount=f.high_risk_count if f.high_risk_count > 0 else None,
             )
             for f in food_results
         ] + [
@@ -215,7 +215,7 @@ class UnifiedSearchService:
                 id=i.id,
                 name=i.name,
                 subtitle="/".join(i.function_type) if i.function_type else "",
-                risk_level=i.risk_level,
+                riskLevel=i.risk_level,
             )
             for i in ing_results
         ]

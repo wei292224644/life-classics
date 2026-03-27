@@ -63,7 +63,10 @@ class SearchRepository:
                 & (AnalysisDetail.analysis_type == "ingredient_summary")
                 & (AnalysisDetail.level.in_(["t3", "t4"])),
             )
-            .where(FoodIngredient.food_id.in_(food_ids))
+            .where(
+                FoodIngredient.food_id.in_(food_ids),
+                FoodIngredient.deleted_at.is_(None),
+            )
             .group_by(FoodIngredient.food_id)
         )
         high_risk_map: dict[int, int] = {r.food_id: r.cnt for r in high_risk_result.all()}

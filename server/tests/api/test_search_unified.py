@@ -118,7 +118,7 @@ async def test_search_high_risk_count_none_when_zero():
     svc = UnifiedSearchService(mock_repo)
     result = await svc.search(q="糖果", result_type="all")
 
-    assert result.items[0].high_risk_count is None
+    assert result.items[0].highRiskCount is None
 
 
 @pytest.mark.asyncio
@@ -132,7 +132,7 @@ async def test_search_high_risk_count_set_when_nonzero():
     svc = UnifiedSearchService(mock_repo)
     result = await svc.search(q="饼干", result_type="all")
 
-    assert result.items[0].high_risk_count == 3
+    assert result.items[0].highRiskCount == 3
 
 
 @pytest.mark.asyncio
