@@ -1,11 +1,4 @@
-import type { RiskLevel } from "./enums";
-
-export interface IngredientAnalysis {
-  id: number;
-  analysis_type: string;
-  results: unknown;
-  level: RiskLevel;
-}
+import type { AnalysisSummary } from "./product";
 
 export interface IngredientDetail {
   id: number;
@@ -14,10 +7,10 @@ export interface IngredientDetail {
   is_additive: boolean;
   additive_code: string | null;
   who_level: string | null;
-  allergen_info: string | null;
-  function_type: string | null;
+  allergen_info: string[];
+  function_type: string[];
   standard_code: string | null;
-  analysis?: IngredientAnalysis;
+  analyses: AnalysisSummary[];
   related_products: RelatedProductSimple[];
 }
 

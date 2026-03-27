@@ -17,6 +17,9 @@ export interface ProductIngredient {
 export interface AnalysisSummary {
   analysis_type: string;
   result: unknown;
+  source: string | null;
+  level: RiskLevel;
+  confidence_score: number;
 }
 
 export interface ProductDetail {
