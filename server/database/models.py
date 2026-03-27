@@ -78,12 +78,13 @@ analysis_target_enum = PG_ENUM(
 )
 
 analysis_type_enum = PG_ENUM(
-    "usage_advice_summary",
-    "health_summary",
-    "pregnancy_safety",
-    "risk_summary",
-    "recent_risk_summary",
-    "ingredient_summary",
+    "usage_advice_summary",  # 使用建议摘要
+    "health_summary",  # 健康摘要
+    "pregnancy_safety",  # 孕妇安全
+    "risk_summary",  # 风险摘要
+    "recent_risk_summary",  # 最近风险摘要
+    "ingredient_summary",  # 配料摘要
+    "overall_risk",  # 综合风险结论
     name="analysis_type",
     create_type=False,
 )
@@ -151,39 +152,45 @@ class TimestampMixin:
 class Food(Base):
     __tablename__ = "foods"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    barcode: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    image_url_list: Mapped[list[str]] = mapped_column(ARRAY(String(255)), default=list)
-    manufacturer: Mapped[str | None] = mapped_column(String(255))
-    production_address: Mapped[str | None] = mapped_column(String(255))
-    origin_place: Mapped[str | None] = mapped_column(String(255))
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)  # ID
+    barcode: Mapped[str] = mapped_column(
+        String(32), unique=True, nullable=False
+    )  # 条形码
+    name: Mapped[str] = mapped_column(String(255), nullable=False)  # 商品名称
+    image_url_list: Mapped[list[str]] = mapped_column(
+        ARRAY(String(255)), default=list
+    )  # 图片 URL 列表
+    manufacturer: Mapped[str | None] = mapped_column(String(255))  # 委托生产商
+    production_address: Mapped[str | None] = mapped_column(String(255))  # 生产地址
+    origin_place: Mapped[str | None] = mapped_column(String(255))  # 产地
     production_license: Mapped[str | None] = mapped_column(String(255))
-    product_category: Mapped[str | None] = mapped_column(String(255))
-    product_standard_code: Mapped[str | None] = mapped_column(String(255))
-    shelf_life: Mapped[str | None] = mapped_column(String(100))
-    net_content: Mapped[str | None] = mapped_column(String(100))
+    product_category: Mapped[str | None] = mapped_column(String(255))  # 产品类别
+    product_standard_code: Mapped[str | None] = mapped_column(String(255))  # 执行标准号
+    shelf_life: Mapped[str | None] = mapped_column(String(100))  # 保质期
+    net_content: Mapped[str | None] = mapped_column(String(100))  # 净含量
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=datetime.utcnow
-    )
+    )  # 创建时间
     last_updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
-    )
-    created_by_user: Mapped[str] = mapped_column(Uuid, nullable=False)
-    last_updated_by_user: Mapped[str | None] = mapped_column(Uuid, nullable=True)
+    )  # 更新时间
+    created_by_user: Mapped[str] = mapped_column(Uuid, nullable=False)  # 创建用户
+    last_updated_by_user: Mapped[str | None] = mapped_column(
+        Uuid, nullable=True
+    )  # 更新用户
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
-    )
+    )  # 删除时间
 
     food_ingredients: Mapped[list[FoodIngredient]] = relationship(
         back_populates="food", lazy="selectin"
-    )
+    )  # 食品-配料关联
     food_nutrition_entries: Mapped[list[FoodNutritionEntry]] = relationship(
         back_populates="food", lazy="selectin"
-    )
+    )  # 食品-营养成分关联
 
 
 # ── 配料表 ─────────────────────────────────────────────────────────────────
@@ -202,17 +209,21 @@ class Ingredient(Base):
     who_level: Mapped[str | None] = mapped_column(
         who_level_enum, default="Unknown"
     )  # WHO 致癌等级
-    allergen_info: Mapped[str | None] = mapped_column(String(255))  # 过敏信息
-    function_type: Mapped[str | None] = mapped_column(String(100))  # 功能类型
+    allergen_info: Mapped[list[str]] = mapped_column(
+        ARRAY(String(255)), default=list
+    )  # 过敏信息
+    function_type: Mapped[list[str]] = mapped_column(
+        ARRAY(String(255)), default=list
+    )  # 功能类型
     origin_type: Mapped[str | None] = mapped_column(String(100))  # 来源类型
     limit_usage: Mapped[str | None] = mapped_column(String(255))  # 使用限量
     legal_region: Mapped[str | None] = mapped_column(String(255))  # 法规适用区域
-    
+
     cas: Mapped[str | None] = mapped_column(String(50))  # CAS 号
     applications: Mapped[str | None] = mapped_column(String(500))  # 应用场景
     notes: Mapped[str | None] = mapped_column(Text)  # 注意事项
     safety_info: Mapped[str | None] = mapped_column(Text)  # 安全性信息
-    
+
     meta: Mapped[dict | None] = mapped_column(
         "metadata", JSONB, default=dict
     )  # 扩展字段
