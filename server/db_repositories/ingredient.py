@@ -14,10 +14,11 @@ class IngredientDetail:
     is_additive: bool
     additive_code: str | None
     who_level: str | None
-    allergen_info: str | None
-    function_type: str | None
+    allergen_info: list[str]
+    function_type: list[str]
+    origin_type: str | None
     standard_code: str | None
-    analysis: dict | None  # first ingredient_summary analysis or None
+    analyses: list[dict]          # 所有分析记录（原 analysis: dict | None）
     related_products: list[dict]  # [{id, name, barcode, image_url, category}]
 
 
@@ -26,7 +27,7 @@ class IngredientRepository:
         self._session = session
 
     async def fetch_by_id(self, ingredient_id: int) -> IngredientDetail | None:
-        """通过配料 ID 查询配料详情（含 ingredient_summary 分析）。"""
+        """通过配料 ID 查询配料详情（含所有分析）。"""
         result = await self._session.execute(
             select(Ingredient).where(Ingredient.id == ingredient_id)
         )
@@ -34,26 +35,23 @@ class IngredientRepository:
         if ingredient is None:
             return None
 
-        # 查询 ingredient_summary 分析
+        # 查询该配料所有分析（不限 analysis_type）
         analysis_result = await self._session.execute(
             select(AnalysisDetail).where(
                 AnalysisDetail.target_id == ingredient_id,
                 AnalysisDetail.analysis_target == "ingredient",
-                AnalysisDetail.analysis_type == "ingredient_summary",
             )
         )
-        analyses = analysis_result.scalars().all()
-        analysis_data: dict | None = None
-        if analyses:
-            a = analyses[0]
-            analysis_data = {
-                "id": a.id,
+        analyses_data = [
+            {
                 "analysis_type": a.analysis_type,
                 "result": a.result,
                 "source": a.source,
                 "level": a.level,
                 "confidence_score": a.confidence_score,
             }
+            for a in analysis_result.scalars().all()
+        ]
 
         # 查询关联产品（通过 FoodIngredient -> Food）
         food_query = (
@@ -81,9 +79,10 @@ class IngredientRepository:
             is_additive=ingredient.is_additive or False,
             additive_code=ingredient.additive_code,
             who_level=ingredient.who_level,
-            allergen_info=ingredient.allergen_info,
-            function_type=ingredient.function_type,
+            allergen_info=ingredient.allergen_info or [],
+            function_type=ingredient.function_type or [],
+            origin_type=ingredient.origin_type,
             standard_code=ingredient.standard_code,
-            analysis=analysis_data,
+            analyses=analyses_data,
             related_products=related_products,
         )
