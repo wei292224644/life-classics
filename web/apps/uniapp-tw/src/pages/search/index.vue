@@ -175,7 +175,7 @@ onShow(() => {
       <view class="flex flex-col min-h-full bg-background">
 
         <!-- ── 吸顶头部 ───────────────────────────── -->
-        <view class="sticky top-0 z-10 bg-background">
+        <view class="sticky top-0 z-10 bg-background border-b border-border">
           <TopBar />
           <!-- 页面标题 -->
           <view class="px-4 pt-3 pb-2">
@@ -232,14 +232,17 @@ onShow(() => {
 
         <!-- ── 空状态（无搜索词）────────────────────── -->
         <view v-if="!keyword" class="flex flex-col pb-10">
+
           <!-- 搜索历史 -->
-          <template v-if="searchHistory.length">
-            <view class="flex items-center justify-between px-4 pt-3 mb-2">
-              <text class="text-sm font-bold text-foreground">搜索历史</text>
+          <view v-if="searchHistory.length" class="mt-4">
+            <view class="flex items-center justify-between px-4 mb-2">
+              <text class="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                搜索历史
+              </text>
               <DButton
                 variant="ghost"
                 size="sm"
-                dclass="text-muted-foreground"
+                dclass="text-muted-foreground h-6 text-xs"
                 @click="clearHistory"
               >
                 清空
@@ -249,25 +252,26 @@ onShow(() => {
               <view
                 v-for="(h, i) in searchHistory"
                 :key="i"
-                class="h-7 px-3 bg-card border border-border rounded-full text-xs text-foreground flex items-center"
+                class="h-8 px-3.5 bg-card border border-border rounded-full text-sm text-foreground flex items-center"
                 @click="handleHistoryClick(h)"
               >
                 {{ h }}
               </view>
             </view>
-            <view class="h-px bg-border mx-4 mt-4" />
-          </template>
+          </view>
 
           <!-- 热门搜索 -->
-          <view class="px-4 pt-4">
-            <text class="text-sm font-bold text-foreground mb-2 block">
-              热门搜索
-            </text>
-            <view class="flex flex-wrap gap-2">
+          <view class="mt-6 bg-muted/40 py-4">
+            <view class="px-4 mb-3">
+              <text class="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                热门搜索
+              </text>
+            </view>
+            <view class="flex flex-wrap gap-2 px-4">
               <view
                 v-for="(kw, i) in HOT_KEYWORDS"
                 :key="i"
-                class="h-7 px-3 rounded-full text-xs font-semibold flex items-center bg-risk-t4/10 text-risk-t4"
+                class="h-8 px-3.5 rounded-full text-sm font-medium flex items-center bg-background border border-border text-foreground"
                 @click="handleHistoryClick(kw)"
               >
                 {{ kw }}
@@ -277,71 +281,71 @@ onShow(() => {
 
           <!-- 最近查看 -->
           <template v-if="recentViewed.length">
-            <view class="h-px bg-border mx-4 mt-4" />
-            <view class="px-4 pt-4">
-              <text class="text-sm font-bold text-foreground mb-2 block">
+            <view class="mt-6 px-4 mb-2">
+              <text class="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                 最近查看
               </text>
-              <view class="flex flex-col gap-2">
+            </view>
+            <view class="flex flex-col gap-2 px-4">
+              <view
+                v-for="item in recentViewed"
+                :key="`${item.type}-${item.id}`"
+                class="flex items-center gap-2.5 p-3 bg-card border border-border rounded-2xl"
+                @click="navigateToItem(item)"
+              >
                 <view
-                  v-for="item in recentViewed"
-                  :key="`${item.type}-${item.id}`"
-                  class="flex items-center gap-2.5 p-3 bg-card border border-border rounded-2xl"
-                  @click="navigateToItem(item)"
+                  class="w-12 h-12 rounded-xl bg-background flex items-center justify-center shrink-0"
                 >
-                  <view
-                    class="w-12 h-12 rounded-xl bg-background flex items-center justify-center shrink-0"
-                  >
-                    <DIcon
-                      :name="item.type === 'product' ? 'shopping-cart' : 'leaf'"
-                      dclass="text-muted-foreground"
-                    />
-                  </view>
-                  <view class="flex-1 min-w-0">
-                    <text
-                      class="text-sm font-semibold text-foreground truncate block"
-                    >
-                      {{ item.name }}
-                    </text>
-                    <text class="text-xs text-muted-foreground mt-0.5 block">
-                      {{ item.subtitle }}
-                    </text>
-                    <view class="flex gap-1 mt-1 flex-wrap">
-                      <view
-                        class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-secondary text-secondary-foreground"
-                      >
-                        {{ item.type === "product" ? "食品" : "配料" }}
-                      </view>
-                      <view
-                        v-if="
-                          item.type === 'ingredient' &&
-                          item.riskLevel !== 'unknown'
-                        "
-                        :class="
-                          cn(
-                            'text-[10px] font-semibold px-1.5 py-0.5 rounded-md',
-                            riskCls(item.riskLevel as RiskLevel, 'bg/10 text'),
-                          )
-                        "
-                      >
-                        {{ getRiskConfig(item.riskLevel as RiskLevel).badge }}
-                      </view>
-                      <view
-                        v-if="item.type === 'product' && item.highRiskCount"
-                        class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-risk-t4/10 text-risk-t4"
-                      >
-                        高风险配料 ×{{ item.highRiskCount }}
-                      </view>
-                    </view>
-                  </view>
                   <DIcon
-                    name="arrow-right"
-                    dclass="text-muted-foreground/40 shrink-0"
+                    :name="item.type === 'product' ? 'shopping-cart' : 'leaf'"
+                    dclass="text-muted-foreground"
                   />
                 </view>
+                <view class="flex-1 min-w-0">
+                  <text
+                    class="text-sm font-semibold text-foreground truncate block"
+                  >
+                    {{ item.name }}
+                  </text>
+                  <text class="text-xs text-muted-foreground mt-0.5 block">
+                    {{ item.subtitle }}
+                  </text>
+                  <view class="flex gap-1 mt-1 flex-wrap">
+                    <view
+                      class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-secondary text-secondary-foreground"
+                    >
+                      {{ item.type === "product" ? "食品" : "配料" }}
+                    </view>
+                    <view
+                      v-if="
+                        item.type === 'ingredient' &&
+                        item.riskLevel !== 'unknown'
+                      "
+                      :class="
+                        cn(
+                          'text-[10px] font-semibold px-1.5 py-0.5 rounded-md',
+                          riskCls(item.riskLevel as RiskLevel, 'bg/10 text'),
+                        )
+                      "
+                    >
+                      {{ getRiskConfig(item.riskLevel as RiskLevel).badge }}
+                    </view>
+                    <view
+                      v-if="item.type === 'product' && item.highRiskCount"
+                      class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-risk-t4/10 text-risk-t4"
+                    >
+                      高风险配料 ×{{ item.highRiskCount }}
+                    </view>
+                  </view>
+                </view>
+                <DIcon
+                  name="arrow-right"
+                  dclass="text-muted-foreground/40 shrink-0"
+                />
               </view>
             </view>
           </template>
+
         </view>
 
         <!-- ── 搜索结果 ─────────────────────────────── -->
@@ -351,7 +355,7 @@ onShow(() => {
 
           <!-- 结果列表 -->
           <template v-else>
-            <text class="text-xs text-muted-foreground px-4 pt-3 pb-1 block">
+            <text class="text-xs text-muted-foreground px-4 pt-3 pb-2 block">
               找到 {{ filteredResults.length }} 条结果
             </text>
             <view class="flex flex-col gap-2 px-4">
