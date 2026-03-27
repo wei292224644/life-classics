@@ -347,7 +347,7 @@ onShow(() => {
         <!-- ── 搜索结果 ─────────────────────────────── -->
         <view v-else class="flex flex-col pb-10">
           <!-- 加载中 -->
-          <SkeletonGroup v-if="isLoading" />
+          <SkeletonGroup v-if="isLoading" :with-header="false" />
 
           <!-- 结果列表 -->
           <template v-else>
