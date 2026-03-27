@@ -127,6 +127,7 @@ async function doSearch() {
   if (!keyword.value.trim()) return;
   isLoading.value = true;
   try {
+    // 始终拉取全量结果，筛选由 filteredResults computed 在客户端完成
     searchResults.value = await fetchSearch(keyword.value, "all");
   } catch {
     // 静默失败，结果列表保持空
