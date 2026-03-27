@@ -173,7 +173,256 @@ onShow(() => {
   <Screen>
     <template #content>
       <view class="flex flex-col min-h-full bg-background">
-        <text class="text-foreground p-4">搜索页（占位）</text>
+
+        <!-- ── 吸顶头部 ───────────────────────────── -->
+        <view class="sticky top-0 z-10 bg-background">
+          <TopBar />
+          <!-- 页面标题 -->
+          <view class="px-4 pt-3 pb-2">
+            <text class="text-2xl font-extrabold tracking-tight text-foreground">
+              搜索
+            </text>
+          </view>
+          <!-- 搜索框 -->
+          <view class="px-4 pb-2">
+            <view
+              class="flex items-center gap-2.5 bg-card border border-border rounded-2xl px-3 h-11"
+            >
+              <DIcon name="search" dclass="text-muted-foreground shrink-0" />
+              <input
+                v-model="keyword"
+                class="flex-1 h-full text-sm text-foreground bg-transparent border-none outline-none"
+                placeholder="搜索食品或配料名称…"
+                placeholder-class="text-muted-foreground"
+                confirm-type="search"
+                @input="handleInput"
+                @confirm="handleConfirm"
+              />
+              <DButton
+                v-if="keyword"
+                size="icon"
+                variant="ghost"
+                dclass="shrink-0 size-7"
+                @click="clearKeyword"
+              >
+                <DIcon name="x" />
+              </DButton>
+            </view>
+          </view>
+          <!-- 筛选 chip -->
+          <view class="flex gap-2 px-4 pb-3 overflow-x-auto">
+            <view
+              v-for="f in filters"
+              :key="f.key"
+              :class="
+                cn(
+                  'h-7 px-3 rounded-full text-xs font-semibold flex items-center shrink-0',
+                  activeFilter === f.key
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-card border border-border text-foreground',
+                )
+              "
+              @click="activeFilter = f.key"
+            >
+              {{ f.label
+              }}{{ keyword && f.count !== undefined ? ` ${f.count}` : "" }}
+            </view>
+          </view>
+        </view>
+
+        <!-- ── 空状态（无搜索词）────────────────────── -->
+        <view v-if="!keyword" class="flex flex-col pb-10">
+          <!-- 搜索历史 -->
+          <template v-if="searchHistory.length">
+            <view class="flex items-center justify-between px-4 pt-3 mb-2">
+              <text class="text-sm font-bold text-foreground">搜索历史</text>
+              <DButton
+                variant="ghost"
+                size="sm"
+                dclass="text-muted-foreground"
+                @click="clearHistory"
+              >
+                清空
+              </DButton>
+            </view>
+            <view class="flex flex-wrap gap-2 px-4">
+              <view
+                v-for="(h, i) in searchHistory"
+                :key="i"
+                class="h-7 px-3 bg-card border border-border rounded-full text-xs text-foreground flex items-center"
+                @click="handleHistoryClick(h)"
+              >
+                {{ h }}
+              </view>
+            </view>
+            <view class="h-px bg-border mx-4 mt-4" />
+          </template>
+
+          <!-- 热门搜索 -->
+          <view class="px-4 pt-4">
+            <text class="text-sm font-bold text-foreground mb-2 block">
+              热门搜索
+            </text>
+            <view class="flex flex-wrap gap-2">
+              <view
+                v-for="(kw, i) in HOT_KEYWORDS"
+                :key="i"
+                class="h-7 px-3 rounded-full text-xs font-semibold flex items-center bg-risk-t4/10 text-risk-t4"
+                @click="handleHistoryClick(kw)"
+              >
+                {{ kw }}
+              </view>
+            </view>
+          </view>
+
+          <!-- 最近查看 -->
+          <template v-if="recentViewed.length">
+            <view class="h-px bg-border mx-4 mt-4" />
+            <view class="px-4 pt-4">
+              <text class="text-sm font-bold text-foreground mb-2 block">
+                最近查看
+              </text>
+              <view class="flex flex-col gap-2">
+                <view
+                  v-for="item in recentViewed"
+                  :key="`${item.type}-${item.id}`"
+                  class="flex items-center gap-2.5 p-3 bg-card border border-border rounded-2xl"
+                  @click="navigateToItem(item)"
+                >
+                  <view
+                    class="w-12 h-12 rounded-xl bg-background flex items-center justify-center shrink-0"
+                  >
+                    <DIcon
+                      :name="item.type === 'product' ? 'shopping-cart' : 'leaf'"
+                      dclass="text-muted-foreground"
+                    />
+                  </view>
+                  <view class="flex-1 min-w-0">
+                    <text
+                      class="text-sm font-semibold text-foreground truncate block"
+                    >
+                      {{ item.name }}
+                    </text>
+                    <text class="text-xs text-muted-foreground mt-0.5 block">
+                      {{ item.subtitle }}
+                    </text>
+                    <view class="flex gap-1 mt-1 flex-wrap">
+                      <view
+                        class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-secondary text-secondary-foreground"
+                      >
+                        {{ item.type === "product" ? "食品" : "配料" }}
+                      </view>
+                      <view
+                        v-if="
+                          item.type === 'ingredient' &&
+                          item.riskLevel !== 'unknown'
+                        "
+                        :class="
+                          cn(
+                            'text-[10px] font-semibold px-1.5 py-0.5 rounded-md',
+                            riskCls(item.riskLevel as RiskLevel, 'bg/10 text'),
+                          )
+                        "
+                      >
+                        {{ getRiskConfig(item.riskLevel as RiskLevel).badge }}
+                      </view>
+                      <view
+                        v-if="item.type === 'product' && item.highRiskCount"
+                        class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-risk-t4/10 text-risk-t4"
+                      >
+                        高风险配料 ×{{ item.highRiskCount }}
+                      </view>
+                    </view>
+                  </view>
+                  <DIcon
+                    name="arrow-right"
+                    dclass="text-muted-foreground/40 shrink-0"
+                  />
+                </view>
+              </view>
+            </view>
+          </template>
+        </view>
+
+        <!-- ── 搜索结果 ─────────────────────────────── -->
+        <view v-else class="flex flex-col pb-10">
+          <!-- 加载中 -->
+          <SkeletonGroup v-if="isLoading" />
+
+          <!-- 结果列表 -->
+          <template v-else>
+            <text class="text-xs text-muted-foreground px-4 pt-3 pb-1 block">
+              找到 {{ filteredResults.length }} 条结果
+            </text>
+            <view class="flex flex-col gap-2 px-4">
+              <view
+                v-for="item in filteredResults"
+                :key="`${item.type}-${item.id}`"
+                class="flex items-center gap-2.5 p-3 bg-card border border-border rounded-2xl"
+                @click="navigateToItem(item)"
+              >
+                <view
+                  class="w-12 h-12 rounded-xl bg-background flex items-center justify-center shrink-0"
+                >
+                  <DIcon
+                    :name="item.type === 'product' ? 'shopping-cart' : 'leaf'"
+                    dclass="text-muted-foreground"
+                  />
+                </view>
+                <view class="flex-1 min-w-0">
+                  <text
+                    class="text-sm font-semibold text-foreground truncate block"
+                  >
+                    {{ item.name }}
+                  </text>
+                  <text class="text-xs text-muted-foreground mt-0.5 block">
+                    {{ item.subtitle }}
+                  </text>
+                  <view class="flex gap-1 mt-1 flex-wrap">
+                    <view
+                      class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-secondary text-secondary-foreground"
+                    >
+                      {{ item.type === "product" ? "食品" : "配料" }}
+                    </view>
+                    <view
+                      v-if="
+                        item.type === 'ingredient' &&
+                        item.riskLevel !== 'unknown'
+                      "
+                      :class="
+                        cn(
+                          'text-[10px] font-semibold px-1.5 py-0.5 rounded-md',
+                          riskCls(item.riskLevel as RiskLevel, 'bg/10 text'),
+                        )
+                      "
+                    >
+                      {{ getRiskConfig(item.riskLevel as RiskLevel).badge }}
+                    </view>
+                    <view
+                      v-if="item.type === 'product' && item.highRiskCount"
+                      class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-risk-t4/10 text-risk-t4"
+                    >
+                      高风险配料 ×{{ item.highRiskCount }}
+                    </view>
+                  </view>
+                </view>
+                <DIcon
+                  name="arrow-right"
+                  dclass="text-muted-foreground/40 shrink-0"
+                />
+              </view>
+            </view>
+
+            <!-- 无结果 -->
+            <Empty
+              v-if="filteredResults.length === 0"
+              icon="search"
+              message="未找到相关结果"
+              dclass="py-20"
+            />
+          </template>
+        </view>
+
       </view>
     </template>
   </Screen>
