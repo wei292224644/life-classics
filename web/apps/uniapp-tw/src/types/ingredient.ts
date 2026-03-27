@@ -18,4 +18,13 @@ export interface IngredientDetail {
   function_type: string | null;
   standard_code: string | null;
   analysis?: IngredientAnalysis;
+  related_products: RelatedProductSimple[];
+}
+
+export interface RelatedProductSimple {
+  id: number;
+  name: string;
+  barcode: string;
+  image_url: string | null;
+  category: string | null;
 }
