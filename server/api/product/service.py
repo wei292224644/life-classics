@@ -1,8 +1,10 @@
+import json
 from api.product.models import (
     IngredientResponse,
     ProductIngredient,
     ProductIngredientAnalysis,
     ProductResponse,
+    RelatedProductSimple,
 )
 from enums import RiskLevel
 from db_repositories.food import FoodDetail, FoodRepository, ProductIngredientDetail
@@ -78,10 +80,17 @@ class IngredientService:
         # d.analysis 已经是 dict | None 格式（IngredientRepository 返回时已转换）
         analysis_data = None
         if d.analysis:
+            result_val = d.analysis["result"]
+            # 如果是 JSON 字符串则解析为 dict
+            if isinstance(result_val, str):
+                try:
+                    result_val = json.loads(result_val)
+                except json.JSONDecodeError:
+                    pass
             analysis_data = {
                 "id": d.analysis["id"],
                 "analysis_type": d.analysis["analysis_type"],
-                "result": d.analysis["result"],
+                "result": result_val,
                 "source": d.analysis.get("source"),
                 "level": RiskLevel.from_str(d.analysis["level"]),
                 "confidence_score": d.analysis["confidence_score"],
@@ -97,4 +106,7 @@ class IngredientService:
             function_type=d.function_type,
             standard_code=d.standard_code,
             analysis=analysis_data,
+            related_products=[
+                RelatedProductSimple(**p) for p in d.related_products
+            ],
         )
