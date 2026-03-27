@@ -10,10 +10,19 @@ class IngredientAnalysis(BaseModel):
 
     id: int
     analysis_type: str
-    result: str
+    result: dict | str  # ingredient_summary 时为 dict，其他情况为 str
     source: str | None
     level: RiskLevel
     confidence_score: int
+
+
+class RelatedProductSimple(BaseModel):
+    """配料关联的简化产品信息"""
+    id: int
+    name: str
+    barcode: str
+    image_url: str | None  # 取第一张图片
+    category: str | None  # product_category
 
 
 class IngredientResponse(BaseModel):
@@ -29,6 +38,7 @@ class IngredientResponse(BaseModel):
     function_type: str | None
     standard_code: str | None
     analysis: IngredientAnalysis | None
+    related_products: list[RelatedProductSimple] = []
 
 
 # ── 产品接口（/api/product 用）───────────────────────────────────────────────
