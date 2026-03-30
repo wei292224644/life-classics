@@ -33,8 +33,6 @@ def _create_anthropic_client(
     base_url: str | None,
 ) -> Callable[..., BaseModel]:
     """通过 Anthropic SDK + tool use 创建结构化输出 callable。"""
-    from parser.structured_llm.errors import StructuredOutputError
-
     client = anthropic.Anthropic(
         api_key=api_key,
         base_url=base_url,
@@ -55,26 +53,24 @@ def _create_anthropic_client(
             "description": f"返回结构化数据：{tool_name}",
             "input_schema": response_model.model_json_schema(),
         }
-        response = client.messages.create(
-            model=model,
-            max_tokens=4096,
-            temperature=temperature,
-            tools=[tool_def],
-            tool_choice={"type": "tool", "name": tool_name},
-            messages=messages,
-            timeout=float(timeout or settings.PARSER_STRUCTURED_TIMEOUT_SECONDS),
-        )
+        create_kwargs: dict[str, Any] = {
+            "model": model,
+            "max_tokens": 4096,
+            "temperature": temperature,
+            "tools": [tool_def],
+            "tool_choice": {"type": "tool", "name": tool_name},
+            "messages": messages,
+            "timeout": float(timeout or settings.PARSER_STRUCTURED_TIMEOUT_SECONDS),
+        }
+        if extra_body:
+            create_kwargs["extra_body"] = extra_body
+        response = client.messages.create(**create_kwargs)
         for block in response.content:
             if block.type == "tool_use":
                 return response_model(**block.input)
-        raise StructuredOutputError(
-            "Anthropic 响应中未找到 tool_use block",
-            provider="anthropic",
-            model=model,
-            node_name="unknown",
-            response_model=tool_name,
-            retry_count=0,
-            raw_error=repr(response.content),
+        raise ValueError(
+            f"Anthropic 响应中未找到 tool_use block，model={model!r}，"
+            f"response_model={tool_name!r}，content={response.content!r}"
         )
 
     return _create
