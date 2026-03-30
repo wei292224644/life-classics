@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any, Callable
 
 import anthropic
@@ -32,7 +33,11 @@ def _create_anthropic_client(
     api_key: str,
     base_url: str | None,
 ) -> Callable[..., BaseModel]:
-    """通过 Anthropic SDK + tool use 创建结构化输出 callable。"""
+    """通过 Anthropic SDK + streaming tool use 创建结构化输出 callable。
+
+    MiniMax 2.7 等模型单次请求可能超过 10 分钟，必须使用流式接口。
+    实现：stream=True → 遍历事件流，检测 tool_use block 并尽早返回。
+    """
     client = anthropic.Anthropic(
         api_key=api_key,
         base_url=base_url,
@@ -55,23 +60,39 @@ def _create_anthropic_client(
         }
         create_kwargs: dict[str, Any] = {
             "model": model,
-            "max_tokens": 4096,
+            "max_tokens": 102400,
             "temperature": temperature,
             "tools": [tool_def],
             "tool_choice": {"type": "tool", "name": tool_name},
             "messages": messages,
-            "timeout": float(timeout or settings.PARSER_STRUCTURED_TIMEOUT_SECONDS),
+            "stream": True,
         }
         if extra_body:
             create_kwargs["extra_body"] = extra_body
-        response = client.messages.create(**create_kwargs)
-        for block in response.content:
-            if block.type == "tool_use":
-                return response_model(**block.input)
-        raise ValueError(
-            f"Anthropic 响应中未找到 tool_use block，model={model!r}，"
-            f"response_model={tool_name!r}，content={response.content!r}"
-        )
+
+        tool_input_chunks: list[str] = []
+
+        with client.messages.create(**create_kwargs) as stream:
+            for event in stream:
+                if event.type == "content_block_delta":
+                    # text chunk — 忽略（我们只关心 tool_use）
+                    pass
+                elif event.type == "tool_use_delta":
+                    # 收集 tool_use 的 input 片段
+                    tool_input_chunks.append(event.delta.text)
+                elif event.type == "message_stop":
+                    break
+
+        # 拼合完整 input JSON
+        tool_input_text = "".join(tool_input_chunks)
+        if not tool_input_text:
+            raise ValueError(
+                f"Anthropic 响应中未找到 tool_use block，model={model!r}，"
+                f"response_model={tool_name!r}"
+            )
+
+        tool_input = json.loads(tool_input_text)
+        return response_model(**tool_input)
 
     return _create
 
@@ -84,6 +105,7 @@ def get_structured_client(provider: str, model: str) -> Callable[..., BaseModel]
     - openai: 使用 LLM_API_KEY / LLM_BASE_URL
     - dashscope: 使用 DASHSCOPE_API_KEY / DASHSCOPE_BASE_URL
     - ollama: 使用 OLLAMA_BASE_URL
+    - anthropic: 使用 ANTHROPIC_API_KEY / ANTHROPIC_BASE_URL（Streaming tool use）
 
     返回的 callable 签名兼容：
         create(model=..., messages=..., response_model=..., temperature=..., ...) -> BaseModel
