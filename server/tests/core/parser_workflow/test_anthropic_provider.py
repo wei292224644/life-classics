@@ -17,6 +17,7 @@ import pytest
 from pydantic import BaseModel
 
 from parser.structured_llm.client_factory import get_structured_client
+from parser.structured_llm.errors import StructuredOutputError
 
 
 class _DummyOutput(BaseModel):
@@ -79,3 +80,99 @@ def test_anthropic_client_raises_when_no_tool_use_block():
                 response_model=_DummyOutput,
             )
     assert "tool_use block" in str(exc_info.value)
+
+
+from parser.structured_llm import invoke_structured
+
+
+def test_invoke_structured_anthropic_timeout_retries():
+    """anthropic.APITimeoutError 可重试，达到上限后抛 StructuredOutputError。"""
+    import anthropic as anthropic_sdk
+
+    call_count = 0
+
+    def _fake_create(*, model, messages, response_model, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        raise anthropic_sdk.APITimeoutError(request=MagicMock())
+
+    with patch(
+        "parser.structured_llm.invoker.get_structured_client",
+        return_value=_fake_create,
+    ):
+        with pytest.raises(StructuredOutputError) as exc_info:
+            invoke_structured(
+                node_name="classify_node",
+                prompt="test",
+                response_model=_DummyOutput,
+                provider="anthropic",
+                model="MiniMax-Text-01",
+                max_retries=2,
+            )
+        assert exc_info.value.retry_count == 3
+
+    assert call_count == 3
+
+
+def test_invoke_structured_anthropic_internal_server_error_retries():
+    """anthropic.InternalServerError（500）可重试。"""
+    import anthropic as anthropic_sdk
+
+    call_count = 0
+
+    def _fake_create(*, model, messages, response_model, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        raise anthropic_sdk.InternalServerError(
+            message="internal error",
+            response=MagicMock(status_code=500),
+            body={},
+        )
+
+    with patch(
+        "parser.structured_llm.invoker.get_structured_client",
+        return_value=_fake_create,
+    ):
+        with pytest.raises(StructuredOutputError):
+            invoke_structured(
+                node_name="classify_node",
+                prompt="test",
+                response_model=_DummyOutput,
+                provider="anthropic",
+                model="MiniMax-Text-01",
+                max_retries=1,
+            )
+
+    assert call_count == 2
+
+
+def test_invoke_structured_anthropic_auth_error_no_retry():
+    """anthropic.AuthenticationError 不可重试，直接抛出。"""
+    import anthropic as anthropic_sdk
+
+    call_count = 0
+
+    def _fake_create(*, model, messages, response_model, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        raise anthropic_sdk.AuthenticationError(
+            message="invalid api key",
+            response=MagicMock(status_code=401),
+            body={},
+        )
+
+    with patch(
+        "parser.structured_llm.invoker.get_structured_client",
+        return_value=_fake_create,
+    ):
+        with pytest.raises(anthropic_sdk.AuthenticationError):
+            invoke_structured(
+                node_name="classify_node",
+                prompt="test",
+                response_model=_DummyOutput,
+                provider="anthropic",
+                model="MiniMax-Text-01",
+                max_retries=2,
+            )
+
+    assert call_count == 1  # 不重试

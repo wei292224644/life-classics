@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+try:
+    import anthropic as _anthropic
+    _ANTHROPIC_AVAILABLE = True
+except ImportError:
+    _anthropic = None  # type: ignore
+    _ANTHROPIC_AVAILABLE = False
+
 from typing import Any, TypeVar
 
 import structlog
@@ -163,10 +170,34 @@ def invoke_structured(
                 raw_error=str(e),
             ) from e
         except (TimeoutError, ConnectionError, Exception) as e:
+            # anthropic SDK 异常的显式判断
+            _is_anthropic_retryable = False
+            _is_anthropic_non_retryable = False
+            if _ANTHROPIC_AVAILABLE and _anthropic is not None:
+                if isinstance(e, (_anthropic.APITimeoutError, _anthropic.APIConnectionError)):
+                    _is_anthropic_retryable = True
+                elif isinstance(e, _anthropic.RateLimitError):
+                    _is_anthropic_retryable = True
+                elif isinstance(e, _anthropic.InternalServerError):
+                    _is_anthropic_retryable = True
+                elif isinstance(e, (_anthropic.AuthenticationError, _anthropic.BadRequestError)):
+                    _is_anthropic_non_retryable = True
+
+            if _is_anthropic_non_retryable:
+                _logger.error(
+                    "structured_llm_anthropic_non_retryable",
+                    node_name=node_name,
+                    provider=resolved_provider,
+                    model=resolved_model,
+                    error=str(e),
+                )
+                raise e
+
             # 兼容 httpx.ReadTimeout、httpx.ConnectTimeout、openai.APITimeoutError
             # 等价于：from httpx import TimeoutException; except (TimeoutError, *httpx.TimeoutException.__subclasses__())
             _is_retryable = (
-                isinstance(e, TimeoutError)
+                _is_anthropic_retryable
+                or isinstance(e, TimeoutError)
                 or isinstance(e, ConnectionError)
                 or type(e).__name__ in (
                     "ReadTimeout",
@@ -180,6 +211,7 @@ def invoke_structured(
                 )
                 or "timeout" in type(e).__name__.lower()
                 or "timed out" in str(e).lower()
+                or getattr(e, "status_code", 0) >= 500
             )
             if not _is_retryable:
                 _logger.error(
@@ -193,14 +225,15 @@ def invoke_structured(
                 raise e
             last_error = e
             retry_count = attempt + 1
+            retry_reason = (
+                "timeout" if isinstance(e, TimeoutError) else
+                "connection_error" if isinstance(e, ConnectionError) else
+                f"httpx_status_code_{getattr(e, 'status_code', 'unknown')}" if getattr(e, "status_code", 0) >= 500 else
+                f"exception_type_{type(e).__name__}"
+            )
             _logger.warning(
-                "structured_llm_retry",
-                node_name=node_name,
-                provider=resolved_provider,
-                model=resolved_model,
-                attempt=attempt + 1,
-                max_retries=max_retries + 1,
-                error=str(e),
+                f"[structured_llm_retry] {node_name} attempt {attempt + 1}/{max_retries + 1} "
+                f"reason={retry_reason} error={e!r}",
             )
             if attempt >= max_retries:
                 break
