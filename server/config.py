@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     LLM_API_KEY: str = ""
     LLM_BASE_URL: str = ""  # OpenAI-compatible endpoint，空则用 SDK 默认
 
+    # ── Anthropic 专用凭证（MiniMax Anthropic-compatible endpoint）─────────────
+    ANTHROPIC_API_KEY: str = ""
+    ANTHROPIC_BASE_URL: str = ""  # 如 https://api.minimax.chat/v1
+
     # ── DashScope 专用凭证 ────────────────────────────────────────────────────
     DASHSCOPE_API_KEY: str = ""
     DASHSCOPE_BASE_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
@@ -51,7 +55,7 @@ class Settings(BaseSettings):
 
     # ── Parser Workflow Structured Output（Instructor）────────────────────────
     PARSER_STRUCTURED_MAX_RETRIES: int = 2
-    PARSER_STRUCTURED_TIMEOUT_SECONDS: int = 180
+    PARSER_STRUCTURED_TIMEOUT_SECONDS: int = 20
     PARSER_STRUCTURED_TEMPERATURE: float = 0.0
     PARSER_STRUCTURED_LOG_PROMPT_PREVIEW: bool = False
 
@@ -63,11 +67,14 @@ class Settings(BaseSettings):
     SLICE_HEADING_LEVELS: List[int] = [2, 3, 4]
     # 规则文件目录（运行时动态追加新规则）
     RULES_DIR: str = "parser/rules"
+    # classify_node 最大并行数
+    CLASSIFY_MAX_CONCURRENCY: int = 1
 
     # ── Embedding 配置 ────────────────────────────────────────────────────────
     EMBEDDING_MODEL: str = "text-embedding-v3"
-    EMBEDDING_LLM_PROVIDER: str = ""  # 空则使用 PARSER_LLM_PROVIDER，支持 openai/dashscope/ollama
-    
+    EMBEDDING_LLM_PROVIDER: str = (
+        ""  # 空则使用 PARSER_LLM_PROVIDER，支持 openai/dashscope/ollama
+    )
 
     # ── Neo4j 连接 ────────────────────────────────────────────────────────────
     NEO4J_URI: str = "bolt://localhost:7687"
@@ -87,7 +94,7 @@ class Settings(BaseSettings):
     CHAT_MODEL: str = "qwen3-max-2026-01-23"
     CHAT_BASE_URL: str = ""
     CHAT_API_KEY: str = ""
-    AGENT_SKILLS_PATH: str = "agent/skills"   # 相对于 server/ 目录
+    AGENT_SKILLS_PATH: str = "agent/skills"  # 相对于 server/ 目录
     AGENT_MAX_ITERATIONS: int = 10
     CHAT_TEMPERATURE: float = 0.4
 
@@ -98,7 +105,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "postgres"
     POSTGRES_URL: str = ""  # 直接连接 URL，优先级高于上面的分项配置
-                             # 格式: postgresql+psycopg://user:password@host:port/dbname
+    # 格式: postgresql+psycopg://user:password@host:port/dbname
 
     # ── 可观测性（OTel + 日志）────────────────────────────────────────────────
     OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4318"
