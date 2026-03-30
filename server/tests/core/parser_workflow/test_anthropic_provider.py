@@ -176,3 +176,11 @@ def test_invoke_structured_anthropic_auth_error_no_retry():
             )
 
     assert call_count == 1  # 不重试
+
+
+def test_get_structured_client_unknown_provider_raises():
+    """未知 provider 抛 ValueError，提示包含 anthropic。"""
+    from parser.structured_llm.client_factory import get_structured_client
+    with pytest.raises(ValueError) as exc_info:
+        get_structured_client("unknown_provider", "some-model")
+    assert "anthropic" in str(exc_info.value)
