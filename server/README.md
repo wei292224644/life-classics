@@ -5,7 +5,7 @@
 ## 技术栈
 
 - **Web**：FastAPI、SSE 流式响应  
-- **解析**：LangGraph 流水线、`server/parser/rules/` 规则与 Instructor 结构化输出  
+- **解析**：LangGraph 流水线、`server/parser/rules/` 规则与 Anthropic Streaming Tool Use 结构化输出  
 - **知识库**：ChromaDB（向量）+ SQLite FTS（BM25）+ Reranker  
 - **依赖管理**：**uv**（`pyproject.toml`，勿用 pip 直接装依赖）
 
@@ -191,7 +191,7 @@ Markdown → parse → clean → structure → slice → classify → [escalate]
 | `ESCALATE_MODEL` | `qwen-max` | 二次判断等 |
 | `TRANSFORM_MODEL` | 空 | 不填则回退到 `ESCALATE_MODEL` |
 | `DOC_TYPE_LLM_MODEL` | `qwen-max` | 文档类型推断 |
-| `PARSER_STRUCTURED_MAX_RETRIES` | `2` | Instructor 重试 |
+| `PARSER_STRUCTURED_MAX_RETRIES` | `2` | 结构化输出重试 |
 | `PARSER_STRUCTURED_TIMEOUT_SECONDS` | `180` | 超时（秒） |
 | `CHUNK_SOFT_MAX` / `CHUNK_HARD_MAX` / `CHUNK_MIN_SIZE` | 1500 / 3000 / 200 | 分块参数 |
 | `CONFIDENCE_THRESHOLD` | `0.7` | 分类置信度阈值 |
