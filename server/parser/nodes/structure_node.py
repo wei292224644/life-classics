@@ -60,7 +60,7 @@ def _infer_doc_type_with_llm(
     "id": "...",
     "description": "...",
     "detect_keywords": [],
-    "detect_heading_patterns": [],
+    "detect_heading_patterns": []
 }"""
     prompt = f"""
     以下是一份国家标准文档的章节标题列表，请推断其文档类型。
@@ -77,15 +77,20 @@ def _infer_doc_type_with_llm(
         node_name="structure_node",
         prompt=prompt,
         response_model=DocTypeOutput,
+        extra_body={"enable_thinking": False, "reasoning_split": True},
     )
-    llm_calls_total.labels(node="structure_node", model=settings.DOC_TYPE_LLM_MODEL or "unknown").inc()
+    llm_calls_total.labels(
+        node="structure_node", model=settings.DOC_TYPE_LLM_MODEL or "unknown"
+    ).inc()
     return resp.model_dump()
 
 
 def structure_node(state: WorkflowState) -> dict:
     _start = time.perf_counter()
     doc_id = state.get("doc_metadata", {}).get("doc_id", "")
-    _logger.info("structure_node_start", node="structure_node", doc_id=doc_id, chunks_in=1)
+    _logger.info(
+        "structure_node_start", node="structure_node", doc_id=doc_id, chunks_in=1
+    )
 
     with _tracer.start_as_current_span("structure_node") as span:
         span.set_attribute("parser.node", "structure_node")

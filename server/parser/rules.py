@@ -66,8 +66,11 @@ class RulesStore:
         self.reload()
 
     def append_doc_type(self, new_entry: dict) -> None:
-        """追加新 doc_type，持久化后立即 reload。"""
-        self._dt.setdefault("doc_types", []).append(new_entry)
+        """追加新 doc_type，若 id 已存在则跳过，持久化后立即 reload。"""
+        doc_types = self._dt.setdefault("doc_types", [])
+        if any(dt.get("id") == new_entry.get("id") for dt in doc_types):
+            return
+        doc_types.append(new_entry)
         self._dt_path.write_text(
             json.dumps(self._dt, ensure_ascii=False, indent=2),
             encoding="utf-8",
