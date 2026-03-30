@@ -7,9 +7,12 @@ from typing import Any, Callable
 
 import anthropic
 import instructor
+import structlog
 from pydantic import BaseModel
 
 from config import settings
+
+_logger = structlog.get_logger(__name__)
 
 
 def _create_openai_client(
@@ -72,26 +75,69 @@ def _create_anthropic_client(
             create_kwargs["extra_body"] = extra_body
 
         partial_json_chunks: list[str] = []
+        text_chunks: list[str] = []
+        _debug: list[dict] = []
 
         with client.messages.create(**create_kwargs) as stream:
             for event in stream:
-                # content_block_delta 事件包含 InputJSONDelta 或 TextDelta
                 if event.type == "content_block_delta":
                     delta = event.delta
+                    delta_type = type(delta).__name__
+                    delta_attrs = {k: getattr(delta, k, None) for k in ["partial_json", "text"]}
+                    _debug.append({"delta_type": delta_type, "attrs": delta_attrs})
                     # InputJSONDelta.partial_json 是增量 JSON 字符串
                     if hasattr(delta, "partial_json") and delta.partial_json:
                         partial_json_chunks.append(delta.partial_json)
+                    # TextDelta 是普通文本（模型未走 tool_use 时的 fallback）
+                    elif hasattr(delta, "text"):
+                        text_chunks.append(delta.text)
                 elif event.type == "message_stop":
                     break
 
-        if not partial_json_chunks:
+        # 优先用 tool_use JSON 解析
+        if partial_json_chunks:
+            tool_input = json.loads("".join(partial_json_chunks))
+            return response_model(**tool_input)
+
+        _logger.warning(
+            "anthropic_tool_use_no_json_delta",
+            model=model,
+            tool_name=tool_name,
+            partial_count=len(partial_json_chunks),
+            text_count=len(text_chunks),
+            debug=json.dumps(_debug[:5]),
+        )
+
+        # Fallback：模型返回了普通文本，直接解析其中的 JSON
+        if text_chunks:
+            _logger.warning(
+                "anthropic_tool_use_fallback_to_text",
+                model=model,
+                tool_name=tool_name,
+            )
+            text_response = "".join(text_chunks)
+            # 尝试直接解析（模型可能直接返回了 JSON）
+            try:
+                return response_model(**json.loads(text_response))
+            except Exception:
+                pass
+            # 尝试提取 ```json ... ``` 包裹的 JSON
+            import re
+            match = re.search(r"```json\s*([\s\S]*?)\s*```", text_response)
+            if match:
+                try:
+                    return response_model(**json.loads(match.group(1)))
+                except Exception:
+                    pass
             raise ValueError(
-                f"Anthropic 响应中未找到 tool_use block，model={model!r}，"
-                f"response_model={tool_name!r}"
+                f"Anthropic fallback 解析失败，model={model!r}，"
+                f"response_model={tool_name!r}，text_preview={text_response[:200]!r}"
             )
 
-        tool_input = json.loads("".join(partial_json_chunks))
-        return response_model(**tool_input)
+        raise ValueError(
+            f"Anthropic 响应中未找到 tool_use block，model={model!r}，"
+            f"response_model={tool_name!r}"
+        )
 
     return _create
 

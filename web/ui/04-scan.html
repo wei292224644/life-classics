@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>食品安全助手 — 完整 UX 设计</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream:   #FAF8F3;
+  --cream-2: #F2EFE8;
+  --surface: #FFFFFF;
+  --brand:   #C4532A;
+  --text:    #1A1714;
+  --text-2:  #6B6560;
+  --text-3:  #A09890;
+  --border:  rgba(26,23,20,0.08);
+
+  --t0-dot:#3D7A5C; --t0-bg:#EEF7F2; --t0-text:#1E4D38;
+  --t1-dot:#2E7D7A; --t1-bg:#EAF4F4; --t1-text:#164D4B;
+  --t2-dot:#B07D1A; --t2-bg:#FEF5E0; --t2-text:#6B4A0A;
+  --t3-dot:#C44A2B; --t3-bg:#FDEEE9; --t3-text:#7A2410;
+  --t4-dot:#8B1A1A; --t4-bg:#FDDEDE; --t4-text:#5A0D0D;
+
+  --r-sm:10px; --r-md:18px; --r-lg:26px; --r-xl:34px;
+  --shadow: 0 2px 18px rgba(26,23,20,0.08), 0 0 0 1px rgba(26,23,20,0.05);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans','Noto Sans SC',-apple-system,sans-serif;
+  background: #DEDAD3;
+  padding: 40px 24px 100px;
+}
+
+.pg-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: #9A9488;
+  margin-bottom: 16px; margin-top: 56px;
+}
+.pg-label:first-child { margin-top: 0; }
+
+/* ── Phone row: no gaps/bleed ── */
+.phone-row {
+  display: flex; gap: 0; flex-wrap: nowrap;
+  align-items: flex-start; overflow-x: auto; padding-bottom: 8px;
+}
+.phone-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; flex-shrink: 0;
+  /* subtle separation without background bleed */
+  padding: 0 14px;
+}
+.phone-wrap:first-child { padding-left: 0; }
+.phone-wrap:last-child  { padding-right: 0; }
+
+.phone {
+  width: 375px;
+  border-radius: 48px;
+  overflow: hidden;
+  box-shadow: 0 28px 80px rgba(0,0,0,0.20), 0 0 0 1px rgba(0,0,0,0.09);
+  flex-shrink: 0;
+}
+.cap {
+  font-size: 11px; font-weight: 600; color: #9A9488;
+  letter-spacing: .04em; text-align: center;
+}
+.sb {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 28px 0; font-size: 12px; font-weight: 700;
+  font-family: 'Plus Jakarta Sans',sans-serif;
+}
+
+/* ════════════════════════════════
+   HOME
+════════════════════════════════ */
+.home { background: var(--cream); min-height: 812px; }
+
+.home-hdr { padding: 18px 24px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+.home-greeting { font-size: 13px; font-weight: 500; color: var(--text-3); margin-bottom: 2px; }
+.home-title { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -.03em; line-height: 1.1; }
+.home-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--surface); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-top: 4px; }
+
+.cta-card {
+  margin: 22px 20px 0;
+  background: var(--brand);
+  border-radius: var(--r-xl); padding: 26px 24px;
+  display: flex; flex-direction: column; gap: 14px;
+  position: relative; overflow: hidden; cursor: pointer;
+}
+.cta-card::before { content:''; position:absolute; top:-40px; right:-40px; width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,.08); }
+.cta-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.6); letter-spacing: .1em; text-transform: uppercase; }
+.cta-main  { font-size: 24px; font-weight: 800; color: white; letter-spacing: -.02em; line-height: 1.2; }
+.cta-sub   { font-size: 13px; color: rgba(255,255,255,.65); }
+.cta-btn   { align-self: flex-start; background: white; color: var(--brand); font-size: 13px; font-weight: 700; padding: 9px 20px; border-radius: 100px; }
+
+.sec-hdr { display: flex; justify-content: space-between; align-items: center; padding: 26px 24px 10px; }
+.sec-hdr-t { font-size: 16px; font-weight: 700; color: var(--text); }
+.sec-hdr-l { font-size: 13px; font-weight: 600; color: var(--brand); }
+
+.hist-item { display: flex; align-items: center; gap: 14px; padding: 13px 24px; border-bottom: 1px solid var(--border); }
+.hist-item:last-child { border-bottom: none; }
+.hist-img { width: 50px; height: 50px; border-radius: var(--r-sm); flex-shrink: 0; background: var(--cream-2); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-3); }
+.hist-name { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.hist-meta { font-size: 11px; color: var(--text-3); }
+.rpill { padding: 5px 11px; border-radius: 100px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+
+/* ════════════════════════════════
+   ANALYSIS
+════════════════════════════════ */
+.analysis { background: #1A1714; min-height: 812px; display: flex; flex-direction: column; }
+.analysis-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 36px; padding: 20px; }
+.a-status-label { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 8px; text-align: center; }
+.a-status-title { font-size: 24px; font-weight: 800; color: white; letter-spacing: -.02em; text-align: center; }
+.photo-frame { width: 240px; height: 168px; border-radius: 16px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center; position: relative; }
+.pf-text { font-size: 12px; color: rgba(255,255,255,.22); }
+.co { position: absolute; width: 18px; height: 18px; border-color: var(--brand); border-style: solid; }
+.c-tl { top:8px; left:8px;  border-width:2px 0 0 2px; border-radius:3px 0 0 0; }
+.c-tr { top:8px; right:8px; border-width:2px 2px 0 0; border-radius:0 3px 0 0; }
+.c-bl { bottom:8px; left:8px;  border-width:0 0 2px 2px; border-radius:0 0 0 3px; }
+.c-br { bottom:8px; right:8px; border-width:0 2px 2px 0; border-radius:0 0 3px 0; }
+.scan-line { position:absolute; left:8px; right:8px; height:1px; background:linear-gradient(90deg,transparent,var(--brand),transparent); top:40%; animation: sc 2s ease-in-out infinite; }
+@keyframes sc { 0%,100%{top:15%} 50%{top:85%} }
+
+.steps { width: 260px; display: flex; flex-direction: column; gap: 14px; }
+.step { display: flex; align-items: center; gap: 12px; }
+.s-dot { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+.s-dot.done   { background: var(--brand); color: white; }
+.s-dot.active { background: transparent; border: 1.5px solid rgba(255,255,255,.3); color: white; }
+.s-dot.wait   { background: rgba(255,255,255,.06); color: rgba(255,255,255,.2); }
+.s-main { font-size: 13px; font-weight: 600; }
+.s-sub  { font-size: 11px; margin-top: 1px; }
+.done   .s-main { color: rgba(255,255,255,.9); } .done   .s-sub { color: rgba(255,255,255,.35); }
+.active .s-main { color: white; }               .active .s-sub { color: rgba(255,255,255,.35); }
+.wait   .s-main { color: rgba(255,255,255,.25); }
+
+/* ════════════════════════════════
+   RESULT PAGE — full scroll
+════════════════════════════════ */
+.result { background: var(--cream); min-height: 812px; display: flex; flex-direction: column; }
+
+/* Layer 1 — Verdict zone */
+.verdict-zone { padding: 16px 22px 36px; position: relative; overflow: hidden; }
+.verdict-zone::before { content:''; position:absolute; bottom:-60px; right:-60px; width:190px; height:190px; border-radius:50%; background:rgba(46,125,122,.06); pointer-events:none; }
+.v-back { font-size: 20px; color: var(--t1-dot); cursor: pointer; margin-bottom: 14px; display: block; }
+.v-food { font-size: 12px; font-weight: 500; color: var(--t1-text); opacity:.7; margin-bottom: 5px; }
+.v-big  { font-size: 44px; font-weight: 800; color: var(--t1-dot); letter-spacing: -.04em; line-height: 1; margin-bottom: 8px; }
+.v-desc { font-size: 13px; color: var(--t1-text); opacity:.75; font-weight: 500; margin-bottom: 12px; }
+.v-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--t1-dot); color: white; padding: 5px 13px; border-radius: 100px; font-size: 11px; font-weight: 700; }
+
+/* Sheet */
+.sheet { background: white; border-radius: 26px 26px 0 0; margin-top: -20px; padding-bottom: 32px; }
+.sheet-handle { width: 36px; height: 4px; background: #E0DCD6; border-radius: 2px; margin: 12px auto 18px; }
+
+/* Section */
+.rs { padding: 0 20px 20px; }
+.rs-t { font-size: 11px; font-weight: 700; color: var(--text-3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px; }
+.rs-divider { height: 1px; background: var(--border); margin: 4px 20px 20px; }
+
+/* Layer 2 — Ingredients */
+.ing { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.ing:last-child { border-bottom: none; }
+.ing-info { flex: 1; }
+.ing-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.ing-type { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+/* advice */
+.advice { background: var(--cream); border-radius: var(--r-md); padding: 14px; font-size: 13px; line-height: 1.75; color: var(--text-2); }
+
+/* before/after */
+.ba { display: flex; align-items: center; gap: 8px; }
+.ba-col { flex: 1; border-radius: var(--r-md); padding: 12px 13px; }
+.ba-item { font-size: 12px; font-weight: 500; padding: 3px 0; }
+.ba-arrow { font-size: 22px; color: var(--brand); flex-shrink: 0; font-weight: 700; }
+
+/* Layer 3 — Demographics */
+.demo-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 4px 20px 4px; scrollbar-width: none; }
+.demo-scroll::-webkit-scrollbar { display: none; }
+.demo-card {
+  flex-shrink: 0; width: 110px;
+  border-radius: var(--r-md); padding: 14px 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  border: 1px solid var(--border);
+}
+.demo-icon { font-size: 24px; }
+.demo-group { font-size: 12px; font-weight: 700; color: var(--text); }
+.demo-verdict { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 100px; width: fit-content; }
+.demo-note { font-size: 10px; color: var(--text-3); line-height: 1.5; }
+
+/* Layer 4 — Scenarios */
+.scenario { margin-bottom: 16px; }
+.scenario:last-child { margin-bottom: 0; }
+.sc-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+.sc-text { font-size: 13px; line-height: 1.75; color: var(--text-2); }
+
+/* Layer 5 — References & Disclaimer */
+.refs { padding: 0 20px; }
+.ref-title { font-size: 11px; font-weight: 700; color: var(--text-3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+.ref-item { font-size: 11px; color: var(--text-3); padding: 3px 0; line-height: 1.5; }
+.disclaimer-box { margin: 16px 20px 0; background: var(--cream); border-radius: var(--r-md); padding: 14px; }
+.disclaimer-text { font-size: 11px; color: var(--text-3); line-height: 1.65; }
+.ai-tag { display: inline-block; background: #EEF7F2; color: #1E4D38; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<div class="pg-label">Full UX Flow — 4 Screens</div>
+<div class="phone-row">
+
+  <!-- ① HOME -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="home">
+        <div class="sb" style="color:#1A1714"><span>11:01</span><span>◈ ☁ 44+</span></div>
+        <div class="home-hdr" style="margin-top:8px">
+          <div>
+            <div class="home-greeting">今天吃了什么？</div>
+            <div class="home-title">我的<br>分析记录</div>
+          </div>
+          <div class="home-icon">⚙</div>
+        </div>
+        <div class="cta-card">
+          <div class="cta-label">AI 拍照分析</div>
+          <div class="cta-main">拍一张配料表<br>秒知成分好坏</div>
+          <div class="cta-sub">支持所有包装食品</div>
+          <div class="cta-btn">立即拍照 →</div>
+        </div>
+        <div class="sec-hdr">
+          <span class="sec-hdr-t">最近分析</span>
+          <span class="sec-hdr-l">全部 →</span>
+        </div>
+        <div class="hist-item">
+          <div class="hist-img" style="background:linear-gradient(135deg,#bfdbfe,#3b82f6)">图</div>
+          <div style="flex:1"><div class="hist-name">快熟燕麦片</div><div class="hist-meta">3天前 · 18种成分</div></div>
+          <span class="rpill" style="background:#EAF4F4;color:#164D4B">较安全</span>
+        </div>
+        <div class="hist-item">
+          <div class="hist-img" style="background:linear-gradient(135deg,#fde68a,#d97706)">图</div>
+          <div style="flex:1"><div class="hist-name">椰香脆卷</div><div class="hist-meta">1周前 · 12种成分</div></div>
+          <span class="rpill" style="background:#FEF5E0;color:#6B4A0A">谨慎</span>
+        </div>
+        <div class="hist-item">
+          <div class="hist-img" style="background:linear-gradient(135deg,#bbf7d0,#16a34a)">图</div>
+          <div style="flex:1"><div class="hist-name">高纤 GI 饼干</div><div class="hist-meta">2周前 · 24种成分</div></div>
+          <span class="rpill" style="background:#EAF4F4;color:#164D4B">较安全</span>
+        </div>
+        <div class="hist-item">
+          <div class="hist-img" style="background:linear-gradient(135deg,#fecaca,#dc2626)">图</div>
+          <div style="flex:1"><div class="hist-name">某款能量饮料</div><div class="hist-meta">3周前 · 9种成分</div></div>
+          <span class="rpill" style="background:#FDEEE9;color:#7A2410">存在风险</span>
+        </div>
+      </div>
+    </div>
+    <div class="cap">首页 — 历史记录</div>
+  </div>
+
+  <!-- ② ANALYSIS -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="analysis">
+        <div class="sb" style="color:rgba(255,255,255,.4)"><span>11:01</span><span>◈ ☁ 44+</span></div>
+        <div class="analysis-body">
+          <div>
+            <div class="a-status-label">Analyzing</div>
+            <div class="a-status-title">AI 正在分析中</div>
+          </div>
+          <div class="photo-frame">
+            <div class="co c-tl"></div><div class="co c-tr"></div>
+            <div class="co c-bl"></div><div class="co c-br"></div>
+            <div class="scan-line"></div>
+            <span class="pf-text">配料表照片</span>
+          </div>
+          <div class="steps">
+            <div class="step done">
+              <div class="s-dot done">✓</div>
+              <div><div class="s-main">识别配料表文字</div><div class="s-sub">已识别 24 种成分</div></div>
+            </div>
+            <div class="step active">
+              <div class="s-dot active">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <circle cx="7" cy="7" r="5.5" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
+                  <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="#C4532A" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div><div class="s-main">对照安全标准数据库</div><div class="s-sub">GB2760-2024 · JECFA…</div></div>
+            </div>
+            <div class="step wait">
+              <div class="s-dot wait">3</div>
+              <div><div class="s-main">生成评估报告</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cap">分析中</div>
+  </div>
+
+  <!-- ③ RESULT — upper half -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="result">
+        <div class="sb" style="color:#164D4B"><span>11:01</span><span>◈ ☁ 44+</span></div>
+
+        <!-- L1: Verdict -->
+        <div class="verdict-zone" style="background:var(--t1-bg)">
+          <span class="v-back">←</span>
+          <div class="v-food">高纤 GI 饼干（牛油果椰乳）</div>
+          <div class="v-big" style="color:var(--t1-dot)">成分较优 ✓</div>
+          <div class="v-desc" style="color:var(--t1-text)">整体配料合规，少量添加剂需留意</div>
+          <span class="v-badge" style="background:var(--t1-dot)">t1 · 较安全 · 24种成分</span>
+        </div>
+
+        <div class="sheet">
+          <div class="sheet-handle"></div>
+
+          <!-- L2: Ingredients -->
+          <div class="rs">
+            <div class="rs-t">配料解析</div>
+            <div class="ing"><div class="ing-info"><div class="ing-name">燕麦粉</div><div class="ing-type">主要原料 · 全谷物</div></div><span class="rpill" style="background:#EEF7F2;color:#1E4D38">安全</span></div>
+            <div class="ing"><div class="ing-info"><div class="ing-name">麦芽糊精</div><div class="ing-type">增稠剂 · 高升糖指数</div></div><span class="rpill" style="background:#FEF5E0;color:#6B4A0A">谨慎</span></div>
+            <div class="ing"><div class="ing-info"><div class="ing-name">阿斯巴甜</div><div class="ing-type">人工甜味剂 · 争议成分</div></div><span class="rpill" style="background:#FDEEE9;color:#7A2410">存在风险</span></div>
+          </div>
+
+          <!-- L2: Advice -->
+          <div class="rs">
+            <div class="rs-t">参考建议</div>
+            <div class="advice">含膳食纤维，整体成分结构合理。麦芽糊精升糖较快，阿斯巴甜属争议添加剂。敏感人群或儿童可选赤藓糖醇版本替代。</div>
+          </div>
+
+          <!-- L2: Alternatives -->
+          <div class="rs">
+            <div class="rs-t">更优替代方案</div>
+            <div class="ba">
+              <div class="ba-col" style="background:#FEF5E0">
+                <div class="ba-item" style="color:#6B4A0A">麦芽糊精</div>
+                <div class="ba-item" style="color:#6B4A0A">阿斯巴甜</div>
+                <div class="ba-item" style="color:#6B4A0A">食用植物油</div>
+              </div>
+              <div class="ba-arrow">›</div>
+              <div class="ba-col" style="background:#EEF7F2">
+                <div class="ba-item" style="color:#1E4D38">燕麦膳食纤维</div>
+                <div class="ba-item" style="color:#1E4D38">赤藓糖醇</div>
+                <div class="ba-item" style="color:#1E4D38">初榨橄榄油</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cap">结果页 — 上半（摘要+重要信息）</div>
+  </div>
+
+  <!-- ④ RESULT — lower half (scroll continuation) -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="result" style="background:white">
+        <div class="sb" style="color:#1A1714;background:white"><span>↑ 继续往上是结果摘要</span><span></span></div>
+
+        <div style="padding-bottom: 32px">
+
+          <!-- L3: Demographics -->
+          <div style="padding: 20px 0 0">
+            <div class="rs-t" style="padding: 0 20px 12px">不同人群参考</div>
+            <div class="demo-scroll">
+              <div class="demo-card" style="background:#EEF7F2;border-color:#D0EBE0">
+                <div class="demo-icon">🧑</div>
+                <div class="demo-group">普通成人</div>
+                <span class="demo-verdict" style="background:#3D7A5C;color:white">适量可食</span>
+                <div class="demo-note">每日不超过 2-3 份，注意整体糖分摄入</div>
+              </div>
+              <div class="demo-card" style="background:#FEF5E0;border-color:#EDD9A0">
+                <div class="demo-icon">👶</div>
+                <div class="demo-group">婴幼儿</div>
+                <span class="demo-verdict" style="background:#B07D1A;color:white">建议回避</span>
+                <div class="demo-note">含阿斯巴甜，3岁以下不建议</div>
+              </div>
+              <div class="demo-card" style="background:#FDEEE9;border-color:#F0C4B0">
+                <div class="demo-icon">🤰</div>
+                <div class="demo-group">孕妇</div>
+                <span class="demo-verdict" style="background:#C44A2B;color:white">谨慎了解</span>
+                <div class="demo-note">阿斯巴甜争议，建议咨询医生</div>
+              </div>
+              <div class="demo-card" style="background:#EAF4F4;border-color:#B0D8D8">
+                <div class="demo-icon">👴</div>
+                <div class="demo-group">中老年</div>
+                <span class="demo-verdict" style="background:#2E7D7A;color:white">适量参考</span>
+                <div class="demo-note">膳食纤维有益，控制升糖食品</div>
+              </div>
+              <div class="demo-card" style="background:#EEF7F2;border-color:#D0EBE0">
+                <div class="demo-icon">🏃</div>
+                <div class="demo-group">运动人群</div>
+                <span class="demo-verdict" style="background:#3D7A5C;color:white">较适合</span>
+                <div class="demo-note">训练间歇补充能量，控制份量</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rs-divider"></div>
+
+          <!-- L4: Scenarios -->
+          <div class="rs">
+            <div class="rs-t">食用场景参考</div>
+            <div class="scenario">
+              <div class="sc-title">☀ 上午加餐</div>
+              <div class="sc-text">富含膳食纤维，1-2 块配一杯牛奶，可补充能量且有饱腹感，适合大多数人群。</div>
+            </div>
+            <div class="scenario">
+              <div class="sc-title">🌙 减肥代餐</div>
+              <div class="sc-text">热量适中，2-3 块配水煮蔬菜可作为轻代餐。注意麦芽糊精升糖较快，搭配蛋白质更佳。</div>
+            </div>
+            <div class="scenario">
+              <div class="sc-title">🏋 运动后补充</div>
+              <div class="sc-text">训练后 30 分钟内食用，碳水化合物有助于糖原恢复，但蛋白质含量不足，建议额外补充。</div>
+            </div>
+          </div>
+
+          <div class="rs-divider"></div>
+
+          <!-- L5: References & Disclaimer -->
+          <div class="refs">
+            <div class="ref-title">分析依据</div>
+            <div class="ref-item">· 《中国居民膳食指南 2022 版》</div>
+            <div class="ref-item">· 食品安全国家标准 GB7718-2025</div>
+            <div class="ref-item">· 食品添加剂使用标准 GB2760-2024</div>
+            <div class="ref-item">· JECFA 食品添加剂安全评估</div>
+            <div class="ref-item">· GRAS 认证清单</div>
+          </div>
+
+          <div class="disclaimer-box">
+            <span class="ai-tag">AI 生成</span>
+            <div class="disclaimer-text">本内容仅供参考，不构成任何医疗、营养或食品安全方面的专业建议。分析基于包装配料表信息，实际健康影响因个人情况而异。如有特殊健康需求，请咨询专业医生或营养师。</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="cap">结果页 — 下半（人群·场景·参考文献）</div>
+  </div>
+
+</div>
+
+</body>
+</html>

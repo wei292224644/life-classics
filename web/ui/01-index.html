@@ -1,302 +1,449 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>01 首页</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        'bg-base':           'var(--bg-base)',
-        'bg-card':           'var(--bg-card)',
-        'bg-card-hover':     'var(--bg-card-hover)',
-        'text-primary':      'var(--text-primary)',
-        'text-secondary':    'var(--text-secondary)',
-        'text-muted':        'var(--text-muted)',
-        'border-c':          'var(--border-color)',
-        'accent-pink':       'var(--accent-pink)',
-        'accent-pink-light': 'var(--accent-pink-light)',
-        'risk-t4':           'var(--risk-t4)',
-        'risk-t3':           'var(--risk-t3)',
-        'risk-t2':           'var(--risk-t2)',
-        'risk-t1':           'var(--risk-t1)',
-        'risk-t0':           'var(--risk-t0)',
-        'risk-unknown':      'var(--risk-unknown)',
-      },
-      fontFamily: {
-        sans: ['DM Sans', '-apple-system', 'sans-serif'],
-      },
-    }
-  }
-}
-</script>
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: 'DM Sans', -apple-system, sans-serif;
-  background: #0a0a0f;
-  min-height: 100vh;
-  padding: 40px 20px 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 40px;
-}
-h1 { color: white; font-size: 22px; font-weight: 700; text-align: center; }
-.page-sub { color: rgba(255,255,255,0.45); font-size: 13px; text-align: center; margin-top: 4px; }
-.phones-row { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
-.phone-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.mode-badge { font-size:12px; font-weight:600; padding:4px 14px; border-radius:20px; letter-spacing:0.02em; }
-.mode-light { background:#f3f4f6; color:#374151; }
-.mode-dark  { background:#1f2937; color:#9ca3af; }
-.phone-shell { background:#141414; border-radius:52px; padding:12px; width:399px;
-  box-shadow: 0 0 0 1px #2a2a2a, 0 32px 64px rgba(0,0,0,0.7), inset 0 0 0 2px #1a1a1a; }
-.phone-notch { background:#141414; width:90px; height:22px; border-radius:0 0 16px 16px;
-  margin:0 auto -5px; position:relative; z-index:2; }
-.phone-screen { border-radius:40px; overflow:hidden; height:812px;
-  scrollbar-width:none; position:relative; }
-.phone-screen::-webkit-scrollbar { display:none; }
-@keyframes pulse-ring {
-  0%   { transform: scale(1); opacity: 0.6; }
-  70%  { transform: scale(1.15); opacity: 0; }
-  100% { transform: scale(1.15); opacity: 0; }
-}
-.animate-pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>食品安全助手 — 首页</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS — Tailwind v3 System (DESIGN.md)
+   ═══════════════════════════════════════════════════════════════ */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-.light-mode {
-  --bg-base: #f5f5f5;
-  --bg-card: #ffffff;
-  --bg-card-hover: #f9fafb;
-  --text-primary: #111;
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
-  --border-color: rgba(0,0,0,0.06);
-  --accent-pink: #db2777;
-  --accent-pink-light: #ec4899;
-  --risk-t4: #dc2626;
-  --risk-t3: #ea580c;
-  --risk-t2: #ca8a04;
-  --risk-t1: #16a34a;
-  --risk-t0: #059669;
-  --risk-unknown: #9ca3af;
-}
-.dark-mode {
-  --bg-base: #0f0f0f;
-  --bg-card: #1a1a1a;
-  --bg-card-hover: #222222;
-  --text-primary: #f5f5f5;
-  --text-secondary: #a1a1a1;
-  --text-muted: #6b7280;
-  --border-color: rgba(255,255,255,0.08);
-  --accent-pink: #ec4899;
-  --accent-pink-light: #f472b6;
-  --risk-t4: #ef4444;
-  --risk-t3: #f97316;
-  --risk-t2: #eab308;
-  --risk-t1: #86efac;
-  --risk-t0: #22c55e;
-  --risk-unknown: #9ca3af;
-}
-</style>
-</head>
-<body>
+      button {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+      }
 
-<div>
-  <h1>01 首页</h1>
-  <p class="page-sub">375px · Tailwind CSS · 亮色 + 暗色</p>
-</div>
+      :root {
+        /* Focus ring */
+        --focus-ring: rgba(196, 83, 42, 0.85);
+      }
 
-<div class="phones-row">
+      /* ── Layer 0 · Page background ── */
+      :root {
+        /* Background layers */
+        --bg-page: #faf8f3; /* Layer 0 — page root (warm off-white) */
+        --bg-surface: #ffffff; /* Layer 1 — card/sheet body */
+        --bg-raised: #f2efe8; /* Layer 2 — embedded card/advice/input */
 
-  <!-- ═══════════════════════════════════ LIGHT ═══════════════════════════════════ -->
-  <div class="phone-col">
-    <div class="mode-badge mode-light">☀ 亮色模式</div>
-    <div class="phone-shell">
-      <div class="phone-notch"></div>
-      <div class="phone-screen">
+        /* Text layers */
+        --ink: #1a1714; /* Primary text */
+        --ink-2: #6b6560; /* Secondary text */
+        --ink-3: #a09890; /* Muted text */
 
-        <div class="light-mode min-h-screen bg-bg-base flex flex-col pb-[60px]">
+        /* Brand (陶土橙) */
+        --brand: #c4532a;
+        --brand-light: #fdeee9;
+        --brand-dark: #a34222;
 
-          <!-- Hero -->
-          <div class="bg-bg-card px-6 pt-10 pb-8 flex flex-col items-center border-b border-border-c">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="text-[26px]">🍎</span>
-              <span class="text-[17px] font-bold text-text-primary tracking-tight">食品安全助手</span>
-            </div>
-            <p class="text-xs text-text-muted mb-7">扫码查配料 · 了解你吃的每一口</p>
+        /* Border */
+        --border: rgba(26, 23, 20, 0.08);
 
-            <!-- Scan CTA -->
-            <button
-              type="button"
-              class="w-[140px] h-[140px] rounded-full bg-gradient-to-br from-accent-pink-light to-accent-pink flex flex-col items-center justify-center gap-1.5 relative shadow-[0_4px_20px_rgba(236,72,153,0.3)] transition-transform duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-pink focus:ring-offset-2"
-              aria-label="扫一扫"
-            >
-              <span class="absolute inset-[-4px] rounded-full border-2 border-[rgba(236,72,153,0.3)] animate-pulse-ring"></span>
-              <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/>
-                <line x1="7" y1="12" x2="17" y2="12"/>
-              </svg>
-              <span class="text-white text-base font-bold tracking-tight">扫一扫</span>
-            </button>
+        /* Risk color system — t0(t1)/t2/t3/t4 + dot/bg/text groups */
+        --risk-t0-dot: #3d7a5c;
+        --risk-t0-bg: #eef7f2;
+        --risk-t0-text: #1e4d38;
+        --risk-t1-dot: #2e7d7a;
+        --risk-t1-bg: #eaf4f4;
+        --risk-t1-text: #164d4b;
+        --risk-t2-dot: #b07d1a;
+        --risk-t2-bg: #fef5e0;
+        --risk-t2-text: #6b4a0a;
+        --risk-t3-dot: #c44a2b;
+        --risk-t3-bg: #fdeee9;
+        --risk-t3-text: #7a2410;
+        --risk-t4-dot: #8b1a1a;
+        --risk-t4-bg: #fddede;
+        --risk-t4-text: #5a0d0d;
+
+        /* Radius tokens (DESIGN.md §4) */
+        --radius-sm: 10px; /* History thumbnail, small tag */
+        --radius-md: 18px; /* Advice box, crowd card */
+        --radius-lg: 26px; /* Sheet main block */
+        --radius-xl: 34px; /* CTA card, chat entry */
+        --radius-pill: 9999px;
+
+        /* Shadow tokens (DESIGN.md §5) */
+        --shadow-sm: 0 1px 6px rgba(26, 23, 20, 0.08);
+        --shadow-md:
+          0 2px 18px rgba(26, 23, 20, 0.08), 0 0 0 1px rgba(26, 23, 20, 0.05);
+        --shadow-lg: 0 12px 48px rgba(26, 23, 20, 0.14);
+      }
+
+      /* ── Typography — Plus Jakarta Sans + Noto Sans SC (DESIGN.md §2) ── */
+      /* 基准：1rem = 16px */
+      html {
+        font-size: 16px;
+      }
+
+      body {
+        font-family:
+          "Plus Jakarta Sans",
+          "Noto Sans SC",
+          -apple-system,
+          sans-serif;
+        background: #dedad3;
+        padding: 2.5rem 1.5rem 6.25rem;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      button {
+        font-family: inherit;
+      }
+
+      /* Phone shell */
+      .phone {
+        width: 23.4375rem; /* 375px */
+        max-width: 100%;
+        border-radius: 3rem; /* 48px */
+        overflow: hidden;
+        margin: 0 auto;
+        box-shadow:
+          0 1.75rem 5rem rgba(0, 0, 0, 0.2),
+          0 0 0 1px rgba(0, 0, 0, 0.09);
+        background: var(--bg-surface);
+      }
+
+      .cap {
+        font-size: 0.6875rem; /* 11px */
+        font-weight: 600;
+        color: var(--ink);
+        letter-spacing: 0.04em;
+        text-align: center;
+        margin-top: 0.625rem;
+      }
+
+      .sb {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.875rem 1.75rem 0;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--ink);
+      }
+
+      /* ═══════════════════════════════════════════════════════════════
+   HOME PAGE
+   ═══════════════════════════════════════════════════════════════ */
+      .home {
+        background: var(--bg-page);
+        min-height: 50.75rem; /* 812px */
+      }
+
+      .home-hdr {
+        padding: 1.125rem 1.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      .home-hdr--spaced {
+        margin-top: 0.5rem;
+      }
+
+      .home-greeting {
+        font-size: 0.8125rem; /* 13px */
+        font-weight: 500;
+        color: var(--ink-3); /* muted greeting text per DESIGN.md */
+        margin-bottom: 0.125rem;
+      }
+
+      .home-title {
+        font-size: 1.75rem; /* 28px — text-hero */
+        font-weight: 800;
+        color: var(--ink);
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+      }
+
+      .home-icon {
+        width: 2.75rem; /* 44px */
+        height: 2.75rem; /* 44px */
+        border-radius: 50%;
+        background: var(--bg-surface);
+        box-shadow: var(--shadow-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem; /* 20px */
+        margin-top: 0.25rem;
+        appearance: none;
+        border: 0;
+        cursor: pointer;
+      }
+
+      /* CTA Card (DESIGN.md §3 CTA) */
+      .cta-card {
+        margin: 1.375rem 1.25rem 0; /* 22px 20px */
+        background: var(--brand);
+        border-radius: var(--radius-xl); /* 2.125rem 34px */
+        padding: 1.625rem 1.5rem; /* 26px 24px */
+        display: flex;
+        flex-direction: column;
+        gap: 0.875rem; /* 14px */
+        position: relative;
+        overflow: hidden;
+        appearance: none;
+        border: 0;
+        text-align: left;
+      }
+
+      .cta-card::before {
+        content: "";
+        position: absolute;
+        top: -2.5rem; /* -40px */
+        right: -2.5rem; /* -40px */
+        width: 8.125rem; /* 130px */
+        height: 8.125rem; /* 130px */
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .cta-label {
+        font-size: 0.6875rem; /* 11px */
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.6); /* white/60 per DESIGN.md */
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .cta-main {
+        font-size: 1.5rem; /* 24px */
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+
+      .cta-sub {
+        font-size: 0.8125rem; /* 13px */
+        color: rgba(255, 255, 255, 0.65); /* white/65 per DESIGN.md */
+      }
+
+      .cta-btn {
+        align-self: flex-start;
+        background: white;
+        color: var(--brand);
+        font-size: 0.8125rem; /* 13px — text-label */
+        font-weight: 700;
+        padding: 0.5625rem 1.25rem; /* 9px 20px */
+        border-radius: var(--radius-pill);
+        display: inline-flex;
+        align-items: center;
+      }
+
+      /* Section header */
+      .sec-hdr {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.625rem 1.5rem 0.625rem; /* 26px 24px 10px */
+      }
+
+      .sec-hdr-t {
+        font-size: 1rem; /* 16px */
+        font-weight: 700;
+        color: var(--ink);
+      }
+
+      .sec-hdr-l {
+        font-size: 0.8125rem; /* 13px */
+        font-weight: 600;
+        color: var(--brand-dark);
+        appearance: none;
+        border: 0;
+        background: transparent;
+        padding: 0.5rem 0.75rem; /* tap target */
+        min-height: 2.75rem; /* 44px */
+        min-width: 2.75rem; /* 44px */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-pill);
+        cursor: pointer;
+        line-height: 1;
+      }
+
+      .sec-hdr-l:hover {
+        background: rgba(163, 66, 34, 0.04);
+      }
+
+      .sec-hdr-l:active {
+        background: rgba(163, 66, 34, 0.06);
+      }
+
+      /* History item */
+      .hist-item {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem; /* 14px */
+        padding: 0.8125rem 1.5rem; /* 13px 24px */
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        background: transparent;
+        width: 100%;
+        text-align: left;
+      }
+
+      .hist-item:last-child {
+        border-bottom: none;
+      }
+
+      .hist-img {
+        width: 3.125rem; /* 50px */
+        height: 3.125rem; /* 50px */
+        border-radius: var(--radius-sm); /* 0.625rem 10px */
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.625rem; /* 10px */
+        color: var(--ink-3);
+      }
+
+      .hist-main {
+        flex: 1;
+      }
+
+      .hist-name {
+        font-size: 0.9375rem; /* 15px — text-body-lg */
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 0.1875rem; /* 3px */
+      }
+
+      .hist-meta {
+        font-size: 0.6875rem; /* 11px — text-caption */
+        color: var(--ink-2);
+      }
+
+      /* History thumbnail gradients (moved from inline style) */
+      .hist-img--blue {
+        background: linear-gradient(135deg, #bfdbfe, #3b82f6);
+      }
+      .hist-img--amber {
+        background: linear-gradient(135deg, #fde68a, #d97706);
+      }
+      .hist-img--green {
+        background: linear-gradient(135deg, #bbf7d0, #16a34a);
+      }
+      .hist-img--red {
+        background: linear-gradient(135deg, #fecaca, #dc2626);
+      }
+
+      /* Risk Pill — using risk token groups per DESIGN.md §1.3 */
+      .rpill {
+        padding: 0.3125rem 0.6875rem; /* 5px 11px */
+        border-radius: var(--radius-pill);
+        font-size: 0.6875rem; /* 11px */
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .rpill.t1 {
+        background: var(--risk-t1-bg);
+        color: var(--risk-t1-text);
+      }
+      .rpill.t2 {
+        background: var(--risk-t2-bg);
+        color: var(--risk-t2-text);
+      }
+      .rpill.t3 {
+        background: var(--risk-t3-bg);
+        color: var(--risk-t3-text);
+      }
+
+      /* Keyboard focus */
+      .cta-card:focus-visible,
+      .cta-btn:focus-visible,
+      .hist-item:focus-visible,
+      .home-icon:focus-visible,
+      .sec-hdr-l:focus-visible {
+        outline: 3px solid var(--focus-ring);
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone">
+      <main class="home">
+        <header class="sb"><span>11:01</span><span>◈ ☁ 44+</span></header>
+
+        <div class="home-hdr home-hdr--spaced">
+          <div>
+            <div class="home-greeting">今天吃了什么？</div>
+            <h1 class="home-title">我的<br />分析记录</h1>
           </div>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-3 px-6 pt-6 pb-3">
-            <div class="flex-1 h-px bg-border-c"></div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <span class="text-[11px] font-semibold text-text-muted uppercase tracking-widest">最近扫描</span>
-              <span class="bg-risk-t4/10 text-risk-t4 text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
-            </div>
-            <div class="flex-1 h-px bg-border-c"></div>
-          </div>
-
-          <!-- List -->
-          <div class="px-6 pb-10 flex flex-col gap-2">
-            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
-              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🥫</div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">午餐肉罐头</div>
-                <div class="text-xs text-text-muted">2分钟前</div>
-              </div>
-              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-            </div>
-            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
-              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🍝</div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">康师傅方便面</div>
-                <div class="text-xs text-text-muted">昨天</div>
-              </div>
-              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-            </div>
-            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
-              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🥤</div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">可口可乐</div>
-                <div class="text-xs text-text-muted">3天前</div>
-              </div>
-              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-            </div>
-          </div>
-
-          <!-- TabBar -->
-          <div class="absolute bottom-0 left-0 right-0 h-[60px] bg-bg-card border-t border-border-c flex justify-around items-center pt-2 px-2" style="padding-bottom: calc(8px + env(safe-area-inset-bottom));">
-            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="var(--accent-pink)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-              <span class="text-xs font-semibold text-accent-pink">首页</span>
-            </button>
-            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
-              <span class="text-xs text-text-muted">搜索</span>
-            </button>
-            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <span class="text-xs text-text-muted">我的</span>
-            </button>
-          </div>
-
         </div>
 
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════ DARK ═══════════════════════════════════ -->
-  <div class="phone-col">
-    <div class="mode-badge mode-dark">🌙 暗色模式</div>
-    <div class="phone-shell">
-      <div class="phone-notch"></div>
-      <div class="phone-screen">
-
-        <div class="dark-mode min-h-screen bg-bg-base flex flex-col pb-[60px]">
-
-          <!-- Hero -->
-          <div class="bg-bg-card px-6 pt-10 pb-8 flex flex-col items-center border-b border-border-c">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="text-[26px]">🍎</span>
-              <span class="text-[17px] font-bold text-text-primary tracking-tight">食品安全助手</span>
-            </div>
-            <p class="text-xs text-text-muted mb-7">扫码查配料 · 了解你吃的每一口</p>
-
-            <!-- Scan CTA -->
-            <button
-              type="button"
-              class="w-[140px] h-[140px] rounded-full bg-gradient-to-br from-accent-pink-light to-accent-pink flex flex-col items-center justify-center gap-1.5 relative shadow-[0_4px_20px_rgba(236,72,153,0.3)] transition-transform duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-pink focus:ring-offset-2"
-              aria-label="扫一扫"
-            >
-              <span class="absolute inset-[-4px] rounded-full border-2 border-[rgba(236,72,153,0.3)] animate-pulse-ring"></span>
-              <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/>
-                <line x1="7" y1="12" x2="17" y2="12"/>
-              </svg>
-              <span class="text-white text-base font-bold tracking-tight">扫一扫</span>
-            </button>
-          </div>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-3 px-6 pt-6 pb-3">
-            <div class="flex-1 h-px bg-border-c"></div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <span class="text-[11px] font-semibold text-text-muted uppercase tracking-widest">最近扫描</span>
-              <span class="bg-risk-t4/10 text-risk-t4 text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
-            </div>
-            <div class="flex-1 h-px bg-border-c"></div>
-          </div>
-
-          <!-- List -->
-          <div class="px-6 pb-10 flex flex-col gap-2">
-            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
-              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🥫</div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">午餐肉罐头</div>
-                <div class="text-xs text-text-muted">2分钟前</div>
-              </div>
-              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-            </div>
-            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
-              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🍝</div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">康师傅方便面</div>
-                <div class="text-xs text-text-muted">昨天</div>
-              </div>
-              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-            </div>
-            <div class="bg-bg-card border border-border-c rounded-xl px-4 py-3.5 flex items-center gap-3 hover:-translate-y-px active:scale-[0.98] transition-all duration-150 cursor-pointer" role="button" tabindex="0">
-              <div class="w-10 h-10 rounded-lg bg-bg-base border border-border-c flex items-center justify-center text-xl flex-shrink-0">🥤</div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-semibold text-text-primary mb-0.5 truncate">可口可乐</div>
-                <div class="text-xs text-text-muted">3天前</div>
-              </div>
-              <svg class="w-4 h-4 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-            </div>
-          </div>
-
-          <!-- TabBar -->
-          <div class="absolute bottom-0 left-0 right-0 h-[60px] bg-bg-card/95 border-t border-border-c backdrop-blur-xl flex justify-around items-center pt-2 px-2" style="padding-bottom: calc(8px + env(safe-area-inset-bottom));">
-            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="var(--accent-pink)"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-              <span class="text-xs font-semibold text-accent-pink">首页</span>
-            </button>
-            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
-              <span class="text-xs text-text-muted">搜索</span>
-            </button>
-            <button class="flex flex-col items-center gap-0.5 px-5 py-1 min-w-16" type="button">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <span class="text-xs text-text-muted">我的</span>
-            </button>
-          </div>
-
+        <div class="cta-card">
+          <div class="cta-label">AI 拍照分析</div>
+          <div class="cta-main">拍一张配料表<br />秒知成分好坏</div>
+          <div class="cta-sub">支持所有包装食品</div>
+          <button class="cta-btn">立即拍照 →</button>
         </div>
 
-      </div>
+        <div class="sec-hdr">
+          <h2 class="sec-hdr-t">最近分析</h2>
+          <button class="sec-hdr-l" type="button" aria-label="查看全部">
+            全部 →
+          </button>
+        </div>
+
+        <section aria-label="最近分析列表">
+          <button class="hist-item" type="button">
+            <div class="hist-img hist-img--blue" aria-hidden="true"></div>
+            <div class="hist-main">
+              <div class="hist-name">快熟燕麦片</div>
+              <div class="hist-meta">3天前 · 18种成分</div>
+            </div>
+            <span class="rpill t1">较安全</span>
+          </button>
+          <button class="hist-item" type="button">
+            <div class="hist-img hist-img--amber" aria-hidden="true"></div>
+            <div class="hist-main">
+              <div class="hist-name">椰香脆卷</div>
+              <div class="hist-meta">1周前 · 12种成分</div>
+            </div>
+            <span class="rpill t2">谨慎</span>
+          </button>
+          <button class="hist-item" type="button">
+            <div class="hist-img hist-img--green" aria-hidden="true"></div>
+            <div class="hist-main">
+              <div class="hist-name">高纤 GI 饼干</div>
+              <div class="hist-meta">2周前 · 24种成分</div>
+            </div>
+            <span class="rpill t1">较安全</span>
+          </button>
+          <button class="hist-item" type="button">
+            <div class="hist-img hist-img--red" aria-hidden="true"></div>
+            <div class="hist-main">
+              <div class="hist-name">某款能量饮料</div>
+              <div class="hist-meta">3周前 · 9种成分</div>
+            </div>
+            <span class="rpill t3">存在风险</span>
+          </button>
+        </section>
+      </main>
     </div>
-  </div>
-
-</div>
-
-</body>
+    <footer class="cap">首页 — 历史记录</footer>
+  </body>
 </html>

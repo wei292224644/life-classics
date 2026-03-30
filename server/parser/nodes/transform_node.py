@@ -145,11 +145,18 @@ async def transform_node(state: WorkflowState) -> dict:
     _start = time.perf_counter()
     _logger.info("transform_node_start", chunk_count=chunks_in)
 
-    tasks = [
-        asyncio.to_thread(apply_strategy, classified["segments"], classified["raw_chunk"], state["doc_metadata"])
-        for classified in state["classified_chunks"]
-    ]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    semaphore = asyncio.Semaphore(settings.TRANSFORM_MAX_CONCURRENCY)
+
+    async def limited_apply(classified: dict) -> list[DocumentChunk] | Exception:
+        async with semaphore:
+            return await asyncio.to_thread(
+                apply_strategy, classified["segments"], classified["raw_chunk"], state["doc_metadata"]
+            )
+
+    results = await asyncio.gather(
+        *[limited_apply(classified) for classified in state["classified_chunks"]],
+        return_exceptions=True,
+    )
 
     final_chunks = []
     errors = []

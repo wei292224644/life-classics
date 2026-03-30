@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>食品安全助手 — 对话入口设计</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream:#FAF8F3; --cream-2:#F2EFE8; --surface:#FFFFFF;
+  --brand:#C4532A; --text:#1A1714; --text-2:#6B6560; --text-3:#A09890;
+  --border:rgba(26,23,20,0.08);
+  --t1-dot:#2E7D7A; --t1-bg:#EAF4F4; --t1-text:#164D4B;
+  --t2-dot:#B07D1A; --t2-bg:#FEF5E0; --t2-text:#6B4A0A;
+  --t3-dot:#C44A2B; --t3-bg:#FDEEE9; --t3-text:#7A2410;
+  --r-sm:10px; --r-md:18px; --r-lg:26px; --r-xl:34px;
+  --shadow:0 2px 18px rgba(26,23,20,.08),0 0 0 1px rgba(26,23,20,.05);
+}
+body {
+  font-family:'Plus Jakarta Sans','Noto Sans SC',-apple-system,sans-serif;
+  background:#DEDAD3; padding:40px 24px 100px;
+}
+.pg-label {
+  font-size:10px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:#9A9488;
+  margin-bottom:16px; margin-top:52px;
+}
+.pg-label:first-child { margin-top:0; }
+.phone-row { display:flex; gap:0; flex-wrap:nowrap; align-items:flex-start; overflow-x:auto; padding-bottom:8px; }
+.pw { display:flex; flex-direction:column; align-items:center; gap:10px; flex-shrink:0; padding:0 14px; }
+.pw:first-child { padding-left:0; } .pw:last-child { padding-right:0; }
+.phone { width:375px; border-radius:48px; overflow:hidden; box-shadow:0 28px 80px rgba(0,0,0,.20),0 0 0 1px rgba(0,0,0,.09); flex-shrink:0; }
+.cap { font-size:11px; font-weight:600; color:#9A9488; letter-spacing:.04em; text-align:center; }
+.sb { display:flex; justify-content:space-between; align-items:center; padding:14px 28px 0; font-size:12px; font-weight:700; }
+.rpill { padding:5px 11px; border-radius:100px; font-size:11px; font-weight:700; flex-shrink:0; }
+.rs { padding:0 20px 20px; }
+.rs-t { font-size:11px; font-weight:700; color:var(--text-3); letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px; }
+.ing { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--border); }
+.ing:last-child { border-bottom:none; }
+.ing-name { font-size:14px; font-weight:600; color:var(--text); }
+.ing-type { font-size:11px; color:var(--text-3); margin-top:2px; }
+.advice { background:var(--cream); border-radius:var(--r-md); padding:14px; font-size:13px; line-height:1.75; color:var(--text-2); }
+
+/* ══════════════════════════
+   RESULT PAGE WITH CHAT BTN
+══════════════════════════ */
+.result { background:var(--cream); min-height:812px; display:flex; flex-direction:column; position:relative; }
+
+.verdict-zone { padding:16px 22px 36px; position:relative; overflow:hidden; }
+.verdict-zone::before { content:''; position:absolute; bottom:-60px; right:-60px; width:190px; height:190px; border-radius:50%; background:rgba(46,125,122,.06); pointer-events:none; }
+.v-back { font-size:20px; color:var(--t1-dot); cursor:pointer; margin-bottom:14px; display:block; }
+.v-food { font-size:12px; font-weight:500; color:var(--t1-text); opacity:.7; margin-bottom:5px; }
+.v-big  { font-size:44px; font-weight:800; color:var(--t1-dot); letter-spacing:-.04em; line-height:1; margin-bottom:8px; }
+.v-desc { font-size:13px; color:var(--t1-text); opacity:.75; font-weight:500; margin-bottom:12px; }
+.v-badge { display:inline-flex; align-items:center; gap:6px; background:var(--t1-dot); color:white; padding:5px 13px; border-radius:100px; font-size:11px; font-weight:700; }
+
+.sheet { background:white; border-radius:26px 26px 0 0; margin-top:-20px; flex:1; padding-bottom:100px; }
+.sheet-handle { width:36px; height:4px; background:#E0DCD6; border-radius:2px; margin:12px auto 18px; }
+
+/* demographics */
+.demo-scroll { display:flex; gap:10px; overflow-x:auto; padding:4px 20px; scrollbar-width:none; }
+.demo-scroll::-webkit-scrollbar { display:none; }
+.demo-card { flex-shrink:0; width:106px; border-radius:var(--r-md); padding:13px 11px; display:flex; flex-direction:column; gap:7px; border:1px solid var(--border); }
+.demo-icon { font-size:22px; }
+.demo-group { font-size:11px; font-weight:700; color:var(--text); }
+.demo-verdict { font-size:10px; font-weight:700; padding:2px 8px; border-radius:100px; width:fit-content; }
+.demo-note { font-size:10px; color:var(--text-3); line-height:1.5; }
+
+/* ── CHAT ENTRY BUTTON ── */
+.chat-bar {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:12px 20px 28px;
+  background:linear-gradient(to top, white 60%, rgba(255,255,255,0));
+  display:flex; flex-direction:column; gap:10px;
+}
+
+/* Suggested pills */
+.suggest-row { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
+.suggest-row::-webkit-scrollbar { display:none; }
+.suggest-pill {
+  flex-shrink:0;
+  background:var(--cream-2);
+  border:1px solid rgba(26,23,20,.1);
+  border-radius:100px; padding:7px 13px;
+  font-size:12px; font-weight:500; color:var(--text-2);
+  white-space:nowrap; cursor:pointer;
+}
+.suggest-pill:hover { background:var(--cream); }
+
+/* Main chat button */
+.chat-btn {
+  display:flex; align-items:center; gap:10px;
+  background:var(--brand);
+  border-radius:var(--r-xl); padding:14px 20px;
+  cursor:pointer;
+}
+.chat-btn-icon {
+  width:36px; height:36px; border-radius:50%;
+  background:rgba(255,255,255,.2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; flex-shrink:0;
+}
+.chat-btn-text { flex:1; }
+.chat-btn-title { font-size:15px; font-weight:700; color:white; }
+.chat-btn-sub { font-size:11px; color:rgba(255,255,255,.7); margin-top:1px; }
+.chat-btn-arrow { font-size:18px; color:rgba(255,255,255,.8); }
+
+/* ══════════════════════════
+   CHAT PAGE
+══════════════════════════ */
+.chat-page { background:var(--cream); min-height:812px; display:flex; flex-direction:column; }
+
+.chat-header {
+  padding:16px 20px 14px;
+  background:white;
+  border-bottom:1px solid var(--border);
+}
+.chat-hdr-back { font-size:20px; color:var(--text-2); margin-bottom:10px; display:block; cursor:pointer; }
+.chat-product-chip {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--t1-bg); border-radius:100px;
+  padding:5px 12px 5px 8px;
+}
+.chat-product-dot { width:8px; height:8px; border-radius:50%; background:var(--t1-dot); }
+.chat-product-name { font-size:12px; font-weight:600; color:var(--t1-text); }
+.chat-hdr-title { font-size:18px; font-weight:800; color:var(--text); letter-spacing:-.02em; margin-top:8px; }
+
+/* Messages area */
+.chat-body { flex:1; padding:16px 16px 0; overflow-y:auto; display:flex; flex-direction:column; gap:14px; }
+
+/* Suggestions at top */
+.chat-intro { text-align:center; padding:8px 0 4px; }
+.chat-intro-text { font-size:13px; color:var(--text-3); margin-bottom:12px; }
+.chat-suggestions { display:flex; flex-direction:column; gap:8px; }
+.chat-sugg {
+  background:white; border:1px solid var(--border);
+  border-radius:var(--r-md); padding:12px 16px;
+  font-size:13px; font-weight:500; color:var(--text-2);
+  cursor:pointer; text-align:left;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.chat-sugg-arrow { font-size:14px; color:var(--text-3); }
+
+/* Message bubbles */
+.msg-user {
+  align-self:flex-end;
+  background:var(--brand); color:white;
+  border-radius:18px 18px 4px 18px;
+  padding:10px 14px; font-size:14px; max-width:75%;
+}
+.msg-ai {
+  align-self:flex-start;
+  background:white;
+  border-radius:18px 18px 18px 4px;
+  padding:12px 14px; font-size:14px; max-width:85%;
+  line-height:1.65; color:var(--text-2);
+  box-shadow:var(--shadow);
+}
+.msg-ai-label {
+  font-size:10px; font-weight:700; color:var(--brand);
+  letter-spacing:.06em; text-transform:uppercase;
+  margin-bottom:6px;
+}
+.msg-ai strong { color:var(--text); font-weight:700; }
+
+/* Chat input */
+.chat-input-bar {
+  padding:10px 16px 28px;
+  background:white; border-top:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.chat-input {
+  flex:1; background:var(--cream); border-radius:100px;
+  padding:10px 16px; font-size:14px; color:var(--text-3);
+  border:1px solid var(--border);
+}
+.chat-send {
+  width:38px; height:38px; border-radius:50%;
+  background:var(--brand); display:flex; align-items:center;
+  justify-content:center; font-size:16px; cursor:pointer; flex-shrink:0;
+}
+</style>
+</head>
+<body>
+
+<div class="pg-label">核心差异化 — Agent 对话入口</div>
+
+<div class="phone-row">
+
+  <!-- ① RESULT + CHAT ENTRY -->
+  <div class="pw">
+    <div class="phone">
+      <div class="result">
+        <div class="sb" style="color:#164D4B"><span>11:01</span><span>◈ ☁ 44+</span></div>
+
+        <div class="verdict-zone" style="background:var(--t1-bg)">
+          <span class="v-back">←</span>
+          <div class="v-food">高纤 GI 饼干（牛油果椰乳）</div>
+          <div class="v-big" style="color:var(--t1-dot)">成分较优 ✓</div>
+          <div class="v-desc" style="color:var(--t1-text)">整体配料合规，少量添加剂需留意</div>
+          <span class="v-badge" style="background:var(--t1-dot)">t1 · 较安全 · 24种成分</span>
+        </div>
+
+        <div class="sheet">
+          <div class="sheet-handle"></div>
+
+          <div class="rs">
+            <div class="rs-t">配料解析</div>
+            <div class="ing"><div style="flex:1"><div class="ing-name">燕麦粉</div><div class="ing-type">主要原料 · 全谷物</div></div><span class="rpill" style="background:#EEF7F2;color:#1E4D38">安全</span></div>
+            <div class="ing"><div style="flex:1"><div class="ing-name">麦芽糊精</div><div class="ing-type">增稠剂 · 高升糖指数</div></div><span class="rpill" style="background:#FEF5E0;color:#6B4A0A">谨慎</span></div>
+            <div class="ing"><div style="flex:1"><div class="ing-name">阿斯巴甜</div><div class="ing-type">人工甜味剂 · 争议成分</div></div><span class="rpill" style="background:#FDEEE9;color:#7A2410">存在风险</span></div>
+          </div>
+
+          <div class="rs">
+            <div class="rs-t">不同人群参考</div>
+            <div class="demo-scroll">
+              <div class="demo-card" style="background:#EEF7F2;border-color:#D0EBE0"><div class="demo-icon">🧑</div><div class="demo-group">普通成人</div><span class="demo-verdict" style="background:#3D7A5C;color:white">适量可食</span><div class="demo-note">每日不超过2-3份</div></div>
+              <div class="demo-card" style="background:#FEF5E0;border-color:#EDD9A0"><div class="demo-icon">👶</div><div class="demo-group">婴幼儿</div><span class="demo-verdict" style="background:#B07D1A;color:white">建议回避</span><div class="demo-note">3岁以下不建议</div></div>
+              <div class="demo-card" style="background:#FDEEE9;border-color:#F0C4B0"><div class="demo-icon">🤰</div><div class="demo-group">孕妇</div><span class="demo-verdict" style="background:#C44A2B;color:white">谨慎了解</span><div class="demo-note">请咨询医生</div></div>
+              <div class="demo-card" style="background:#EAF4F4;border-color:#B0D8D8"><div class="demo-icon">👴</div><div class="demo-group">中老年</div><span class="demo-verdict" style="background:#2E7D7A;color:white">适量参考</span><div class="demo-note">控制升糖食品</div></div>
+            </div>
+          </div>
+
+          <div style="height:20px"></div>
+        </div>
+
+        <!-- ★ CHAT ENTRY BAR -->
+        <div class="chat-bar">
+          <!-- Quick suggest pills -->
+          <div class="suggest-row">
+            <span class="suggest-pill">糖尿病可以吃吗？</span>
+            <span class="suggest-pill">给2岁孩子安全吗？</span>
+            <span class="suggest-pill">阿斯巴甜有多危险？</span>
+          </div>
+          <!-- Main CTA -->
+          <div class="chat-btn">
+            <div class="chat-btn-icon">✦</div>
+            <div class="chat-btn-text">
+              <div class="chat-btn-title">深入问问 AI 顾问</div>
+              <div class="chat-btn-sub">针对这款产品，随时问任何问题</div>
+            </div>
+            <div class="chat-btn-arrow">›</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="cap">结果页 + 对话入口</div>
+  </div>
+
+  <!-- ② CHAT PAGE — empty state with suggestions -->
+  <div class="pw">
+    <div class="phone">
+      <div class="chat-page">
+        <div class="sb" style="color:#1A1714"><span>11:01</span><span>◈ ☁ 44+</span></div>
+
+        <div class="chat-header">
+          <span class="chat-hdr-back">←</span>
+          <div class="chat-product-chip">
+            <div class="chat-product-dot"></div>
+            <span class="chat-product-name">高纤 GI 饼干 · t1 较安全</span>
+          </div>
+          <div class="chat-hdr-title">问问 AI 顾问</div>
+        </div>
+
+        <div class="chat-body">
+          <div class="chat-intro">
+            <div class="chat-intro-text">我已了解这款食品的全部成分<br>可以针对你的情况回答问题</div>
+          </div>
+          <div class="chat-suggestions">
+            <div class="chat-sugg"><span>我有糖尿病，这个可以吃吗？</span><span class="chat-sugg-arrow">›</span></div>
+            <div class="chat-sugg"><span>2岁的孩子能吃这个吗？</span><span class="chat-sugg-arrow">›</span></div>
+            <div class="chat-sugg"><span>阿斯巴甜对身体有什么影响？</span><span class="chat-sugg-arrow">›</span></div>
+            <div class="chat-sugg"><span>有没有更健康的同类产品？</span><span class="chat-sugg-arrow">›</span></div>
+            <div class="chat-sugg"><span>孕期可以吃吗？</span><span class="chat-sugg-arrow">›</span></div>
+          </div>
+        </div>
+
+        <div class="chat-input-bar">
+          <div class="chat-input">问关于这款食品的任何问题…</div>
+          <div class="chat-send">↑</div>
+        </div>
+      </div>
+    </div>
+    <div class="cap">对话页 — 空状态</div>
+  </div>
+
+  <!-- ③ CHAT PAGE — active conversation -->
+  <div class="pw">
+    <div class="phone">
+      <div class="chat-page">
+        <div class="sb" style="color:#1A1714"><span>11:01</span><span>◈ ☁ 44+</span></div>
+
+        <div class="chat-header">
+          <span class="chat-hdr-back">←</span>
+          <div class="chat-product-chip">
+            <div class="chat-product-dot"></div>
+            <span class="chat-product-name">高纤 GI 饼干 · t1 较安全</span>
+          </div>
+          <div class="chat-hdr-title">问问 AI 顾问</div>
+        </div>
+
+        <div class="chat-body">
+          <!-- User Q -->
+          <div class="msg-user">我有2型糖尿病，这个饼干可以吃吗？</div>
+
+          <!-- AI A -->
+          <div>
+            <div class="msg-ai">
+              <div class="msg-ai-label">AI 分析参考</div>
+              这款饼干含有<strong>麦芽糊精</strong>，升糖指数（GI）较高，对2型糖尿病患者不太友好。<br><br>
+              其中<strong>阿斯巴甜</strong>作为代糖在血糖控制上相对中性，但部分研究提示可能影响肠道菌群。<br><br>
+              <strong>建议：</strong>若血糖控制较好，偶尔少量（1块）搭配高蛋白食物食用；血糖不稳定时建议避免。
+            </div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:4px;margin-left:4px">AI 生成 · 仅供参考 · 请遵医嘱</div>
+          </div>
+
+          <!-- User Q2 -->
+          <div class="msg-user">那有没有推荐的替代品？</div>
+
+          <!-- AI A2 -->
+          <div>
+            <div class="msg-ai">
+              <div class="msg-ai-label">AI 分析参考</div>
+              针对糖尿病人群，可以关注以下配料特征：<br><br>
+              ✓ <strong>代糖</strong>用赤藓糖醇/木糖醇替代阿斯巴甜<br>
+              ✓ <strong>膳食纤维</strong> ≥ 3g/份，延缓血糖上升<br>
+              ✓ <strong>避免</strong>麦芽糊精、白砂糖在配料表前几位<br><br>
+              选购时优先看配料表第1-3位成分。
+            </div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:4px;margin-left:4px">AI 生成 · 仅供参考 · 请遵医嘱</div>
+          </div>
+        </div>
+
+        <div class="chat-input-bar">
+          <div class="chat-input">继续问…</div>
+          <div class="chat-send">↑</div>
+        </div>
+      </div>
+    </div>
+    <div class="cap">对话页 — 进行中</div>
+  </div>
+
+</div>
+
+<!-- Differentiation note -->
+<div style="margin-top:48px;background:white;border-radius:20px;padding:28px;max-width:760px;box-shadow:0 2px 16px rgba(0,0,0,.08)">
+  <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#9A9488;margin-bottom:16px">核心差异化 vs 竞品</div>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <div style="width:6px;height:6px;border-radius:50%;background:#C44A2B;flex-shrink:0;margin-top:6px"></div>
+      <div><div style="font-size:14px;font-weight:700;color:#1A1714;margin-bottom:3px">竞品：数据库查询</div><div style="font-size:13px;color:#6B6560;line-height:1.6">有什么数据就显示什么，没数据就没结果。用户只能被动接收静态信息，无法提问。</div></div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <div style="width:6px;height:6px;border-radius:50%;background:#2E7D7A;flex-shrink:0;margin-top:6px"></div>
+      <div><div style="font-size:14px;font-weight:700;color:#1A1714;margin-bottom:3px">你的产品：Agent 实时推理</div><div style="font-size:13px;color:#6B6560;line-height:1.6">任何食品拍照即可分析，不依赖数据库。用户可以追问个人化问题——"我有糖尿病能吃吗"——Agent 结合当前产品上下文实时推理作答。</div></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

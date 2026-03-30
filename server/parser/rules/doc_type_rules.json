@@ -5,49 +5,54 @@
     {
       "id": "single_additive",
       "description": "单一食品添加剂或产品标准，含技术要求和理化指标",
-      "detect_keywords": [
-        "技术要求",
-        "理化指标",
-        "鉴别",
-        "含量"
-      ],
-      "detect_heading_patterns": [
-        "技术要求",
-        "检验规则"
-      ],
+      "detect_keywords": ["技术要求", "理化指标", "鉴别", "含量"],
+      "detect_heading_patterns": ["技术要求", "检验规则"],
       "source": "rule"
     },
     {
       "id": "detection_method",
       "description": "检测方法标准，含多种方法、试剂、仪器、操作步骤",
-      "detect_keywords": [
-        "方法一",
-        "方法二",
-        "试剂",
-        "仪器",
-        "操作步骤"
-      ],
-      "detect_heading_patterns": [
-        "试剂和材料",
-        "仪器和设备",
-        "分析步骤"
-      ],
+      "detect_keywords": ["方法一", "方法二", "试剂", "仪器", "操作步骤"],
+      "detect_heading_patterns": ["试剂和材料", "仪器和设备", "分析步骤"],
       "source": "rule"
     },
     {
       "id": "microbiological",
       "description": "微生物检验标准，含培养基、流程图、判定规则",
+      "detect_keywords": ["培养基", "菌落", "接种", "判定"],
+      "detect_heading_patterns": ["培养基和试剂", "检验程序"],
+      "source": "rule"
+    },
+    {
+      "id": "nutrition_reference_intake",
+      "description": "膳食营养素参考摄入量标准，含能量、蛋白质、脂肪、碳水化合物、矿物质、维生素等营养素的推荐摄入量(RNI)、适宜摄入量(AI)、平均需要量(EAR)、可耐受最高摄入量(UL)等数据表格",
       "detect_keywords": [
-        "培养基",
-        "菌落",
-        "接种",
-        "判定"
+        "EER",
+        "RNI",
+        "AI",
+        "UL",
+        "AMDR",
+        "EAR",
+        "PI-NCD",
+        "SPL",
+        "推荐摄入量",
+        "适宜摄入量",
+        "可耐受最高摄入量",
+        "参考摄入量",
+        "宏量营养素",
+        "微量营养素",
+        "膳食能量",
+        "膳食蛋白质",
+        "膳食脂肪",
+        "膳食碳水化合物",
+        "膳食矿物质",
+        "膳食维生素"
       ],
       "detect_heading_patterns": [
-        "培养基和试剂",
-        "检验程序"
-      ],
-      "source": "rule"
+        "^(附表|表|附录).*\\d+.*(EER|RNI|AI|UL|AMDR|EAR|参考摄入量|推荐摄入量)",
+        "^\\d+[-.]\\d+.*(蛋白质|脂肪|碳水|矿物质|维生素|能量).*(参考摄入量|RNI|AI|EAR|UL)",
+        "^(膳食|营养素).*(可接受范围|平均需要量|推荐摄入量|适宜摄入量|最高摄入量)"
+      ]
     },
     {
       "id": "unknown",

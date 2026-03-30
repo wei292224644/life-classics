@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import time
 from typing import Any, Dict, List
 import json
@@ -69,7 +70,7 @@ def _call_escalate_llm(
     return result
 
 
-def escalate_node(state: WorkflowState) -> dict:
+async def escalate_node(state: WorkflowState) -> dict:
     chunks_in = len(state["classified_chunks"])
     _start = time.perf_counter()
     _logger.info("escalate_node_start", chunk_count=chunks_in)
@@ -84,41 +85,50 @@ def escalate_node(state: WorkflowState) -> dict:
             dict(c) for c in state["classified_chunks"]
         ]
 
+        # 收集所有需要处理的 unknown segment
+        unknown_tasks = []
         for i, cc in enumerate(classified_chunks):
             if not cc["has_unknown"]:
                 continue
-
             existing_types = store.get_content_type_rules().get("content_types", [])
-            new_segments = list(cc["segments"])
+            for j, seg in enumerate(cc["segments"]):
+                if seg["content_type"] == "unknown":
+                    unknown_tasks.append((i, j, seg["content"], existing_types))
 
-            for j, seg in enumerate(new_segments):
-                if seg["content_type"] != "unknown":
-                    continue
+        semaphore = asyncio.Semaphore(settings.ESCALATE_MAX_CONCURRENCY)
 
-                llm_result = _call_escalate_llm(seg["content"], existing_types)
-                llm_calls_total.labels(node="escalate_node", model=settings.ESCALATE_MODEL).inc()
-                new_ct_id = llm_result.id
+        async def limited_escalate(idx_i: int, idx_j: int, content: str, existing_types: List[Dict]) -> tuple[int, int, EscalateOutput]:
+            async with semaphore:
+                return idx_i, idx_j, await asyncio.to_thread(_call_escalate_llm, content, existing_types)
 
-                if llm_result.action == "create_new":
-                    store.append_content_type(llm_result.model_dump())
+        results = await asyncio.gather(
+            *[limited_escalate(i, j, content, et) for i, j, content, et in unknown_tasks],
+            return_exceptions=True,
+        )
 
-                transform_params = llm_result.transform.model_dump()
-                new_segments[j] = TypedSegment(
-                    content=seg["content"],
-                    content_type=new_ct_id,
-                    transform_params=transform_params,
-                    confidence=1.0,
-                    escalated=True,
-                    cross_refs=[],
-                    ref_context="",
-                    failed_table_refs=[],
-                )
+        # 处理结果
+        for result in results:
+            if isinstance(result, Exception):
+                continue
+            i, j, llm_result = result
+            llm_calls_total.labels(node="escalate_node", model=settings.ESCALATE_MODEL).inc()
+            new_ct_id = llm_result.id
 
-            classified_chunks[i] = ClassifiedChunk(
-                raw_chunk=cc["raw_chunk"],
-                segments=new_segments,
-                has_unknown=False,
+            if llm_result.action == "create_new":
+                store.append_content_type(llm_result.model_dump())
+
+            transform_params = llm_result.transform.model_dump()
+            classified_chunks[i]["segments"][j] = TypedSegment(
+                content=classified_chunks[i]["segments"][j]["content"],
+                content_type=new_ct_id,
+                transform_params=transform_params,
+                confidence=1.0,
+                escalated=True,
+                cross_refs=[],
+                ref_context="",
+                failed_table_refs=[],
             )
+            classified_chunks[i]["has_unknown"] = False
 
         duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="escalate_node").observe(duration)

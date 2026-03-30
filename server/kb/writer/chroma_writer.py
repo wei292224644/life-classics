@@ -8,9 +8,6 @@ from parser.models import DocumentChunk
 
 COLLECTION_NAME = "knowledge_base"
 
-_TRUNCATE_SUFFIX = "...（内容已截断）"
-_MAX_RAW_LEN = 2000
-
 
 def get_collection():
     return get_chroma_client().get_or_create_collection(COLLECTION_NAME)
@@ -44,13 +41,7 @@ async def write(chunks: List[DocumentChunk], doc_metadata: dict) -> None:
                 "section_path": "|".join(c["section_path"]),
                 "doc_type": doc_metadata.get("doc_type", ""),
                 "title": doc_metadata.get("title", ""),
-                "raw_content": (
-                    lambda raw: (
-                        raw[:_MAX_RAW_LEN - len(_TRUNCATE_SUFFIX)] + _TRUNCATE_SUFFIX
-                        if len(raw) > _MAX_RAW_LEN
-                        else raw
-                    )
-                )(c.get("raw_content") or ""),
+                "raw_content": c.get("raw_content") or "",
             }
             for c in chunks
         ],

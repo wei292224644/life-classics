@@ -1,485 +1,723 @@
-# 食品安全助手 — 设计规范 v1.0
+# 食品安全助手 — 设计规范 v2.0 (Tailwind v3)
 
-> 本文档是唯一权威的视觉设计规范。所有开发工作中的间距、颜色、字体、组件决策必须以此为准。
-> 禁止在代码中出现未在此文档定义的魔法数字（如随意的 `padding: 7px`、`color: #abc`）。
-
----
-
-## 0. 产品设计原则
-
-1. **放心感优先** — 结果页的视觉重心永远是「能不能吃」这一个判断，所有其他信息让位于它
-2. **用排版说话** — 不依赖插画/吉祥物，用字重、字号、字色的层次建立视觉冲击力
-3. **温暖不沉闷** — 陶土橙作为点缀色带来能量感，而非医疗蓝/科技灰
-4. **诚实直接** — 风险标识清晰可辨，不美化也不恐吓，给用户做决策的底气
-5. **与竞品拉开距离** — 禁止绿色主色调、散落倾斜卡片、圆润吉祥物等竞品标志性元素
+> 本文档是唯一权威的视觉设计规范。所有间距、颜色、字体、圆角**必须通过 Tailwind 原子类实现**，
+> 禁止在组件内写 inline style 魔法数字（如 `style="padding: 7px"`、`style="color: #abc"`）。
+>
+> **Tech Stack**: UniApp + Vue 3 + Tailwind CSS v3，设计基准宽度 375px（对应 750rpx）
 
 ---
 
-## 1. 字体系统
+## 0. tailwind.config.ts 扩展
 
-### 1.1 字体族
+以下为全量 `theme.extend`，将此配置合并入项目 `tailwind.config.ts`：
 
-| 用途 | 字体 | 说明 |
-|------|------|------|
-| 拉丁字符 / 数字 / 标题 | **Plus Jakarta Sans** | 主字体，覆盖所有英文、数字、标点 |
-| 中文字符 | **Noto Sans SC** | 回退字体，覆盖所有汉字 |
-| 系统回退 | `-apple-system, sans-serif` | 离线或加载失败时 |
+```ts
+// tailwind.config.ts
+import type { Config } from "tailwindcss";
 
-```css
-font-family: 'Plus Jakarta Sans', 'Noto Sans SC', -apple-system, sans-serif;
-```
+export default {
+  content: ["./src/**/*.{vue,ts,tsx}"],
+  theme: {
+    extend: {
+      // ── 字体 ───────────────────────────────────────────────
+      fontFamily: {
+        sans: [
+          '"Plus Jakarta Sans"',
+          '"Noto Sans SC"',
+          "-apple-system",
+          "sans-serif",
+        ],
+        display: ['"Plus Jakarta Sans"', '"Noto Sans SC"', "sans-serif"],
+      },
 
-### 1.2 字号梯度（设计稿 px，UniApp 对应 ×2 rpx）
+      // ── 字号（设计稿 px，UniApp 内用 rpx ×2）──────────────
+      fontSize: {
+        display: [
+          "2.75rem",
+          { lineHeight: "1.0", letterSpacing: "-0.04em", fontWeight: "800" },
+        ],
+        hero: [
+          "1.75rem",
+          { lineHeight: "1.1", letterSpacing: "-0.03em", fontWeight: "800" },
+        ],
+        headline: [
+          "1.375rem",
+          { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "700" },
+        ],
+        title: [
+          "1.125rem",
+          { lineHeight: "1.3", letterSpacing: "-0.01em", fontWeight: "700" },
+        ],
+        "body-lg": [
+          "0.9375rem",
+          { lineHeight: "1.5", letterSpacing: "0", fontWeight: "600" },
+        ],
+        body: [
+          "0.875rem",
+          { lineHeight: "1.7", letterSpacing: "0", fontWeight: "400" },
+        ],
+        sm: [
+          "0.8125rem",
+          { lineHeight: "1.6", letterSpacing: "0", fontWeight: "500" },
+        ],
+        label: [
+          "0.75rem",
+          { lineHeight: "1.4", letterSpacing: "0", fontWeight: "700" },
+        ],
+        caption: [
+          "0.6875rem",
+          { lineHeight: "1.4", letterSpacing: "0.08em", fontWeight: "700" },
+        ],
+        micro: [
+          "0.625rem",
+          { lineHeight: "1.4", letterSpacing: "0.12em", fontWeight: "700" },
+        ],
+      },
 
-| Token | px | rpx | 字重 | 行高 | 字距 | 用途 |
-|-------|-----|-----|------|------|------|------|
-| `text-display` | 44px | 88rpx | 800 | 1.0 | -0.04em | 结果页大字判断（成分较优 ✓） |
-| `text-hero` | 28px | 56rpx | 800 | 1.1 | -0.03em | 首页标题 |
-| `text-headline` | 22px | 44rpx | 700 | 1.2 | -0.02em | 页面次标题 |
-| `text-title` | 18px | 36rpx | 700 | 1.3 | -0.01em | 对话页标题 |
-| `text-body-lg` | 15px | 30rpx | 600 | 1.5 | 0 | 列表项名称、卡片标题 |
-| `text-body` | 14px | 28rpx | 400 | 1.7 | 0 | 正文内容 |
-| `text-sm` | 13px | 26rpx | 500 | 1.6 | 0 | 次要正文、建议文本 |
-| `text-label` | 12px | 24rpx | 700 | 1.4 | 0 | 按钮文字、人群卡片标题 |
-| `text-caption` | 11px | 22rpx | 700 | 1.4 | 0.08em | 风险标签、章节标题（大写） |
-| `text-micro` | 10px | 20rpx | 700 | 1.4 | 0.12em | 角标、分类标签（大写） |
+      // ── 颜色 ───────────────────────────────────────────────
+      colors: {
+        // 背景层级
+        page: "#FAF8F3", // Layer 0 — 页面底色（暖白）
+        surface: "#FFFFFF", // Layer 1 — 卡片/Sheet 主体
+        raised: "#F2EFE8", // Layer 2 — 内嵌卡片/建议框/输入框
 
-### 1.3 章节标题（Section Header）规范
+        // 文字层级
+        ink: {
+          DEFAULT: "#1A1714", // 主文字
+          2: "#6B6560", // 次要文字
+          3: "#A09890", // 弱化文字
+        },
 
-章节标题统一使用 `text-micro`，全大写，`letter-spacing: 0.12em`，颜色 `--text-3`。
+        // 品牌色（陶土橙）
+        brand: {
+          DEFAULT: "#C4532A",
+          light: "#FDEEE9",
+          dark: "#A34222", // 按压态
+        },
 
-```
-配料解析 → INGREDIENTS（不直接用中文，用中文则不大写）
-实际输出：配料解析（中文不强制大写，但保持 text-micro 规格）
+        // 深色背景（分析页专用）
+        dark: {
+          bg: "#1A1714",
+          surface: "rgba(255,255,255,0.06)",
+          border: "rgba(255,255,255,0.12)",
+        },
+
+        // 风险色系（每级三个 token：dot/bg/text）
+        risk: {
+          "t0-dot": "#3D7A5C",
+          "t0-bg": "#EEF7F2",
+          "t0-text": "#1E4D38",
+          "t1-dot": "#2E7D7A",
+          "t1-bg": "#EAF4F4",
+          "t1-text": "#164D4B",
+          "t2-dot": "#B07D1A",
+          "t2-bg": "#FEF5E0",
+          "t2-text": "#6B4A0A",
+          "t3-dot": "#C44A2B",
+          "t3-bg": "#FDEEE9",
+          "t3-text": "#7A2410",
+          "t4-dot": "#8B1A1A",
+          "t4-bg": "#FDDEDE",
+          "t4-text": "#5A0D0D",
+        },
+      },
+
+      // ── 间距（基于 8px 倍数）──────────────────────────────
+      spacing: {
+        "4.5": "18px", // 组件内小间距补充
+        "13": "52px", // 历史图片尺寸
+        "18": "72px", // 特殊场景
+      },
+
+      // ── 圆角 ───────────────────────────────────────────────
+      borderRadius: {
+        sm: "10px", // 历史图片、小标签
+        md: "18px", // 建议框、人群卡片
+        lg: "26px", // Sheet、主要区块
+        xl: "34px", // CTA 大按钮、对话入口
+        "2xl": "48px", // Phone shell（设计稿用）
+        pill: "9999px", // 所有胶囊形标签
+      },
+
+      // ── 阴影 ───────────────────────────────────────────────
+      boxShadow: {
+        sm: "0 1px 6px rgba(26,23,20,0.08)",
+        md: "0 2px 18px rgba(26,23,20,0.08), 0 0 0 1px rgba(26,23,20,0.05)",
+        lg: "0 12px 48px rgba(26,23,20,0.14)",
+      },
+
+      // ── 动效 ───────────────────────────────────────────────
+      transitionDuration: {
+        "80": "80ms",
+      },
+      transitionTimingFunction: {
+        spring: "cubic-bezier(0.32, 0.72, 0, 1)",
+      },
+      animation: {
+        scan: "scan 2s ease-in-out infinite",
+        "dot-bounce": "dotBounce 0.6s ease-in-out infinite",
+      },
+      keyframes: {
+        scan: {
+          "0%, 100%": { top: "15%" },
+          "50%": { top: "85%" },
+        },
+        dotBounce: {
+          "0%, 100%": { opacity: "0.3" },
+          "50%": { opacity: "1" },
+        },
+      },
+    },
+  },
+} satisfies Config;
 ```
 
 ---
 
-## 2. 色彩系统
+## 1. 颜色层级与使用规则
 
-### 2.1 背景层级（Background Layers）
-
-背景颜色有严格的层级关系，禁止跨层使用：
+### 1.1 背景层级（严格分层，禁止跨层）
 
 ```
-Layer 0 — Page Background  #FAF8F3  (暖白，页面底色)
-Layer 1 — Surface          #FFFFFF  (白色，卡片/Sheet 主体)
-Layer 2 — Surface Raised   #F2EFE8  (浅暖灰，内嵌卡片/建议框/输入框背景)
-Layer 3 — Surface Overlay  rgba(26,23,20,0.04)  (极浅遮罩，悬停态)
+Layer 0  bg-page     #FAF8F3   页面根背景
+Layer 1  bg-surface  #FFFFFF   Sheet、卡片主体
+Layer 2  bg-raised   #F2EFE8   建议框、输入框、内嵌卡片
+Layer 3  bg-black/4  overlay   悬停/按压遮罩
 ```
 
-**使用规则：**
-- 页面背景：`Layer 0`
-- 内容 Sheet / 底部抽屉：`Layer 1`
-- 建议框 `.advice`、输入框、人群卡片背景：`Layer 2`
-- 禁止在 `Layer 1` 上直接使用 `Layer 0` 作为嵌套卡片（对比度不足）
+| 用途                      | 类名              |
+| ------------------------- | ----------------- |
+| 页面背景                  | `bg-page`         |
+| 内容 Sheet / 底部抽屉     | `bg-surface`      |
+| 建议框 `.advice`、输入框  | `bg-raised`       |
+| 人群卡片（用对应风险 bg） | `bg-risk-t1-bg`   |
+| 按压遮罩                  | `bg-black/[0.04]` |
 
-### 2.2 文字层级（Text Hierarchy）
+**禁止：** 在 `bg-surface` 内再嵌套 `bg-surface`（无对比度）；禁止 `bg-white` 与 `bg-surface` 混用。
 
-| Token | Hex | 用途 |
-|-------|-----|------|
-| `--text` | `#1A1714` | 主文字（标题、配料名） |
-| `--text-2` | `#6B6560` | 次要文字（正文描述、建议内容） |
-| `--text-3` | `#A09890` | 弱化文字（章节标题、辅助说明、时间戳） |
-| `--text-inverse` | `#FFFFFF` | 深色背景上的文字 |
+### 1.2 文字层级
 
-**禁止直接使用 hex**，必须通过 CSS 变量或 Tailwind token 引用。
+| 语义               | 类名         | 用途                       |
+| ------------------ | ------------ | -------------------------- |
+| 主文字             | `text-ink`   | 标题、配料名、列表项       |
+| 次要文字           | `text-ink-2` | 正文描述、建议内容         |
+| 弱化文字           | `text-ink-3` | 章节标题、时间戳、免责声明 |
+| 白色（深色背景上） | `text-white` | 分析页、深色按钮内         |
 
-### 2.3 品牌色（Brand）
+**禁止：** 直接写 `text-[#1A1714]`，必须用语义 token。
 
-| Token | Hex | 用途 |
-|-------|-----|------|
-| `--brand` | `#C4532A` | 主 CTA 按钮、对话入口、链接、强调 |
-| `--brand-light` | `#FDEEE9` | 品牌色背景（浅） |
-| `--brand-dark` | `#A34222` | 品牌色按压态 |
+### 1.3 风险色使用规则
 
-品牌色**不参与**风险色系统，不用于风险标签。
+每个风险等级有三个 token，**必须成组使用**：
 
-### 2.4 风险色系统（Risk Scale t0–t4）
+```vue
+<!-- ✅ 正确 -->
+<view class="bg-risk-t1-bg">
+  <text class="text-risk-t1-text">较安全</text>
+</view>
 
-每个等级包含三个 token：`dot`（圆点/主色）、`bg`（背景）、`text`（文字）。
+<!-- ❌ 错误：t1-bg 配 t0-text，对比度不保证 -->
+<view class="bg-risk-t1-bg">
+  <text class="text-risk-t0-text">较安全</text>
+</view>
+```
 
-| 等级 | 语义 | `--tX-dot` | `--tX-bg` | `--tX-text` |
-|------|------|-----------|----------|------------|
-| `t0` | 非常安全 | `#3D7A5C` | `#EEF7F2` | `#1E4D38` |
-| `t1` | 较安全 | `#2E7D7A` | `#EAF4F4` | `#164D4B` |
-| `t2` | 谨慎 | `#B07D1A` | `#FEF5E0` | `#6B4A0A` |
-| `t3` | 存在风险 | `#C44A2B` | `#FDEEE9` | `#7A2410` |
-| `t4` | 高风险 | `#8B1A1A` | `#FDDEDE` | `#5A0D0D` |
-
-**使用规则：**
-- `dot` 色：用于圆形指示点、badge 背景、边框左侧强调线
-- `bg` 色：用于标签背景、区块背景（如 verdict zone、人群卡片）
-- `text` 色：用于 `bg` 色之上的所有文字，保证对比度
-
-**Verdict Zone 背景规则：**
-整个顶部 verdict 区域使用当前产品等级的 `bg` 色作为背景，`dot` 色作为大字颜色，`text` 色作为描述文字颜色。
-
-### 2.5 分析页专用色（Dark Surface）
-
-分析进行中页面使用深色背景，形成仪式感与对比：
-
-| Token | Hex | 用途 |
-|-------|-----|------|
-| `--dark-bg` | `#1A1714` | 分析页背景 |
-| `--dark-text` | `rgba(255,255,255,0.9)` | 主文字 |
-| `--dark-text-2` | `rgba(255,255,255,0.4)` | 次要文字 |
-| `--dark-text-3` | `rgba(255,255,255,0.22)` | 弱化文字 |
-| `--dark-border` | `rgba(255,255,255,0.12)` | 边框 |
-| `--dark-surface` | `rgba(255,255,255,0.06)` | 卡片/框背景 |
-
-扫描线颜色：`--brand` `#C4532A`，渐变：`linear-gradient(90deg, transparent, #C4532A, transparent)`
-
-### 2.6 边框与分割线
-
-| Token | 值 | 用途 |
-|-------|-----|------|
-| `--border` | `rgba(26,23,20,0.08)` | 卡片边框、列表分割线 |
-| `--border-strong` | `rgba(26,23,20,0.15)` | 输入框边框 |
+| token     | 用途                                  |
+| --------- | ------------------------------------- |
+| `tX-dot`  | 圆形指示点、badge 背景、边框强调色    |
+| `tX-bg`   | 标签背景、区块背景、Verdict Zone 背景 |
+| `tX-text` | `tX-bg` 之上的所有文字                |
 
 ---
 
-## 3. 间距系统
+## 2. 字体规范
 
-### 3.1 基础单位
+### 2.1 字号类对应表
 
-**基础单位：8px**（UniApp 对应 16rpx）。所有间距必须是 4px 的倍数，优先使用 8px 的倍数。
+| 类名            | px         | 典型用途                         |
+| --------------- | ---------- | -------------------------------- |
+| `text-display`  | 44px / 800 | 结果页「成分较优 ✓」             |
+| `text-hero`     | 28px / 800 | 首页「我的分析记录」             |
+| `text-headline` | 22px / 700 | 对话页标题                       |
+| `text-title`    | 18px / 700 | 对话页「问问 AI 顾问」           |
+| `text-body-lg`  | 15px / 600 | 列表项名称、卡片大标题           |
+| `text-body`     | 14px / 400 | 正文描述、AI 回复内容            |
+| `text-sm`       | 13px / 500 | 次要正文、建议文本、快捷胶囊     |
+| `text-label`    | 12px / 700 | 按钮文字、人群卡片标题           |
+| `text-caption`  | 11px / 700 | 风险标签、时间戳、免责声明       |
+| `text-micro`    | 10px / 700 | 章节标题（SECTION HEADER）、角标 |
 
-### 3.2 间距梯度
+### 2.2 章节标题（Section Header）
 
-| Token | px | rpx | 用途 |
-|-------|-----|-----|------|
-| `space-1` | 4px | 8rpx | 极小间距（标签内垂直 padding） |
-| `space-2` | 8px | 16rpx | 紧凑间距（列表项内元素间距） |
-| `space-3` | 12px | 24rpx | 小间距（卡片内部元素间距） |
-| `space-4` | 16px | 32rpx | 标准间距（Section 内 padding） |
-| `space-5` | 20px | 40rpx | 页面水平 padding |
-| `space-6` | 24px | 48rpx | 页面水平 padding（宽松场景） |
-| `space-8` | 32px | 64rpx | Section 间距 |
-| `space-10` | 40px | 80rpx | 大区块间距 |
+```vue
+<text class="text-micro text-ink-3 uppercase tracking-[0.08em]">
+  配料解析
+</text>
+```
 
-### 3.3 页面级间距规范
+---
 
-| 场景 | 规范 |
-|------|------|
-| 页面水平内边距 | `20px`（首页/结果页），`16px`（对话页） |
-| 顶部 Status Bar 后间距 | `8px` |
-| Section 标题距上方内容 | `20px` |
-| Section 内列表项垂直 padding | `11px 0` |
-| 章节之间分割线 | `height: 1px`，颜色 `--border`，`margin: 4px 20px 20px` |
-| 底部安全区额外 padding | `28px`（iOS 底部手势条区域） |
+## 3. 间距规范
 
-### 3.4 组件内部间距
+### 3.1 页面级内边距
+
+| 场景                 | 类名          |
+| -------------------- | ------------- |
+| 标准页面水平 padding | `px-5` (20px) |
+| 对话页水平 padding   | `px-4` (16px) |
+| Status bar 后间距    | `pt-2` (8px)  |
+| 底部安全区（iOS）    | `pb-7` (28px) |
+
+### 3.2 组件间距速查
 
 **历史记录列表项：**
-```
-padding: 13px 24px
-gap（图片与文字）: 14px
-图片尺寸: 50×50px，border-radius: 10px
+
+```vue
+<view class="flex items-center gap-3.5 px-6 py-[13px] border-b border-black/[0.08]">
+  <image class="w-[50px] h-[50px] rounded-sm flex-shrink-0" />
+  <view class="flex-1">
+    <text class="text-body-lg text-ink">产品名</text>
+    <text class="text-caption text-ink-3 mt-1">3天前 · 18种成分</text>
+  </view>
+  <!-- Risk Pill -->
+</view>
 ```
 
-**Verdict Zone：**
-```
-padding: 16px 22px 36px
-食品名到大字距离: 5px
-大字到描述文字距离: 8px
-描述文字到 badge 距离: 12px
+**Verdict Zone（结果页顶部）：**
+
+```vue
+<view class="px-[22px] pt-4 pb-9 bg-risk-t1-bg relative overflow-hidden">
+  <!-- 返回 -->
+  <text class="text-xl text-risk-t1-dot block mb-[14px]">←</text>
+  <!-- 食品名 -->
+  <text class="text-micro text-risk-t1-text opacity-70 block mb-[5px]">高纤GI饼干</text>
+  <!-- 大字判断 -->
+  <text class="text-display text-risk-t1-dot block mb-2">成分较优 ✓</text>
+  <!-- 描述 -->
+  <text class="text-sm text-risk-t1-text opacity-75 font-medium block mb-3">整体配料合规，少量添加剂需留意</text>
+  <!-- Badge -->
+  <view class="inline-flex items-center gap-1.5 bg-risk-t1-dot px-[13px] py-[5px] rounded-pill">
+    <text class="text-caption text-white">t1 · 较安全 · 24种成分</text>
+  </view>
+</view>
 ```
 
-**Sheet 内 Section：**
+**Sheet（底部抽屉）：**
+
+```vue
+<view class="bg-surface rounded-t-lg -mt-5 pb-8">
+  <!-- handle -->
+  <view class="w-9 h-1 bg-[#E0DCD6] rounded-full mx-auto mt-3 mb-[18px]" />
+  <!-- 内容 sections -->
+</view>
 ```
-padding: 0 20px 20px
-section header margin-bottom: 12px
+
+**CTA 大按钮卡片（首页）：**
+
+```vue
+<view class="mx-5 mt-[22px] bg-brand rounded-xl p-[26px_24px] flex flex-col gap-3.5 relative overflow-hidden">
+  <text class="text-micro text-white/60 uppercase tracking-[0.1em]">AI 拍照分析</text>
+  <text class="text-hero text-white">拍一张配料表<br>秒知成分好坏</text>
+  <text class="text-sm text-white/65">支持所有包装食品</text>
+  <view class="self-start bg-white text-brand text-label px-5 py-[9px] rounded-pill">
+    立即拍照 →
+  </view>
+</view>
+```
+
+**对话入口 Bar（结果页底部固定）：**
+
+```vue
+<view class="absolute bottom-0 left-0 right-0 px-5 pt-3 pb-7"
+      style="background: linear-gradient(to top, white 60%, transparent)">
+  <!-- 快捷问题横滑 -->
+  <scroll-view scroll-x class="flex gap-2 pb-0.5 mb-2.5 whitespace-nowrap">
+    <view class="inline-flex bg-raised border border-black/10 rounded-pill px-[13px] py-[7px]">
+      <text class="text-label text-ink-2">糖尿病可以吃吗？</text>
+    </view>
+  </scroll-view>
+  <!-- 主按钮 -->
+  <view class="flex items-center gap-2.5 bg-brand rounded-xl px-5 py-[14px]">
+    <view class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+      <text class="text-lg text-white">✦</text>
+    </view>
+    <view class="flex-1">
+      <text class="text-body-lg text-white block">深入问问 AI 顾问</text>
+      <text class="text-caption text-white/70 block mt-0.5">针对这款产品，随时问任何问题</text>
+    </view>
+    <text class="text-xl text-white/80">›</text>
+  </view>
+</view>
 ```
 
 **人群卡片（横向滚动）：**
-```
-卡片宽: 106px
-卡片内 padding: 13px 11px
-卡片间 gap: 10px
-滚动区左右 padding: 20px
+
+```vue
+<scroll-view scroll-x class="flex gap-2.5 px-5 py-1">
+  <view class="flex-shrink-0 w-[106px] bg-risk-t0-bg border border-black/[0.08] rounded-md p-[13px_11px] flex flex-col gap-1.5">
+    <text class="text-[22px]">🧑</text>
+    <text class="text-label text-ink">普通成人</text>
+    <view class="bg-risk-t0-dot rounded-pill px-2 py-[3px] self-start">
+      <text class="text-[10px] font-bold text-white">适量可食</text>
+    </view>
+    <text class="text-[10px] text-ink-3 leading-[1.5]">每日不超过2-3份</text>
+  </view>
+</scroll-view>
 ```
 
 **对话气泡：**
-```
-用户气泡: border-radius: 18px 18px 4px 18px，padding: 10px 14px
-AI 气泡:   border-radius: 18px 18px 18px 4px，padding: 12px 14px
-气泡间距: 14px
-最大宽度: 用户 75%，AI 85%
-```
 
----
+```vue
+<!-- 用户 -->
+<view
+  class="self-end bg-brand text-white rounded-[18px_18px_4px_18px] px-3.5 py-2.5 max-w-[75%]"
+>
+  <text class="text-body">我有2型糖尿病，这个可以吃吗？</text>
+</view>
 
-## 4. 圆角系统（Border Radius）
-
-| Token | px | 用途 |
-|-------|-----|------|
-| `r-xs` | 6px | 极小圆角（暂未使用） |
-| `r-sm` | 10px | 历史图片、小标签角标 |
-| `r-md` | 18px | 建议框、人群卡片、替代方案卡片 |
-| `r-lg` | 26px | Sheet 顶部、主要卡片区块 |
-| `r-xl` | 34px | CTA 大按钮卡片、对话入口按钮 |
-| `r-full` | 9999px | 所有胶囊形标签（risk pill、badge、chip） |
-| `r-circle` | 50% | 圆形按钮（FAB、发送按钮、头像） |
-
-**规则：**
-- 越大的容器使用越大的圆角
-- 嵌套时子元素圆角应小于父元素（如 Sheet 内卡片用 `r-md`，Sheet 本身用 `r-lg`）
-- 胶囊标签（pill）统一 `r-full`，禁止使用固定 px
-
----
-
-## 5. 阴影与层叠（Elevation）
-
-| Level | CSS 值 | 用途 |
-|-------|--------|------|
-| `shadow-sm` | `0 1px 6px rgba(26,23,20,.08)` | 人群卡片、小组件 |
-| `shadow-md` | `0 2px 18px rgba(26,23,20,.08), 0 0 0 1px rgba(26,23,20,.05)` | 历史列表头像、设置按钮 |
-| `shadow-lg` | `0 12px 48px rgba(26,23,20,.14)` | 浮动 FAB（暂未设计） |
-| `shadow-phone` | `0 28px 80px rgba(0,0,0,.20), 0 0 0 1px rgba(0,0,0,.09)` | 设计稿手机框（非生产） |
-
-**规则：**
-- 对话气泡 AI 消息使用 `shadow-md`
-- 页面内容不使用 `shadow-lg`（过重）
-- 禁止随意叠加多个阴影
-
----
-
-## 6. 组件规范
-
-### 6.1 Risk Pill（风险标签）
-
-```
-background: var(--tX-bg)
-color: var(--tX-text)
-padding: 5px 11px
-border-radius: r-full (9999px)
-font-size: 11px (text-caption)
-font-weight: 700
-```
-
-禁止给 risk pill 添加边框或阴影。
-
-### 6.2 Verdict Badge
-
-```
-background: var(--tX-dot)
-color: white
-padding: 5px 13px
-border-radius: r-full
-font-size: 11px
-font-weight: 700
-display: inline-flex, gap: 6px
-```
-
-### 6.3 CTA 大按钮卡片（首页拍照入口）
-
-```
-background: --brand (#C4532A)
-border-radius: r-xl (34px)
-padding: 26px 24px
-内部元素间距: gap 14px
-内嵌按钮: background white, color --brand, padding 9px 20px, border-radius r-full
-```
-
-装饰圆圈（伪元素）：
-```css
-::before { top:-40px; right:-40px; width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,.08) }
-```
-
-### 6.4 对话入口按钮（Chat CTA Bar）
-
-```
-position: absolute, bottom: 0
-padding: 12px 20px 28px（28px 为 iOS 安全区）
-background: linear-gradient(to top, white 60%, rgba(255,255,255,0))
-
-主按钮:
-  background: --brand
-  border-radius: r-xl
-  padding: 14px 20px
-  内部 icon: 36×36px, border-radius 50%, background rgba(255,255,255,.2)
-
-快捷问题胶囊:
-  background: --cream-2 (#F2EFE8)
-  border: 1px solid rgba(26,23,20,.1)
-  border-radius: r-full
-  padding: 7px 13px
-  font-size: 12px, font-weight: 500, color: --text-2
-```
-
-### 6.5 Sheet Handle
-
-```
-width: 36px
-height: 4px
-background: #E0DCD6
-border-radius: 2px
-margin: 12px auto 18px
-```
-
-### 6.6 分析页扫描线
-
-```
-position: absolute
-left: 8px, right: 8px
-height: 1px
-background: linear-gradient(90deg, transparent, #C4532A, transparent)
-animation: 2s ease-in-out infinite
-运动范围: top 15% → 85%
-```
-
-### 6.7 对话产品 Chip
-
-```
-background: var(--tX-bg)（当前产品等级）
-border-radius: r-full
-padding: 5px 12px 5px 8px
-内部圆点: 8×8px, background: var(--tX-dot)
-文字: font-size 12px, font-weight 600, color: var(--tX-text)
+<!-- AI -->
+<view
+  class="self-start bg-surface shadow-md rounded-[18px_18px_18px_4px] px-3.5 py-3 max-w-[85%]"
+>
+  <text class="text-micro text-brand uppercase tracking-[0.06em] block mb-1.5">AI 分析参考</text>
+  <text class="text-body text-ink-2 leading-[1.65]">这款饼干含有麦芽糊精…</text>
+</view>
+<!-- AI 免责 -->
+<text
+  class="text-[10px] text-ink-3 mt-1 ml-1"
+>AI 生成 · 仅供参考 · 请遵医嘱</text>
 ```
 
 ---
 
-## 7. 页面结构规范
+## 4. 圆角规范
 
-### 7.1 Status Bar
+| 类名           | px     | 使用场景                                         |
+| -------------- | ------ | ------------------------------------------------ |
+| `rounded-sm`   | 10px   | 历史缩略图、小标签                               |
+| `rounded-md`   | 18px   | 建议框、人群卡片、替代方案卡片                   |
+| `rounded-lg`   | 26px   | Sheet 顶部、主要内容区块                         |
+| `rounded-xl`   | 34px   | CTA 大按钮卡片、对话入口按钮                     |
+| `rounded-pill` | 9999px | 所有胶囊标签（risk pill、badge、chip、快捷问题） |
+| `rounded-full` | 50%    | 圆形按钮（发送、头像、圆点指示）                 |
 
+**规则：** 嵌套时子元素圆角 ≤ 父元素圆角。
+
+---
+
+## 5. 阴影规范
+
+| 类名        | 用途                            |
+| ----------- | ------------------------------- |
+| `shadow-sm` | 人群卡片、小组件                |
+| `shadow-md` | 历史列表头像、AI 气泡、设置按钮 |
+| `shadow-lg` | 浮动 FAB（如有）                |
+
+---
+
+## 6. 分析页（深色）专用原子类
+
+分析进行中页面背景 `bg-dark-bg`，内容使用白色透明度变量：
+
+```vue
+<!-- 页面根 -->
+<view class="min-h-screen bg-dark-bg flex flex-col">
+
+  <!-- 状态文字 -->
+  <text class="text-micro text-white/35 uppercase tracking-[0.14em]">Analyzing</text>
+  <text class="text-headline text-white">AI 正在分析中</text>
+
+  <!-- 相框 -->
+  <view class="w-[240px] h-[168px] rounded-[16px] bg-dark-surface border border-dark-border
+               relative flex items-center justify-center">
+    <!-- 四角 border 用绝对定位 + brand 色 -->
+    <!-- 扫描线 -->
+    <view class="absolute left-2 right-2 h-px
+                 bg-gradient-to-r from-transparent via-brand to-transparent
+                 animate-scan" />
+    <text class="text-caption text-white/22">配料表照片</text>
+  </view>
+
+  <!-- 步骤 -->
+  <!-- done: w-7 h-7 rounded-full bg-brand text-white -->
+  <!-- active: w-7 h-7 rounded-full border border-white/30 text-white -->
+  <!-- wait: w-7 h-7 rounded-full bg-white/[0.06] text-white/20 -->
+</view>
 ```
-padding-top: 14px
-padding-left/right: 28px
-font-size: 12px, font-weight: 700
-颜色跟随页面主色调（亮色页面用 --text，深色页面用 rgba(255,255,255,.4)，Verdict Zone 用 --tX-text）
-```
 
-### 7.2 页面导航
+---
 
-当前产品无底部 Tab Bar（单一主流程），导航通过以下方式完成：
+## 7. 动效规范
 
-| 入口 | 跳转目标 |
-|------|---------|
-| 首页 CTA 卡片 | → 相机/拍照页 |
-| 首页历史列表项 | → 对应结果页 |
-| 结果页「深入问问 AI」| → 对话页（携带产品上下文） |
-| 对话页 ← 返回 | → 结果页 |
-| 结果页 ← 返回 | → 首页 |
-
-### 7.3 底部安全区（iOS）
-
-所有底部固定元素（Chat Bar、输入栏）额外 padding-bottom `28px`，避免被 iOS Home Indicator 遮挡。
+| 场景           | Tailwind 类 / 说明                                       |
+| -------------- | -------------------------------------------------------- |
+| 页面切换       | `duration-300 ease-in-out`                               |
+| Sheet 弹出     | `duration-[380ms] ease-spring`                           |
+| 按压缩放       | `active:scale-[0.97] transition duration-100 ease-out`   |
+| CTA 按钮按压色 | `active:bg-brand-dark`                                   |
+| 快捷胶囊按压   | `active:bg-page`                                         |
+| 列表项按压     | `active:bg-black/[0.04]`                                 |
+| 扫描线         | `animate-scan`（见 keyframes）                           |
+| AI 加载三点    | `animate-dot-bounce` + `[animation-delay:150ms]` stagger |
 
 ---
 
 ## 8. 状态规范
 
-### 8.1 空状态（首页无历史记录）
+### 8.1 Risk Pill 完整写法
+
+```vue
+<!-- t0 -->
+<view class="bg-risk-t0-bg rounded-pill px-[11px] py-[5px]">
+  <text class="text-caption text-risk-t0-text">安全</text>
+</view>
+
+<!-- t3 -->
+<view class="bg-risk-t3-bg rounded-pill px-[11px] py-[5px]">
+  <text class="text-caption text-risk-t3-text">存在风险</text>
+</view>
+```
+
+### 8.2 空状态（首页无记录）
+
+```vue
+<view class="flex flex-col items-center justify-center gap-3 px-10 py-20">
+  <!-- 图标区 -->
+  <view class="w-16 h-16 rounded-xl bg-raised flex items-center justify-center">
+    <text class="text-3xl">📷</text>
+  </view>
+  <text class="text-headline text-ink-2 text-center">还没有分析记录</text>
+  <text class="text-sm text-ink-3 text-center leading-relaxed">
+    拍一张配料表，开始你的第一次分析
+  </text>
+  <!-- 复用 CTA 按钮样式 -->
+</view>
+```
+
+### 8.3 错误状态（内联，非 Toast）
+
+```vue
+<view class="mx-5 bg-risk-t3-bg rounded-md px-4 py-3 flex items-center gap-3">
+  <text class="text-xl text-risk-t3-dot">⚠</text>
+  <view class="flex-1">
+    <text class="text-label text-risk-t3-text block">分析失败</text>
+    <text class="text-caption text-risk-t3-text/70 block mt-0.5">网络异常，请检查连接后重试</text>
+  </view>
+  <text class="text-sm text-risk-t3-dot font-bold">重试</text>
+</view>
+```
+
+### 8.4 AI 加载中（三点动画）
+
+```vue
+<view class="self-start bg-surface shadow-md rounded-[18px_18px_18px_4px] px-4 py-3">
+  <view class="flex items-center gap-1.5">
+    <view v-for="i in 3" :key="i"
+          class="w-1.5 h-1.5 rounded-full bg-ink-3 animate-dot-bounce"
+          :style="`animation-delay: ${(i-1)*150}ms`" />
+  </view>
+</view>
+```
+
+---
+
+## 9. 文案禁用词表
+
+| 禁用              | 替换                        |
+| ----------------- | --------------------------- |
+| 放心吃 / 可以食用 | 成分较优 / 整体合规         |
+| 不安全 / 有害     | 多处值得关注 / 存在风险成分 |
+| 一定会导致        | 部分研究提示可能            |
+| 推荐购买          | 可参考购买                  |
+| 不建议购买        | 建议进一步了解              |
+
+**必须出现的声明：**
+
+- AI 气泡底部：`AI 生成 · 仅供参考 · 请遵医嘱`（`text-[10px] text-ink-3`）
+- 结果页底部：完整免责声明（`text-caption text-ink-3 leading-[1.65]`）
+
+---
+
+## 10. 扫码页（Scan Page）
+
+### 10.1 概述
+
+入口：首页"扫一扫"按钮 / 底部 Tab
+出口：扫码成功 → 产品详情页；取消 → 返回上一页
+
+**设计原则：**
+
+- 放心感优先：启动扫码时传递"有人在帮我把关"
+- 温暖陶土色系 + 大胆排版
+- 极简：只有一个核心动作，不需要解释
+
+### 10.2 视觉规范
+
+**背景层级：**
+| Layer | 类名 | hex | 用途 |
+|-------|------|-----|------|
+| Layer 0 | `bg-page` | `#FAF8F3` | 页面底色（暖白） |
+| Layer 1 | `bg-surface` | `#FFFFFF` | 扫描框 |
+
+**字体：**
+| 用途 | 类名 | px |
+|------|------|-----|
+| 页面标题 | `text-headline` / 700 | 22px |
+| 副标题说明 | `text-sm` / 400 | 13px |
+| 底部提示 | `text-caption` / 400 | 11px |
+
+### 10.3 页面结构 (375px)
 
 ```
-图标: 相机图标（outline 风格）
-标题: "还没有分析记录"（text-headline，颜色 --text-2）
-描述: "拍一张配料表，开始你的第一次分析"（text-sm，颜色 --text-3）
-按钮: 与 CTA 卡片样式一致，但宽度自适应居中
+┌─────────────────────────────────────┐
+│  status-bar (native)                │
+├─────────────────────────────────────┤
+│                                     │
+│           [scan-icon]               │ ← 5rem 容器，圆角 34px
+│                                     │    背景 bg-brand-light
+│          扫一扫                      │ ← text-headline / 700
+│                                     │
+│     将条码对准框内即可自动扫描        │ ← text-sm / 400，text-ink-2
+│                                     │
+│       ┌───────────────┐             │
+│       │               │             │ ← 扫描框 300px × 300px
+│       │    扫描框      │             │    rounded-lg (26px)
+│       │               │             │    border 白色半透明
+│       └───────────────┘             │
+│                                     │
+│    轻触屏幕手动输入条形码             │ ← text-caption，text-ink-3
+│                                     │
+└─────────────────────────────────────┘
 ```
 
-### 8.2 错误状态
+### 10.4 扫描框组件
 
-| 场景 | 处理方式 |
-|------|---------|
-| 照片识别失败 | Toast 提示「未能识别配料表，请确保照片清晰」，保留重拍按钮 |
-| 网络错误 | 内联错误提示（非 Toast），提供重试按钮 |
-| AI 分析超时 | 分析页显示「分析时间较长，请稍候…」，超过 30s 提供取消选项 |
-| 对话响应失败 | 气泡内显示「回复失败，点击重试」，颜色 `--text-3` |
+**四角标记：**
 
-### 8.3 加载状态
+- 位置：扫描框四角
+- 尺寸：24px × 2px（横向）/ 2px × 24px（竖向）
+- 颜色：`bg-brand`
+- 圆角：`rounded-sm` (10px)
 
-**分析进行中：** 使用深色分析页 + 扫描线动画（见 6.6），不使用通用 Spinner。
+**扫描线：**
 
-**对话回复中：** AI 气泡内显示三点跳动动画：
+- 位置：扫描框内，上下扫动
+- 高度：1px
+- 颜色：白色半透明
+- 动画：`animate-scan`
+
+**扫描框状态：**
+| 状态 | 边框色 | 扫描线色 |
+|------|--------|----------|
+| 默认 | `border-white/60` | 白色半透明 |
+| 扫描中 | `border-brand` | brand 色 |
+| 成功 | `border-risk-t0-dot` | risk-t0-dot 色 |
+
+### 10.5 组件代码示例
+
+```vue
+<template>
+  <view class="min-h-screen bg-page flex flex-col">
+    <TopBar />
+
+    <!-- 主内容区：垂直居中，重心偏上 -->
+    <view class="flex-1 flex flex-col items-center justify-center px-6 -mt-12">
+      <!-- 扫描图标 -->
+      <view
+        class="w-20 h-20 rounded-xl bg-brand-light flex items-center justify-center mb-6"
+      >
+        <DIcon name="scan" dclass="text-4xl text-brand" />
+      </view>
+
+      <!-- 标题 -->
+      <text class="text-headline text-ink tracking-tight">扫一扫</text>
+
+      <!-- 副标题 -->
+      <text class="text-sm text-ink-2 mt-2">将条码对准框内即可自动扫描</text>
+
+      <!-- 扫描框 -->
+      <view
+        class="relative w-[300px] h-[300px] mt-10 rounded-lg
+                  border border-white/60 bg-white/[0.08]
+                  animate-scan overflow-hidden"
+      >
+        <!-- 四角标记 -->
+        <!-- 左上 -->
+        <view class="absolute top-0 left-0 w-6 h-0.5 bg-brand rounded-sm" />
+        <view class="absolute top-0 left-0 w-0.5 h-6 bg-brand rounded-sm" />
+        <!-- 右上 -->
+        <view class="absolute top-0 right-0 w-6 h-0.5 bg-brand rounded-sm" />
+        <view class="absolute top-0 right-0 w-0.5 h-6 bg-brand rounded-sm" />
+        <!-- 左下 -->
+        <view class="absolute bottom-0 left-0 w-6 h-0.5 bg-brand rounded-sm" />
+        <view class="absolute bottom-0 left-0 w-0.5 h-6 bg-brand rounded-sm" />
+        <!-- 右下 -->
+        <view class="absolute bottom-0 right-0 w-6 h-0.5 bg-brand rounded-sm" />
+        <view class="absolute bottom-0 right-0 w-0.5 h-6 bg-brand rounded-sm" />
+
+        <!-- 扫描线 -->
+        <view class="absolute left-2 right-2 h-px bg-white/80 animate-scan" />
+      </view>
+
+      <!-- 底部提示 -->
+      <text class="text-caption text-ink-3 mt-8" @tap="openManualInput">
+        轻触屏幕手动输入条形码
+      </text>
+    </view>
+  </view>
+</template>
+```
+
+### 10.6 手动输入 Sheet
+
+```vue
+<!-- Sheet 内容 -->
+<view class="bg-surface rounded-t-lg px-5 pb-8">
+  <view class="w-9 h-1 bg-[#E0DCD6] rounded-full mx-auto mt-3 mb-5" />
+  <text class="text-title text-ink block mb-4">手动输入条形码</text>
+  <input class="w-full bg-raised rounded-lg px-4 py-3 text-body text-ink"
+         type="number" placeholder="请输入条形码" />
+  <view class="w-full bg-brand rounded-xl px-5 py-3 mt-4">
+    <text class="text-body-lg text-white">确认</text>
+  </view>
+</view>
+```
+
+### 10.7 动画规范
+
 ```css
-三个圆点: width 6px, height 6px, border-radius 50%, background rgba(255,255,255,.6)
-动画: 交替 opacity 0.3 → 1，stagger 150ms
-```
+/* 扫描线动画（已内置于 tailwind.config） */
+.animate-scan {
+  animation: scan 2s ease-in-out infinite;
+}
 
-### 8.4 按压状态（Pressed）
-
-```
-所有可点击元素: scale(0.97), transition 100ms ease-out
-CTA 卡片:       background 变深至 --brand-dark (#A34222)
-快捷问题胶囊:   background 变为 --cream (#FAF8F3)
-列表项:         background rgba(26,23,20,0.04)
-```
-
----
-
-## 9. 文案规范（法律合规）
-
-### 9.1 禁用表达
-
-以下表达**禁止出现**（存在法律风险）：
-
-| 禁用 | 替换 |
-|------|------|
-| 放心吃 / 可以放心食用 | 成分较优 / 整体合规 |
-| 不安全 / 有害 | 多处值得关注 / 存在风险成分 |
-| 一定会导致 | 部分研究提示可能 |
-| 适合 XXX 人群食用 | 供 XXX 人群参考 |
-| 推荐购买 / 不建议购买 | 可参考购买 / 建议进一步了解 |
-
-### 9.2 必须出现的声明
-
-**AI 气泡底部：**
-```
-AI 生成 · 仅供参考 · 请遵医嘱
-font-size: 10px, color: --text-3
-```
-
-**结果页底部：**
-```
-本内容仅供参考，不构成任何医疗、营养或食品安全方面的专业建议。
-分析基于包装配料表信息，实际健康影响因个人情况而异。
-font-size: 11px, color: --text-3, line-height: 1.65
+/* 尊重运动偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-scan {
+    animation: none;
+  }
+}
 ```
 
 ---
 
-## 10. 动效规范
+## 11. 待设计页面
 
-| 场景 | Duration | Easing |
-|------|----------|--------|
-| 页面切换 | 300ms | ease-in-out |
-| Sheet 弹出 | 380ms | cubic-bezier(0.32, 0.72, 0, 1) |
-| 按压反馈 (scale) | 100ms enter / 150ms exit | ease-out |
-| 快捷标签横滑 | 原生惯性滚动 | — |
-| 扫描线循环 | 2000ms | ease-in-out |
-| AI 三点加载 | 600ms/循环 | ease-in-out |
-
-**禁止：**
-- 超过 400ms 的 UI 动画
-- 使用 width/height 做过渡（改用 transform/opacity）
-- 无意义的装饰性动画
+- [ ] 相机取景页（实际拍照界面）
+- [ ] 我的页面（设置、账户）
+- [ ] 首页空状态
+- [ ] 网络错误/分析彻底失败页
+- [ ] 新用户首次引导流程
 
 ---
 
-## 11. 尚未设计的页面（待补充）
+## 11. 决策日志
 
-以下页面尚未完成设计，开发前需补全：
-
-- [ ] **相机/拍照页** — 实际相机取景界面，非分析中页
-- [ ] **我的页面** — 设置、账户信息
-- [ ] **首页空状态** — 无历史记录时的引导
-- [ ] **错误页** — 分析彻底失败、网络断开
-- [ ] **首次引导** — 新用户第一次打开的引导流程
-
----
-
-## 12. 决策日志
-
-| 日期 | 决策 | 理由 |
-|------|------|------|
-| 2026-03-30 | 品牌色定为陶土橙 #C4532A | 与竞品绿色系完全差异化，在健康类应用中独特 |
-| 2026-03-30 | 放弃暗色模式 | 聚焦核心流程，暗色模式增加复杂度但不提升核心体验 |
-| 2026-03-30 | 结果页顶部整块用风险色作背景 | 让用户第一眼通过颜色就能判断风险等级，无需阅读文字 |
-| 2026-03-30 | 对话入口放在结果页底部固定栏 | 不打断阅读流程，用户看完详情自然看到入口 |
-| 2026-03-30 | 分析中使用深色背景 | 与白色首页/结果页形成对比，增加仪式感和等待期的沉浸感 |
-| 2026-03-30 | 禁用"放心吃"等直接表达 | 规避食品安全相关法律风险 |
-| 2026-03-30 | 风险色从绿/琥珀/橙/红重新设计 | 与品牌色（陶土橙）区分，确保语义清晰 |
+| 日期       | 决策                          | 理由                           |
+| ---------- | ----------------------------- | ------------------------------ |
+| 2026-03-30 | 品牌色 `#C4532A` 陶土橙       | 与竞品绿色系完全差异化         |
+| 2026-03-30 | 放弃暗色模式                  | 聚焦核心流程，降低复杂度       |
+| 2026-03-30 | Verdict Zone 整块用风险色背景 | 颜色即结论，无需阅读文字       |
+| 2026-03-30 | 对话入口固定在结果页底部      | 不打断阅读，自然引导           |
+| 2026-03-30 | 分析页用深色背景              | 与白色页形成对比，增加仪式感   |
+| 2026-03-30 | 规范切换为 Tailwind v3 原子类 | 防止随意内联样式，统一设计语言 |

@@ -67,8 +67,11 @@ class Settings(BaseSettings):
     SLICE_HEADING_LEVELS: List[int] = [2, 3, 4]
     # 规则文件目录（运行时动态追加新规则）
     RULES_DIR: str = "parser/rules"
-    # classify_node 最大并行数
-    CLASSIFY_MAX_CONCURRENCY: int = 1
+    # 各 LLM 节点最大并行数
+    CLASSIFY_MAX_CONCURRENCY: int = 10
+    STRUCTURE_MAX_CONCURRENCY: int = 10
+    ESCALATE_MAX_CONCURRENCY: int = 10
+    TRANSFORM_MAX_CONCURRENCY: int = 10
 
     # ── Embedding 配置 ────────────────────────────────────────────────────────
     EMBEDDING_MODEL: str = "text-embedding-v3"

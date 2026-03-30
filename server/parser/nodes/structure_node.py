@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import re
 import time
 
@@ -22,7 +23,7 @@ _logger = structlog.get_logger(__name__)
 
 
 def _extract_headings(md: str) -> list[str]:
-    return [m.group(1).strip() for m in re.finditer(r"^## (.+)$", md, re.MULTILINE)]
+    return [m.group(1).strip() for m in re.finditer(r"^#{1,2} (.+)$", md, re.MULTILINE)]
 
 
 def match_doc_type_by_rules(md: str, store: RulesStore) -> tuple[str, str] | None:
@@ -67,25 +68,32 @@ def _infer_doc_type_with_llm(
     只返回一个 JSON 对象，不要包含任何多余说明。
     现有类型：
     {existing_ids}
+    
+    如果推断的文档类型不在现有类型中，也请返回一个 JSON 对象，不要包含任何多余说明。
+    id 设置为你认为最合适的 id，description 设置为你认为最合适的描述，detect_keywords 和 detect_heading_patterns 设置为你认为最合适的检测关键词和检测章节标题模式。
+    
     章节标题：
     {headings_str}
+    
     返回格式（json）：
     {sample_doc_type}
     """
 
+    print(prompt)
     resp = invoke_structured(
         node_name="structure_node",
         prompt=prompt,
         response_model=DocTypeOutput,
         extra_body={"enable_thinking": False, "reasoning_split": True},
     )
+    print(resp)
     llm_calls_total.labels(
         node="structure_node", model=settings.DOC_TYPE_LLM_MODEL or "unknown"
     ).inc()
     return resp.model_dump()
 
 
-def structure_node(state: WorkflowState) -> dict:
+async def structure_node(state: WorkflowState) -> dict:
     _start = time.perf_counter()
     doc_id = state.get("doc_metadata", {}).get("doc_id", "")
     _logger.info(
@@ -105,11 +113,20 @@ def structure_node(state: WorkflowState) -> dict:
         if match:
             meta["doc_type"], meta["doc_type_source"] = match
         else:
-            headings = _extract_headings(state["md_content"])
-            existing_types = store.get_doc_type_rules().get("doc_types", [])
-            new_rule = _infer_doc_type_with_llm(
-                headings, existing_types, state.get("config", {})
-            )
+            semaphore = asyncio.Semaphore(settings.STRUCTURE_MAX_CONCURRENCY)
+
+            async def limited_infer():
+                async with semaphore:
+                    headings = _extract_headings(state["md_content"])
+                    existing_types = store.get_doc_type_rules().get("doc_types", [])
+                    return await asyncio.to_thread(
+                        _infer_doc_type_with_llm,
+                        headings,
+                        existing_types,
+                        state.get("config", {}),
+                    )
+
+            new_rule = await limited_infer()
             store.append_doc_type(new_rule)
             meta["doc_type"] = new_rule["id"]
             meta["doc_type_source"] = "llm"

@@ -101,10 +101,10 @@ async def test_write_empty_chunks_is_noop():
     mock_col.upsert.assert_not_called()
 
 
-async def test_write_raw_content_truncated_when_over_2000():
-    """raw_content 超过 2000 字符时截断，最终结果恰好为 2000 字符"""
+async def test_write_raw_content_not_truncated():
+    """raw_content 无论多长都不截断，完整写入"""
     mock_col = MagicMock()
-    long_raw = "x" * 2001
+    long_raw = "x" * 5000
     chunk = _make_chunk(raw_content=long_raw)
 
     with patch("app.core.kb.writer.chroma_writer.get_collection", return_value=mock_col), \
@@ -113,9 +113,8 @@ async def test_write_raw_content_truncated_when_over_2000():
         await write([chunk], _make_doc_metadata())
 
     meta = mock_col.upsert.call_args.kwargs["metadatas"][0]
-    suffix = "...（内容已截断）"
-    assert meta["raw_content"].endswith(suffix)
-    assert len(meta["raw_content"]) == 2000
+    assert meta["raw_content"] == long_raw
+    assert len(meta["raw_content"]) == 5000
 
 
 async def test_write_raw_content_exactly_2000_not_truncated():

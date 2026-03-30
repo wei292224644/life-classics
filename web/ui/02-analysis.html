@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>食品安全助手 — 分析中</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --brand:#C4532A;
+}
+body {
+  font-family:'Plus Jakarta Sans','Noto Sans SC',-apple-system,sans-serif;
+  background:#DEDAD3; padding:40px 24px 100px;
+}
+.phone {
+  width:375px;
+  border-radius:48px;
+  overflow:hidden;
+  box-shadow:0 28px 80px rgba(0,0,0,.20),0 0 0 1px rgba(0,0,0,.09);
+}
+.cap { font-size:11px; font-weight:600; color:#9A9488; letter-spacing:.04em; text-align:center; margin-top:10px; }
+.sb { display:flex; justify-content:space-between; align-items:center; padding:14px 28px 0; font-size:12px; font-weight:700; }
+
+/* Analysis */
+.analysis { background:#1A1714; min-height:812px; display:flex; flex-direction:column; }
+.analysis-body { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; padding:20px; }
+.a-status-label { font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.35); margin-bottom:8px; text-align:center; }
+.a-status-title { font-size:24px; font-weight:800; color:white; letter-spacing:-.02em; text-align:center; }
+
+.photo-frame { width:240px; height:168px; border-radius:16px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; position:relative; }
+.pf-text { font-size:12px; color:rgba(255,255,255,.22); }
+.co { position:absolute; width:18px; height:18px; border-color:var(--brand); border-style:solid; }
+.c-tl { top:8px; left:8px; border-width:2px 0 0 2px; border-radius:3px 0 0 0; }
+.c-tr { top:8px; right:8px; border-width:2px 2px 0 0; border-radius:0 3px 0 0; }
+.c-bl { bottom:8px; left:8px; border-width:0 0 2px 2px; border-radius:0 0 0 3px; }
+.c-br { bottom:8px; right:8px; border-width:0 2px 2px 0; border-radius:0 0 3px 0; }
+.scan-line { position:absolute; left:8px; right:8px; height:1px; background:linear-gradient(90deg,transparent,var(--brand),transparent); top:15%; animation:sc 2s ease-in-out infinite; }
+@keyframes sc { 0%,100%{top:15%} 50%{top:85%} }
+@media (prefers-reduced-motion: reduce) { .scan-line { animation:none; top:50%; } }
+
+.steps { width:260px; display:flex; flex-direction:column; gap:14px; }
+.step { display:flex; align-items:center; gap:12px; }
+.sb-muted { color:rgba(255,255,255,.4); }
+.s-dot { width:28px; height:28px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+.s-dot.done { background:var(--brand); color:white; }
+.s-dot.active { background:transparent; border:1.5px solid rgba(255,255,255,.3); color:white; }
+.s-dot.wait { background:rgba(255,255,255,.06); color:rgba(255,255,255,.2); }
+.s-main { font-size:13px; font-weight:600; }
+.s-sub { font-size:11px; margin-top:1px; }
+.done .s-main { color:rgba(255,255,255,.9); } .done .s-sub { color:rgba(255,255,255,.35); }
+.active .s-main { color:white; } .active .s-sub { color:rgba(255,255,255,.35); }
+.wait .s-main { color:rgba(255,255,255,.45); }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="analysis">
+    <div class="sb sb-muted"><span>11:01</span><span>◈ ☁ 44+</span></div>
+
+    <div class="analysis-body">
+      <div role="status" aria-live="polite" aria-label="分析进度">
+        <div class="a-status-label">Analyzing</div>
+        <div class="a-status-title">AI 正在分析中</div>
+      </div>
+
+      <div class="photo-frame">
+        <div class="co c-tl"></div>
+        <div class="co c-tr"></div>
+        <div class="co c-bl"></div>
+        <div class="co c-br"></div>
+        <div class="scan-line"></div>
+        <span class="pf-text">配料表照片</span>
+      </div>
+
+      <div class="steps">
+        <div class="step done">
+          <div class="s-dot done" aria-hidden="true">✓</div>
+          <div><div class="s-main">识别配料表文字</div><div class="s-sub">已识别 24 种成分</div></div>
+        </div>
+        <div class="step active">
+          <div class="s-dot active">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="5.5" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
+              <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="#C4532A" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="s-main">对照安全标准数据库</div>
+            <div class="s-sub">GB2760-2024 · JECFA</div>
+          </div>
+        </div>
+        <div class="step wait">
+          <div class="s-dot wait" aria-hidden="true">3</div>
+          <div>
+            <div class="s-main">生成评估报告</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="cap">分析中 · 生成评估报告后进入结果页</div>
+
+</body>
+</html>
