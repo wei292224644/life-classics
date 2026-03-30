@@ -26,18 +26,21 @@ class _DummyOutput(BaseModel):
 
 
 def _make_streaming_tool_use_response(data: dict) -> MagicMock:
-    """构造 anthropic streaming 消息 create 上下文管理器，yield tool_use_delta 事件。"""
+    """构造 anthropic streaming 消息 create 上下文管理器，yield ContentBlockDeltaEvent + InputJSONDelta。"""
     import json
 
-    class _MockDelta:
-        def __init__(self, text: str):
-            self.text = text
+    class _MockInputJSONDelta:
+        def __init__(self, partial_json: str):
+            self.partial_json = partial_json
 
-    class _MockEvent:
-        def __init__(self, event_type: str, **kwargs):
-            self.type = event_type
-            for k, v in kwargs.items():
-                setattr(self, k, v)
+    class _MockContentBlockDeltaEvent:
+        def __init__(self, partial_json: str):
+            self.type = "content_block_delta"
+            self.delta = _MockInputJSONDelta(partial_json)
+
+    class _MockMessageStopEvent:
+        def __init__(self):
+            self.type = "message_stop"
 
     class _MockStream:
         def __init__(self, data: dict):
@@ -50,12 +53,12 @@ def _make_streaming_tool_use_response(data: dict) -> MagicMock:
             pass
 
         def __iter__(self):
-            # 把 JSON 字符串拆成多个 tool_use_delta chunk
+            # 把 JSON 字符串拆成多个 InputJSONDelta chunk
             json_str = self._json_str
             chunk_size = 10
             for i in range(0, len(json_str), chunk_size):
-                yield _MockEvent("tool_use_delta", delta=_MockDelta(json_str[i : i + chunk_size]))
-            yield _MockEvent("message_stop")
+                yield _MockContentBlockDeltaEvent(json_str[i : i + chunk_size])
+            yield _MockMessageStopEvent()
 
     mock_client_instance = MagicMock()
     mock_client_instance.messages.create.return_value = _MockStream(data)
@@ -87,11 +90,20 @@ def test_anthropic_client_calls_messages_create():
 
 
 def _make_streaming_text_only_response() -> MagicMock:
-    """构造只返回 text block 的 streaming 响应（无 tool_use）。"""
+    """构造只返回 text block 的 streaming 响应（无 tool_use/InputJSONDelta）。"""
 
-    class _MockEvent:
-        def __init__(self, event_type: str):
-            self.type = event_type
+    class _MockTextDelta:
+        def __init__(self):
+            self.text = ""
+
+    class _MockContentBlockDeltaEvent:
+        def __init__(self):
+            self.type = "content_block_delta"
+            self.delta = _MockTextDelta()
+
+    class _MockMessageStopEvent:
+        def __init__(self):
+            self.type = "message_stop"
 
     class _MockStream:
         def __enter__(self):
@@ -101,8 +113,8 @@ def _make_streaming_text_only_response() -> MagicMock:
             pass
 
         def __iter__(self):
-            yield _MockEvent("content_block_delta")
-            yield _MockEvent("message_stop")
+            yield _MockContentBlockDeltaEvent()
+            yield _MockMessageStopEvent()
 
     mock_client_instance = MagicMock()
     mock_client_instance.messages.create.return_value = _MockStream()

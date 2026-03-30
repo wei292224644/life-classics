@@ -36,7 +36,8 @@ def _create_anthropic_client(
     """通过 Anthropic SDK + streaming tool use 创建结构化输出 callable。
 
     MiniMax 2.7 等模型单次请求可能超过 10 分钟，必须使用流式接口。
-    实现：stream=True → 遍历事件流，检测 tool_use block 并尽早返回。
+    实现：stream=True → 遍历事件流，收集 content_block_delta 中的 InputJSONDelta，
+    拼合 partial_json 后解析为 response_model 实例。
     """
     client = anthropic.Anthropic(
         api_key=api_key,
@@ -70,28 +71,26 @@ def _create_anthropic_client(
         if extra_body:
             create_kwargs["extra_body"] = extra_body
 
-        tool_input_chunks: list[str] = []
+        partial_json_chunks: list[str] = []
 
         with client.messages.create(**create_kwargs) as stream:
             for event in stream:
+                # content_block_delta 事件包含 InputJSONDelta 或 TextDelta
                 if event.type == "content_block_delta":
-                    # text chunk — 忽略（我们只关心 tool_use）
-                    pass
-                elif event.type == "tool_use_delta":
-                    # 收集 tool_use 的 input 片段
-                    tool_input_chunks.append(event.delta.text)
+                    delta = event.delta
+                    # InputJSONDelta.partial_json 是增量 JSON 字符串
+                    if hasattr(delta, "partial_json") and delta.partial_json:
+                        partial_json_chunks.append(delta.partial_json)
                 elif event.type == "message_stop":
                     break
 
-        # 拼合完整 input JSON
-        tool_input_text = "".join(tool_input_chunks)
-        if not tool_input_text:
+        if not partial_json_chunks:
             raise ValueError(
                 f"Anthropic 响应中未找到 tool_use block，model={model!r}，"
                 f"response_model={tool_name!r}"
             )
 
-        tool_input = json.loads(tool_input_text)
+        tool_input = json.loads("".join(partial_json_chunks))
         return response_model(**tool_input)
 
     return _create
