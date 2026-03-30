@@ -58,15 +58,23 @@ def _create_anthropic_client(
 
         partial_json_chunks: list[str] = []
         text_chunks: list[str] = []
-        _debug: list[dict] = []
+        all_events: list[dict] = []
 
         with client.messages.create(**create_kwargs) as stream:
             for event in stream:
+                # 记录所有事件类型用于 debug
+                event_dict = {"type": event.type}
+                if hasattr(event, "delta"):
+                    delta = event.delta
+                    event_dict["delta_type"] = type(delta).__name__
+                    if hasattr(delta, "partial_json"):
+                        event_dict["partial_json"] = delta.partial_json
+                    if hasattr(delta, "text"):
+                        event_dict["text"] = delta.text
+                all_events.append(event_dict)
+
                 if event.type == "content_block_delta":
                     delta = event.delta
-                    delta_type = type(delta).__name__
-                    delta_attrs = {k: getattr(delta, k, None) for k in ["partial_json", "text"]}
-                    _debug.append({"delta_type": delta_type, "attrs": delta_attrs})
                     # InputJSONDelta.partial_json 是增量 JSON 字符串
                     if hasattr(delta, "partial_json") and delta.partial_json:
                         partial_json_chunks.append(delta.partial_json)
@@ -87,7 +95,9 @@ def _create_anthropic_client(
             tool_name=tool_name,
             partial_count=len(partial_json_chunks),
             text_count=len(text_chunks),
-            debug=json.dumps(_debug[:5]),
+            text_preview="".join(text_chunks)[:500] if text_chunks else "",
+            all_event_types=[e.get("type") for e in all_events],
+            all_deltas=[{k: v for k, v in e.items() if k != "type"} for e in all_events if e.get("type") == "content_block_delta"],
         )
 
         # Fallback：模型返回了普通文本，直接解析其中的 JSON
