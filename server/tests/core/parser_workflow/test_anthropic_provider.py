@@ -135,7 +135,8 @@ def _make_streaming_text_response(text: str) -> MagicMock:
             self.delta = _MockTextDelta(content)
 
     class _MockMessageStopEvent:
-        type = "message_stop"
+        def __init__(self):
+            self.type = "message_stop"
 
     class _MockStream:
         def __init__(self, content: str):
