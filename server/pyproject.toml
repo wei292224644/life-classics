@@ -60,6 +60,7 @@ dependencies = [
     "prometheus-client>=0.24.1",
     "slowapi>=0.1.9",
     "sqlalchemy[asyncio]>=2.0.48",
+    "anthropic>=0.86.0",
 ]
 
 [tool.uv.sources]
