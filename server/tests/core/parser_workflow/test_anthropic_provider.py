@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 from parser.structured_llm.client_factory import get_structured_client
 from parser.structured_llm.errors import StructuredOutputError
+from parser.structured_llm.errors import JsonOutputParseError
 
 
 class _DummyOutput(BaseModel):
@@ -119,6 +120,40 @@ def _make_streaming_text_only_response() -> MagicMock:
     mock_client_instance = MagicMock()
     mock_client_instance.messages.create.return_value = _MockStream()
     return mock_client_instance
+
+
+def _make_streaming_text_response(text: str) -> MagicMock:
+    """构造返回指定文本内容的 TextDelta streaming 响应。"""
+
+    class _MockTextDelta:
+        def __init__(self, content: str):
+            self.text = content
+
+    class _MockContentBlockDeltaEvent:
+        def __init__(self, content: str):
+            self.type = "content_block_delta"
+            self.delta = _MockTextDelta(content)
+
+    class _MockMessageStopEvent:
+        type = "message_stop"
+
+    class _MockStream:
+        def __init__(self, content: str):
+            self._content = content
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def __iter__(self):
+            yield _MockContentBlockDeltaEvent(self._content)
+            yield _MockMessageStopEvent()
+
+    mock_client = MagicMock()
+    mock_client.messages.create.return_value = _MockStream(text)
+    return mock_client
 
 
 def test_anthropic_client_raises_when_no_tool_use_block():
@@ -247,3 +282,111 @@ def test_json_output_parse_error_is_importable_and_is_runtime_error():
     err = JsonOutputParseError("test message")
     assert isinstance(err, RuntimeError)
     assert "test message" in str(err)
+
+
+def test_json_mode_no_tools_in_request():
+    """JSON system prompt 模式不传 tools / tool_choice 参数。"""
+    mock_client = _make_streaming_text_response('{"label": "foo", "score": 0.9}')
+
+    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+        mock_mod.Anthropic.return_value = mock_client
+        create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
+        create_fn(
+            model="MiniMax-M2.7",
+            messages=[{"role": "user", "content": "test"}],
+            response_model=_DummyOutput,
+        )
+
+    call_kwargs = mock_client.messages.create.call_args.kwargs
+    assert "tools" not in call_kwargs
+    assert "tool_choice" not in call_kwargs
+
+
+def test_json_mode_system_contains_schema():
+    """create 调用包含 system 参数，且内容包含 response_model 的字段名。"""
+    mock_client = _make_streaming_text_response('{"label": "foo", "score": 0.9}')
+
+    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+        mock_mod.Anthropic.return_value = mock_client
+        create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
+        create_fn(
+            model="MiniMax-M2.7",
+            messages=[{"role": "user", "content": "test"}],
+            response_model=_DummyOutput,
+        )
+
+    call_kwargs = mock_client.messages.create.call_args.kwargs
+    assert "system" in call_kwargs
+    assert "label" in call_kwargs["system"]
+    assert "score" in call_kwargs["system"]
+
+
+def test_json_mode_direct_json_response():
+    """模型直接返回裸 JSON 时，正确解析为 response_model。"""
+    mock_client = _make_streaming_text_response('{"label": "foo", "score": 0.9}')
+
+    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+        mock_mod.Anthropic.return_value = mock_client
+        create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
+        result = create_fn(
+            model="MiniMax-M2.7",
+            messages=[{"role": "user", "content": "test"}],
+            response_model=_DummyOutput,
+        )
+
+    assert isinstance(result, _DummyOutput)
+    assert result.label == "foo"
+    assert result.score == 0.9
+
+
+def test_json_mode_markdown_block_response():
+    """模型返回 ```json ... ``` 包裹时，提取后正确解析。"""
+    text = '```json\n{"label": "bar", "score": 0.5}\n```'
+    mock_client = _make_streaming_text_response(text)
+
+    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+        mock_mod.Anthropic.return_value = mock_client
+        create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
+        result = create_fn(
+            model="MiniMax-M2.7",
+            messages=[{"role": "user", "content": "test"}],
+            response_model=_DummyOutput,
+        )
+
+    assert result.label == "bar"
+    assert result.score == 0.5
+
+
+def test_json_mode_json_embedded_in_text():
+    """模型返回文字中嵌入 JSON 对象时，提取后正确解析。"""
+    text = '好的，结果如下：{"label": "baz", "score": 0.3} 以上是结果。'
+    mock_client = _make_streaming_text_response(text)
+
+    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+        mock_mod.Anthropic.return_value = mock_client
+        create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
+        # 新实现应该能提取嵌入文本中的 JSON 并正确解析
+        result = create_fn(
+            model="MiniMax-M2.7",
+            messages=[{"role": "user", "content": "test"}],
+            response_model=_DummyOutput,
+        )
+
+    assert result.label == "baz"
+    assert result.score == 0.3
+
+
+def test_json_mode_invalid_json_raises_parse_error():
+    """模型返回无法解析的文本时，抛 JsonOutputParseError（新实现）。"""
+    mock_client = _make_streaming_text_response("这是普通文本，完全没有 JSON 内容")
+
+    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+        mock_mod.Anthropic.return_value = mock_client
+        create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
+        # 新实现应该抛 JsonOutputParseError，而非 ValueError
+        with pytest.raises(JsonOutputParseError):
+            create_fn(
+                model="MiniMax-M2.7",
+                messages=[{"role": "user", "content": "test"}],
+                response_model=_DummyOutput,
+            )
