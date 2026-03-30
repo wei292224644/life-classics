@@ -50,7 +50,7 @@ def resolve_provider_for_node(
         return node_provider
     if global_provider:
         return global_provider
-    return "openai"
+    return "anthropic"
 
 
 def resolve_model_for_node(
