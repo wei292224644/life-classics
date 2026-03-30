@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Callable
 
 import anthropic
@@ -10,6 +11,7 @@ import structlog
 from pydantic import BaseModel
 
 from config import settings
+from parser.structured_llm.errors import JsonOutputParseError
 
 _logger = structlog.get_logger(__name__)
 
@@ -18,11 +20,10 @@ def _create_anthropic_client(
     api_key: str,
     base_url: str | None,
 ) -> Callable[..., BaseModel]:
-    """通过 Anthropic SDK + streaming tool use 创建结构化输出 callable。
+    """通过 Anthropic SDK + JSON system prompt 创建结构化输出 callable。
 
-    MiniMax 2.7 等模型单次请求可能超过 10 分钟，必须使用流式接口。
-    实现：stream=True → 遍历事件流，收集 content_block_delta 中的 InputJSONDelta，
-    拼合 partial_json 后解析为 response_model 实例。
+    MiniMax-M2.7 是思考型模型，不支持 tool_use 的 InputJSONDelta 流。
+    改为在 system 参数注入 JSON Schema 指令，收集 TextDelta 后经三步解析管道提取 JSON。
     """
     client = anthropic.Anthropic(
         api_key=api_key,
@@ -38,97 +39,74 @@ def _create_anthropic_client(
         extra_body: dict | None = None,
         **kwargs: Any,
     ) -> BaseModel:
-        tool_name = response_model.__name__
-        tool_def = {
-            "name": tool_name,
-            "description": f"返回结构化数据：{tool_name}",
-            "input_schema": response_model.model_json_schema(),
-        }
+        schema_str = json.dumps(
+            response_model.model_json_schema(), ensure_ascii=False, indent=2
+        )
+        system_message = (
+            "你是结构化数据提取助手。严格按以下 JSON Schema 输出，"
+            "只返回 JSON 对象，不包含任何解释或 Markdown 代码块。\n\n"
+            f"Schema:\n{schema_str}"
+        )
+
         create_kwargs: dict[str, Any] = {
             "model": model,
             "max_tokens": 102400,
             "temperature": temperature if temperature > 0 else 1.0,  # MiniMax 要求 > 0
-            "tools": [tool_def],
-            "tool_choice": {"type": "tool", "name": tool_name},
+            "system": system_message,
             "messages": messages,
             "stream": True,
         }
         if extra_body:
             create_kwargs["extra_body"] = extra_body
 
-        partial_json_chunks: list[str] = []
         text_chunks: list[str] = []
-        all_events: list[dict] = []
 
         with client.messages.create(**create_kwargs) as stream:
             for event in stream:
-                # 记录所有事件类型用于 debug
-                event_dict = {"type": event.type}
-                if hasattr(event, "delta"):
-                    delta = event.delta
-                    event_dict["delta_type"] = type(delta).__name__
-                    if hasattr(delta, "partial_json"):
-                        event_dict["partial_json"] = delta.partial_json
-                    if hasattr(delta, "text"):
-                        event_dict["text"] = delta.text
-                all_events.append(event_dict)
-
                 if event.type == "content_block_delta":
                     delta = event.delta
-                    # InputJSONDelta.partial_json 是增量 JSON 字符串
-                    if hasattr(delta, "partial_json") and delta.partial_json:
-                        partial_json_chunks.append(delta.partial_json)
-                    # TextDelta 是普通文本（模型未走 tool_use 时的 fallback）
-                    elif hasattr(delta, "text"):
+                    # 只收集 TextDelta，跳过 ThinkingDelta / SignatureDelta
+                    if hasattr(delta, "text"):
                         text_chunks.append(delta.text)
                 elif event.type == "message_stop":
                     break
 
-        # 优先用 tool_use JSON 解析
-        if partial_json_chunks:
-            tool_input = json.loads("".join(partial_json_chunks))
-            return response_model(**tool_input)
+        text_response = "".join(text_chunks).strip()
 
-        _logger.warning(
-            "anthropic_tool_use_no_json_delta",
-            model=model,
-            tool_name=tool_name,
-            partial_count=len(partial_json_chunks),
-            text_count=len(text_chunks),
-            text_preview="".join(text_chunks)[:500] if text_chunks else "",
-            all_event_types=[e.get("type") for e in all_events],
-            all_deltas=[{k: v for k, v in e.items() if k != "type"} for e in all_events if e.get("type") == "content_block_delta"],
-        )
-
-        # Fallback：模型返回了普通文本，直接解析其中的 JSON
-        if text_chunks:
-            _logger.warning(
-                "anthropic_tool_use_fallback_to_text",
-                model=model,
-                tool_name=tool_name,
+        if not text_response:
+            raise JsonOutputParseError(
+                f"模型返回空响应，model={model!r}，"
+                f"response_model={response_model.__name__!r}"
             )
-            text_response = "".join(text_chunks)
-            # 尝试直接解析（模型可能直接返回了 JSON）
+
+        # 解析管道
+        # 1. 直接解析裸 JSON
+        try:
+            return response_model.model_validate(json.loads(text_response))
+        except Exception:
+            pass
+
+        # 2. 提取 ```json ... ``` 块
+        match = re.search(r"```json\s*([\s\S]*?)\s*```", text_response)
+        if match:
             try:
-                return response_model(**json.loads(text_response))
+                return response_model.model_validate(json.loads(match.group(1)))
             except Exception:
                 pass
-            # 尝试提取 ```json ... ``` 包裹的 JSON
-            import re
-            match = re.search(r"```json\s*([\s\S]*?)\s*```", text_response)
+
+        # 3. 提取文本中第一个完整 JSON 对象或数组
+        for pattern in (r"\{[\s\S]*\}", r"\[[\s\S]*\]"):
+            match = re.search(pattern, text_response)
             if match:
                 try:
-                    return response_model(**json.loads(match.group(1)))
+                    return response_model.model_validate(json.loads(match.group(0)))
                 except Exception:
                     pass
-            raise ValueError(
-                f"Anthropic fallback 解析失败，model={model!r}，"
-                f"response_model={tool_name!r}，text_preview={text_response[:200]!r}"
-            )
 
-        raise ValueError(
-            f"Anthropic 响应中未找到 tool_use block，model={model!r}，"
-            f"response_model={tool_name!r}"
+        raise JsonOutputParseError(
+            f"JSON 解析失败，model={model!r}，"
+            f"response_model={response_model.__name__!r}，"
+            f"text_preview={text_response[:200]!r}"
         )
 
     return _create
@@ -136,11 +114,11 @@ def _create_anthropic_client(
 
 def get_structured_client(provider: str, model: str) -> Callable[..., BaseModel]:
     """
-    根据 provider 获取可调用的结构化输出客户端（返回 chat.completions.create 的 callable）。
+    根据 provider 获取可调用的结构化输出客户端。
 
     仅支持 anthropic。
 
-    返回的 callable 签名兼容：
+    返回的 callable 签名：
         create(model=..., messages=..., response_model=..., temperature=..., ...) -> BaseModel
     """
     if provider == "anthropic":

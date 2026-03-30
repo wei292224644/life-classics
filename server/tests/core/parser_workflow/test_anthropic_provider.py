@@ -67,14 +67,14 @@ def _make_streaming_tool_use_response(data: dict) -> MagicMock:
 
 
 def test_anthropic_client_calls_messages_create():
-    """get_structured_client('anthropic') 返回 callable，调用时走 streaming messages.create。"""
-    mock_client_instance = _make_streaming_tool_use_response({"label": "foo", "score": 0.9})
+    """get_structured_client('anthropic') 返回 callable，调用时走 streaming messages.create，使用 JSON system prompt 模式。"""
+    mock_client = _make_streaming_text_response('{"label": "foo", "score": 0.9}')
 
     with patch("parser.structured_llm.client_factory.anthropic") as mock_anthropic_mod:
-        mock_anthropic_mod.Anthropic.return_value = mock_client_instance
-        create_fn = get_structured_client("anthropic", "MiniMax-Text-01")
+        mock_anthropic_mod.Anthropic.return_value = mock_client
+        create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
         result = create_fn(
-            model="MiniMax-Text-01",
+            model="MiniMax-M2.7",
             messages=[{"role": "user", "content": "test"}],
             response_model=_DummyOutput,
         )
@@ -82,12 +82,12 @@ def test_anthropic_client_calls_messages_create():
     assert isinstance(result, _DummyOutput)
     assert result.label == "foo"
     assert result.score == 0.9
-    mock_client_instance.messages.create.assert_called_once()
-    call_kwargs = mock_client_instance.messages.create.call_args.kwargs
-    assert call_kwargs["tool_choice"] == {"type": "tool", "name": "_DummyOutput"}
-    assert call_kwargs["tools"][0]["name"] == "_DummyOutput"
-    assert "input_schema" in call_kwargs["tools"][0]
+    mock_client.messages.create.assert_called_once()
+    call_kwargs = mock_client.messages.create.call_args.kwargs
+    assert "system" in call_kwargs
     assert call_kwargs["stream"] is True
+    assert "tools" not in call_kwargs
+    assert "tool_choice" not in call_kwargs
 
 
 def _make_streaming_text_only_response() -> MagicMock:
@@ -157,20 +157,19 @@ def _make_streaming_text_response(text: str) -> MagicMock:
     return mock_client
 
 
-def test_anthropic_client_raises_when_no_tool_use_block():
-    """响应中无 tool_use block 时抛 ValueError。"""
-    mock_client_instance = _make_streaming_text_only_response()
+def test_anthropic_client_raises_when_no_parseable_json():
+    """响应中无可解析的 JSON 时抛 JsonOutputParseError。"""
+    mock_client = _make_streaming_text_response("这是普通文本，完全没有 JSON")
 
     with patch("parser.structured_llm.client_factory.anthropic") as mock_anthropic_mod:
-        mock_anthropic_mod.Anthropic.return_value = mock_client_instance
-        create_fn = get_structured_client("anthropic", "MiniMax-Text-01")
-        with pytest.raises(ValueError) as exc_info:
+        mock_anthropic_mod.Anthropic.return_value = mock_client
+        create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
+        with pytest.raises(JsonOutputParseError):
             create_fn(
-                model="MiniMax-Text-01",
+                model="MiniMax-M2.7",
                 messages=[{"role": "user", "content": "test"}],
                 response_model=_DummyOutput,
             )
-    assert "tool_use block" in str(exc_info.value)
 
 
 from parser.structured_llm import invoke_structured
