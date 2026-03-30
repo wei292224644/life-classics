@@ -9,3 +9,73 @@ def test_anthropic_config_defaults():
     s = Settings()
     assert s.ANTHROPIC_API_KEY == ""
     assert s.ANTHROPIC_BASE_URL == ""
+
+
+from unittest.mock import MagicMock, patch
+
+import pytest
+from pydantic import BaseModel
+
+from parser.structured_llm.client_factory import get_structured_client
+from parser.structured_llm.errors import StructuredOutputError
+
+
+class _DummyOutput(BaseModel):
+    label: str
+    score: float
+
+
+def _make_tool_use_response(data: dict) -> MagicMock:
+    """构造 anthropic messages.create 返回值，包含一个 tool_use block。"""
+    block = MagicMock()
+    block.type = "tool_use"
+    block.input = data
+    response = MagicMock()
+    response.content = [block]
+    return response
+
+
+def test_anthropic_client_calls_messages_create():
+    """get_structured_client('anthropic') 返回 callable，调用时走 messages.create。"""
+    mock_anthropic_cls = MagicMock()
+    mock_client_instance = MagicMock()
+    mock_anthropic_cls.return_value = mock_client_instance
+    mock_client_instance.messages.create.return_value = _make_tool_use_response(
+        {"label": "foo", "score": 0.9}
+    )
+
+    with patch("parser.structured_llm.client_factory.anthropic") as mock_anthropic_mod:
+        mock_anthropic_mod.Anthropic.return_value = mock_client_instance
+        create_fn = get_structured_client("anthropic", "MiniMax-Text-01")
+        result = create_fn(
+            model="MiniMax-Text-01",
+            messages=[{"role": "user", "content": "test"}],
+            response_model=_DummyOutput,
+        )
+
+    assert isinstance(result, _DummyOutput)
+    assert result.label == "foo"
+    assert result.score == 0.9
+    mock_client_instance.messages.create.assert_called_once()
+
+
+def test_anthropic_client_raises_when_no_tool_use_block():
+    """响应中无 tool_use block 时抛 StructuredOutputError。"""
+    mock_client_instance = MagicMock()
+    # 返回一个没有 tool_use 的 content（如只有 text block）
+    text_block = MagicMock()
+    text_block.type = "text"
+    mock_response = MagicMock()
+    mock_response.content = [text_block]
+    mock_client_instance.messages.create.return_value = mock_response
+
+    with patch("parser.structured_llm.client_factory.anthropic") as mock_anthropic_mod:
+        mock_anthropic_mod.Anthropic.return_value = mock_client_instance
+        create_fn = get_structured_client("anthropic", "MiniMax-Text-01")
+        with pytest.raises(StructuredOutputError) as exc_info:
+            create_fn(
+                model="MiniMax-Text-01",
+                messages=[{"role": "user", "content": "test"}],
+                response_model=_DummyOutput,
+            )
+    assert "tool_use block" in str(exc_info.value)
