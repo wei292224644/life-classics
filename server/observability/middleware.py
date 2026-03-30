@@ -34,13 +34,15 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             status_code = response.status_code
             return response
         finally:
-            duration_ms = round((time.perf_counter() - start) * 1000, 2)
-            logger.info(
-                "http_request",
-                method=request.method,
-                path=request.url.path,
-                status_code=status_code,
-                duration_ms=duration_ms,
-            )
+            # 跳过 /metrics 等健康检查路径的日志
+            if request.url.path not in ("/metrics", "/health", "/ready"):
+                duration_ms = round((time.perf_counter() - start) * 1000, 2)
+                logger.info(
+                    "http_request",
+                    method=request.method,
+                    path=request.url.path,
+                    status_code=status_code,
+                    duration_ms=duration_ms,
+                )
             # 请求结束后清理 trace_id，避免泄漏到后续请求
             structlog.contextvars.unbind_contextvars("trace_id")

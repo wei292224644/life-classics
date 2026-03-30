@@ -8,6 +8,7 @@
 跳过已上传的文件（通过 title 字段去重）。
 失败文件不影响其他文件的上传。
 """
+
 from __future__ import annotations
 
 import json
@@ -19,11 +20,12 @@ from pathlib import Path
 import requests
 
 # ── 配置 ──────────────────────────────────────────────────────────────────────
-SOURCE_DIR = Path("/Users/wwj/Desktop/self/download_gb/reorganized")
+SOURCE_DIR = Path("/Users/wwj/Desktop/myself/download_test/reorganized")
 API_BASE = "http://localhost:9999"
 CONCURRENCY = 2
 TIMEOUT_PER_FILE = 12000  # 秒
-DELAY_BETWEEN_FILES = 60  # 秒，每个文件完成后等待
+DELAY_BETWEEN_FILES = 60 * 10  # 秒，每个文件完成后等待
+DELAY_BEFORE_START = 60 * 60  # 秒，启动前等待
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 # ── 工具函数 ──────────────────────────────────────────────────────────────────
+
 
 def get_uploaded_titles() -> set[str]:
     """从服务器获取已上传文档的 title 集合。"""
@@ -82,10 +85,14 @@ def upload_file(path: Path) -> tuple[str, str | None]:
             for raw_line in resp.iter_lines():
                 if not raw_line:
                     continue
-                line = raw_line.decode("utf-8") if isinstance(raw_line, bytes) else raw_line
+                line = (
+                    raw_line.decode("utf-8")
+                    if isinstance(raw_line, bytes)
+                    else raw_line
+                )
                 if not line.startswith("data:"):
                     continue
-                payload = line[len("data:"):].strip()
+                payload = line[len("data:") :].strip()
                 try:
                     event = json.loads(payload)
                 except json.JSONDecodeError:
@@ -105,7 +112,11 @@ def upload_file(path: Path) -> tuple[str, str | None]:
 
 # ── 主逻辑 ────────────────────────────────────────────────────────────────────
 
+
 def main() -> None:
+    logger.info("启动前等待 %ds ...", DELAY_BEFORE_START)
+    time.sleep(DELAY_BEFORE_START)
+
     uploaded_titles = get_uploaded_titles()
 
     all_files = sorted(SOURCE_DIR.glob("*.md"))
@@ -116,7 +127,12 @@ def main() -> None:
         logger.info("全部文件已上传，跳过 %d 个。", skipped)
         return
 
-    logger.info("共 %d 个文件，跳过 %d 个，待上传 %d 个", len(all_files), skipped, len(to_upload))
+    logger.info(
+        "共 %d 个文件，跳过 %d 个，待上传 %d 个",
+        len(all_files),
+        skipped,
+        len(to_upload),
+    )
 
     successes: list[str] = []
     failures: list[tuple[str, str]] = []
