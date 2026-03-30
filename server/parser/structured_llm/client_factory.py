@@ -47,7 +47,7 @@ def _create_anthropic_client(
         create_kwargs: dict[str, Any] = {
             "model": model,
             "max_tokens": 102400,
-            "temperature": temperature,
+            "temperature": temperature if temperature > 0 else 1.0,  # MiniMax 要求 > 0
             "tools": [tool_def],
             "tool_choice": {"type": "tool", "name": tool_name},
             "messages": messages,
