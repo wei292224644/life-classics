@@ -29,3 +29,7 @@ class StructuredOutputError(RuntimeError):
         self.response_model = response_model
         self.retry_count = retry_count
         self.raw_error = raw_error
+
+
+class JsonOutputParseError(RuntimeError):
+    """模型输出无法解析为合法 JSON，可触发重试。"""

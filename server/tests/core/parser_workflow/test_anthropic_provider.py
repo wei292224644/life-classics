@@ -239,3 +239,11 @@ def test_get_structured_client_unknown_provider_raises():
     with pytest.raises(ValueError) as exc_info:
         get_structured_client("unknown_provider", "some-model")
     assert "anthropic" in str(exc_info.value)
+
+
+def test_json_output_parse_error_is_importable_and_is_runtime_error():
+    """JsonOutputParseError 可从 errors 模块导入，且是 RuntimeError 子类。"""
+    from parser.structured_llm.errors import JsonOutputParseError
+    err = JsonOutputParseError("test message")
+    assert isinstance(err, RuntimeError)
+    assert "test message" in str(err)
