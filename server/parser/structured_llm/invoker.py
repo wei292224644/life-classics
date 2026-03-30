@@ -18,7 +18,7 @@ from pydantic import ValidationError as PydanticValidationError
 from config import settings
 from observability.metrics import llm_tokens_total
 from parser.structured_llm.client_factory import get_structured_client
-from parser.structured_llm.errors import StructuredOutputError
+from parser.structured_llm.errors import JsonOutputParseError, StructuredOutputError
 
 _logger = structlog.get_logger(__name__)
 
@@ -197,6 +197,7 @@ def invoke_structured(
             # 等价于：from httpx import TimeoutException; except (TimeoutError, *httpx.TimeoutException.__subclasses__())
             _is_retryable = (
                 _is_anthropic_retryable
+                or isinstance(e, JsonOutputParseError)
                 or isinstance(e, TimeoutError)
                 or isinstance(e, ConnectionError)
                 or type(e).__name__ in (

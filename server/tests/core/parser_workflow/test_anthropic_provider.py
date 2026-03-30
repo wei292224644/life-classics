@@ -390,3 +390,56 @@ def test_json_mode_invalid_json_raises_parse_error():
                 messages=[{"role": "user", "content": "test"}],
                 response_model=_DummyOutput,
             )
+
+
+def test_invoke_structured_json_parse_error_retries():
+    """JsonOutputParseError 可重试，达上限后抛 StructuredOutputError。"""
+    call_count = 0
+
+    def _fake_create(*, model, messages, response_model, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        raise JsonOutputParseError("JSON 解析失败")
+
+    with patch(
+        "parser.structured_llm.invoker.get_structured_client",
+        return_value=_fake_create,
+    ):
+        with pytest.raises(StructuredOutputError) as exc_info:
+            invoke_structured(
+                node_name="classify_node",
+                prompt="test",
+                response_model=_DummyOutput,
+                provider="anthropic",
+                model="MiniMax-M2.7",
+                max_retries=2,
+            )
+        assert exc_info.value.retry_count == 3
+
+    assert call_count == 3  # 首次 + 2 次重试
+
+
+def test_invoke_structured_json_parse_error_single_retry():
+    """JsonOutputParseError max_retries=0 时不重试，直接抛 StructuredOutputError。"""
+    call_count = 0
+
+    def _fake_create(*, model, messages, response_model, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        raise JsonOutputParseError("JSON 解析失败")
+
+    with patch(
+        "parser.structured_llm.invoker.get_structured_client",
+        return_value=_fake_create,
+    ):
+        with pytest.raises(StructuredOutputError):
+            invoke_structured(
+                node_name="classify_node",
+                prompt="test",
+                response_model=_DummyOutput,
+                provider="anthropic",
+                model="MiniMax-M2.7",
+                max_retries=0,
+            )
+
+    assert call_count == 1
