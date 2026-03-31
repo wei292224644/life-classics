@@ -11,7 +11,7 @@
 
 **技术栈：** FastAPI、SQLAlchemy Async、Pydantic
 
-**路径设计：** 与现有 API 保持一致，`/ingredients` 前缀在 `api/__init__.py` 注册时统一添加
+**路径设计：** 完整路径为 `/api/ingredients`（`/api` 前缀由 `api/main.py` 统一添加，`/ingredients` 在 `api/__init__.py` 注册时添加）
 
 ---
 

@@ -13,12 +13,14 @@
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `POST` | `/ingredients` | 创建配料（Upsert） |
-| `GET` | `/ingredients` | 列表查询（分页 + 过滤） |
-| `GET` | `/ingredients/{id}` | 获取单个配料 |
-| `PUT` | `/ingredients/{id}` | 全量更新 |
-| `PATCH` | `/ingredients/{id}` | 部分更新 |
-| `DELETE` | `/ingredients/{id}` | 软删除 |
+| `POST` | `/api/ingredients` | 创建配料（Upsert） |
+| `GET` | `/api/ingredients` | 列表查询（分页 + 过滤） |
+| `GET` | `/api/ingredients/{id}` | 获取单个配料 |
+| `PUT` | `/api/ingredients/{id}` | 全量更新 |
+| `PATCH` | `/api/ingredients/{id}` | 部分更新 |
+| `DELETE` | `/api/ingredients/{id}` | 软删除 |
+
+> 注意：现有公开端点 `GET /api/ingredient/{id}`（来自 product_router）保持不变，与本设计的 `/api/ingredients/{id}`（复数）不冲突。
 
 ## 详细设计
 
