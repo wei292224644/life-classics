@@ -549,3 +549,21 @@ class AnalysisFeedback(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=sa.text("now()")
     )
+
+
+# ── 配料别名表 ─────────────────────────────────────────────────────────────
+
+
+class IngredientAlias(Base):
+    """配料别名表 — 别名到标准配料的精确映射."""
+    __tablename__ = "ingredient_aliases"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    ingredient_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("ingredients.id", ondelete="CASCADE"), nullable=False
+    )
+    alias: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    alias_type: Mapped[str] = mapped_column(String(50), default="chinese")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+    )
