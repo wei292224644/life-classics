@@ -15,7 +15,7 @@ from worflow_parser_kb.nodes.escalate_node import (
     escalate_node,
 )
 from worflow_parser_kb.nodes.output import EscalateOutput, TransformParams
-from worflow_parser_kb.structured_llm import StructuredOutputError
+from worflow_parser_kb.structured_llm.errors import StructuredOutputError
 
 
 # ── _call_escalate_llm ───────────────────────────────────────────────────

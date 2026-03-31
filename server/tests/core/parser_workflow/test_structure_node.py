@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from worflow_parser_kb.structured_llm import StructuredOutputError
+from worflow_parser_kb.structured_llm.errors import StructuredOutputError
 from worflow_parser_kb.nodes.structure_node import (
     _infer_doc_type_with_llm,
     match_doc_type_by_rules,

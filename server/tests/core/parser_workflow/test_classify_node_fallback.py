@@ -8,7 +8,7 @@ import pytest
 from worflow_parser_kb.nodes.classify_node import _call_classify_llm, classify_raw_chunk
 from worflow_parser_kb.models import RawChunk
 from worflow_parser_kb.nodes.output import ClassifyOutput, SegmentItem
-from worflow_parser_kb.structured_llm import StructuredOutputError
+from worflow_parser_kb.structured_llm.errors import StructuredOutputError
 
 
 def test_invoke_structured_fails_raises_structured_output_error():

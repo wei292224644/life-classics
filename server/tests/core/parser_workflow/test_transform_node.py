@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from worflow_parser_kb.structured_llm import StructuredOutputError
+from worflow_parser_kb.structured_llm.errors import StructuredOutputError
 from worflow_parser_kb.nodes.transform_node import (
     _call_llm_transform,
     apply_strategy,
@@ -269,7 +269,7 @@ def test_apply_strategy_chunk_id_is_stable_across_llm_outputs():
 
 def test_apply_strategy_llm_failure_falls_back_to_seg_content():
     """LLM 调用失败时，apply_strategy 不应丢弃 chunk，应 fallback 到 seg["content"]"""
-    from worflow_parser_kb.structured_llm import StructuredOutputError
+    from worflow_parser_kb.structured_llm.errors import StructuredOutputError
 
     raw_chunk: RawChunk = {
         "content": "# 7 测定步骤\n\n称取试料（5 ± 0.05）g，于50 mL离心管中，加乙酸乙酯20 mL，振荡10 min，4000 r/min离心。",
