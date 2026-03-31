@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     CONFIDENCE_THRESHOLD: float = 0.7
     SLICE_HEADING_LEVELS: List[int] = [2, 3, 4]
     # 规则文件目录（运行时动态追加新规则）
-    RULES_DIR: str = "parser/rules"
+    RULES_DIR: str = "worflow_parser_kb/rules"
     # 各 LLM 节点最大并行数
     CLASSIFY_MAX_CONCURRENCY: int = 10
     STRUCTURE_MAX_CONCURRENCY: int = 10

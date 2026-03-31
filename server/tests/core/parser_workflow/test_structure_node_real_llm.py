@@ -1,9 +1,9 @@
 # import pytest
 
-# from parser.models import WorkflowState
-# from parser.nodes.parse_node import parse_node
-# from parser.nodes.structure_node import structure_node
-# from parser.rules import RulesStore
+# from worflow_parser_kb.models import WorkflowState
+# from worflow_parser_kb.nodes.parse_node import parse_node
+# from worflow_parser_kb.nodes.structure_node import structure_node
+# from worflow_parser_kb.rules import RulesStore
 # from .test_utils import ensure_llm_api_key, get_logger, get_rules_dir, load_sample_markdown
 
 # logger = get_logger("structure_node_real_llm")

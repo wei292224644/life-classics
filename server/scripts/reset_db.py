@@ -131,6 +131,6 @@ async def main(rebuild: bool) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="重置数据库表结构")
-    parser.add_argument("--rebuild", action="store_true", help="删除并重建所有表")
-    args = parser.parse_args()
+    worflow_parser_kb.add_argument("--rebuild", action="store_true", help="删除并重建所有表")
+    args = worflow_parser_kb.parse_args()
     asyncio.run(main(args.rebuild))

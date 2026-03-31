@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Callable, List
 
-from parser.models import TypedSegment
+from worflow_parser_kb.models import TypedSegment
 
 PostClassifyHook = Callable[[List[TypedSegment]], List[TypedSegment]]
 

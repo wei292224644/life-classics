@@ -14,8 +14,8 @@ members = [
     "kb",
     "llm",
     "observability",
-    "parser",
     "server",
+    "worflow-parser-kb",
 ]
 
 [[package]]
@@ -25,14 +25,14 @@ source = { editable = "agent" }
 dependencies = [
     { name = "kb" },
     { name = "llm" },
-    { name = "parser" },
+    { name = "worflow-parser-kb" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "kb", editable = "kb" },
     { name = "llm", editable = "llm" },
-    { name = "parser", editable = "parser" },
+    { name = "worflow-parser-kb", editable = "worflow_parser_kb" },
 ]
 
 [[package]]
@@ -233,7 +233,7 @@ dependencies = [
     { name = "agent" },
     { name = "kb" },
     { name = "llm" },
-    { name = "parser" },
+    { name = "worflow-parser-kb" },
 ]
 
 [package.metadata]
@@ -241,7 +241,7 @@ requires-dist = [
     { name = "agent", editable = "agent" },
     { name = "kb", editable = "kb" },
     { name = "llm", editable = "llm" },
-    { name = "parser", editable = "parser" },
+    { name = "worflow-parser-kb", editable = "worflow_parser_kb" },
 ]
 
 [[package]]
@@ -1515,13 +1515,13 @@ version = "0.1.0"
 source = { editable = "kb" }
 dependencies = [
     { name = "llm" },
-    { name = "parser" },
+    { name = "worflow-parser-kb" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "llm", editable = "llm" },
-    { name = "parser", editable = "parser" },
+    { name = "worflow-parser-kb", editable = "worflow_parser_kb" },
 ]
 
 [[package]]
@@ -2867,17 +2867,6 @@ wheels = [
 ]
 
 [[package]]
-name = "parser"
-version = "0.1.0"
-source = { editable = "parser" }
-dependencies = [
-    { name = "llm" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "llm", editable = "llm" }]
-
-[[package]]
 name = "pdf2image"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -4147,7 +4136,6 @@ dependencies = [
     { name = "opentelemetry-instrumentation-fastapi" },
     { name = "opentelemetry-instrumentation-logging" },
     { name = "opentelemetry-sdk" },
-    { name = "parser" },
     { name = "pdf2image" },
     { name = "pdfplumber" },
     { name = "pillow" },
@@ -4174,6 +4162,7 @@ dependencies = [
     { name = "transformers" },
     { name = "unstructured" },
     { name = "uvicorn", extra = ["standard"] },
+    { name = "worflow-parser-kb" },
 ]
 
 [package.dev-dependencies]
@@ -4215,7 +4204,6 @@ requires-dist = [
     { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.61b0" },
     { name = "opentelemetry-instrumentation-logging", specifier = ">=0.61b0" },
     { name = "opentelemetry-sdk", specifier = ">=1.40.0" },
-    { name = "parser", editable = "parser" },
     { name = "pdf2image", specifier = ">=1.17.0" },
     { name = "pdfplumber", specifier = ">=0.10.0" },
     { name = "pillow", specifier = ">=12.0.0" },
@@ -4242,6 +4230,7 @@ requires-dist = [
     { name = "transformers", specifier = ">=4.57.6" },
     { name = "unstructured", specifier = ">=0.18.21" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.38.0" },
+    { name = "worflow-parser-kb", editable = "worflow_parser_kb" },
 ]
 
 [package.metadata.requires-dev]
@@ -5175,6 +5164,17 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/9f/3e/28135a24e384493fa804216b79a6a6759a38cc4ff59118787b9fb693df93/websockets-16.0-cp314-cp314t-win_amd64.whl", hash = "sha256:b14dc141ed6d2dde437cddb216004bcac6a1df0935d79656387bd41632ba0bbd", size = 178531, upload-time = "2026-01-10T09:23:35.016Z" },
     { url = "https://files.pythonhosted.org/packages/6f/28/258ebab549c2bf3e64d2b0217b973467394a9cea8c42f70418ca2c5d0d2e/websockets-16.0-py3-none-any.whl", hash = "sha256:1637db62fad1dc833276dded54215f2c7fa46912301a24bd94d45d46a011ceec", size = 171598, upload-time = "2026-01-10T09:23:45.395Z" },
 ]
+
+[[package]]
+name = "worflow-parser-kb"
+version = "0.1.0"
+source = { editable = "worflow_parser_kb" }
+dependencies = [
+    { name = "llm" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "llm", editable = "llm" }]
 
 [[package]]
 name = "wrapt"

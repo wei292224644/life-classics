@@ -9,16 +9,16 @@ from langgraph.graph import END, StateGraph  # type: ignore[import]
 from opentelemetry import trace
 
 from observability.metrics import parser_workflow_duration_seconds
-from parser.models import ParserResult, WorkflowState
-from parser.nodes.classify_node import classify_node
-from parser.nodes.clean_node import clean_node
-from parser.nodes.enrich_node import enrich_node
-from parser.nodes.escalate_node import escalate_node
-from parser.nodes.merge_node import merge_node
-from parser.nodes.parse_node import parse_node
-from parser.nodes.slice_node import slice_node
-from parser.nodes.structure_node import structure_node
-from parser.nodes.transform_node import transform_node
+from worflow_parser_kb.models import ParserResult, WorkflowState
+from worflow_parser_kb.nodes.classify_node import classify_node
+from worflow_parser_kb.nodes.clean_node import clean_node
+from worflow_parser_kb.nodes.enrich_node import enrich_node
+from worflow_parser_kb.nodes.escalate_node import escalate_node
+from worflow_parser_kb.nodes.merge_node import merge_node
+from worflow_parser_kb.nodes.parse_node import parse_node
+from worflow_parser_kb.nodes.slice_node import slice_node
+from worflow_parser_kb.nodes.structure_node import structure_node
+from worflow_parser_kb.nodes.transform_node import transform_node
 
 _tracer = trace.get_tracer(__name__)
 
@@ -65,7 +65,7 @@ async def run_parser_workflow(
 ) -> ParserResult:
     start_time = time.perf_counter()
     with _tracer.start_as_current_span("parser_workflow") as root_span:
-        root_span.set_attribute("parser.doc_id", doc_metadata.get("doc_id", ""))
+        root_span.set_attribute("worflow_parser_kb.doc_id", doc_metadata.get("doc_id", ""))
         initial_state = WorkflowState(
             md_content=md_content,
             doc_metadata=doc_metadata,
@@ -78,7 +78,7 @@ async def run_parser_workflow(
         )
         result_state = await parser_graph.ainvoke(initial_state)
         doc_type = result_state.get("doc_metadata", {}).get("doc_type", "unknown")
-        root_span.set_attribute("parser.doc_type", doc_type)
+        root_span.set_attribute("worflow_parser_kb.doc_type", doc_type)
     duration = time.perf_counter() - start_time
     parser_workflow_duration_seconds.labels(doc_type=doc_type).observe(duration)
     escalate_count = sum(
@@ -145,7 +145,7 @@ async def run_parser_workflow_stream(
     )
     try:
         with _tracer.start_as_current_span("parser_workflow_stream") as root_span:
-            root_span.set_attribute("parser.doc_id", doc_id)
+            root_span.set_attribute("worflow_parser_kb.doc_id", doc_id)
             async for event in parser_graph.astream_events(initial_state, version="v2"):
                 event_type = event.get("event", "")
                 # 用 metadata.langgraph_node 定位节点边界（比 event["name"] 更可靠）
@@ -169,7 +169,7 @@ async def run_parser_workflow_stream(
                         if not result_doc_metadata.get("doc_id"):
                             result_doc_metadata = {**result_doc_metadata, "doc_id": doc_id}
                         doc_type = result_doc_metadata.get("doc_type", "unknown")
-                        root_span.set_attribute("parser.doc_type", doc_type)
+                        root_span.set_attribute("worflow_parser_kb.doc_type", doc_type)
                         final_chunks = output.get("final_chunks", [])
                         yield {
                             "type": "workflow_done",

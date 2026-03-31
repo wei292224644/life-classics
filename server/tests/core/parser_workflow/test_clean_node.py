@@ -1,6 +1,6 @@
 # tests/core/parser_workflow/test_clean_node.py
 """验证 clean_node._clean_md_content 的清洗规则。"""
-from parser.nodes.clean_node import _clean_md_content
+from worflow_parser_kb.nodes.clean_node import _clean_md_content
 
 
 def test_removes_electronic_version_disclaimer():

@@ -4,7 +4,7 @@ version = "0.1.0"
 dependencies = [
     "llm",
     "kb",
-    "parser",
+    "worflow_parser_kb",
 ]
 
 [build-system]
@@ -17,4 +17,4 @@ packages = ["agent"]
 [tool.uv.sources]
 llm = { workspace = true }
 kb = { workspace = true }
-parser = { workspace = true }
+worflow_parser_kb = { workspace = true }

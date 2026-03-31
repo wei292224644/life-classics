@@ -17,8 +17,8 @@ from pydantic import ValidationError as PydanticValidationError
 
 from config import settings
 from observability.metrics import llm_tokens_total
-from parser.structured_llm.client_factory import get_structured_client
-from parser.structured_llm.errors import JsonOutputParseError, StructuredOutputError
+from worflow_parser_kb.structured_llm.client_factory import get_structured_client
+from worflow_parser_kb.structured_llm.errors import JsonOutputParseError, StructuredOutputError
 
 _logger = structlog.get_logger(__name__)
 

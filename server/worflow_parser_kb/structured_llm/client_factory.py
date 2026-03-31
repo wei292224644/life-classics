@@ -11,7 +11,7 @@ import structlog
 from pydantic import BaseModel
 
 from config import settings
-from parser.structured_llm.errors import JsonOutputParseError
+from worflow_parser_kb.structured_llm.errors import JsonOutputParseError
 
 _logger = structlog.get_logger(__name__)
 

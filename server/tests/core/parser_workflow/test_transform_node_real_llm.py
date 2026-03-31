@@ -3,14 +3,14 @@
 
 # import pytest
 
-# from parser.models import (
+# from worflow_parser_kb.models import (
 #     ClassifiedChunk,
 #     RawChunk,
 #     TypedSegment,
 #     WorkflowState,
 # )
-# from parser.nodes.transform_node import transform_node
-# from parser.rules import RulesStore
+# from worflow_parser_kb.nodes.transform_node import transform_node
+# from worflow_parser_kb.rules import RulesStore
 # from .test_utils import (
 #     ensure_llm_api_key,
 #     get_logger,

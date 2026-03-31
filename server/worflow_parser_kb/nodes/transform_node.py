@@ -10,14 +10,14 @@ from opentelemetry import trace
 
 _tracer = trace.get_tracer(__name__)
 
-from parser.models import (
+from worflow_parser_kb.models import (
     DocumentChunk,
     TypedSegment,
     WorkflowState,
     make_chunk_id,
 )
-from parser.structured_llm import invoke_structured
-from parser.nodes.output import TransformOutput
+from worflow_parser_kb.structured_llm import invoke_structured
+from worflow_parser_kb.nodes.output import TransformOutput
 from config import settings
 from observability.metrics import (
     llm_calls_total,

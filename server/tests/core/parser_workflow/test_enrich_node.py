@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 from typing import Dict
-from parser.nodes.enrich_node import (
+from worflow_parser_kb.nodes.enrich_node import (
     build_table_label_index,
     extract_table_refs,
     extract_other_refs,
@@ -10,8 +10,8 @@ from parser.nodes.enrich_node import (
     resolve_table_ref,
     enrich_node,
 )
-from parser.models import ClassifiedChunk, RawChunk, TypedSegment
-from parser.graph import _build_graph, _should_escalate
+from worflow_parser_kb.models import ClassifiedChunk, RawChunk, TypedSegment
+from worflow_parser_kb.graph import _build_graph, _should_escalate
 
 
 # ── build_table_label_index ──────────────────────────────────────────
@@ -545,28 +545,28 @@ def test_extract_amendment_refs_returns_empty_for_table_ref():
 
 def test_extract_std_refs_basic():
     """'应符合GB14881的相关规定' 应提取 'GB14881'"""
-    from parser.nodes.enrich_node import extract_std_refs
+    from worflow_parser_kb.nodes.enrich_node import extract_std_refs
     refs = extract_std_refs("应符合GB14881的相关规定。")
     assert "GB14881" in refs
 
 
 def test_extract_std_refs_gbt_format():
     """'按照GB/T 4789.1规定的方法' 应提取 'GB/T4789.1'（规范化去空格）"""
-    from parser.nodes.enrich_node import extract_std_refs
+    from worflow_parser_kb.nodes.enrich_node import extract_std_refs
     refs = extract_std_refs("按照GB/T 4789.1规定的方法检验。")
     assert any("4789" in r for r in refs)
 
 
 def test_extract_std_refs_multiple():
     """多个标准引用应全部提取"""
-    from parser.nodes.enrich_node import extract_std_refs
+    from worflow_parser_kb.nodes.enrich_node import extract_std_refs
     refs = extract_std_refs("应符合GB 14881和GB/T 4789.1的规定。")
     assert len(refs) == 2
 
 
 def test_extract_std_refs_no_match():
     """无标准引用时返回空列表"""
-    from parser.nodes.enrich_node import extract_std_refs
+    from worflow_parser_kb.nodes.enrich_node import extract_std_refs
     refs = extract_std_refs("本节描述检测方法，见表1。")
     assert refs == []
 
@@ -673,7 +673,7 @@ def test_enrich_node_non_amendment_segment_no_amendment_refs():
 
 def test_enrich_node_gb_style_multiple_refs():
     """GB 风格段落含多种新前缀时，三个表格均应被内联到 ref_context"""
-    from parser.models import ClassifiedChunk, RawChunk, TypedSegment
+    from worflow_parser_kb.models import ClassifiedChunk, RawChunk, TypedSegment
 
     ref_text = "感官要求应符合表1的规定。理化指标符合表2的规定。微生物指标按照表3执行。"
 

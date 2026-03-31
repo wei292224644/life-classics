@@ -3,18 +3,18 @@ import asyncio
 import pytest
 from unittest.mock import patch
 
-from parser.models import RawChunk, WorkflowState
-from parser.nodes.classify_node import (
+from worflow_parser_kb.models import RawChunk, WorkflowState
+from worflow_parser_kb.nodes.classify_node import (
     classify_node,
     _escape_for_json_prompt,
     _replace_latex_with_placeholders,
     _restore_placeholders,
 )
-from parser.nodes.output import ClassifyOutput, SegmentItem
+from worflow_parser_kb.nodes.output import ClassifyOutput, SegmentItem
 
 
 def _make_state(content: str, tmp_path) -> WorkflowState:
-    from parser.rules import RulesStore
+    from worflow_parser_kb.rules import RulesStore
     store = RulesStore(str(tmp_path))
     return WorkflowState(
         md_content=content,
@@ -35,7 +35,7 @@ async def test_classify_node_produces_dual_type_segments(tmp_path):
         SegmentItem(content="称取试样约2g", structure_type="list", semantic_type="procedure", confidence=0.9),
     ])
 
-    with patch("parser.nodes.classify_node.invoke_structured", return_value=mock_output):
+    with patch("worflow_parser_kb.nodes.classify_node.invoke_structured", return_value=mock_output):
         state = _make_state("称取试样约2g", tmp_path)
         result = await classify_node(state)
 
@@ -54,7 +54,7 @@ async def test_classify_node_low_confidence_sets_unknown(tmp_path):
         SegmentItem(content="某段内容", structure_type="paragraph", semantic_type="scope", confidence=0.3),
     ])
 
-    with patch("parser.nodes.classify_node.invoke_structured", return_value=mock_output):
+    with patch("worflow_parser_kb.nodes.classify_node.invoke_structured", return_value=mock_output):
         state = _make_state("某段内容", tmp_path)
         result = await classify_node(state)
 
@@ -77,7 +77,7 @@ async def test_classify_node_prompt_includes_both_type_lists(tmp_path):
         captured_prompts.append(prompt)
         return mock_output
 
-    with patch("parser.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
+    with patch("worflow_parser_kb.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
         state = _make_state("x", tmp_path)
         await classify_node(state)
 
@@ -102,7 +102,7 @@ async def test_classify_node_prompt_contains_formula_rule(tmp_path):
         captured_prompts.append(prompt)
         return mock_output
 
-    with patch("parser.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
+    with patch("worflow_parser_kb.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
         state = _make_state("x", tmp_path)
         await classify_node(state)
 
@@ -147,7 +147,7 @@ async def test_classify_node_html_chunk_prompt_escapes_attribute_quotes(tmp_path
         return mock_output
 
     with patch(
-        "parser.nodes.classify_node.invoke_structured",
+        "worflow_parser_kb.nodes.classify_node.invoke_structured",
         side_effect=capture_invoke,
     ):
         state = _make_state(html_content, tmp_path)
@@ -178,7 +178,7 @@ async def test_classify_node_html_chunk_content_unchanged_in_segment(tmp_path):
     ])
 
     with patch(
-        "parser.nodes.classify_node.invoke_structured",
+        "worflow_parser_kb.nodes.classify_node.invoke_structured",
         return_value=mock_output,
     ):
         state = _make_state(html_content, tmp_path)
@@ -223,7 +223,7 @@ async def test_classify_node_applies_all_hooks(tmp_path):
     ])
 
     with patch(
-        "parser.nodes.classify_node.invoke_structured",
+        "worflow_parser_kb.nodes.classify_node.invoke_structured",
         return_value=mock_output,
     ):
         state = _make_state(formula_content + "\n\n" + var_content, tmp_path)
@@ -324,8 +324,8 @@ def test_restore_placeholders_multiple():
 
 def test_classify_llm_sends_placeholder_not_latex(tmp_path):
     """_call_classify_llm 发给 LLM 的 prompt 应含占位符而非原始 LaTeX。"""
-    from parser.nodes.classify_node import _call_classify_llm
-    from parser.rules import RulesStore
+    from worflow_parser_kb.nodes.classify_node import _call_classify_llm
+    from worflow_parser_kb.rules import RulesStore
 
     captured_prompts = []
     mock_output = ClassifyOutput(segments=[
@@ -341,7 +341,7 @@ def test_classify_llm_sends_placeholder_not_latex(tmp_path):
     structure_types = ct_rules.get("structure_types", [])
     semantic_types = ct_rules.get("semantic_types", [])
 
-    with patch("parser.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
+    with patch("worflow_parser_kb.nodes.classify_node.invoke_structured", side_effect=capture_invoke):
         _call_classify_llm(
             "称取 $4\\mathrm{g}$ 试样",
             structure_types,
@@ -367,7 +367,7 @@ async def test_classify_node_restores_latex_in_seg_content(tmp_path):
         ),
     ])
 
-    with patch("parser.nodes.classify_node.invoke_structured", return_value=mock_output):
+    with patch("worflow_parser_kb.nodes.classify_node.invoke_structured", return_value=mock_output):
         state = _make_state(latex_text, tmp_path)
         result = await classify_node(state)
 
@@ -380,9 +380,9 @@ async def test_classify_node_restores_latex_in_seg_content(tmp_path):
 @pytest.mark.asyncio
 async def test_classify_node_concurrent_execution_with_exceptions(tmp_path):
     """classify_node 并发执行时，return_exceptions=True 保证部分失败不影响整体"""
-    from parser.nodes.classify_node import classify_node
-    from parser.models import WorkflowState, ClassifiedChunk, TypedSegment
-    from parser.nodes.output import ClassifyOutput, SegmentItem
+    from worflow_parser_kb.nodes.classify_node import classify_node
+    from worflow_parser_kb.models import WorkflowState, ClassifiedChunk, TypedSegment
+    from worflow_parser_kb.nodes.output import ClassifyOutput, SegmentItem
 
     # 构造 state：4 个 raw_chunks
     state = WorkflowState(
@@ -429,7 +429,7 @@ async def test_classify_node_concurrent_execution_with_exceptions(tmp_path):
         return mock_classified_chunk
     mock_to_thread.call_count = 0
 
-    with patch("parser.nodes.classify_node.asyncio.to_thread", side_effect=mock_to_thread):
+    with patch("worflow_parser_kb.nodes.classify_node.asyncio.to_thread", side_effect=mock_to_thread):
         result = await classify_node(state)
 
     assert len(result["classified_chunks"]) == 3

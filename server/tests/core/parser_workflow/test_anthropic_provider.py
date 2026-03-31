@@ -16,9 +16,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import BaseModel
 
-from parser.structured_llm.client_factory import get_structured_client
-from parser.structured_llm.errors import StructuredOutputError
-from parser.structured_llm.errors import JsonOutputParseError
+from worflow_parser_kb.structured_llm.client_factory import get_structured_client
+from worflow_parser_kb.structured_llm.errors import StructuredOutputError
+from worflow_parser_kb.structured_llm.errors import JsonOutputParseError
 
 
 class _DummyOutput(BaseModel):
@@ -70,7 +70,7 @@ def test_anthropic_client_calls_messages_create():
     """get_structured_client('anthropic') 返回 callable，调用时走 streaming messages.create，使用 JSON system prompt 模式。"""
     mock_client = _make_streaming_text_response('{"label": "foo", "score": 0.9}')
 
-    with patch("parser.structured_llm.client_factory.anthropic") as mock_anthropic_mod:
+    with patch("worflow_parser_kb.structured_llm.client_factory.anthropic") as mock_anthropic_mod:
         mock_anthropic_mod.Anthropic.return_value = mock_client
         create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
         result = create_fn(
@@ -161,7 +161,7 @@ def test_anthropic_client_raises_when_no_parseable_json():
     """响应中无可解析的 JSON 时抛 JsonOutputParseError。"""
     mock_client = _make_streaming_text_response("这是普通文本，完全没有 JSON")
 
-    with patch("parser.structured_llm.client_factory.anthropic") as mock_anthropic_mod:
+    with patch("worflow_parser_kb.structured_llm.client_factory.anthropic") as mock_anthropic_mod:
         mock_anthropic_mod.Anthropic.return_value = mock_client
         create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
         with pytest.raises(JsonOutputParseError):
@@ -172,7 +172,7 @@ def test_anthropic_client_raises_when_no_parseable_json():
             )
 
 
-from parser.structured_llm import invoke_structured
+from worflow_parser_kb.structured_llm import invoke_structured
 
 
 def test_invoke_structured_anthropic_timeout_retries():
@@ -187,7 +187,7 @@ def test_invoke_structured_anthropic_timeout_retries():
         raise anthropic_sdk.APITimeoutError(request=MagicMock())
 
     with patch(
-        "parser.structured_llm.invoker.get_structured_client",
+        "worflow_parser_kb.structured_llm.invoker.get_structured_client",
         return_value=_fake_create,
     ):
         with pytest.raises(StructuredOutputError) as exc_info:
@@ -220,7 +220,7 @@ def test_invoke_structured_anthropic_internal_server_error_retries():
         )
 
     with patch(
-        "parser.structured_llm.invoker.get_structured_client",
+        "worflow_parser_kb.structured_llm.invoker.get_structured_client",
         return_value=_fake_create,
     ):
         with pytest.raises(StructuredOutputError):
@@ -252,7 +252,7 @@ def test_invoke_structured_anthropic_auth_error_no_retry():
         )
 
     with patch(
-        "parser.structured_llm.invoker.get_structured_client",
+        "worflow_parser_kb.structured_llm.invoker.get_structured_client",
         return_value=_fake_create,
     ):
         with pytest.raises(anthropic_sdk.AuthenticationError):
@@ -270,7 +270,7 @@ def test_invoke_structured_anthropic_auth_error_no_retry():
 
 def test_get_structured_client_unknown_provider_raises():
     """未知 provider 抛 ValueError，提示包含 anthropic。"""
-    from parser.structured_llm.client_factory import get_structured_client
+    from worflow_parser_kb.structured_llm.client_factory import get_structured_client
     with pytest.raises(ValueError) as exc_info:
         get_structured_client("unknown_provider", "some-model")
     assert "anthropic" in str(exc_info.value)
@@ -278,7 +278,7 @@ def test_get_structured_client_unknown_provider_raises():
 
 def test_json_output_parse_error_is_importable_and_is_runtime_error():
     """JsonOutputParseError 可从 errors 模块导入，且是 RuntimeError 子类。"""
-    from parser.structured_llm.errors import JsonOutputParseError
+    from worflow_parser_kb.structured_llm.errors import JsonOutputParseError
     err = JsonOutputParseError("test message")
     assert isinstance(err, RuntimeError)
     assert "test message" in str(err)
@@ -288,7 +288,7 @@ def test_json_mode_no_tools_in_request():
     """JSON system prompt 模式不传 tools / tool_choice 参数。"""
     mock_client = _make_streaming_text_response('{"label": "foo", "score": 0.9}')
 
-    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+    with patch("worflow_parser_kb.structured_llm.client_factory.anthropic") as mock_mod:
         mock_mod.Anthropic.return_value = mock_client
         create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
         create_fn(
@@ -306,7 +306,7 @@ def test_json_mode_system_contains_schema():
     """create 调用包含 system 参数，且内容包含 response_model 的字段名。"""
     mock_client = _make_streaming_text_response('{"label": "foo", "score": 0.9}')
 
-    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+    with patch("worflow_parser_kb.structured_llm.client_factory.anthropic") as mock_mod:
         mock_mod.Anthropic.return_value = mock_client
         create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
         create_fn(
@@ -325,7 +325,7 @@ def test_json_mode_direct_json_response():
     """模型直接返回裸 JSON 时，正确解析为 response_model。"""
     mock_client = _make_streaming_text_response('{"label": "foo", "score": 0.9}')
 
-    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+    with patch("worflow_parser_kb.structured_llm.client_factory.anthropic") as mock_mod:
         mock_mod.Anthropic.return_value = mock_client
         create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
         result = create_fn(
@@ -344,7 +344,7 @@ def test_json_mode_markdown_block_response():
     text = '```json\n{"label": "bar", "score": 0.5}\n```'
     mock_client = _make_streaming_text_response(text)
 
-    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+    with patch("worflow_parser_kb.structured_llm.client_factory.anthropic") as mock_mod:
         mock_mod.Anthropic.return_value = mock_client
         create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
         result = create_fn(
@@ -362,7 +362,7 @@ def test_json_mode_json_embedded_in_text():
     text = '好的，结果如下：{"label": "baz", "score": 0.3} 以上是结果。'
     mock_client = _make_streaming_text_response(text)
 
-    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+    with patch("worflow_parser_kb.structured_llm.client_factory.anthropic") as mock_mod:
         mock_mod.Anthropic.return_value = mock_client
         create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
         # 新实现应该能提取嵌入文本中的 JSON 并正确解析
@@ -380,7 +380,7 @@ def test_json_mode_invalid_json_raises_parse_error():
     """模型返回无法解析的文本时，抛 JsonOutputParseError（新实现）。"""
     mock_client = _make_streaming_text_response("这是普通文本，完全没有 JSON 内容")
 
-    with patch("parser.structured_llm.client_factory.anthropic") as mock_mod:
+    with patch("worflow_parser_kb.structured_llm.client_factory.anthropic") as mock_mod:
         mock_mod.Anthropic.return_value = mock_client
         create_fn = get_structured_client("anthropic", "MiniMax-M2.7")
         # 新实现应该抛 JsonOutputParseError，而非 ValueError
@@ -402,7 +402,7 @@ def test_invoke_structured_json_parse_error_retries():
         raise JsonOutputParseError("JSON 解析失败")
 
     with patch(
-        "parser.structured_llm.invoker.get_structured_client",
+        "worflow_parser_kb.structured_llm.invoker.get_structured_client",
         return_value=_fake_create,
     ):
         with pytest.raises(StructuredOutputError) as exc_info:
@@ -429,7 +429,7 @@ def test_invoke_structured_json_parse_error_single_retry():
         raise JsonOutputParseError("JSON 解析失败")
 
     with patch(
-        "parser.structured_llm.invoker.get_structured_client",
+        "worflow_parser_kb.structured_llm.invoker.get_structured_client",
         return_value=_fake_create,
     ):
         with pytest.raises(StructuredOutputError):

@@ -6,10 +6,10 @@ from config import settings
 from kb.clients import get_chroma_client
 from kb.embeddings import embed_batch
 from kb.writer import fts_writer
-from parser.models import ClassifiedChunk, RawChunk, TypedSegment, WorkflowState
-from parser.nodes.merge_node import merge_node
-from parser.nodes.transform_node import transform_node
-from parser.rules import RulesStore
+from worflow_parser_kb.models import ClassifiedChunk, RawChunk, TypedSegment, WorkflowState
+from worflow_parser_kb.nodes.merge_node import merge_node
+from worflow_parser_kb.nodes.transform_node import transform_node
+from worflow_parser_kb.rules import RulesStore
 
 
 def get_collection():

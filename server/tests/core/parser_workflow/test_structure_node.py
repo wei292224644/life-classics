@@ -4,13 +4,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from parser.structured_llm import StructuredOutputError
-from parser.nodes.structure_node import (
+from worflow_parser_kb.structured_llm import StructuredOutputError
+from worflow_parser_kb.nodes.structure_node import (
     _infer_doc_type_with_llm,
     match_doc_type_by_rules,
     structure_node,
 )
-from parser.models import WorkflowState
+from worflow_parser_kb.models import WorkflowState
 
 
 # ── _infer_doc_type_with_llm ─────────────────────────────────────────
@@ -18,7 +18,7 @@ from parser.models import WorkflowState
 
 def test_infer_doc_type_with_llm_calls_invoke_structured():
     """验证 invoke_structured 被正确调用并返回 DocTypeOutput"""
-    from parser.nodes.output import DocTypeOutput
+    from worflow_parser_kb.nodes.output import DocTypeOutput
 
     mock_output = DocTypeOutput(
         id="additive_standard",
@@ -28,7 +28,7 @@ def test_infer_doc_type_with_llm_calls_invoke_structured():
     )
 
     with patch(
-        "parser.nodes.structure_node.invoke_structured",
+        "worflow_parser_kb.nodes.structure_node.invoke_structured",
         return_value=mock_output,
     ) as mock_invoke:
         result = _infer_doc_type_with_llm(
@@ -56,7 +56,7 @@ def test_infer_doc_type_with_llm_raises_on_structured_error():
         raw_error="validation error",
     )
     with patch(
-        "parser.nodes.structure_node.invoke_structured",
+        "worflow_parser_kb.nodes.structure_node.invoke_structured",
         side_effect=err,
     ):
         with pytest.raises(StructuredOutputError) as exc_info:
@@ -98,10 +98,10 @@ def test_structure_node_uses_rule_match():
     }
 
     with patch(
-        "parser.nodes.structure_node.RulesStore",
+        "worflow_parser_kb.nodes.structure_node.RulesStore",
         return_value=mock_store,
     ), patch(
-        "parser.nodes.structure_node._infer_doc_type_with_llm"
+        "worflow_parser_kb.nodes.structure_node._infer_doc_type_with_llm"
     ) as mock_llm:
         result = structure_node(state)
 
@@ -137,10 +137,10 @@ def test_structure_node_falls_back_to_llm():
     }
 
     with patch(
-        "parser.nodes.structure_node.RulesStore",
+        "worflow_parser_kb.nodes.structure_node.RulesStore",
         return_value=mock_store,
     ), patch(
-        "parser.nodes.structure_node._infer_doc_type_with_llm",
+        "worflow_parser_kb.nodes.structure_node._infer_doc_type_with_llm",
         return_value=new_rule,
     ) as mock_llm:
         result = structure_node(state)

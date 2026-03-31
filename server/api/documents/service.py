@@ -8,7 +8,7 @@ from typing import Any
 
 from kb.clients import get_chroma_client
 from kb.writer import chroma_writer, fts_writer
-from parser.graph import run_parser_workflow_stream
+from worflow_parser_kb.graph import run_parser_workflow_stream
 
 
 def get_collection():

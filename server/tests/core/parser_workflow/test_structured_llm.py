@@ -9,13 +9,13 @@
 # from pydantic import ValidationError as PydanticValidationError
 
 # from api.config import Settings, settings
-# from parser.structured_llm import (
+# from worflow_parser_kb.structured_llm import (
 #     StructuredOutputError,
 #     invoke_structured,
 #     resolve_model_for_node,
 #     resolve_provider_for_node,
 # )
-# from parser.structured_llm.client_factory import get_structured_client
+# from worflow_parser_kb.structured_llm.client_factory import get_structured_client
 
 
 # # ── 配置默认值 ────────────────────────────────────────────────────────────────

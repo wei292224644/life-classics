@@ -10,17 +10,17 @@ from opentelemetry import trace
 
 _tracer = trace.get_tracer(__name__)
 
-from parser.models import (
+from worflow_parser_kb.models import (
     ClassifiedChunk,
     RawChunk,
     TypedSegment,
     WorkflowState,
 )
-from parser.post_classify_hooks import POST_CLASSIFY_HOOKS
-from parser.rules import RulesStore
+from worflow_parser_kb.post_classify_hooks import POST_CLASSIFY_HOOKS
+from worflow_parser_kb.rules import RulesStore
 from config import settings
-from parser.structured_llm import invoke_structured
-from parser.nodes.output import ClassifyOutput, SegmentItem
+from worflow_parser_kb.structured_llm import invoke_structured
+from worflow_parser_kb.nodes.output import ClassifyOutput, SegmentItem
 from observability.metrics import (
     llm_calls_total,
     parser_chunks_processed_total,

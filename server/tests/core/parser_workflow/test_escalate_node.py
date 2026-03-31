@@ -4,18 +4,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from parser.models import (
+from worflow_parser_kb.models import (
     ClassifiedChunk,
     RawChunk,
     TypedSegment,
     WorkflowState,
 )
-from parser.nodes.escalate_node import (
+from worflow_parser_kb.nodes.escalate_node import (
     _call_escalate_llm,
     escalate_node,
 )
-from parser.nodes.output import EscalateOutput, TransformParams
-from parser.structured_llm import StructuredOutputError
+from worflow_parser_kb.nodes.output import EscalateOutput, TransformParams
+from worflow_parser_kb.structured_llm import StructuredOutputError
 
 
 # ── _call_escalate_llm ───────────────────────────────────────────────────
@@ -35,7 +35,7 @@ def test_call_escalate_llm_use_existing_returns_output():
     )
 
     with patch(
-        "parser.nodes.escalate_node.invoke_structured",
+        "worflow_parser_kb.nodes.escalate_node.invoke_structured",
         return_value=expected,
     ):
         result = _call_escalate_llm("某段说明文字", content_types)
@@ -58,7 +58,7 @@ def test_call_escalate_llm_create_new_returns_output():
     )
 
     with patch(
-        "parser.nodes.escalate_node.invoke_structured",
+        "worflow_parser_kb.nodes.escalate_node.invoke_structured",
         return_value=expected,
     ):
         result = _call_escalate_llm("特殊格式内容", content_types)
@@ -81,7 +81,7 @@ def test_call_escalate_llm_invoke_structured_fails_raises():
     )
 
     with patch(
-        "parser.nodes.escalate_node.invoke_structured",
+        "worflow_parser_kb.nodes.escalate_node.invoke_structured",
         side_effect=err,
     ):
         with pytest.raises(StructuredOutputError) as exc_info:
@@ -131,10 +131,10 @@ def test_escalate_node_use_existing_no_append():
     )
 
     with patch(
-        "parser.nodes.escalate_node.invoke_structured",
+        "worflow_parser_kb.nodes.escalate_node.invoke_structured",
         return_value=llm_result,
     ), patch(
-        "parser.nodes.escalate_node.RulesStore"
+        "worflow_parser_kb.nodes.escalate_node.RulesStore"
     ) as mock_store_cls:
         mock_store = MagicMock()
         mock_store.get_content_type_rules.return_value = {
@@ -190,10 +190,10 @@ def test_escalate_node_create_new_appends_content_type():
     )
 
     with patch(
-        "parser.nodes.escalate_node.invoke_structured",
+        "worflow_parser_kb.nodes.escalate_node.invoke_structured",
         return_value=llm_result,
     ), patch(
-        "parser.nodes.escalate_node.RulesStore"
+        "worflow_parser_kb.nodes.escalate_node.RulesStore"
     ) as mock_store_cls:
         mock_store = MagicMock()
         mock_store.get_content_type_rules.return_value = {"content_types": []}

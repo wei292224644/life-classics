@@ -11,7 +11,7 @@ from observability.metrics import (
     parser_chunks_processed_total,
     parser_node_duration_seconds,
 )
-from parser.models import WorkflowState
+from worflow_parser_kb.models import WorkflowState
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
@@ -23,9 +23,9 @@ def parse_node(state: WorkflowState) -> dict:
     _logger.info("parse_node_start", node="parse_node", doc_id=doc_id, chunks_in=1)
 
     with _tracer.start_as_current_span("parse_node") as span:
-        span.set_attribute("parser.node", "parse_node")
-        span.set_attribute("parser.doc_id", doc_id)
-        span.set_attribute("parser.chunk_count.in", 1)
+        span.set_attribute("worflow_parser_kb.node", "parse_node")
+        span.set_attribute("worflow_parser_kb.doc_id", doc_id)
+        span.set_attribute("worflow_parser_kb.chunk_count.in", 1)
 
         meta = dict(state["doc_metadata"])
         errors = list(state.get("errors", []))
@@ -53,7 +53,7 @@ def parse_node(state: WorkflowState) -> dict:
             else:
                 errors.append("WARNING: doc_metadata missing 'standard_no'")
 
-        span.set_attribute("parser.chunk_count.out", 1)
+        span.set_attribute("worflow_parser_kb.chunk_count.out", 1)
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="parse_node").observe(duration)

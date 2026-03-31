@@ -4,14 +4,14 @@
 
 # import pytest
 
-# from parser.models import ClassifiedChunk, RawChunk, WorkflowState
-# from parser.nodes.classify_node import classify_node, classify_raw_chunk
-# from parser.nodes.parse_node import parse_node
-# from parser.nodes.output import ClassifyOutput
-# from parser.nodes.slice_node import slice_node
-# from parser.structured_llm import invoke_structured
-# from parser.structured_llm.errors import StructuredOutputError
-# from parser.rules import RulesStore
+# from worflow_parser_kb.models import ClassifiedChunk, RawChunk, WorkflowState
+# from worflow_parser_kb.nodes.classify_node import classify_node, classify_raw_chunk
+# from worflow_parser_kb.nodes.parse_node import parse_node
+# from worflow_parser_kb.nodes.output import ClassifyOutput
+# from worflow_parser_kb.nodes.slice_node import slice_node
+# from worflow_parser_kb.structured_llm import invoke_structured
+# from worflow_parser_kb.structured_llm.errors import StructuredOutputError
+# from worflow_parser_kb.rules import RulesStore
 # from .test_utils import (
 #     ensure_llm_api_key,
 #     get_logger,

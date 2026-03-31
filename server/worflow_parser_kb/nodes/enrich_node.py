@@ -11,7 +11,7 @@ from observability.metrics import (
     parser_chunks_processed_total,
     parser_node_duration_seconds,
 )
-from parser.models import (
+from worflow_parser_kb.models import (
     ClassifiedChunk,
     RawChunk,
     TypedSegment,
@@ -176,9 +176,9 @@ def enrich_node(state: WorkflowState) -> dict:
     _logger.info("enrich_node_start", node="enrich_node", doc_id=doc_id, chunks_in=chunks_in)
 
     with _tracer.start_as_current_span("enrich_node") as span:
-        span.set_attribute("parser.node", "enrich_node")
-        span.set_attribute("parser.doc_id", doc_id)
-        span.set_attribute("parser.chunk_count.in", chunks_in)
+        span.set_attribute("worflow_parser_kb.node", "enrich_node")
+        span.set_attribute("worflow_parser_kb.doc_id", doc_id)
+        span.set_attribute("worflow_parser_kb.chunk_count.in", chunks_in)
 
         raw_chunks: List[RawChunk] = state["raw_chunks"]
         classified_chunks: List[ClassifiedChunk] = [dict(cc) for cc in state["classified_chunks"]]
@@ -240,7 +240,7 @@ def enrich_node(state: WorkflowState) -> dict:
             ))
 
         chunks_out = len(updated_chunks)
-        span.set_attribute("parser.chunk_count.out", chunks_out)
+        span.set_attribute("worflow_parser_kb.chunk_count.out", chunks_out)
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="enrich_node").observe(duration)
