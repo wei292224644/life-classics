@@ -7,6 +7,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, TYPE_CHECKING
 
+import sqlalchemy as sa
 from sqlalchemy import (
     ARRAY,
     BigInteger,
@@ -529,4 +530,22 @@ class ProductAnalysis(Base):
     last_updated_by_user: Mapped[str | None] = mapped_column(Uuid, nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+
+
+class AnalysisFeedback(Base):
+    """用户对分析结果的反馈记录。"""
+    __tablename__ = "analysis_feedback"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    task_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    food_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("foods.id"), nullable=False)
+    category: Mapped[str] = mapped_column(String(50), nullable=False)
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    client_context: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    reporter_user_id: Mapped[str | None] = mapped_column(Uuid, nullable=True)
+    source_ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=sa.text("now()")
     )
