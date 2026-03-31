@@ -4,7 +4,7 @@ from typing import List
 
 from kb.clients import get_chroma_client
 from kb.embeddings import embed_batch
-from parser.models import DocumentChunk
+from kb.models import DocumentChunk
 
 COLLECTION_NAME = "knowledge_base"
 

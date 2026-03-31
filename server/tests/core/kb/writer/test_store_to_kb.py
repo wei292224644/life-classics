@@ -4,7 +4,8 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import kb.writer as writer_module
-from parser.models import DocumentChunk, WorkflowState
+from kb.models import DocumentChunk
+from worflow_parser_kb.models import WorkflowState
 
 
 @pytest.fixture(autouse=True)

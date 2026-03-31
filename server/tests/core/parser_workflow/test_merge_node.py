@@ -4,8 +4,9 @@ import json
 
 import pytest
 
-from parser.models import DocumentChunk, WorkflowState
-from parser.nodes.merge_node import (
+from kb.models import DocumentChunk
+from worflow_parser_kb.models import WorkflowState
+from worflow_parser_kb.nodes.merge_node import (
     _chunks_from_same_raw,
     _merge_two,
     _same_classification,

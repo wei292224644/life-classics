@@ -1,4 +1,5 @@
-from parser.models import TypedSegment, DocumentChunk
+from kb.models import DocumentChunk
+from worflow_parser_kb.models import TypedSegment
 
 
 def test_typed_segment_has_dual_type_fields():
