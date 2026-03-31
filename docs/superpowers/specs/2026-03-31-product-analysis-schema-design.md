@@ -34,7 +34,7 @@ OCR 文本
 
 **关键约束：**
 - 对外轮询 `status` 与内部 OCR/解析/匹配/分析四段的对应关系，以及 **`food_id` 如何从拍照任务得到（含可选 `food_id` 参数、OCR 品名匹配、占位 `food`）**，见 [Analysis Pipeline Spec](./2026-03-31-analysis-pipeline-spec.md) §2.5、§2.6。
-- 用户上传图的**长期留存**与**人工报错接口**（与主流程隔离）见同文档 §2.7、§2.8。
+- 用户上传图的**长期留存**、**人工报错接口**（与主流程隔离），以及**未来反哺 FoodDetail（异步纠错，非 MVP）**见 [Analysis Pipeline Spec](./2026-03-31-analysis-pipeline-spec.md) §2.7–§2.9。
 - 产品匹配发生在成分分析之前，命中且未过期则完全跳过 Agent
 - 过期判断：`ProductAnalysis.created_at` 距今超过 N 天（N 为可配置参数）
 - 过期时先返回旧数据，后台静默重跑，用户下次访问拿到新结果
