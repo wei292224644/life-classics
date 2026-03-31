@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import Ingredient
@@ -99,6 +99,6 @@ class IngredientAdminRepository:
         ingredient = await self.fetch_by_id(ingredient_id)
         if ingredient is None:
             return True  # 幂等，已删除视为成功
-        ingredient.deleted_at = datetime.utcnow()
+        ingredient.deleted_at = datetime.now(UTC)
         await self._session.commit()
         return True
