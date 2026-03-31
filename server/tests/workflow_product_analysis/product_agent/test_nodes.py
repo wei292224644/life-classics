@@ -12,6 +12,7 @@ from workflow_product_analysis.product_agent.nodes import (
 
 
 class MockSettings:
+    DEFAULT_LLM_PROVIDER = "anthropic"
     DEFAULT_MODEL = "MiniMax-2.7"
     ANALYSIS_REFERENCES_ALLOWLIST = "GB 2760,GB 7718,GB 28050"
 

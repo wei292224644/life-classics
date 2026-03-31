@@ -17,9 +17,10 @@ async def test_embed_batch_returns_vectors():
 
 
 def test_create_embedding_model_uses_ollama():
-    """Embedding 模型固定使用 Ollama provider"""
+    """Embedding provider 为 ollama 时使用 OllamaEmbeddings"""
     with patch("kb.embeddings.settings") as mock_settings, \
          patch("kb.embeddings.OllamaEmbeddings") as mock_cls:
+        mock_settings.EMBEDDING_LLM_PROVIDER = "ollama"
         mock_settings.EMBEDDING_MODEL = "nomic-embed-text"
         mock_settings.OLLAMA_BASE_URL = "http://localhost:11434"
 

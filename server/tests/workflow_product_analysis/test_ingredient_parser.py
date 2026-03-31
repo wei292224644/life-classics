@@ -7,6 +7,7 @@ from workflow_product_analysis.ingredient_parser import (
 
 
 class MockSettings:
+    DEFAULT_LLM_PROVIDER = "anthropic"
     DEFAULT_MODEL = "MiniMax-2.7"
 
 

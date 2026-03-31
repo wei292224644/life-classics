@@ -9,7 +9,7 @@ from config import settings
 
 
 def _create_embedding_model() -> OpenAIEmbeddings:
-    provider = "ollama"
+    provider = settings.EMBEDDING_LLM_PROVIDER
     if provider in {"dashscope", "openai"}:
         return OpenAIEmbeddings(
             model=settings.EMBEDDING_MODEL,

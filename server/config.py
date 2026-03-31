@@ -37,8 +37,9 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
 
     # ── 各用途模型 ──────────────────────────────────────────────────────────
-    # ── 统一模型配置 ────────────────────────────────────────────────────────────
+    DEFAULT_LLM_PROVIDER: str = "anthropic"  # LLM 调用 provider
     DEFAULT_MODEL: str = "MiniMax-2.7"  # 所有 LLM 调用统一使用此模型
+    EMBEDDING_LLM_PROVIDER: str = "ollama"  # Embedding provider
     EMBEDDING_MODEL: str = "nomic-embed-text"  # Ollama 部署的嵌入模型
     LLM_MAX_CONCURRENCY: int = 10  # 所有 LLM 节点共用并发上限
 
