@@ -55,7 +55,7 @@ def _get_provider_and_model_for_node(node_name: str) -> tuple[str, str]:
     node_model = getattr(settings, model_key, "") or ""
     fallback_model = getattr(settings, _TRANSFORM_FALLBACK_MODEL_KEY, "") or ""
 
-    provider = resolve_provider_for_node(node_provider or None, settings.PARSER_LLM_PROVIDER or None)
+    provider = "anthropic"
     model = resolve_model_for_node(node_name, node_model, fallback_model)
     if not model:
         raise ValueError(f"node_name={node_name!r} 解析到的 model 为空")
