@@ -5,7 +5,7 @@
 """
 import asyncio
 import numpy as np
-from app.core.kb.embeddings import embed_batch
+from kb.embeddings import embed_batch
 
 
 def cosine_similarity(a: list[float], b: list[float]) -> float:
