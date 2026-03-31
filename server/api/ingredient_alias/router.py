@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.ingredient_alias.models import (
@@ -20,7 +21,7 @@ def get_service(session: AsyncSession = Depends(get_async_session)) -> Ingredien
     return IngredientAliasService(session)
 
 
-@router.post("", response_model=AliasResponse, tags=["Ingredient Alias"])
+@router.post("", response_model=AliasResponse, status_code=201, tags=["Ingredient Alias"])
 async def create_alias(
     req: AliasCreateRequest,
     svc: IngredientAliasService = Depends(get_service),
@@ -32,10 +33,10 @@ async def create_alias(
             alias=req.alias,
             alias_type=req.alias_type,
         )
-    except Exception as e:
-        if "unique" in str(e).lower() or "duplicate" in str(e).lower():
-            raise HTTPException(status_code=409, detail="Alias already exists")
-        raise HTTPException(status_code=400, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Alias already exists")
 
 
 @router.get("/{alias_id}", response_model=AliasResponse, tags=["Ingredient Alias"])
@@ -56,8 +57,8 @@ async def list_aliases(
     svc: IngredientAliasService = Depends(get_service),
 ):
     """列出别名，可按配料 ID 筛选."""
-    aliases = await svc.list_aliases(ingredient_id=ingredient_id)
-    return AliasListResponse(items=aliases, total=len(aliases))
+    items, total = await svc.list_aliases(ingredient_id=ingredient_id)
+    return AliasListResponse(items=items, total=total)
 
 
 @router.delete("/{alias_id}", tags=["Ingredient Alias"])
