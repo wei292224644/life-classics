@@ -119,8 +119,8 @@ class ChatService:
         response = await asyncio.to_thread(
             llm_chat,
             messages=messages,
-            provider_name=settings.CHAT_PROVIDER,
-            model=settings.CHAT_MODEL,
+            provider_name="anthropic",
+            model=settings.DEFAULT_MODEL,
             provider_config={"temperature": settings.CHAT_TEMPERATURE},
         )
         return response, sources
@@ -162,8 +162,8 @@ class ChatService:
             full_response = ""
             async for chunk in chat_stream(
                 messages=messages,
-                provider_name=settings.CHAT_PROVIDER,
-                model=settings.CHAT_MODEL,
+                provider_name="anthropic",
+                model=settings.DEFAULT_MODEL,
                 provider_config={"temperature": settings.CHAT_TEMPERATURE},
             ):
                 if chunk:

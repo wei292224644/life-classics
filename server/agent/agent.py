@@ -37,7 +37,7 @@ def create_agent() -> Agent:
     Skills：从 agent/skills/ 目录按 Agno LocalSkills 格式加载。
     """
     model = OpenAILike(
-        id=settings.CHAT_MODEL,
+        id=settings.DEFAULT_MODEL,
         base_url=settings.CHAT_BASE_URL or None,
         api_key=settings.CHAT_API_KEY,
         temperature=settings.CHAT_TEMPERATURE,
