@@ -54,10 +54,12 @@ class ProductAnalysisState(TypedDict):
 ### 输入数据结构
 
 ```python
+IngredientRiskLevel = Literal["t0", "t1", "t2", "t3", "t4", "unknown"]
+
 class IngredientInput(TypedDict):
     name:        str       # 成分规范名称
     category:    str       # function_type 拼接，如 "增稠剂 · 高升糖指数"
-    level:       RiskLevel # 来自 IngredientAnalysis
+    level:       IngredientRiskLevel # 来自 IngredientAnalysis；未匹配成分允许 unknown
     safety_info: str       # 来自 IngredientAnalysis，喂给 LLM 的安全摘要
 ```
 
@@ -139,6 +141,12 @@ class VerdictOutput(BaseModel):
 - `level` 是对所有前序推理的最终综合，不单独看某一成分
 - `description` 是对这个产品的特有描述，不能是通用模板
 - `references` 仅引用真实存在的食品安全标准，不编造
+- `references` 输出必须来自受控来源（标准号白名单或检索返回），不允许模型自由杜撰编号
+
+**Node D 后处理（可信来源约束）：**
+- 对 `references` 做服务端校验与归一化（如全角半角、空白、大小写）
+- 仅保留命中受控集合的条目（如 `GB 2760`、`GB 7718`、`GB 28050` 等，版本号可选）
+- 未命中条目直接丢弃并打日志；若全部被过滤，返回空数组 `[]`（前端可按“无可核验引用”样式降级展示）
 
 ---
 
@@ -170,11 +178,18 @@ async def run_product_analysis(
     state = ProductAnalysisState(ingredients=ingredients, ...)
     result = await graph.ainvoke(state)
     analysis = assemble_product_analysis(result, food_id)
-    await upsert_product_analysis(analysis)
+    await insert_product_analysis_if_absent(analysis)
     return analysis
 ```
 
-`assemble_product_analysis` 负责将 State 中的各字段组装为 `ProductAnalysis` 结构，写入 `product_analyses` 表。
+`assemble_product_analysis` 负责将 State 中的各字段组装为 `ProductAnalysis` 结构。  
+`insert_product_analysis_if_absent` 必须遵循「本版 INSERT-only」语义：仅在 `food_id` 无记录时写入；若并发导致唯一键冲突，则回读已存在行并返回，不做 UPDATE/UPSERT。
+
+**并发去重（同一 `food_id` 首次分析）建议实现：**
+1. 先读 `product_analyses WHERE food_id = :food_id`；命中则直接返回 `db_cache`
+2. 未命中时执行 `INSERT`（依赖 `food_id UNIQUE`）
+3. 若触发唯一键冲突（另一并发请求已写入），捕获异常后立即回读并返回该行
+4. 全流程禁止 UPDATE 该行（与本版缓存语义保持一致）
 
 ---
 

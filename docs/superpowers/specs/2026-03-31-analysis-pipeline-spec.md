@@ -46,7 +46,7 @@ GET /api/analysis/{task_id}/status
 {
   "task_id": "string",
   "status": "ocr" | "parsing" | "analyzing" | "done" | "failed",
-  "error": null | "ocr_failed" | "no_ingredients_found" | "analysis_failed",
+  "error": null | "ocr_failed" | "no_ingredients_found" | "invalid_food_id" | "analysis_failed",
   "result": null | <ProductAnalysis>
 }
 ```
@@ -95,12 +95,13 @@ GET /api/analysis/{task_id}/status
 1. **可选请求参数 `food_id`**  
    - `POST /api/analysis/start` 的 `multipart/form-data` 可增加可选字段 `food_id`（整数，与 `foods.id` 一致）。  
    - 若客户端已选品（列表进详情再拍配料表、或扫码后进入拍照页），**必须传入**，Component 4 **优先**按该 `food_id` 查 `product_analyses`，产品相似度匹配可作为校验或省略（实现选型在实现计划中写死）。  
-   - 若传入但 DB 中不存在该 `food_id` → `failed`，`error` 建议扩展为 `invalid_food_id`（或在实现阶段归入 `analysis_failed` 并在文档中统一）。
+   - 若传入但 DB 中不存在该 `food_id` → `failed`，`error` **固定为** `invalid_food_id`（对外可区分「参数无效」与「模型分析失败」）。
 
 2. **未传 `food_id` 时的默认策略**  
    - 在组件 2（或与解析同一次 LLM 调用）中，从 OCR 文本尝试抽取 **商品品名**（一行即可）。  
    - 在 `foods` 表上做 **模糊匹配**（规则或 embedding，实现待定）：**唯一候选且置信度 ≥ 阈值** → 采用该 `food_id`。  
-   - 否则：**创建占位 `food` 记录**（例如 `name` = 抽取名或「未命名产品」，来源标记为 `photo_import` 等），分配新 `food_id`，再进入后续匹配与 `product_analyses` 读写。避免阻塞用户得到结果；后续运营可合并重复占位产品。
+   - 否则：**创建占位 `food` 记录**，分配新 `food_id`，再进入后续匹配与 `product_analyses` 读写。为兼容当前模型约束（`foods.barcode` 为 `NOT NULL + UNIQUE`），MVP 约定系统生成不可冲突条码：`PHOTO-{task_id}`（或同等全局唯一格式）；`name` 可用抽取名或「未命名产品」，并在扩展字段标记来源 `photo_import`。避免阻塞用户得到结果；后续运营可合并重复占位产品。  
+   - 若后续做数据库迁移（如允许占位数据 `barcode` 可空并引入部分唯一索引），需同步修订本节约定。
 
 3. **后续迭代（非 MVP 必选）**  
    - 与 `/api/product` 条码联动：扫码得到产品后再 `POST /start` 带 `food_id`。  
@@ -146,8 +147,9 @@ Content-Type: application/json
 
 - `task_id`：若从分析结果页进入，建议带上，便于与留存图像、日志关联。  
 - `category`：枚举可扩展，以产品为准。  
+- **最小追溯字段**：服务端落库时补充 `reporter_user_id`（未登录可空）、`created_at`、`source_ip_hash`、`user_agent`，用于风控与运营回访。  
 - **禁止**：根据本条请求**回写** `product_analyses`、**修改** Redis 中已有任务状态、**自动触发**重新分析或降级模型；后续是否人工处理、是否建工单，由运营/数据流程单独决定。  
-- **实现形态**：写入**仅追加**表或异步队列即可；需限流与鉴权，防刷。
+- **实现形态**：写入**仅追加**表或异步队列即可；需限流与鉴权，防刷（建议按 `user_id/ip_hash` 设定分钟级与日级配额）。
 
 ### 2.9 未来迭代：分析结果反哺 FoodDetail（非本版范围）
 
@@ -242,7 +244,7 @@ Key: `analysis:{task_id}`，TTL：任务完成后 1 小时。
   }
   ```
 - **实现**：每个成分名向量化后在配料库做 Embedding 检索，相似度低于阈值则归入 `unmatched`
-- **降级**：`unmatched` 成分以 `level: "unknown"` 占位传入下一组件，不中断管道
+- **降级**：`unmatched` 成分以 `level: "unknown"` 占位传入下一组件，不中断管道。`unknown` 仅用于**成分级输入**，不作为产品最终 verdict 的目标等级。
 
 ### 4.4 组件 4：分析
 
@@ -263,6 +265,7 @@ Key: `analysis:{task_id}`，TTL：任务完成后 1 小时。
 |--------|---------|---------|
 | `ocr_failed` | PaddleOCR 无法处理图片 | "识别失败，请重新拍摄" |
 | `no_ingredients_found` | OCR 文字中找不到配料表 | "未找到配料表，请对准配料表拍摄" |
+| `invalid_food_id` | 请求携带的 `food_id` 在 DB 中不存在 | "商品信息无效，请重新选择商品后再试" |
 | `analysis_failed` | Agent 调用失败 | "分析失败，请稍后重试" |
 
 部分成分匹配不到（`unmatched`）不触发失败，正常返回结果，未知成分在结果页以 `level: "unknown"` 展示。

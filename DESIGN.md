@@ -249,11 +249,21 @@ Layer 3  bg-black/4  overlay   悬停/按压遮罩
 
 ### 2.2 章节标题（Section Header）
 
+所有内容章节标题必须带陶土红圆点前缀，与品牌色保持一致性：
+
 ```vue
-<text class="text-micro text-ink-3 uppercase tracking-[0.08em]">
-  配料解析
-</text>
+<!-- Tailwind 原子类实现 -->
+<view class="flex items-center gap-[7px] mb-3">
+  <view class="w-1.5 h-1.5 rounded-full bg-brand opacity-70 flex-shrink-0" />
+  <text class="text-micro text-ink-3 uppercase tracking-[0.08em]">配料解析</text>
+</view>
 ```
+
+**规则：**
+- 圆点尺寸：`w-1.5 h-1.5`（6px）
+- 圆点颜色：`bg-brand opacity-70`（陶土橙 70%）
+- 圆点与文字间距：`gap-[7px]`
+- 所有 Section Header（含"分析依据"等 footer 级标题）均适用
 
 ---
 
@@ -285,21 +295,107 @@ Layer 3  bg-black/4  overlay   悬停/按压遮罩
 
 **Verdict Zone（结果页顶部）：**
 
+结果页 Verdict Zone 分为两层：**Persistent Bar**（始终可见）和 **Hero**（滚动折叠）。
+
 ```vue
-<view class="px-[22px] pt-4 pb-9 bg-risk-t1-bg relative overflow-hidden">
-  <!-- 返回 -->
-  <text class="text-xl text-risk-t1-dot block mb-[14px]">←</text>
-  <!-- 食品名 -->
-  <text class="text-micro text-risk-t1-text opacity-70 block mb-[5px]">高纤GI饼干</text>
-  <!-- 大字判断 -->
-  <text class="text-display text-risk-t1-dot block mb-2">成分较优 ✓</text>
-  <!-- 描述 -->
-  <text class="text-sm text-risk-t1-text opacity-75 font-medium block mb-3">整体配料合规，少量添加剂需留意</text>
-  <!-- Badge -->
-  <view class="inline-flex items-center gap-1.5 bg-risk-t1-dot px-[13px] py-[5px] rounded-pill">
-    <text class="text-caption text-white">t1 · 较安全 · 24种成分</text>
+<!-- ── Persistent Bar：始终固定在顶部，背景随滚动从 risk-bg 渐变为 white ── -->
+<view id="vPersistent"
+  class="relative z-10 flex items-center gap-2 px-5 py-2.5 min-h-[44px] bg-risk-t1-bg
+         border-b border-transparent">
+  <!-- 返回按钮：颜色随滚动从 risk-dot → ink-2 渐变（JS 控制） -->
+  <button class="w-8 h-8 rounded-full flex items-center justify-center text-lg text-risk-t1-dot
+                 active:bg-black/[0.06]" aria-label="返回">←</button>
+  <!-- 紧凑信息条：hero 消失后淡入（JS opacity 控制） -->
+  <!-- max-width 留出微信胶囊区（≈95px 右侧禁区） -->
+  <view id="vCompact" class="flex items-center gap-2 overflow-hidden opacity-0"
+        style="max-width: calc(375px - 20px - 32px - 8px - 95px)">
+    <text class="text-sm font-semibold text-ink truncate">高纤 GI 饼干</text>
+    <view class="bg-risk-t1-dot rounded-pill px-2.5 py-0.5 flex-shrink-0">
+      <text class="text-[10px] font-bold text-white">成分较优 ✓</text>
+    </view>
   </view>
 </view>
+
+<!-- ── Hero Shell：高度由 JS 收缩（控制布局）；内容 translateY 上移（GPU 合成） ── -->
+<view id="vHeroShell" class="overflow-hidden">
+  <view id="vHero" class="px-[22px] pb-7 bg-risk-t1-bg relative overflow-hidden will-change-transform">
+
+    <!-- 大字水印（装饰深度，不参与语义） -->
+    <!-- CSS ::before: content:"✓"; absolute; right:-8px; bottom:-22px; font-size:168px;
+         font-weight:800; color:risk-t1-dot; opacity:0.07; pointer-events:none -->
+
+    <!-- 食品名 -->
+    <text class="text-micro text-risk-t1-text opacity-65 block mb-[14px]">高纤GI饼干（牛油果椰乳）</text>
+
+    <!-- 大字判断，陶土红短线在上方 -->
+    <!-- CSS ::before: display:block; width:24px; height:3px; bg:brand; border-radius:2px; mb-3 -->
+    <text class="text-display text-risk-t1-dot block mb-2.5 tracking-[-0.04em]">成分较优 ✓</text>
+
+    <!-- 描述 -->
+    <text class="text-sm text-risk-t1-text opacity-72 font-medium block mb-[22px]">整体配料合规，少量添加剂需留意</text>
+
+    <!-- Stats 数字条 -->
+    <view class="flex items-stretch mb-5">
+      <view class="flex flex-col pr-5">
+        <text class="text-[32px] font-extrabold text-risk-t1-dot leading-none tracking-[-0.04em]">24</text>
+        <text class="text-[10px] font-semibold text-risk-t1-text opacity-50 mt-1">种成分</text>
+      </view>
+      <view class="flex flex-col px-5 border-l border-risk-t1-dot/20">
+        <text class="text-[32px] font-extrabold text-risk-t1-dot leading-none tracking-[-0.04em]">3</text>
+        <text class="text-[10px] font-semibold text-risk-t1-text opacity-50 mt-1">种需留意</text>
+      </view>
+      <view class="flex flex-col px-5 border-l border-risk-t1-dot/20">
+        <text class="text-[32px] font-extrabold text-risk-t1-dot leading-none tracking-[-0.04em]">GB</text>
+        <text class="text-[10px] font-semibold text-risk-t1-text opacity-50 mt-1">标准合规</text>
+      </view>
+    </view>
+
+    <!-- Badge：品牌陶土红（与 teal hero bg 形成暖色碰撞） -->
+    <!-- ⚠️ 禁止再显示内部代码如 "t1 ·"，只展示用户可读信息 -->
+    <view class="inline-flex items-center bg-brand px-[14px] py-1.5 rounded-pill">
+      <text class="text-caption text-white">较安全 · 24 种成分</text>
+    </view>
+  </view>
+</view><!-- /.vHeroShell -->
+```
+
+### 3.3 Verdict Zone 滚动折叠动画规范
+
+**技术方案：Hero Shell + translateY（性能优先）**
+
+```js
+// ❌ 禁止：margin-top 动画每帧触发 layout reflow
+// vHero.style.marginTop = `${-heroH * raw}px`;
+
+// ✅ 正确：Shell 控制高度（一次 layout），Hero translateY（GPU composited）
+vHeroShell.style.height = `${heroH * (1 - raw)}px`;   // 布局收缩
+vHero.style.transform  = `translateY(${-heroH * raw}px)`;  // 视觉上移
+
+// Persistent bar 背景插值：risk-bg → white
+vPersistent.style.background = lerpColor(T1_BG, WHITE, raw);
+
+// compact strip 在 50% 滚动后淡入
+vCompact.style.opacity = Math.max(0, (raw - 0.5) / 0.5).toFixed(3);
+
+// 100% 时加底边线 + 阴影
+if (raw > 0.9) vPersistent.classList.add("scrolled");
+```
+
+**动画参数：**
+- `SCROLL_DIST = 120px`（完成折叠所需滚动量）
+- Hero opacity：`max(0, 1 - raw * 1.5)`（内容比高度更快消失）
+- Compact strip：从 50% 开始 → 100% 时全显
+
+### 3.4 微信小程序安全区域
+
+```
+右上角禁区（微信胶囊按钮）：≈ right: 0, top: 8px 的 88×32px 区域
+─────────────────────────────────────
+任何可交互 UI 元素禁止放在此区域内
+Compact strip 的 max-width 必须预留 ≈95px 右侧空间：
+  max-width: calc(375px - px-5 - back-btn-w - gap - 95px)
+  ≈ calc(375px - 20px - 32px - 8px - 95px) = 220px
+─────────────────────────────────────
 ```
 
 **Sheet（底部抽屉）：**
@@ -459,6 +555,38 @@ Layer 3  bg-black/4  overlay   悬停/按压遮罩
 | 列表项按压     | `active:bg-black/[0.04]`                                 |
 | 扫描线         | `animate-scan`（见 keyframes）                           |
 | AI 加载三点    | `animate-dot-bounce` + `[animation-delay:150ms]` stagger |
+| 结果页进场     | `animate-fadeUp` 错开延迟（见下方）                      |
+
+### 7.1 结果页 Hero 进场动画
+
+结果出现时，Hero 内各元素依次错开淡入上移，传递"结论到来"的仪式感：
+
+```css
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* 时间函数：ease-out-expo（cubic-bezier(0.22,1,0.36,1)），不可使用弹跳/弹性 */
+```
+
+| 元素        | 延迟   |
+| ----------- | ------ |
+| 食品名      | 50ms   |
+| 大字判断    | 120ms  |
+| 描述文字    | 180ms  |
+| Stats 数字  | 220ms  |
+| Badge       | 280ms  |
+
+**重要：** 首次滚动时必须立即取消 CSS animation，改为 JS inline style 控制，避免 `opacity` 竞争：
+
+```js
+// 首次滚动时执行一次
+heroChildren.forEach(el => {
+  el.style.animation = "none";
+  el.style.opacity   = "1";
+  el.style.transform = "none";
+});
+```
 
 ---
 
@@ -478,7 +606,74 @@ Layer 3  bg-black/4  overlay   悬停/按压遮罩
 </view>
 ```
 
-### 8.2 空状态（首页无记录）
+### 8.2 建议框变体（Advice Block）
+
+建议框使用左边框变体，比纯色背景块更有观点感：
+
+```vue
+<!-- 结果页「参考建议」：左侧 risk-dot 色边框 + raised 背景 -->
+<view class="bg-raised border-l-[3px] border-risk-t1-dot
+             rounded-r-md px-[14px] pl-4 py-[14px]">
+  <text class="text-sm text-ink-2 leading-[1.75]">
+    含膳食纤维，整体成分结构合理…
+  </text>
+</view>
+```
+
+**规则：**
+- 左边框颜色跟随当前产品的风险等级 `border-risk-tX-dot`
+- 圆角只保留右侧：`rounded-r-md`（18px），左侧为直角（边框切入感）
+- 背景用 `bg-raised`（Layer 2），不用 `bg-surface`
+
+### 8.3 前后对比组件（Before/After）
+
+"更优替代方案"两栏必须有列头标签，用户需要明确知道哪侧是当前、哪侧是推荐：
+
+```vue
+<view class="flex items-center gap-2">
+  <!-- 当前成分（caution 色调） -->
+  <view class="flex-1 bg-risk-t2-bg rounded-md pt-[10px] pb-3 px-[13px]">
+    <text class="text-[9px] font-bold tracking-[0.07em] uppercase text-risk-t2-text opacity-50 block mb-1.5">
+      当前成分
+    </text>
+    <text class="text-sm font-medium text-risk-t2-text block py-0.5">麦芽糊精</text>
+    <!-- ... -->
+  </view>
+
+  <!-- 箭头 -->
+  <text class="text-[22px] text-brand font-bold flex-shrink-0">›</text>
+
+  <!-- 更优选择（safe 色调） -->
+  <view class="flex-1 bg-risk-t0-bg rounded-md pt-[10px] pb-3 px-[13px]">
+    <text class="text-[9px] font-bold tracking-[0.07em] uppercase text-risk-t0-text opacity-50 block mb-1.5">
+      更优选择
+    </text>
+    <text class="text-sm font-medium text-risk-t0-text block py-0.5">燕麦膳食纤维</text>
+    <!-- ... -->
+  </view>
+</view>
+```
+
+### 8.4 横向滚动行渐变提示
+
+所有横向滚动容器右侧需要渐变遮罩，暗示更多内容：
+
+```vue
+<!-- 包裹层：relative + overflow-hidden -->
+<view class="relative">
+  <scroll-view scroll-x class="flex gap-2 pb-0.5 whitespace-nowrap overflow-x-auto">
+    <!-- pills / cards -->
+  </scroll-view>
+  <!-- 右侧渐变提示 -->
+  <view class="absolute right-0 top-0 bottom-0 w-10
+               pointer-events-none
+               bg-gradient-to-l from-white to-transparent" />
+</view>
+```
+
+**适用场景：** suggest-row（快捷问题）、demo-scroll（人群卡片）等横向滚动行
+
+### 8.5 空状态（首页无记录）
 
 ```vue
 <view class="flex flex-col items-center justify-center gap-3 px-10 py-20">
@@ -494,7 +689,7 @@ Layer 3  bg-black/4  overlay   悬停/按压遮罩
 </view>
 ```
 
-### 8.3 错误状态（内联，非 Toast）
+### 8.6 错误状态（内联，非 Toast）
 
 ```vue
 <view class="mx-5 bg-risk-t3-bg rounded-md px-4 py-3 flex items-center gap-3">
@@ -507,7 +702,7 @@ Layer 3  bg-black/4  overlay   悬停/按压遮罩
 </view>
 ```
 
-### 8.4 AI 加载中（三点动画）
+### 8.7 AI 加载中（三点动画）
 
 ```vue
 <view class="self-start bg-surface shadow-md rounded-[18px_18px_18px_4px] px-4 py-3">
@@ -721,3 +916,12 @@ Layer 3  bg-black/4  overlay   悬停/按压遮罩
 | 2026-03-30 | 对话入口固定在结果页底部      | 不打断阅读，自然引导           |
 | 2026-03-30 | 分析页用深色背景              | 与白色页形成对比，增加仪式感   |
 | 2026-03-30 | 规范切换为 Tailwind v3 原子类 | 防止随意内联样式，统一设计语言 |
+| 2026-03-31 | Verdict Zone 改为 Hero Shell + translateY 动画 | margin-top 动画每帧触发 reflow，低端安卓掉帧；shell 高度收缩 + translateY 保证 GPU 合成 |
+| 2026-03-31 | Badge 去除内部代码 "t1 ·" | 用户不懂风险等级编码，只展示可读中文 |
+| 2026-03-31 | Persistent bar 初始背景 = risk-bg，滚动后变白 | 初始白色条压在彩色 Hero 上产生割裂感；同色融合再渐变更自然 |
+| 2026-03-31 | Stats 数字从 20px 提升至 32px | 结果页强调数字语言，小数字与大字判断差距不够，无法产生戏剧感 |
+| 2026-03-31 | Badge 颜色改为 brand 陶土红（替代 tX-dot） | teal hero 背景上用同色 badge 无对比；陶土红作为暖色碰撞引入品牌感 |
+| 2026-03-31 | 章节标题加陶土红圆点前缀 | 单纯小字标题在白色背景上缺乏节奏；红点将品牌色延伸到正文区 |
+| 2026-03-31 | 建议框左边框变体（border-left） | 纯色背景框缺乏观点感；左边框赋予"引用/观点"语义 |
+| 2026-03-31 | 前后对比组件加列头标签（当前成分/更优选择） | 无标签时用户无法快速判断哪侧是当前产品 |
+| 2026-03-31 | 横向滚动行右侧渐变遮罩 | 无提示时用户不知道有更多内容可滑动 |

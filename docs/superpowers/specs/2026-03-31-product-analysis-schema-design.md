@@ -45,6 +45,7 @@ OCR 文本
 
 ```typescript
 type RiskLevel = "t0" | "t1" | "t2" | "t3" | "t4";
+type IngredientRiskLevel = RiskLevel | "unknown";
 
 type DemographicsGroup = "普通成人" | "婴幼儿" | "孕妇" | "中老年" | "运动人群";
 
@@ -61,7 +62,7 @@ interface ProductAnalysis {
     ingredient_id: number;  // 配料库主键
     name:          string;  // 规范名称，如 "燕麦粉"
     category:      string;  // 由 Ingredient.function_type 拼接，如 "增稠剂 · 高升糖指数"
-    level:         RiskLevel;
+    level:         IngredientRiskLevel; // 未匹配成分允许 unknown
   }>;
 
   // ② 总体判断 — Agent 生成，落盘
@@ -189,11 +190,14 @@ class IngredientAnalysis(Base):
 
     # ── 替代方案（JSONB）────────────────────────────────────────────────
     # [{better_ingredient_id: int, reason: str}]
-    alternatives:    Mapped[dict]      # JSONB
+    alternatives:    Mapped[list[dict[str, Any]]]  # JSONB
 
     # ── 时间戳 ───────────────────────────────────────────────────────────
     created_at:      Mapped[datetime]
-    created_by_user: Mapped[UUID]
+    created_by_user: Mapped[str]       # UUID 字符串（与现有模型约定一致）
+    last_updated_at: Mapped[datetime]
+    last_updated_by_user: Mapped[str | None]
+    deleted_at: Mapped[datetime | None]
 ```
 
 ### 6.2 `ProductAnalysis` 表
@@ -220,15 +224,23 @@ class ProductAnalysis(Base):
 
     # ── 结构化数组（JSONB）──────────────────────────────────────────────
     # [{group, level, note}]  ← 无 verdict，前端推导
-    demographics:    Mapped[dict]      # JSONB
+    demographics:    Mapped[list[dict[str, Any]]]  # JSONB
 
     # [{title, text}]
-    scenarios:       Mapped[dict]      # JSONB
+    scenarios:       Mapped[list[dict[str, Any]]]  # JSONB
 
     # ── 时间戳 ───────────────────────────────────────────────────────────
     created_at:      Mapped[datetime]
-    created_by_user: Mapped[UUID]
+    created_by_user: Mapped[str]       # UUID 字符串（与现有模型约定一致）
+    last_updated_at: Mapped[datetime]
+    last_updated_by_user: Mapped[str | None]
+    deleted_at: Mapped[datetime | None]
 ```
+
+审计字段约定（系统写入）：
+- 非用户触发的自动分析写库，`created_by_user` 使用配置项 `SYSTEM_USER_ID`（固定 UUID 字符串）
+- 本版不做 UPDATE，`last_updated_*` 初始可与 `created_*` 一致；后续若引入重算写回再启用更新审计
+- 所有读取默认过滤 `deleted_at IS NULL`
 
 ### 6.3 缓存命中与写库逻辑（本版）
 
@@ -237,6 +249,12 @@ class ProductAnalysis(Base):
   ├─ 无记录 → Agent 生成后 INSERT（source: "agent_generated"）
   └─ 有记录 → 直接返回该记录（source: "db_cache"），跳过 Agent；本版不 UPDATE / UPSERT
 ```
+
+并发场景（同一 `food_id` 首次分析）按以下规则处理：
+- 依赖 `food_id UNIQUE` 做最终去重
+- 两个请求同时未命中时，仅一个请求成功 INSERT
+- 失败方捕获唯一键冲突后回读该 `food_id` 并返回 `db_cache`
+- 不引入 UPDATE 修正路径，保持本版「首写即缓存」语义
 
 **后续版本（非本版）**：可恢复或调整「过期阈值 N 天、返回旧数据 + 后台重跑、按条件决定是否写回」等策略；届时以产品决策为准，并同步修订本节与 Pipeline §4.4。
 
@@ -269,3 +287,4 @@ class ProductAnalysis(Base):
 | `IngredientAnalysis` 生成时机 | 后台录入 `Ingredient` 时触发 | 与产品分析流程解耦；成分先于产品存在，保证管道有数据可读 |
 | `alternatives` 展示范围 | 仅 level ≥ t2 的成分 | t0/t1 成分无需替代，展示替代方案无实际意义 |
 | 快捷问题 pills | 独立接口 | 来源是用户行为数据，与分析结果生命周期不同 |
+| `references` 可信来源 | 服务端白名单/检索结果过滤后返回 | 避免 LLM 幻觉标准号进入结果页 |
