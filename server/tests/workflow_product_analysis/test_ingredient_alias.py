@@ -93,3 +93,54 @@ class TestIngredientAliasRepository:
         assert new_alias.alias == "焦糖色素"
         assert new_alias.ingredient_id == ingredient.id
         mock_session.add.assert_called_once()
+
+    async def test_find_by_normalized_alias(self, mock_session):
+        """标准化后别名匹配."""
+        ingredient = Ingredient(name="碳酸氢钠", alias=[], is_additive=True)
+        mock_session.add = MagicMock()
+        mock_session.flush = AsyncMock()
+        mock_session.commit = AsyncMock()
+
+        # Mock execute to return the ingredient alias
+        mock_result = MagicMock()
+        mock_alias = MagicMock()
+        mock_alias.ingredient_id = ingredient.id
+        mock_alias.alias = "小苏打"  # 原始别名
+        mock_result.scalars.return_value.all.return_value = [mock_alias]
+        mock_session.execute = AsyncMock(return_value=mock_result)
+
+        repo = IngredientAliasRepository(mock_session)
+        # 用标准化名称查询（去除括号）
+        result = await repo.find_by_normalized_alias("小苏打")
+        assert result is not None
+        assert result.ingredient_id == ingredient.id
+
+    async def test_delete_alias(self, mock_session):
+        """删除别名."""
+        ingredient = Ingredient(name="蔗糖", alias=[], is_additive=False)
+        mock_session.add = MagicMock()
+        mock_session.flush = AsyncMock()
+        mock_session.commit = AsyncMock()
+
+        # Mock the ingredient with an ID
+        mock_alias = MagicMock()
+        mock_alias.id = 1
+        mock_alias.ingredient_id = ingredient.id
+        mock_alias.alias = "白砂糖"
+        mock_alias.alias_type = "chinese"
+
+        # Mock execute for delete and subsequent find
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = mock_alias
+        mock_session.execute = AsyncMock(return_value=mock_result)
+        mock_session.get = MagicMock(return_value=mock_alias)
+
+        repo = IngredientAliasRepository(mock_session)
+        deleted = await repo.delete(1)
+        await mock_session.commit()
+
+        assert deleted is True
+        # 验证删除后查询不到
+        mock_result.scalar_one_or_none.return_value = None
+        result = await repo.find_by_alias("白砂糖")
+        assert result is None
