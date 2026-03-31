@@ -7,7 +7,7 @@ async def test_embed_batch_returns_vectors():
     mock_model = MagicMock()
     mock_model.aembed_documents = AsyncMock(return_value=[[0.1, 0.2], [0.3, 0.4]])
 
-    with patch("app.core.kb.embeddings._create_embedding_model", return_value=mock_model):
+    with patch("kb.embeddings._create_embedding_model", return_value=mock_model):
         from kb.embeddings import embed_batch
         result = await embed_batch(["文本一", "文本二"])
 
@@ -18,8 +18,8 @@ async def test_embed_batch_returns_vectors():
 
 def test_create_embedding_model_uses_ollama():
     """Embedding 模型固定使用 Ollama provider"""
-    with patch("app.core.kb.embeddings.settings") as mock_settings, \
-         patch("app.core.kb.embeddings.OpenAIEmbeddings") as mock_cls:
+    with patch("kb.embeddings.settings") as mock_settings, \
+         patch("kb.embeddings.OllamaEmbeddings") as mock_cls:
         mock_settings.EMBEDDING_MODEL = "nomic-embed-text"
         mock_settings.OLLAMA_BASE_URL = "http://localhost:11434"
 
@@ -28,7 +28,5 @@ def test_create_embedding_model_uses_ollama():
 
         mock_cls.assert_called_once_with(
             model="nomic-embed-text",
-            api_key="ollama",
-            base_url="http://localhost:11434/v1",
-            tiktoken_enabled=False,
+            base_url="http://localhost:11434",
         )
