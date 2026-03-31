@@ -7,12 +7,14 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, TYPE_CHECKING
 
+import sqlalchemy as sa
 from sqlalchemy import (
     ARRAY,
     BigInteger,
     Boolean,
     DateTime,
     Enum as SAEnum,
+    Float,
     ForeignKey,
     Integer,
     Numeric,
@@ -456,3 +458,94 @@ class IarcAgentLink(Base):
         IarcAgent, foreign_keys=[from_agent_id]
     )
     to_agent: Mapped[IarcAgent] = relationship(IarcAgent, foreign_keys=[to_agent_id])
+
+
+# ── 配料分析表 ─────────────────────────────────────────────────────────────
+
+
+class IngredientAnalysis(Base):
+    __tablename__ = "ingredient_analyses"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    ingredient_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("ingredients.id"), nullable=False
+    )
+    ai_model: Mapped[str] = mapped_column(String(255), nullable=False)
+    version: Mapped[str] = mapped_column(String(50), nullable=False)
+    level: Mapped[str] = mapped_column(level_enum, nullable=False, default="unknown")
+    safety_info: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    alternatives: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    confidence_score: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0.0
+    )
+    evidence_refs: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    decision_trace: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+    )
+    created_by_user: Mapped[str] = mapped_column(Uuid, nullable=False)
+    last_updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+    last_updated_by_user: Mapped[str | None] = mapped_column(Uuid, nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+
+# ── 产品分析表 ─────────────────────────────────────────────────────────────
+
+
+class ProductAnalysis(Base):
+    __tablename__ = "product_analyses"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    food_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("foods.id"), nullable=False, unique=True
+    )
+    ai_model: Mapped[str] = mapped_column(String(255), nullable=False)
+    version: Mapped[str] = mapped_column(String(50), nullable=False)
+    level: Mapped[str] = mapped_column(level_enum, nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    advice: Mapped[str] = mapped_column(Text, nullable=False)
+    demographics: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    scenarios: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    references: Mapped[list] = mapped_column(
+        ARRAY(Text), nullable=False, default=list
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+    )
+    created_by_user: Mapped[str] = mapped_column(Uuid, nullable=False)
+    last_updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+    last_updated_by_user: Mapped[str | None] = mapped_column(Uuid, nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+
+class AnalysisFeedback(Base):
+    """用户对分析结果的反馈记录。"""
+    __tablename__ = "analysis_feedback"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    task_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    food_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("foods.id"), nullable=False)
+    category: Mapped[str] = mapped_column(String(50), nullable=False)
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    client_context: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    reporter_user_id: Mapped[str | None] = mapped_column(Uuid, nullable=True)
+    source_ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=sa.text("now()")
+    )

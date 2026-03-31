@@ -115,5 +115,42 @@ class Settings(BaseSettings):
     OTEL_SERVICE_NAME: str = "life-classics-server"
     LOG_LEVEL: str = "INFO"
 
+    # ── Redis ──────────────────────────────────────────────────────────────────
+    REDIS_URL: str = "redis://localhost:6379/0"
+    ANALYSIS_TASK_TTL_SECONDS: int = 3600  # 终态后任务记录保留时长
+
+    # ── OCR 服务 ────────────────────────────────────────────────────────────────
+    OCR_SERVICE_URL: str = "http://localhost:8100"  # PaddleOCR-VL-1.5 内部地址
+    OCR_TIMEOUT_SECONDS: int = 30
+
+    # ── Embedding 成分匹配 ──────────────────────────────────────────────────────
+    INGREDIENT_MATCH_THRESHOLD: float = 0.85  # 低于此相似度归入 unmatched
+
+    # ── 产品分析 Agent 模型选择 ─────────────────────────────────────────────────
+    # provider 仅支持 "anthropic"，model 需为 Anthropic 支持的模型
+    ANALYSIS_LLM_PROVIDER: str = "anthropic"
+    ANALYSIS_DEMOGRAPHICS_MODEL: str = "claude-sonnet-4-20250514"
+    ANALYSIS_SCENARIOS_MODEL: str = "claude-sonnet-4-20250514"
+    ANALYSIS_ADVICE_MODEL: str = "claude-sonnet-4-20250514"
+    ANALYSIS_VERDICT_MODEL: str = "claude-opus-4-20250514"
+
+    # ── 成分解析 LLM（仅支持 "anthropic" provider + Anthropic 模型）──────────────
+    PARSE_LLM_PROVIDER: str = "anthropic"
+    PARSE_MODEL: str = "claude-sonnet-4-20250514"
+
+    # ── references 白名单（逗号分隔）────────────────────────────────────────────
+    ANALYSIS_REFERENCES_ALLOWLIST: str = "GB 2760,GB 7718,GB 28050,GB 14880,GB 2762,GB 31650"
+
+    # ── 系统写库用户 ID ─────────────────────────────────────────────────────────
+    SYSTEM_USER_ID: str = "00000000-0000-0000-0000-000000000001"
+
+    # ── 离线 IngredientAnalysis workflow 模型（Task 17 暂缓，先占位）──────────
+    # 离线 IngredientAnalysis workflow（Task 17 暂缓，先占位）
+    INGREDIENT_ANALYSIS_MODEL: str = "claude-opus-4-20250514"
+    INGREDIENT_ANALYSIS_VERSION: str = "v1"
+
+    # ── food_id 模糊匹配置信度阈值 ──────────────────────────────────────────────
+    FOOD_NAME_MATCH_THRESHOLD: float = 0.80
+
 
 settings = Settings()
