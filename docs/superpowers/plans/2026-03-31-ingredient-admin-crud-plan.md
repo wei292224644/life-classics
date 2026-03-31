@@ -228,7 +228,7 @@ cd server && uv run pytest tests/db_repositories/test_ingredient_admin.py -v
 
 ```python
 from dataclasses import dataclass
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import Ingredient
 
@@ -390,7 +390,7 @@ git commit -m "feat: add IngredientAdminRepository with upsert and soft delete"
 
 ```python
 from datetime import datetime
-from api.admin.models import IngredientCreate, IngredientUpdate, IngredientPatch
+from api.ingredients.models import IngredientCreate, IngredientUpdate, IngredientPatch
 from api.product.models import IngredientResponse, RelatedProductSimple, AnalysisResponse
 from db_repositories.ingredient_admin import IngredientAdminRepository
 from enums import RiskLevel
@@ -485,7 +485,7 @@ git commit -m "feat: add IngredientAdminService"
 ## Task 4: 创建 `api/ingredients/ingredient.py` 路由
 
 **文件：**
-- Create: `server/api/ingredients/ingredient.py`
+- Create: `server/api/ingredients/router.py`
 - Modify: `server/api/__init__.py`（注册路由）
 - Test: `server/tests/api/test_admin_ingredient.py`
 
@@ -502,7 +502,7 @@ async def test_create_ingredient():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
-            "/api/ingredients/ingredients",
+            "/api/ingredients",
             json={"name": "测试配料", "description": "测试用"},
         )
     assert response.status_code in (201, 200)
@@ -514,12 +514,12 @@ async def test_get_ingredient_by_id():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # 先创建
         create_resp = await client.post(
-            "/api/ingredients/ingredients",
+            "/api/ingredients",
             json={"name": "获取测试配料"},
         )
         ingredient_id = create_resp.json()["id"]
         # 再获取
-        response = await client.get(f"/api/ingredients/ingredients/{ingredient_id}")
+        response = await client.get(f"/api/ingredients/{ingredient_id}")
         assert response.status_code == 200
         assert response.json()["name"] == "获取测试配料"
 
@@ -528,7 +528,7 @@ async def test_get_ingredient_by_id():
 async def test_get_ingredient_not_found():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.get("/api/ingredients/ingredients/999999")
+        response = await client.get("/api/ingredients/999999")
         assert response.status_code == 404
 ```
 
@@ -545,13 +545,13 @@ cd server && uv run pytest tests/api/test_admin_ingredient.py -v
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
 
-from api.admin.models import IngredientCreate, IngredientUpdate, IngredientPatch, IngredientsListResponse
+from api.ingredients.models import IngredientCreate, IngredientUpdate, IngredientPatch, IngredientsListResponse
 from api.product.models import IngredientResponse
 from db_repositories.ingredient_admin import IngredientAdminRepository
 from services.ingredient_admin import IngredientAdminService
 
 
-router = APIRouter(prefix="/admin/ingredients", tags=["Admin Ingredient"])
+router = APIRouter(tags=["Ingredient"])
 
 
 def get_repo(session=get_async_session):
@@ -720,24 +720,24 @@ async def test_full_crud_flow():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # Create
         create_resp = await client.post(
-            "/api/ingredients/ingredients",
+            "/api/ingredients",
             json={"name": "完整测试配料", "description": "初始"},
         )
         assert create_resp.status_code == 201
         ingredient_id = create_resp.json()["id"]
 
         # List
-        list_resp = await client.get("/api/ingredients/ingredients")
+        list_resp = await client.get("/api/ingredients")
         assert list_resp.status_code == 200
         assert list_resp.json()["total"] >= 1
 
         # Get
-        get_resp = await client.get(f"/api/ingredients/ingredients/{ingredient_id}")
+        get_resp = await client.get(f"/api/ingredients/{ingredient_id}")
         assert get_resp.status_code == 200
 
         # Patch
         patch_resp = await client.patch(
-            f"/api/ingredients/ingredients/{ingredient_id}",
+            f"/api/ingredients/{ingredient_id}",
             json={"description": "更新后"},
         )
         assert patch_resp.status_code == 200
@@ -745,17 +745,17 @@ async def test_full_crud_flow():
 
         # Put
         put_resp = await client.put(
-            f"/api/ingredients/ingredients/{ingredient_id}",
+            f"/api/ingredients/{ingredient_id}",
             json={"name": "完整测试配料", "description": "全量更新后"},
         )
         assert put_resp.status_code == 200
 
         # Delete
-        del_resp = await client.delete(f"/api/ingredients/ingredients/{ingredient_id}")
+        del_resp = await client.delete(f"/api/ingredients/{ingredient_id}")
         assert del_resp.status_code == 204
 
         # Verify deleted
-        get_after_del = await client.get(f"/api/ingredients/ingredients/{ingredient_id}")
+        get_after_del = await client.get(f"/api/ingredients/{ingredient_id}")
         assert get_after_del.status_code == 404
 ```
 
