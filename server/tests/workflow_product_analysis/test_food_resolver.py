@@ -53,6 +53,7 @@ class TestResolveFoodId:
     async def test_no_explicit_food_id_no_product_name_creates_placeholder(self):
         """无 explicit_food_id 且无 product_name → 创建占位 Food。"""
         mock_session = AsyncMock()
+        mock_session.add = MagicMock()  # SQLAlchemy add() is sync
         # explicit_food_id is None → first execute returns None
         mock_result_none = MagicMock()
         mock_result_none.scalar_one_or_none.return_value = None

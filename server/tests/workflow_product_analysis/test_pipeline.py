@@ -236,3 +236,78 @@ class TestRunAnalysisPipeline:
                                         assert done_result["source"] == "db_cache"
                                         # Agent should NOT have been called
                                         mock_parse.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_agent_failure_sets_analysis_failed(
+        self, mock_redis, mock_session, mock_settings
+    ):
+        """Agent 抛出 ProductAgentError → error='analysis_failed'。"""
+        from workflow_product_analysis.product_agent.graph import ProductAgentError
+
+        with patch(
+            "workflow_product_analysis.pipeline._upload_image_to_storage",
+            new_callable=AsyncMock,
+        ):
+            with patch(
+                "workflow_product_analysis.pipeline.run_ocr",
+                new_callable=AsyncMock,
+            ) as mock_ocr:
+                mock_ocr.return_value = "配料：糖"
+
+                with patch(
+                    "workflow_product_analysis.pipeline.update_task_status",
+                    new_callable=AsyncMock,
+                ):
+                    with patch(
+                        "workflow_product_analysis.pipeline.parse_ingredients",
+                        new_callable=AsyncMock,
+                    ) as mock_parse:
+                        mock_parse.return_value = MagicMock(
+                            ingredients=["糖"], product_name=None
+                        )
+
+                        with patch(
+                            "workflow_product_analysis.pipeline.resolve_food_id",
+                            new_callable=AsyncMock,
+                        ) as mock_resolve:
+                            mock_resolve.return_value = 5
+
+                            with patch(
+                                "workflow_product_analysis.pipeline.match_ingredients",
+                                new_callable=AsyncMock,
+                            ) as mock_match:
+                                mock_match.return_value = MagicMock(
+                                    matched=[MagicMock(ingredient_id=1, name="糖", level="t2")],
+                                    unmatched=[],
+                                )
+
+                                with patch(
+                                    "workflow_product_analysis.pipeline.get_by_food_id",
+                                    new_callable=AsyncMock,
+                                ) as mock_get:
+                                    mock_get.return_value = None  # 跳过 DB 缓存
+
+                                    with patch(
+                                        "workflow_product_analysis.pipeline.run_product_analysis_agent",
+                                        new_callable=AsyncMock,
+                                    ) as mock_agent:
+                                        mock_agent.side_effect = ProductAgentError(
+                                            "LLM error"
+                                        )
+
+                                        with patch(
+                                            "workflow_product_analysis.pipeline.set_task_failed",
+                                            new_callable=AsyncMock,
+                                        ) as mock_fail:
+                                            await run_analysis_pipeline(
+                                                task_id="t6",
+                                                image_bytes=b"img",
+                                                explicit_food_id=None,
+                                                redis=mock_redis,
+                                                session=mock_session,
+                                                settings=mock_settings,
+                                            )
+
+                                        mock_fail.assert_called_once()
+                                        assert mock_fail.call_args[0][2] == "analysis_failed"
+

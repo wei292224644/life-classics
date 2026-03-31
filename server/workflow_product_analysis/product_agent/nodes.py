@@ -31,7 +31,7 @@ async def demographics_node(state: ProductAnalysisState, settings) -> dict:
     输出：{"demographics": list[DemographicItem]}（固定 5 条，顺序固定）
     """
     create = get_structured_client(
-        provider=settings.PARSER_LLM_PROVIDER,
+        provider=settings.ANALYSIS_LLM_PROVIDER,
         model=settings.ANALYSIS_DEMOGRAPHICS_MODEL,
     )
     summary = _build_ingredients_summary(state["ingredients"])
@@ -67,7 +67,7 @@ async def scenarios_node(state: ProductAnalysisState, settings) -> dict:
     输出：{"scenarios": list[ScenarioItem]}（1-3 条）
     """
     create = get_structured_client(
-        provider=settings.PARSER_LLM_PROVIDER,
+        provider=settings.ANALYSIS_LLM_PROVIDER,
         model=settings.ANALYSIS_SCENARIOS_MODEL,
     )
     summary = _build_ingredients_summary(state["ingredients"])
@@ -98,7 +98,7 @@ async def advice_node(state: ProductAnalysisState, settings) -> dict:
     输出：{"advice": str}（1-3 句）
     """
     create = get_structured_client(
-        provider=settings.PARSER_LLM_PROVIDER,
+        provider=settings.ANALYSIS_LLM_PROVIDER,
         model=settings.ANALYSIS_ADVICE_MODEL,
     )
     summary = _build_ingredients_summary(state["ingredients"])
@@ -138,7 +138,7 @@ async def verdict_node(state: ProductAnalysisState, settings) -> dict:
     后处理：对 references 做白名单过滤，仅保留 settings.ANALYSIS_REFERENCES_ALLOWLIST 中的标准。
     """
     create = get_structured_client(
-        provider=settings.PARSER_LLM_PROVIDER,
+        provider=settings.ANALYSIS_LLM_PROVIDER,
         model=settings.ANALYSIS_VERDICT_MODEL,
     )
     summary = _build_ingredients_summary(state["ingredients"])

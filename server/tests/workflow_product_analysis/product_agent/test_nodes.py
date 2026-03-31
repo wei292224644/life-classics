@@ -12,14 +12,12 @@ from workflow_product_analysis.product_agent.nodes import (
 
 
 class MockSettings:
-    PARSER_LLM_PROVIDER = "anthropic"
-    ANALYSIS_DEMOGRAPHICS_MODEL = "qwen-plus"
-    ANALYSIS_SCENARIOS_MODEL = "qwen-plus"
-    ANALYSIS_ADVICE_MODEL = "qwen-plus"
-    ANALYSIS_VERDICT_MODEL = "qwen-max"
+    ANALYSIS_LLM_PROVIDER = "anthropic"
+    ANALYSIS_DEMOGRAPHICS_MODEL = "claude-sonnet-4-20250514"
+    ANALYSIS_SCENARIOS_MODEL = "claude-sonnet-4-20250514"
+    ANALYSIS_ADVICE_MODEL = "claude-sonnet-4-20250514"
+    ANALYSIS_VERDICT_MODEL = "claude-opus-4-20250514"
     ANALYSIS_REFERENCES_ALLOWLIST = "GB 2760,GB 7718,GB 28050"
-    LLM_API_KEY = "test"
-    LLM_BASE_URL = "http://localhost"
 
 
 SAMPLE_INGREDIENTS = [

@@ -127,10 +127,16 @@ class Settings(BaseSettings):
     INGREDIENT_MATCH_THRESHOLD: float = 0.85  # 低于此相似度归入 unmatched
 
     # ── 产品分析 Agent 模型选择 ─────────────────────────────────────────────────
-    ANALYSIS_DEMOGRAPHICS_MODEL: str = "qwen-plus"
-    ANALYSIS_SCENARIOS_MODEL: str = "qwen-plus"
-    ANALYSIS_ADVICE_MODEL: str = "qwen-plus"
-    ANALYSIS_VERDICT_MODEL: str = "qwen-max"
+    # provider 仅支持 "anthropic"，model 需为 Anthropic 支持的模型
+    ANALYSIS_LLM_PROVIDER: str = "anthropic"
+    ANALYSIS_DEMOGRAPHICS_MODEL: str = "claude-sonnet-4-20250514"
+    ANALYSIS_SCENARIOS_MODEL: str = "claude-sonnet-4-20250514"
+    ANALYSIS_ADVICE_MODEL: str = "claude-sonnet-4-20250514"
+    ANALYSIS_VERDICT_MODEL: str = "claude-opus-4-20250514"
+
+    # ── 成分解析 LLM（仅支持 "anthropic" provider + Anthropic 模型）──────────────
+    PARSE_LLM_PROVIDER: str = "anthropic"
+    PARSE_MODEL: str = "claude-sonnet-4-20250514"
 
     # ── references 白名单（逗号分隔）────────────────────────────────────────────
     ANALYSIS_REFERENCES_ALLOWLIST: str = "GB 2760,GB 7718,GB 28050,GB 14880,GB 2762,GB 31650"
@@ -139,7 +145,8 @@ class Settings(BaseSettings):
     SYSTEM_USER_ID: str = "00000000-0000-0000-0000-000000000001"
 
     # ── 离线 IngredientAnalysis workflow 模型（Task 17 暂缓，先占位）──────────
-    INGREDIENT_ANALYSIS_MODEL: str = "qwen-max"
+    # 离线 IngredientAnalysis workflow（Task 17 暂缓，先占位）
+    INGREDIENT_ANALYSIS_MODEL: str = "claude-opus-4-20250514"
     INGREDIENT_ANALYSIS_VERSION: str = "v1"
 
     # ── food_id 模糊匹配置信度阈值 ──────────────────────────────────────────────

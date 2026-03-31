@@ -41,6 +41,7 @@ class TestInsertIfAbsent:
     async def test_inserts_new(self):
         """Returns (record, 'inserted') when no existing record."""
         mock_session = AsyncMock()
+        mock_session.add = MagicMock()  # SQLAlchemy add() is sync
         # First call (get_by_food_id) returns None
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
@@ -89,6 +90,7 @@ class TestInsertIfAbsent:
     async def test_unique_violation_rolls_back_and_reuses(self):
         """On UniqueViolation, re-fetches existing record."""
         mock_session = AsyncMock()
+        mock_session.add = MagicMock()  # SQLAlchemy add() is sync
         mock_existing = MagicMock()
 
         # Simulate: get_by_food_id returns None (first check OK),

@@ -44,6 +44,7 @@ class TestInsertNewVersion:
     async def test_deactivates_old_and_inserts_new(self):
         """Deactivates existing active rows and inserts new active row."""
         mock_session = AsyncMock()
+        mock_session.add = MagicMock()  # SQLAlchemy add() is sync
 
         data = {
             "ai_model": "claude",

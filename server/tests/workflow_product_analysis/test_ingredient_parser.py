@@ -7,11 +7,8 @@ from workflow_product_analysis.ingredient_parser import (
 
 
 class MockSettings:
-    CLASSIFY_LLM_PROVIDER = "anthropic"
-    PARSER_LLM_PROVIDER = "anthropic"
-    CLASSIFY_MODEL = "claude-3-haiku-20240307"
-    LLM_API_KEY = "test"
-    LLM_BASE_URL = "http://localhost"
+    PARSE_LLM_PROVIDER = "anthropic"
+    PARSE_MODEL = "claude-sonnet-4-20250514"
 
 
 @pytest.fixture

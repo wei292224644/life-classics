@@ -45,8 +45,8 @@ async def parse_ingredients(ocr_text: str, settings: Settings) -> ParseResult:
     异常：
         NoIngredientsFoundError: LLM 返回空成分列表时抛出
     """
-    provider = settings.CLASSIFY_LLM_PROVIDER or settings.PARSER_LLM_PROVIDER
-    model = settings.CLASSIFY_MODEL
+    provider = settings.PARSE_LLM_PROVIDER
+    model = settings.PARSE_MODEL
 
     # get_structured_client 返回同步 callable：
     # create(model=..., messages=..., response_model=..., temperature=...) -> BaseModel
