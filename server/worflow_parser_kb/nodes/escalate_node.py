@@ -13,7 +13,7 @@ _tracer = trace.get_tracer(__name__)
 from worflow_parser_kb.models import ClassifiedChunk, TypedSegment, WorkflowState
 from worflow_parser_kb.rules import RulesStore
 from worflow_parser_kb.nodes.output import EscalateOutput
-from worflow_parser_kb.structured_llm import invoke_structured
+from worflow_parser_kb.structured_gateway import invoke_structured
 from config import settings
 from observability.metrics import (
     llm_calls_total,

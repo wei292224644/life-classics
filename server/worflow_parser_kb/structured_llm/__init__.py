@@ -1,4 +1,4 @@
-"""Parser Workflow 结构化输出网关（Instructor）。"""
+"""Parser Workflow 结构化输出兼容入口（deprecated）。"""
 
 from worflow_parser_kb.structured_llm.errors import StructuredOutputError
 from worflow_parser_kb.structured_llm.invoker import (

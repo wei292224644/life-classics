@@ -16,7 +16,7 @@ from worflow_parser_kb.models import (
     WorkflowState,
     make_chunk_id,
 )
-from worflow_parser_kb.structured_llm import invoke_structured
+from worflow_parser_kb.structured_gateway import invoke_structured
 from worflow_parser_kb.nodes.output import TransformOutput
 from config import settings
 from observability.metrics import (

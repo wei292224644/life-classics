@@ -1788,12 +1788,14 @@ name = "llm"
 version = "0.1.0"
 source = { editable = "llm" }
 dependencies = [
+    { name = "anthropic" },
     { name = "dashscope" },
     { name = "ollama" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "anthropic", specifier = ">=0.67.0" },
     { name = "dashscope", specifier = ">=1.17.0" },
     { name = "ollama", specifier = ">=0.6.1" },
 ]

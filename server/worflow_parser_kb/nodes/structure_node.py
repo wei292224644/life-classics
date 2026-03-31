@@ -16,7 +16,7 @@ from observability.metrics import (
 from worflow_parser_kb.models import WorkflowState
 from worflow_parser_kb.nodes.output import DocTypeOutput
 from worflow_parser_kb.rules import RulesStore
-from worflow_parser_kb.structured_llm import invoke_structured
+from worflow_parser_kb.structured_gateway import invoke_structured
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)

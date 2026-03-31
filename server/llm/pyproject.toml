@@ -2,6 +2,7 @@
 name = "llm"
 version = "0.1.0"
 dependencies = [
+    "anthropic>=0.67.0",
     "dashscope>=1.17.0",
     "ollama>=0.6.1",
 ]
