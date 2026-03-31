@@ -59,8 +59,8 @@
 **查询参数：**
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `page` | int | 页码，默认 1 |
-| `page_size` | int | 每页条数，默认 20，最大 100 |
+| `limit` | int | 每页条数，默认 20，最大 100 |
+| `offset` | int | 跳过条数，默认 0 |
 | `name` | string | 按名称模糊搜索 |
 | `is_additive` | bool | 按是否添加剂过滤 |
 
@@ -69,8 +69,8 @@
 {
   "items": [{ /* IngredientResponse */ }],
   "total": 100,
-  "page": 1,
-  "page_size": 20
+  "limit": 20,
+  "offset": 0
 }
 ```
 
