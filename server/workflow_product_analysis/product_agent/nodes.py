@@ -31,8 +31,8 @@ async def demographics_node(state: ProductAnalysisState, settings) -> dict:
     输出：{"demographics": list[DemographicItem]}（固定 5 条，顺序固定）
     """
     create = get_structured_client(
-        provider=settings.ANALYSIS_LLM_PROVIDER,
-        model=settings.ANALYSIS_DEMOGRAPHICS_MODEL,
+        provider="anthropic",
+        model=settings.DEFAULT_MODEL,
     )
     summary = _build_ingredients_summary(state["ingredients"])
     prompt = f"""分析以下食品成分对不同人群的适用性：
@@ -49,7 +49,7 @@ async def demographics_node(state: ProductAnalysisState, settings) -> dict:
 
     result: DemographicsOutput = await asyncio.to_thread(
         create,
-        model=settings.ANALYSIS_DEMOGRAPHICS_MODEL,
+        model=settings.DEFAULT_MODEL,
         response_model=DemographicsOutput,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -67,8 +67,8 @@ async def scenarios_node(state: ProductAnalysisState, settings) -> dict:
     输出：{"scenarios": list[ScenarioItem]}（1-3 条）
     """
     create = get_structured_client(
-        provider=settings.ANALYSIS_LLM_PROVIDER,
-        model=settings.ANALYSIS_SCENARIOS_MODEL,
+        provider="anthropic",
+        model=settings.DEFAULT_MODEL,
     )
     summary = _build_ingredients_summary(state["ingredients"])
     prompt = f"""根据以下食品成分，给出 1-3 个具体的食用场景建议：
@@ -80,7 +80,7 @@ async def scenarios_node(state: ProductAnalysisState, settings) -> dict:
 
     result: ScenariosOutput = await asyncio.to_thread(
         create,
-        model=settings.ANALYSIS_SCENARIOS_MODEL,
+        model=settings.DEFAULT_MODEL,
         response_model=ScenariosOutput,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -98,8 +98,8 @@ async def advice_node(state: ProductAnalysisState, settings) -> dict:
     输出：{"advice": str}（1-3 句）
     """
     create = get_structured_client(
-        provider=settings.ANALYSIS_LLM_PROVIDER,
-        model=settings.ANALYSIS_ADVICE_MODEL,
+        provider="anthropic",
+        model=settings.DEFAULT_MODEL,
     )
     summary = _build_ingredients_summary(state["ingredients"])
     demo_text = "\n".join(
@@ -122,7 +122,7 @@ async def advice_node(state: ProductAnalysisState, settings) -> dict:
 
     result: AdviceOutput = await asyncio.to_thread(
         create,
-        model=settings.ANALYSIS_ADVICE_MODEL,
+        model=settings.DEFAULT_MODEL,
         response_model=AdviceOutput,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -138,8 +138,8 @@ async def verdict_node(state: ProductAnalysisState, settings) -> dict:
     后处理：对 references 做白名单过滤，仅保留 settings.ANALYSIS_REFERENCES_ALLOWLIST 中的标准。
     """
     create = get_structured_client(
-        provider=settings.ANALYSIS_LLM_PROVIDER,
-        model=settings.ANALYSIS_VERDICT_MODEL,
+        provider="anthropic",
+        model=settings.DEFAULT_MODEL,
     )
     summary = _build_ingredients_summary(state["ingredients"])
     prompt = f"""综合所有分析，给出对该产品的最终整体评估：
@@ -159,7 +159,7 @@ async def verdict_node(state: ProductAnalysisState, settings) -> dict:
 
     result: VerdictOutput = await asyncio.to_thread(
         create,
-        model=settings.ANALYSIS_VERDICT_MODEL,
+        model=settings.DEFAULT_MODEL,
         response_model=VerdictOutput,
         messages=[{"role": "user", "content": prompt}],
     )
