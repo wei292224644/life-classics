@@ -60,6 +60,8 @@ dependencies = [
     "slowapi>=0.1.9",
     "sqlalchemy[asyncio]>=2.0.48",
     "anthropic>=0.86.0",
+    "alembic>=1.18.4",
+    "psycopg2-binary>=2.9.11",
 ]
 
 [tool.uv.sources]
