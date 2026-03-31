@@ -29,7 +29,7 @@ _logger = structlog.get_logger(__name__)
 
 
 def _transform_model() -> str:
-    """返回 transform 节点实际使用的模型名，空则 fallback 到 ESCALATE_MODEL。"""
+    """返回 transform 节点实际使用的模型名。"""
     return settings.DEFAULT_MODEL
 
 
