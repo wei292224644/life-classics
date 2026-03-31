@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db_repositories.ingredient_analysis import get_active_by_ingredient_id
+from db_repositories.ingredient_analysis import IngredientAnalysisRepository
 from database.models import Ingredient, ProductAnalysis
 from workflow_product_analysis.types import (
     AlternativeItem,
@@ -55,7 +55,7 @@ async def _build_ingredients_list(
 
 async def _build_alternatives(
     matched_ids: list[int],
-    session: AsyncSession,
+    repo: IngredientAnalysisRepository,
 ) -> list[AlternativeItem]:
     """
     仅处理 level ∈ {t2, t3, t4} 的成分：
@@ -63,7 +63,7 @@ async def _build_alternatives(
     """
     alternatives: list[AlternativeItem] = []
     for ing_id in matched_ids:
-        analysis = await get_active_by_ingredient_id(ing_id, session)
+        analysis = await repo.get_active_by_ingredient_id(ing_id)
         if analysis is None:
             continue
         level = analysis.level
@@ -98,14 +98,15 @@ async def assemble_from_db_cache(
     - references ← ProductAnalysis.references（ARRAY）
     """
     ingredients = await _build_ingredients_list(matched_ids, session)
+    analysis_repo = IngredientAnalysisRepository(session)
 
     # 填充 level（从 IngredientAnalysis）
     for item in ingredients:
-        analysis = await get_active_by_ingredient_id(item["ingredient_id"], session)
+        analysis = await analysis_repo.get_active_by_ingredient_id(item["ingredient_id"])
         if analysis is not None:
             item["level"] = analysis.level  # type: ignore[index]
 
-    alternatives = await _build_alternatives(matched_ids, session)
+    alternatives = await _build_alternatives(matched_ids, analysis_repo)
 
     verdict: dict[str, Any] = {
         "level": product_analysis.level,
@@ -142,10 +143,11 @@ async def assemble_from_agent_output(
     - references ← agent_output.references
     """
     ingredients = await _build_ingredients_list(matched_ids, session)
+    analysis_repo = IngredientAnalysisRepository(session)
 
     # 填充 level
     for item in ingredients:
-        analysis = await get_active_by_ingredient_id(item["ingredient_id"], session)
+        analysis = await analysis_repo.get_active_by_ingredient_id(item["ingredient_id"])
         if analysis is not None:
             item["level"] = analysis.level  # type: ignore[index]
 
@@ -161,7 +163,7 @@ async def assemble_from_agent_output(
             )
         )
 
-    alternatives = await _build_alternatives(matched_ids, session)
+    alternatives = await _build_alternatives(matched_ids, analysis_repo)
 
     verdict_level = agent_output.get("verdict_level", "t3")
     verdict_description = agent_output.get("verdict_description", "")

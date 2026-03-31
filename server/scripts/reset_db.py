@@ -24,6 +24,8 @@ from database.models import (
     Food, Ingredient, FoodIngredient, NutritionTable,
     FoodNutritionEntry, AnalysisDetail,
     IarcAgent, IarcCancerSite, IarcAgentLink,
+    IngredientAnalysis, ProductAnalysis, AnalysisFeedback,
+    IngredientAlias,
 )
 
 # 所有枚举类型定义（名称 -> 值列表）
@@ -104,7 +106,13 @@ async def create_tables() -> None:
     engine = create_async_engine(get_postgres_url())
     async with engine.begin() as conn:
         # 导入所有 model 以确保它们被注册到 Base.metadata
-        for model in [Food, Ingredient, FoodIngredient, NutritionTable, FoodNutritionEntry, AnalysisDetail]:
+        for model in [
+            Food, Ingredient, FoodIngredient, NutritionTable,
+            FoodNutritionEntry, AnalysisDetail,
+            IarcAgent, IarcCancerSite, IarcAgentLink,
+            IngredientAnalysis, ProductAnalysis, AnalysisFeedback,
+            IngredientAlias,
+        ]:
             pass
         await conn.run_sync(Base.metadata.create_all)
         print("所有表创建成功")
@@ -131,6 +139,6 @@ async def main(rebuild: bool) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="重置数据库表结构")
-    worflow_parser_kb.add_argument("--rebuild", action="store_true", help="删除并重建所有表")
-    args = worflow_parser_kb.parse_args()
+    parser.add_argument("--rebuild", action="store_true", help="删除并重建所有表")
+    args = parser.parse_args()
     asyncio.run(main(args.rebuild))

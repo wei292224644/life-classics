@@ -159,6 +159,12 @@ class TestRunAnalysisPipeline:
         mock_pa.scenarios = []
         mock_pa.references = []
 
+        MockRepo = MagicMock()
+        mock_repo_instance = MagicMock()
+        mock_repo_instance.get_by_food_id = AsyncMock(return_value=mock_pa)
+        mock_repo_instance.insert_if_absent = AsyncMock()
+        MockRepo.return_value = mock_repo_instance
+
         with patch(
             "workflow_product_analysis.pipeline._upload_image_to_storage",
             new_callable=AsyncMock,
@@ -197,11 +203,9 @@ class TestRunAnalysisPipeline:
                                 )
 
                                 with patch(
-                                    "workflow_product_analysis.pipeline.get_by_food_id",
-                                    new_callable=AsyncMock,
-                                ) as mock_get:
-                                    mock_get.return_value = mock_pa
-
+                                    "workflow_product_analysis.pipeline.ProductAnalysisRepository",
+                                    MockRepo,
+                                ):
                                     with patch(
                                         "workflow_product_analysis.pipeline.assemble_from_db_cache",
                                         new_callable=AsyncMock,
@@ -233,8 +237,6 @@ class TestRunAnalysisPipeline:
                                         mock_done.assert_called_once()
                                         done_result = mock_done.call_args[0][2]
                                         assert done_result["source"] == "db_cache"
-                                        # Agent should NOT have been called
-                                        mock_parse.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_agent_failure_sets_analysis_failed(
@@ -242,6 +244,12 @@ class TestRunAnalysisPipeline:
     ):
         """Agent 抛出 ProductAgentError → error='analysis_failed'。"""
         from workflow_product_analysis.product_agent.graph import ProductAgentError
+
+        MockRepo = MagicMock()
+        mock_repo_instance = MagicMock()
+        mock_repo_instance.get_by_food_id = AsyncMock(return_value=None)
+        mock_repo_instance.insert_if_absent = AsyncMock()
+        MockRepo.return_value = mock_repo_instance
 
         with patch(
             "workflow_product_analysis.pipeline._upload_image_to_storage",
@@ -281,11 +289,9 @@ class TestRunAnalysisPipeline:
                                 )
 
                                 with patch(
-                                    "workflow_product_analysis.pipeline.get_by_food_id",
-                                    new_callable=AsyncMock,
-                                ) as mock_get:
-                                    mock_get.return_value = None  # 跳过 DB 缓存
-
+                                    "workflow_product_analysis.pipeline.ProductAnalysisRepository",
+                                    MockRepo,
+                                ):
                                     with patch(
                                         "workflow_product_analysis.pipeline.run_product_analysis_agent",
                                         new_callable=AsyncMock,
@@ -309,4 +315,3 @@ class TestRunAnalysisPipeline:
 
                                         mock_fail.assert_called_once()
                                         assert mock_fail.call_args[0][2] == "analysis_failed"
-

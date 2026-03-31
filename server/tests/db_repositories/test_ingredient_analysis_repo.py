@@ -5,11 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from db_repositories.ingredient_analysis import (
-    get_active_by_ingredient_id,
-    get_history_by_ingredient_id,
-    insert_new_version,
-)
+from db_repositories.ingredient_analysis import IngredientAnalysisRepository
 
 
 class TestGetActiveByIngredientId:
@@ -22,7 +18,8 @@ class TestGetActiveByIngredientId:
         mock_result.scalar_one_or_none.return_value = mock_record
         mock_session.execute.return_value = mock_result
 
-        result = await get_active_by_ingredient_id(1, mock_session)
+        repo = IngredientAnalysisRepository(mock_session)
+        result = await repo.get_active_by_ingredient_id(1)
 
         assert result is mock_record
 
@@ -34,7 +31,8 @@ class TestGetActiveByIngredientId:
         mock_result.scalar_one_or_none.return_value = None
         mock_session.execute.return_value = mock_result
 
-        result = await get_active_by_ingredient_id(999, mock_session)
+        repo = IngredientAnalysisRepository(mock_session)
+        result = await repo.get_active_by_ingredient_id(999)
 
         assert result is None
 
@@ -44,8 +42,10 @@ class TestInsertNewVersion:
     async def test_deactivates_old_and_inserts_new(self):
         """Deactivates existing active rows and inserts new active row."""
         mock_session = AsyncMock()
-        mock_session.add = MagicMock()  # SQLAlchemy add() is sync
+        mock_session.add = MagicMock()
+        mock_session.flush = AsyncMock()
 
+        repo = IngredientAnalysisRepository(mock_session)
         data = {
             "ai_model": "claude",
             "version": "1.0",
@@ -57,10 +57,10 @@ class TestInsertNewVersion:
             "decision_trace": {},
         }
 
-        await insert_new_version(5, data, "user-uuid", mock_session)
+        await repo.insert_new_version(5, data, "user-uuid")
 
-        mock_session.execute.assert_called_once()  # update deactivation
-        mock_session.add.assert_called_once()       # new row added
+        mock_session.execute.assert_called_once()
+        mock_session.add.assert_called_once()
         mock_session.flush.assert_called_once()
 
         added_record = mock_session.add.call_args[0][0]
@@ -80,7 +80,8 @@ class TestGetHistoryByIngredientId:
         mock_result.scalars.return_value.all.return_value = mock_records
         mock_session.execute.return_value = mock_result
 
-        result = await get_history_by_ingredient_id(3, mock_session)
+        repo = IngredientAnalysisRepository(mock_session)
+        result = await repo.get_history_by_ingredient_id(3)
 
         assert result == mock_records
         mock_session.execute.assert_called_once()

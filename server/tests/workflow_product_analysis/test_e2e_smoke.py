@@ -44,6 +44,12 @@ class TestPipelineSmoke:
         mock_pa.scenarios = []
         mock_pa.references = []
 
+        MockRepo = MagicMock()
+        mock_repo_instance = MagicMock()
+        mock_repo_instance.get_by_food_id = AsyncMock(return_value=mock_pa)
+        mock_repo_instance.insert_if_absent = AsyncMock()
+        MockRepo.return_value = mock_repo_instance
+
         with patch(
             "workflow_product_analysis.pipeline._upload_image_to_storage",
             new_callable=AsyncMock,
@@ -92,11 +98,9 @@ class TestPipelineSmoke:
                                 )
 
                                 with patch(
-                                    "workflow_product_analysis.pipeline.get_by_food_id",
-                                    new_callable=AsyncMock,
-                                ) as mock_get:
-                                    mock_get.return_value = mock_pa
-
+                                    "workflow_product_analysis.pipeline.ProductAnalysisRepository",
+                                    MockRepo,
+                                ):
                                     with patch(
                                         "workflow_product_analysis.pipeline.assemble_from_db_cache",
                                         new_callable=AsyncMock,
@@ -142,6 +146,12 @@ class TestPipelineSmoke:
               DB 中预置 IngredientAnalysis 记录
         验证：最终 Redis 状态为 done，result.source = "agent_generated"
         """
+        MockRepo = MagicMock()
+        mock_repo_instance = MagicMock()
+        mock_repo_instance.get_by_food_id = AsyncMock(return_value=None)
+        mock_repo_instance.insert_if_absent = AsyncMock()
+        MockRepo.return_value = mock_repo_instance
+
         with patch(
             "workflow_product_analysis.pipeline._upload_image_to_storage",
             new_callable=AsyncMock,
@@ -181,11 +191,9 @@ class TestPipelineSmoke:
                                 )
 
                                 with patch(
-                                    "workflow_product_analysis.pipeline.get_by_food_id",
-                                    new_callable=AsyncMock,
-                                ) as mock_get:
-                                    mock_get.return_value = None  # no cache
-
+                                    "workflow_product_analysis.pipeline.ProductAnalysisRepository",
+                                    MockRepo,
+                                ):
                                     with patch(
                                         "workflow_product_analysis.pipeline.run_product_analysis_agent",
                                         new_callable=AsyncMock,
@@ -201,46 +209,42 @@ class TestPipelineSmoke:
                                         }
 
                                         with patch(
-                                            "workflow_product_analysis.pipeline.insert_if_absent",
+                                            "workflow_product_analysis.pipeline.assemble_from_agent_output",
                                             new_callable=AsyncMock,
-                                        ):
+                                        ) as mock_assemble:
+                                            mock_assemble.return_value = {
+                                                "source": "agent_generated",
+                                                "ingredients": [],
+                                                "verdict": {
+                                                    "level": "t1",
+                                                    "description": "相对安全",
+                                                },
+                                                "advice": "适量食用",
+                                                "alternatives": [],
+                                                "demographics": [],
+                                                "scenarios": [],
+                                                "references": ["GB 2760"],
+                                            }
+
                                             with patch(
-                                                "workflow_product_analysis.pipeline.assemble_from_agent_output",
+                                                "workflow_product_analysis.pipeline.set_task_done",
                                                 new_callable=AsyncMock,
-                                            ) as mock_assemble:
-                                                mock_assemble.return_value = {
-                                                    "source": "agent_generated",
-                                                    "ingredients": [],
-                                                    "verdict": {
-                                                        "level": "t1",
-                                                        "description": "相对安全",
-                                                    },
-                                                    "advice": "适量食用",
-                                                    "alternatives": [],
-                                                    "demographics": [],
-                                                    "scenarios": [],
-                                                    "references": ["GB 2760"],
-                                                }
-
-                                                with patch(
-                                                    "workflow_product_analysis.pipeline.set_task_done",
-                                                    new_callable=AsyncMock,
-                                                ) as mock_done:
-                                                    await run_analysis_pipeline(
-                                                        task_id="smoke-t2",
-                                                        image_bytes=b"fake",
-                                                        explicit_food_id=None,
-                                                        redis=mock_redis,
-                                                        session=mock_session,
-                                                        settings=mock_settings,
-                                                    )
-
-                                                mock_done.assert_called_once()
-                                                done_result = mock_done.call_args[0][2]
-                                                assert (
-                                                    done_result["source"]
-                                                    == "agent_generated"
+                                            ) as mock_done:
+                                                await run_analysis_pipeline(
+                                                    task_id="smoke-t2",
+                                                    image_bytes=b"fake",
+                                                    explicit_food_id=None,
+                                                    redis=mock_redis,
+                                                    session=mock_session,
+                                                    settings=mock_settings,
                                                 )
+
+                                            mock_done.assert_called_once()
+                                            done_result = mock_done.call_args[0][2]
+                                            assert (
+                                                done_result["source"]
+                                                == "agent_generated"
+                                            )
 
     @pytest.mark.asyncio
     async def test_pipeline_smoke_ocr_failure(self, mock_redis, mock_session, mock_settings):

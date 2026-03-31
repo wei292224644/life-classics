@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import structlog
 
 from config import Settings
-from db_repositories.product_analysis import get_by_food_id, insert_if_absent
+from db_repositories.product_analysis import ProductAnalysisRepository
 from workflow_product_analysis.assembler import (
     assemble_from_agent_output,
     assemble_from_db_cache,
@@ -77,6 +77,7 @@ async def run_analysis_pipeline(
       - Agent 失败 → error="analysis_failed"
     """
     ttl = settings.ANALYSIS_TASK_TTL_SECONDS or _PIPELINE_TTL_SECONDS
+    product_analysis_repo = ProductAnalysisRepository(session)
 
     # [异步旁路] 触发图片上传（不 await，允许失败）
     # 注意：Python 不支持真正 fire-and-forget，这里用 create_task
@@ -166,7 +167,7 @@ async def run_analysis_pipeline(
         )
 
     # ── 步骤 5：DB 缓存命中检测 ────────────────────────────────────────────
-    existing = await get_by_food_id(food_id, session)
+    existing = await product_analysis_repo.get_by_food_id(food_id)
 
     if existing is not None:
         logger.info("pipeline_db_cache_hit", task_id=task_id, food_id=food_id)
@@ -199,11 +200,10 @@ async def run_analysis_pipeline(
         "scenarios": agent_output.get("scenarios", []),
         "references": agent_output.get("references", []),
     }
-    await insert_if_absent(
+    await product_analysis_repo.insert_if_absent(
         food_id=food_id,
         data=analysis_data,
         created_by_user=settings.SYSTEM_USER_ID,
-        session=session,
     )
 
     result = await assemble_from_agent_output(

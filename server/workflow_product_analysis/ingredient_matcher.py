@@ -11,7 +11,7 @@ from db_repositories.ingredient_alias import (
     IngredientAliasRepository,
     normalize_ingredient_name,
 )
-from db_repositories.ingredient_analysis import get_active_by_ingredient_id
+from db_repositories.ingredient_analysis import IngredientAnalysisRepository
 from database.models import Ingredient
 from workflow_product_analysis.types import (
     IngredientRiskLevel,
@@ -92,7 +92,8 @@ async def fetch_ingredient_details(
     function_types: list[str] = ingredient.function_type or []
     category_str = " · ".join(function_types)
 
-    analysis = await get_active_by_ingredient_id(ingredient_id, session)
+    analysis_repo = IngredientAnalysisRepository(session)
+    analysis = await analysis_repo.get_active_by_ingredient_id(ingredient_id)
     if analysis is not None:
         level: IngredientRiskLevel = analysis.level
     else:
