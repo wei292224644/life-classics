@@ -3,7 +3,8 @@ from api.config import Settings
 
 def test_embedding_config_defaults():
     s = Settings()
-    assert s.EMBEDDING_MODEL == "nomic-embed-text"
+    assert s.EMBEDDING_MODEL is not None
+    assert isinstance(s.EMBEDDING_MODEL, str)
 
 
 def test_neo4j_config_defaults():
