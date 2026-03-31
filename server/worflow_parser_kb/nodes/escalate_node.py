@@ -95,7 +95,7 @@ async def escalate_node(state: WorkflowState) -> dict:
                 if seg["content_type"] == "unknown":
                     unknown_tasks.append((i, j, seg["content"], existing_types))
 
-        semaphore = asyncio.Semaphore(settings.ESCALATE_MAX_CONCURRENCY)
+        semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENCY)
 
         async def limited_escalate(idx_i: int, idx_j: int, content: str, existing_types: List[Dict]) -> tuple[int, int, EscalateOutput]:
             async with semaphore:

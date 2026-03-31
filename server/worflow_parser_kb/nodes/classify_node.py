@@ -219,7 +219,7 @@ async def classify_node(state: WorkflowState) -> dict:
     _logger.info("classify_node_start", chunk_count=chunks_in)
 
     store = RulesStore(state["rules_dir"])
-    semaphore = asyncio.Semaphore(settings.CLASSIFY_MAX_CONCURRENCY)
+    semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENCY)
 
     async def limited_classify(chunk: RawChunk) -> ClassifiedChunk | Exception:
         async with semaphore:

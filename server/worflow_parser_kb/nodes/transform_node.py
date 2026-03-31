@@ -145,7 +145,7 @@ async def transform_node(state: WorkflowState) -> dict:
     _start = time.perf_counter()
     _logger.info("transform_node_start", chunk_count=chunks_in)
 
-    semaphore = asyncio.Semaphore(settings.TRANSFORM_MAX_CONCURRENCY)
+    semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENCY)
 
     async def limited_apply(classified: dict) -> list[DocumentChunk] | Exception:
         async with semaphore:

@@ -113,7 +113,7 @@ async def structure_node(state: WorkflowState) -> dict:
         if match:
             meta["doc_type"], meta["doc_type_source"] = match
         else:
-            semaphore = asyncio.Semaphore(settings.STRUCTURE_MAX_CONCURRENCY)
+            semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENCY)
 
             async def limited_infer():
                 async with semaphore:

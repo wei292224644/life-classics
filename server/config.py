@@ -51,11 +51,8 @@ class Settings(BaseSettings):
     AGENT_SKILLS_PATH: str = "agent/skills"  # 相对于 server/ 目录
     AGENT_MAX_ITERATIONS: int = 10
 
-    # ── 各 LLM 节点最大并行数 ────────────────────────────────────────────────
-    CLASSIFY_MAX_CONCURRENCY: int = 10
-    STRUCTURE_MAX_CONCURRENCY: int = 10
-    ESCALATE_MAX_CONCURRENCY: int = 10
-    TRANSFORM_MAX_CONCURRENCY: int = 10
+    # ── LLM 节点最大并行数 ─────────────────────────────────────────────────
+    LLM_MAX_CONCURRENCY: int = 10
 
     # ── Parser Workflow Structured Output──────────────────────────────
     PARSER_STRUCTURED_MAX_RETRIES: int = 2
