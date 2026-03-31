@@ -36,22 +36,11 @@ class Settings(BaseSettings):
     # ── Ollama 连接 ───────────────────────────────────────────────────────────
     OLLAMA_BASE_URL: str = "http://localhost:11434"
 
-    # ── Parser Workflow Provider 选择 ─────────────────────────────────────────
-    PARSER_LLM_PROVIDER: str = "openai"  # 全局默认，可选 openai / dashscope / ollama
-    CLASSIFY_LLM_PROVIDER: str = ""  # 节点级覆盖，空则使用全局默认
-    ESCALATE_LLM_PROVIDER: str = ""
-    TRANSFORM_LLM_PROVIDER: str = ""
-    DOC_TYPE_LLM_PROVIDER: str = ""  # 对应 structure_node.py
-
     # ── 各用途模型 ──────────────────────────────────────────────────────────
-    # parser workflow：classify_node（小模型，追求速度）
-    CLASSIFY_MODEL: str = "qwen-turbo"
-    # parser workflow：escalate_node（大模型，追求准确）
-    ESCALATE_MODEL: str = "qwen-max"
-    # parser workflow：transform_node llm_transform 策略（不填则 fallback 到 ESCALATE_MODEL）
-    TRANSFORM_MODEL: str = ""
-    # parser workflow：structure_node doc_type 推断兜底
-    DOC_TYPE_LLM_MODEL: str = "qwen-max"
+    # ── 统一模型配置 ────────────────────────────────────────────────────────────
+    DEFAULT_MODEL: str = "MiniMax-2.7"  # 所有 LLM 调用统一使用此模型
+    EMBEDDING_MODEL: str = "nomic-embed-text"  # Ollama 部署的嵌入模型
+    LLM_MAX_CONCURRENCY: int = 10  # 所有 LLM 节点共用并发上限
 
     # ── Parser Workflow Structured Output──────────────────────────────
     PARSER_STRUCTURED_MAX_RETRIES: int = 2
@@ -67,17 +56,6 @@ class Settings(BaseSettings):
     SLICE_HEADING_LEVELS: List[int] = [2, 3, 4]
     # 规则文件目录（运行时动态追加新规则）
     RULES_DIR: str = "worflow_parser_kb/rules"
-    # 各 LLM 节点最大并行数
-    CLASSIFY_MAX_CONCURRENCY: int = 10
-    STRUCTURE_MAX_CONCURRENCY: int = 10
-    ESCALATE_MAX_CONCURRENCY: int = 10
-    TRANSFORM_MAX_CONCURRENCY: int = 10
-
-    # ── Embedding 配置 ────────────────────────────────────────────────────────
-    EMBEDDING_MODEL: str = "text-embedding-v3"
-    EMBEDDING_LLM_PROVIDER: str = (
-        ""  # 空则使用 PARSER_LLM_PROVIDER，支持 openai/dashscope/ollama
-    )
 
     # ── Neo4j 连接 ────────────────────────────────────────────────────────────
     NEO4J_URI: str = "bolt://localhost:7687"
@@ -91,15 +69,6 @@ class Settings(BaseSettings):
     # ── 存储路径 ──────────────────────────────────────────────────────────────
     CHROMA_PERSIST_DIR: str = "./db"
     FTS_DB_PATH: str = "./db/knowledge_base_fts.db"
-
-    # ── 对话Agent配置 ────────────────────────────────────────────────────────────
-    CHAT_PROVIDER: str = "openai"
-    CHAT_MODEL: str = "qwen3-max-2026-01-23"
-    CHAT_BASE_URL: str = ""
-    CHAT_API_KEY: str = ""
-    AGENT_SKILLS_PATH: str = "agent/skills"  # 相对于 server/ 目录
-    AGENT_MAX_ITERATIONS: int = 10
-    CHAT_TEMPERATURE: float = 0.4
 
     # ── PostgreSQL 连接 ────────────────────────────────────────────────────────
     POSTGRES_HOST: str = "localhost"
@@ -126,28 +95,11 @@ class Settings(BaseSettings):
     # ── Embedding 成分匹配 ──────────────────────────────────────────────────────
     INGREDIENT_MATCH_THRESHOLD: float = 0.85  # 低于此相似度归入 unmatched
 
-    # ── 产品分析 Agent 模型选择 ─────────────────────────────────────────────────
-    # provider 仅支持 "anthropic"，model 需为 Anthropic 支持的模型
-    ANALYSIS_LLM_PROVIDER: str = "anthropic"
-    ANALYSIS_DEMOGRAPHICS_MODEL: str = "claude-sonnet-4-20250514"
-    ANALYSIS_SCENARIOS_MODEL: str = "claude-sonnet-4-20250514"
-    ANALYSIS_ADVICE_MODEL: str = "claude-sonnet-4-20250514"
-    ANALYSIS_VERDICT_MODEL: str = "claude-opus-4-20250514"
-
-    # ── 成分解析 LLM（仅支持 "anthropic" provider + Anthropic 模型）──────────────
-    PARSE_LLM_PROVIDER: str = "anthropic"
-    PARSE_MODEL: str = "claude-sonnet-4-20250514"
-
     # ── references 白名单（逗号分隔）────────────────────────────────────────────
     ANALYSIS_REFERENCES_ALLOWLIST: str = "GB 2760,GB 7718,GB 28050,GB 14880,GB 2762,GB 31650"
 
     # ── 系统写库用户 ID ─────────────────────────────────────────────────────────
     SYSTEM_USER_ID: str = "00000000-0000-0000-0000-000000000001"
-
-    # ── 离线 IngredientAnalysis workflow 模型（Task 17 暂缓，先占位）──────────
-    # 离线 IngredientAnalysis workflow（Task 17 暂缓，先占位）
-    INGREDIENT_ANALYSIS_MODEL: str = "claude-opus-4-20250514"
-    INGREDIENT_ANALYSIS_VERSION: str = "v1"
 
     # ── food_id 模糊匹配置信度阈值 ──────────────────────────────────────────────
     FOOD_NAME_MATCH_THRESHOLD: float = 0.80
