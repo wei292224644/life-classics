@@ -13,12 +13,12 @@
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `POST` | `/admin/ingredients` | 创建配料（Upsert） |
-| `GET` | `/admin/ingredients` | 列表查询（分页 + 过滤） |
-| `GET` | `/admin/ingredients/{id}` | 获取单个配料 |
-| `PUT` | `/admin/ingredients/{id}` | 全量更新 |
-| `PATCH` | `/admin/ingredients/{id}` | 部分更新 |
-| `DELETE` | `/admin/ingredients/{id}` | 软删除 |
+| `POST` | `/ingredients` | 创建配料（Upsert） |
+| `GET` | `/ingredients` | 列表查询（分页 + 过滤） |
+| `GET` | `/ingredients/{id}` | 获取单个配料 |
+| `PUT` | `/ingredients/{id}` | 全量更新 |
+| `PATCH` | `/ingredients/{id}` | 部分更新 |
+| `DELETE` | `/ingredients/{id}` | 软删除 |
 
 ## 详细设计
 

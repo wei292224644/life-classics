@@ -2,14 +2,16 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**目标：** 实现配料管理 Admin CRUD API，包括 Create（Upsert）、List、Get、Update（Full/Patch）、Delete
+**目标：** 实现配料管理 CRUD API，包括 Create（Upsert）、List、Get、Update（Full/Patch）、Delete
 
 **架构：**
 - Repository 层：`db_repositories/ingredient_admin.py` 处理数据库操作
 - Service 层：`services/ingredient_admin.py` 处理业务逻辑（字段级合并、upsert）
-- API 层：`api/admin/ingredient.py` 定义路由，`api/admin/models.py` 定义请求/响应模型
+- API 层：`api/ingredients/router.py` 定义路由，`api/ingredients/models.py` 定义请求/响应模型
 
 **技术栈：** FastAPI、SQLAlchemy Async、Pydantic
+
+**路径设计：** 与现有 API 保持一致，`/ingredients` 前缀在 `api/__init__.py` 注册时统一添加
 
 ---
 
@@ -17,10 +19,10 @@
 
 ```
 server/
-├── api/admin/
+├── api/ingredients/
 │   ├── __init__.py
-│   ├── ingredient.py      # 路由定义
-│   └── models.py          # 请求/响应模型（IngredientCreate, IngredientUpdate, IngredientsListResponse）
+│   ├── router.py      # 路由定义
+│   └── models.py      # 请求/响应模型（IngredientCreate, IngredientUpdate, IngredientsListResponse）
 ├── db_repositories/
 │   └── ingredient_admin.py    # Repository 类
 └── services/
@@ -29,19 +31,19 @@ server/
 
 ---
 
-## Task 1: 创建 `api/admin/` 目录结构和模型
+## Task 1: 创建 `api/ingredients/` 目录结构和模型
 
 **文件：**
-- Create: `server/api/admin/__init__.py`
-- Create: `server/api/admin/models.py`
-- Modify: `server/api/__init__.py`（如需注册路由）
+- Create: `server/api/ingredients/__init__.py`
+- Create: `server/api/ingredients/models.py`
+- Modify: `server/api/__init__.py`（注册路由）
 
-- [ ] **Step 1: 创建 `server/api/admin/__init__.py`**
+- [ ] **Step 1: 创建 `server/api/ingredients/__init__.py`**
 
 ```python
 ```
 
-- [ ] **Step 2: 创建 `server/api/admin/models.py`**
+- [ ] **Step 2: 创建 `server/api/ingredients/models.py`**
 
 ```python
 from pydantic import BaseModel, Field
@@ -123,7 +125,7 @@ cat server/api/__init__.py
 - [ ] **Step 4: 提交**
 
 ```bash
-git add server/api/admin/ server/api/__init__.py
+git add server/api/ingredients/ server/api/__init__.py
 git commit -m "feat: add admin ingredient API models"
 ```
 
@@ -480,10 +482,10 @@ git commit -m "feat: add IngredientAdminService"
 
 ---
 
-## Task 4: 创建 `api/admin/ingredient.py` 路由
+## Task 4: 创建 `api/ingredients/ingredient.py` 路由
 
 **文件：**
-- Create: `server/api/admin/ingredient.py`
+- Create: `server/api/ingredients/ingredient.py`
 - Modify: `server/api/__init__.py`（注册路由）
 - Test: `server/tests/api/test_admin_ingredient.py`
 
@@ -500,7 +502,7 @@ async def test_create_ingredient():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
-            "/api/admin/ingredients",
+            "/api/ingredients/ingredients",
             json={"name": "测试配料", "description": "测试用"},
         )
     assert response.status_code in (201, 200)
@@ -512,12 +514,12 @@ async def test_get_ingredient_by_id():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # 先创建
         create_resp = await client.post(
-            "/api/admin/ingredients",
+            "/api/ingredients/ingredients",
             json={"name": "获取测试配料"},
         )
         ingredient_id = create_resp.json()["id"]
         # 再获取
-        response = await client.get(f"/api/admin/ingredients/{ingredient_id}")
+        response = await client.get(f"/api/ingredients/ingredients/{ingredient_id}")
         assert response.status_code == 200
         assert response.json()["name"] == "获取测试配料"
 
@@ -526,7 +528,7 @@ async def test_get_ingredient_by_id():
 async def test_get_ingredient_not_found():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.get("/api/admin/ingredients/999999")
+        response = await client.get("/api/ingredients/ingredients/999999")
         assert response.status_code == 404
 ```
 
@@ -537,7 +539,7 @@ cd server && uv run pytest tests/api/test_admin_ingredient.py -v
 # 预期: 404 或路由不存在错误
 ```
 
-- [ ] **Step 3: 创建 `server/api/admin/ingredient.py`**
+- [ ] **Step 3: 创建 `server/api/ingredients/ingredient.py`**
 
 ```python
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -649,7 +651,7 @@ cd server && uv run pytest tests/api/test_admin_ingredient.py -v
 - [ ] **Step 6: 提交**
 
 ```bash
-git add server/api/admin/ingredient.py server/api/__init__.py server/tests/api/test_admin_ingredient.py
+git add server/api/ingredients/ingredient.py server/api/__init__.py server/tests/api/test_admin_ingredient.py
 git commit -m "feat: add admin ingredient CRUD endpoints"
 ```
 
@@ -660,7 +662,7 @@ git commit -m "feat: add admin ingredient CRUD endpoints"
 **问题：** `is_additive: bool = False` 在 Pydantic 中会导致 `false` 值的字段无法与"未提供"区分，影响 PATCH 的语义。
 
 **文件：**
-- Modify: `server/api/admin/models.py`
+- Modify: `server/api/ingredients/models.py`
 
 - [ ] **Step 1: 修复 `IngredientCreate.is_additive` 和 `IngredientPatch.is_additive`**
 
@@ -718,24 +720,24 @@ async def test_full_crud_flow():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # Create
         create_resp = await client.post(
-            "/api/admin/ingredients",
+            "/api/ingredients/ingredients",
             json={"name": "完整测试配料", "description": "初始"},
         )
         assert create_resp.status_code == 201
         ingredient_id = create_resp.json()["id"]
 
         # List
-        list_resp = await client.get("/api/admin/ingredients")
+        list_resp = await client.get("/api/ingredients/ingredients")
         assert list_resp.status_code == 200
         assert list_resp.json()["total"] >= 1
 
         # Get
-        get_resp = await client.get(f"/api/admin/ingredients/{ingredient_id}")
+        get_resp = await client.get(f"/api/ingredients/ingredients/{ingredient_id}")
         assert get_resp.status_code == 200
 
         # Patch
         patch_resp = await client.patch(
-            f"/api/admin/ingredients/{ingredient_id}",
+            f"/api/ingredients/ingredients/{ingredient_id}",
             json={"description": "更新后"},
         )
         assert patch_resp.status_code == 200
@@ -743,17 +745,17 @@ async def test_full_crud_flow():
 
         # Put
         put_resp = await client.put(
-            f"/api/admin/ingredients/{ingredient_id}",
+            f"/api/ingredients/ingredients/{ingredient_id}",
             json={"name": "完整测试配料", "description": "全量更新后"},
         )
         assert put_resp.status_code == 200
 
         # Delete
-        del_resp = await client.delete(f"/api/admin/ingredients/{ingredient_id}")
+        del_resp = await client.delete(f"/api/ingredients/ingredients/{ingredient_id}")
         assert del_resp.status_code == 204
 
         # Verify deleted
-        get_after_del = await client.get(f"/api/admin/ingredients/{ingredient_id}")
+        get_after_del = await client.get(f"/api/ingredients/ingredients/{ingredient_id}")
         assert get_after_del.status_code == 404
 ```
 
