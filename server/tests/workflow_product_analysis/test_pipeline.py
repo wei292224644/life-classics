@@ -22,8 +22,7 @@ class TestRunAnalysisPipeline:
         s = MagicMock()
         s.ANALYSIS_TASK_TTL_SECONDS = 3600
         s.SYSTEM_USER_ID = "system-uuid"
-        s.INGREDIENT_ANALYSIS_MODEL = "claude"
-        s.INGREDIENT_ANALYSIS_VERSION = "1.0"
+        s.DEFAULT_MODEL = "MiniMax-2.7"
         return s
 
     @pytest.mark.asyncio

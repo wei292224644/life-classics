@@ -191,8 +191,7 @@ async def run_analysis_pipeline(
     # 写入 product_analyses（insert_if_absent）
     agent_output["unmatched_ingredient_names"] = match_result.unmatched
     analysis_data = {
-        "ai_model": settings.INGREDIENT_ANALYSIS_MODEL,
-        "version": settings.INGREDIENT_ANALYSIS_VERSION,
+        "ai_model": settings.DEFAULT_MODEL,
         "level": agent_output.get("verdict_level", "t3"),
         "description": agent_output.get("verdict_description", ""),
         "advice": agent_output.get("advice", ""),
