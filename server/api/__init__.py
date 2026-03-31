@@ -11,6 +11,7 @@ from api.search.router import router as search_router
 from api.agent import router as agent_router
 from api.frontend_logs.router import router as frontend_logs_router
 from api.product.router import router as product_router
+from api.analysis.router import router as analysis_router
 
 router = APIRouter()
 
@@ -21,3 +22,4 @@ router.include_router(search_router, tags=["Search & Chat"])
 router.include_router(agent_router, prefix="/agent", tags=["Agent"])
 router.include_router(frontend_logs_router, tags=["Observability"])
 router.include_router(product_router, tags=["Product"])
+router.include_router(analysis_router, prefix="/analysis", tags=["Analysis"])
