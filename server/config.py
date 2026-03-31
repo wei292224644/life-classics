@@ -38,10 +38,24 @@ class Settings(BaseSettings):
 
     # ── 各用途模型 ──────────────────────────────────────────────────────────
     DEFAULT_LLM_PROVIDER: str = "anthropic"  # LLM 调用 provider
-    DEFAULT_MODEL: str = "MiniMax-2.7"  # 所有 LLM 调用统一使用此模型
+    DEFAULT_MODEL: str = "MiniMax-2.7"  # Parser/Analyse/Parse 共用默认模型
     EMBEDDING_LLM_PROVIDER: str = "ollama"  # Embedding provider
     EMBEDDING_MODEL: str = "nomic-embed-text"  # Ollama 部署的嵌入模型
-    LLM_MAX_CONCURRENCY: int = 10  # 所有 LLM 节点共用并发上限
+
+    # ── Chat Agent ────────────────────────────────────────────────────────────
+    CHAT_PROVIDER: str = "anthropic"
+    CHAT_MODEL: str = "MiniMax-2.7"
+    CHAT_BASE_URL: str = ""
+    CHAT_API_KEY: str = ""
+    CHAT_TEMPERATURE: float = 0.4
+    AGENT_SKILLS_PATH: str = "agent/skills"  # 相对于 server/ 目录
+    AGENT_MAX_ITERATIONS: int = 10
+
+    # ── 各 LLM 节点最大并行数 ────────────────────────────────────────────────
+    CLASSIFY_MAX_CONCURRENCY: int = 10
+    STRUCTURE_MAX_CONCURRENCY: int = 10
+    ESCALATE_MAX_CONCURRENCY: int = 10
+    TRANSFORM_MAX_CONCURRENCY: int = 10
 
     # ── Parser Workflow Structured Output──────────────────────────────
     PARSER_STRUCTURED_MAX_RETRIES: int = 2
@@ -104,6 +118,9 @@ class Settings(BaseSettings):
 
     # ── food_id 模糊匹配置信度阈值 ──────────────────────────────────────────────
     FOOD_NAME_MATCH_THRESHOLD: float = 0.80
+    
+    
+    
 
 
 settings = Settings()
