@@ -93,3 +93,15 @@ class IngredientAliasRepository:
             return False
         await self._session.delete(alias)
         return True
+
+    async def find_by_id(self, alias_id: int) -> IngredientAlias | None:
+        """按 ID 查询别名."""
+        result = await self._session.execute(
+            select(IngredientAlias).where(IngredientAlias.id == alias_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def find_all(self) -> list[IngredientAlias]:
+        """查询所有别名."""
+        result = await self._session.execute(select(IngredientAlias))
+        return list(result.scalars().all())
