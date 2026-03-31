@@ -563,6 +563,7 @@ class IngredientAlias(Base):
         BigInteger, ForeignKey("ingredients.id", ondelete="CASCADE"), nullable=False
     )
     alias: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    normalized_alias: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     alias_type: Mapped[str] = mapped_column(String(50), nullable=False, default="chinese")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=datetime.utcnow

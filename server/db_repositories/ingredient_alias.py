@@ -53,18 +53,11 @@ class IngredientAliasRepository:
         return result.scalar_one_or_none()
 
     async def find_by_normalized_alias(self, normalized_alias: str) -> IngredientAlias | None:
-        """
-        按标准化后的别名查询。
-
-        注意：alias 列存储的是原始别名（非标准化后），
-        查询时需要遍历匹配。
-        """
-        normalized_target = normalize_ingredient_name(normalized_alias)
-        result = await self._session.execute(select(IngredientAlias))
-        for row in result.scalars().all():
-            if normalize_ingredient_name(row.alias) == normalized_target:
-                return row
-        return None
+        """按标准化后的别名查询（使用 normalized_alias 列）。"""
+        result = await self._session.execute(
+            select(IngredientAlias).where(IngredientAlias.normalized_alias == normalized_alias)
+        )
+        return result.scalar_one_or_none()
 
     async def find_by_ingredient_id(self, ingredient_id: int) -> list[IngredientAlias]:
         """按配料 ID 查询所有别名."""
@@ -82,6 +75,7 @@ class IngredientAliasRepository:
         """创建新别名."""
         new_alias = IngredientAlias(
             alias=alias,
+            normalized_alias=normalize_ingredient_name(alias),
             ingredient_id=ingredient_id,
             alias_type=alias_type,
         )

@@ -101,12 +101,13 @@ class TestIngredientAliasRepository:
         mock_session.flush = AsyncMock()
         mock_session.commit = AsyncMock()
 
-        # Mock execute to return the ingredient alias
+        # Mock execute to return the ingredient alias via scalar_one_or_none
         mock_result = MagicMock()
         mock_alias = MagicMock()
         mock_alias.ingredient_id = ingredient.id
         mock_alias.alias = "小苏打"  # 原始别名
-        mock_result.scalars.return_value.all.return_value = [mock_alias]
+        mock_alias.normalized_alias = "小苏打"  # 标准化后的别名
+        mock_result.scalar_one_or_none.return_value = mock_alias
         mock_session.execute = AsyncMock(return_value=mock_result)
 
         repo = IngredientAliasRepository(mock_session)

@@ -42,6 +42,7 @@ class TestMatchIngredients:
         mock_alias = MagicMock()
         mock_alias.ingredient_id = 42
         mock_alias.alias = "白砂糖"
+        mock_alias.normalized_alias = "白砂糖"
 
         # Mock ingredient result
         mock_ing = MagicMock()
@@ -52,9 +53,9 @@ class TestMatchIngredients:
         mock_analysis = MagicMock()
         mock_analysis.scalar_one_or_none.return_value = None
 
-        # Build mock result for IngredientAlias select (all aliases)
+        # Build mock result for IngredientAlias select (using scalar_one_or_none)
         mock_alias_result = MagicMock()
-        mock_alias_result.scalars.return_value.all.return_value = [mock_alias]
+        mock_alias_result.scalar_one_or_none.return_value = mock_alias
 
         # Build mock result for Ingredient select
         mock_ing_result = MagicMock()
@@ -86,9 +87,9 @@ class TestMatchIngredients:
 
     async def test_alias_unmatched(self, mock_session):
         """别名未命中."""
-        # Mock result with no matching aliases
+        # Mock result with no matching aliases (scalar_one_or_none returns None)
         mock_alias_result = MagicMock()
-        mock_alias_result.scalars.return_value.all.return_value = []  # empty = no match
+        mock_alias_result.scalar_one_or_none.return_value = None  # empty = no match
 
         async def mock_execute(query):
             return mock_alias_result
@@ -105,6 +106,7 @@ class TestMatchIngredients:
         mock_alias = MagicMock()
         mock_alias.ingredient_id = 42
         mock_alias.alias = "白砂糖"
+        mock_alias.normalized_alias = "白砂糖"
 
         # Mock ingredient result
         mock_ing = MagicMock()
@@ -114,14 +116,16 @@ class TestMatchIngredients:
         mock_analysis = MagicMock()
         mock_analysis.scalar_one_or_none.return_value = None
 
+        # Mock result for first ingredient (found via normalized_alias)
         mock_alias_result = MagicMock()
-        mock_alias_result.scalars.return_value.all.return_value = [mock_alias]
+        mock_alias_result.scalar_one_or_none.return_value = mock_alias
 
         mock_ing_result = MagicMock()
         mock_ing_result.scalar_one_or_none.return_value = mock_ing
 
+        # Mock result for second ingredient (no match)
         mock_alias_empty = MagicMock()
-        mock_alias_empty.scalars.return_value.all.return_value = []
+        mock_alias_empty.scalar_one_or_none.return_value = None
 
         call_count = [0]
 
