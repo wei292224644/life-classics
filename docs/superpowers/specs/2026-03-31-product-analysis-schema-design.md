@@ -21,23 +21,20 @@
 ```
 OCR 文本
   └→ 解析出成分名列表
-       └→ 产品相似度匹配（用成分列表比对已有产品）
-            ├─ 命中且未过期 ──→ 返回缓存 ProductAnalysis → 结果页
-            ├─ 命中但已过期 ──→ 返回缓存 ProductAnalysis（旧数据）
-            │                   + 后台静默触发重新分析（stale-while-revalidate）
-            └─ 未命中
+       └→ 按 food_id 查 product_analyses
+            ├─ 已有行 ──→ 直接返回该行 → 结果页（本版不写库）
+            └─ 无行
                  └→ 逐一匹配配料库，读取每条成分的 IngredientAnalysis
                       └→ 喂给 Agent
-                           └→ Agent 生成产品级综合判断（ProductAnalysis）
-                                └→ 存入 DB → 结果页
+                           └→ Agent 生成 ProductAnalysis
+                                └→ INSERT 一次 → 结果页
 ```
 
 **关键约束：**
 - 对外轮询 `status` 与内部 OCR/解析/匹配/分析四段的对应关系，以及 **`food_id` 如何从拍照任务得到（含可选 `food_id` 参数、OCR 品名匹配、占位 `food`）**，见 [Analysis Pipeline Spec](./2026-03-31-analysis-pipeline-spec.md) §2.5、§2.6。
 - 用户上传图的**长期留存**、**人工报错接口**（与主流程隔离），以及**未来反哺 FoodDetail（异步纠错，非 MVP）**见 [Analysis Pipeline Spec](./2026-03-31-analysis-pipeline-spec.md) §2.7–§2.9。
-- 产品匹配发生在成分分析之前，命中且未过期则完全跳过 Agent
-- 过期判断：`ProductAnalysis.created_at` 距今超过 N 天（N 为可配置参数）
-- 过期时先返回旧数据，后台静默重跑，用户下次访问拿到新结果
+- **本版**：`product_analyses` 中**已有该 `food_id` 行**则**直接返回、跳过 Agent**，且**不 UPDATE**；**无行**时 Agent 生成后 **INSERT 一次**（与 [Analysis Pipeline Spec](./2026-03-31-analysis-pipeline-spec.md) §4.4 一致）。
+- **过期判断（N 天）与 stale-while-revalidate / 条件写回**：留待后续版本；本版可不实现「过期仅提示、后台 UPSERT」等行为。
 - Agent 不分析单个成分，只做产品级综合判断
 - `alternatives` 来自成分级预分析（`IngredientAnalysis`），非 Agent 实时生成
 - `IngredientAnalysis` 在后台录入 `Ingredient` 时生成，先于产品分析流程存在；若某成分尚无记录，管道跳过该成分的 `safety_info`，以 `level: "unknown"` 占位喂给 Agent
@@ -233,18 +230,17 @@ class ProductAnalysis(Base):
     created_by_user: Mapped[UUID]
 ```
 
-### 6.3 缓存命中与失效逻辑
+### 6.3 缓存命中与写库逻辑（本版）
 
 ```
 查询 product_analyses WHERE food_id = ?
-  ├─ 无记录           → 全新分析，Agent 生成后 INSERT
-  ├─ 有记录且未过期   → 直接返回（source: "db_cache"）
-  └─ 有记录但已过期   → 返回旧记录（source: "db_cache"）
-                         + 后台异步触发重新分析
-                         → 新分析完成后 UPSERT（按 food_id 覆盖）
+  ├─ 无记录 → Agent 生成后 INSERT（source: "agent_generated"）
+  └─ 有记录 → 直接返回该记录（source: "db_cache"），跳过 Agent；本版不 UPDATE / UPSERT
 ```
 
-过期阈值 N 天为可配置参数，默认建议 30 天。
+**后续版本（非本版）**：可恢复或调整「过期阈值 N 天、返回旧数据 + 后台重跑、按条件决定是否写回」等策略；届时以产品决策为准，并同步修订本节与 Pipeline §4.4。
+
+（原设想的过期阈值默认 30 天、lazy invalidation 等保留为**未来迭代备选**，本版实现可不启用。）
 
 ---
 
@@ -266,8 +262,9 @@ class ProductAnalysis(Base):
 | `demographics.verdict` | 前端常量映射（DEMOGRAPHICS_VERDICT），不落盘 | 同 `verdict.label`——固定 level→文字关系，Agent 自由生成会导致措辞不一致 |
 | `verdict.label` | 前端常量映射，不进 DB | level→label 是固定关系 |
 | `compliance_standard` | 从 `/api/product` 取，不进分析表 | 产品合规标准是结构化数据，已在产品库，无则不显示 |
-| 缓存失效策略 | 懒失效（lazy invalidation）+ stale-while-revalidate | 按访问流量驱动更新，无需主动监控；用户先拿旧数据，体验不阻塞 |
-| 过期阈值 | 可配置，默认 30 天 | 覆盖食品安全事件的合理响应窗口 |
+| 缓存 / 写库（本版） | 有 `food_id` 行则只读；无行则 INSERT 一次 | 先落首版详情；是否覆盖与过期重算后续再定 |
+| 缓存失效策略（后续） | 懒失效 + stale-while-revalidate 等 | 本版可不实现；留待与「是否写库」规则一并产品化 |
+| 过期阈值（后续） | 可配置，默认 30 天（原建议） | 待启用写回/重跑策略后再落地 |
 | `source` 字段 | API 层动态注入，不落盘 | 是响应级别的标记，DB 无需存储；每次请求根据是否新生成判断 |
 | `IngredientAnalysis` 生成时机 | 后台录入 `Ingredient` 时触发 | 与产品分析流程解耦；成分先于产品存在，保证管道有数据可读 |
 | `alternatives` 展示范围 | 仅 level ≥ t2 的成分 | t0/t1 成分无需替代，展示替代方案无实际意义 |

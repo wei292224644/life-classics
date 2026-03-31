@@ -248,12 +248,12 @@ Key: `analysis:{task_id}`，TTL：任务完成后 1 小时。
 
 - **输入**：匹配结果（matched + unmatched）
 - **输出**：`ProductAnalysis`
-- **实现**：
-  1. 用 matched 的 `ingredient_id` 列表做产品相似度匹配，查 `product_analyses`
-  2. 命中且未过期 → 直接返回缓存，`source: "db_cache"`
-  3. 命中但过期 → 返回缓存，后台异步触发重新分析
-  4. 未命中 → 读取各成分的 `IngredientAnalysis`，喂给 Agent，生成并存储新的 `ProductAnalysis`，`source: "agent_generated"`
+- **实现（本版持久化规则）**  
+  按 `food_id` 查询 `product_analyses`（详见 [Product Analysis Data Schema Design](./2026-03-31-product-analysis-schema-design.md) §6.3）：
+  1. **已存在该行（库内已有该商品的详情）** → **直接返回**该记录，`source: "db_cache"`，**跳过 Agent**；**本版不对该行执行 UPDATE / UPSERT**（无论 `created_at` 是否超过过期阈值 N 天）。
+  2. **不存在该行（库内尚无详情）** → 读取各成分的 `IngredientAnalysis`，喂给 Agent，生成 `ProductAnalysis` 后 **INSERT 一次**，`source: "agent_generated"`。
 - **失败**：Agent 调用失败 → `status: "failed", error: "analysis_failed"`
+- **后续版本（非本版）**：可引入「过期后是否重新跑 Agent、是否写回、是否条件写入」等策略；以届时产品决策为准，**与 §2.9 反哺主档无关的另一条演进线**。
 
 ---
 
@@ -284,4 +284,5 @@ Key: `analysis:{task_id}`，TTL：任务完成后 1 小时。
 | `food_id` 来源（MVP） | 可选参数优先；否则 OCR 品名匹配或占位 `food` | 缓存键必须存在；不强制用户先有条码 |
 | 上传图持久化 | `start` 后异步写入对象存储，与 Redis TTL 分离 | 支撑模型与规则迭代、复盘；默认不阻塞分析管道 |
 | 用户报错接口 | `POST /api/analysis/feedback`，旁路仅追加 | 人工反馈不修改分析结果与管道状态，不影响现有流程 |
-| 反哺 FoodDetail | 未来异步/批处理，依赖分析沉淀；MVP 不做自动写主档 | 自动化纠错与主数据治理在后续版本；当前以读侧挂载分析为主 |
+| 反哺 FoodDetail | 未来异步/批处理，依赖分析沉淀；本版不做自动写 `foods` 主档 | 自动化纠错与主数据治理在后续版本；当前以读侧挂载分析为主 |
+| `product_analyses` 写库（本版） | **仅当该 `food_id` 尚无行时 INSERT 一次**；已有行则只读返回 | 先沉淀首版详情；是否覆盖、过期重算留待后续版本 |
