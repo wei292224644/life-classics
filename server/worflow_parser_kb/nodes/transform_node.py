@@ -30,7 +30,7 @@ _logger = structlog.get_logger(__name__)
 
 def _transform_model() -> str:
     """返回 transform 节点实际使用的模型名，空则 fallback 到 ESCALATE_MODEL。"""
-    return settings.TRANSFORM_MODEL or settings.ESCALATE_MODEL
+    return settings.DEFAULT_MODEL
 
 
 def _call_llm_transform(
@@ -145,7 +145,7 @@ async def transform_node(state: WorkflowState) -> dict:
     _start = time.perf_counter()
     _logger.info("transform_node_start", chunk_count=chunks_in)
 
-    semaphore = asyncio.Semaphore(settings.TRANSFORM_MAX_CONCURRENCY)
+    semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENCY)
 
     async def limited_apply(classified: dict) -> list[DocumentChunk] | Exception:
         async with semaphore:

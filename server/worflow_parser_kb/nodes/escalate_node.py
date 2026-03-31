@@ -95,7 +95,7 @@ async def escalate_node(state: WorkflowState) -> dict:
                 if seg["content_type"] == "unknown":
                     unknown_tasks.append((i, j, seg["content"], existing_types))
 
-        semaphore = asyncio.Semaphore(settings.ESCALATE_MAX_CONCURRENCY)
+        semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENCY)
 
         async def limited_escalate(idx_i: int, idx_j: int, content: str, existing_types: List[Dict]) -> tuple[int, int, EscalateOutput]:
             async with semaphore:
@@ -111,7 +111,7 @@ async def escalate_node(state: WorkflowState) -> dict:
             if isinstance(result, Exception):
                 continue
             i, j, llm_result = result
-            llm_calls_total.labels(node="escalate_node", model=settings.ESCALATE_MODEL).inc()
+            llm_calls_total.labels(node="escalate_node", model=settings.DEFAULT_MODEL).inc()
             new_ct_id = llm_result.id
 
             if llm_result.action == "create_new":
@@ -137,6 +137,6 @@ async def escalate_node(state: WorkflowState) -> dict:
         "escalate_node_done",
         chunk_count=chunks_in,
         duration_ms=round(duration * 1000, 2),
-        model=settings.ESCALATE_MODEL,
+        model=settings.DEFAULT_MODEL,
     )
     return {"classified_chunks": classified_chunks}

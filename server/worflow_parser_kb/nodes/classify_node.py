@@ -166,7 +166,7 @@ def classify_raw_chunk(
     llm_output = _call_classify_llm(
         raw_chunk["content"], structure_types, semantic_types
     )
-    llm_calls_total.labels(node="classify_node", model=settings.CLASSIFY_MODEL).inc()
+    llm_calls_total.labels(node="classify_node", model=settings.DEFAULT_MODEL).inc()
 
     segments: List[TypedSegment] = []
     has_unknown = False
@@ -219,7 +219,7 @@ async def classify_node(state: WorkflowState) -> dict:
     _logger.info("classify_node_start", chunk_count=chunks_in)
 
     store = RulesStore(state["rules_dir"])
-    semaphore = asyncio.Semaphore(settings.CLASSIFY_MAX_CONCURRENCY)
+    semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENCY)
 
     async def limited_classify(chunk: RawChunk) -> ClassifiedChunk | Exception:
         async with semaphore:
@@ -248,6 +248,6 @@ async def classify_node(state: WorkflowState) -> dict:
         success_count=len(classified),
         error_count=len(errors),
         duration_ms=round(duration * 1000, 2),
-        model=settings.CLASSIFY_MODEL,
+        model=settings.DEFAULT_MODEL,
     )
     return {"classified_chunks": classified, "errors": state.get("errors", []) + errors}

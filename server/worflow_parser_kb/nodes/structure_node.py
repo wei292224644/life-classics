@@ -88,7 +88,7 @@ def _infer_doc_type_with_llm(
     )
     print(resp)
     llm_calls_total.labels(
-        node="structure_node", model=settings.DOC_TYPE_LLM_MODEL or "unknown"
+        node="structure_node", model=settings.DEFAULT_MODEL or "unknown"
     ).inc()
     return resp.model_dump()
 
@@ -113,7 +113,7 @@ async def structure_node(state: WorkflowState) -> dict:
         if match:
             meta["doc_type"], meta["doc_type_source"] = match
         else:
-            semaphore = asyncio.Semaphore(settings.STRUCTURE_MAX_CONCURRENCY)
+            semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENCY)
 
             async def limited_infer():
                 async with semaphore:
