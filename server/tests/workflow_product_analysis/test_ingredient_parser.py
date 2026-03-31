@@ -7,8 +7,7 @@ from workflow_product_analysis.ingredient_parser import (
 
 
 class MockSettings:
-    PARSE_LLM_PROVIDER = "anthropic"
-    PARSE_MODEL = "claude-sonnet-4-20250514"
+    DEFAULT_MODEL = "MiniMax-2.7"
 
 
 @pytest.fixture

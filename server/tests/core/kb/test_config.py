@@ -3,8 +3,7 @@ from api.config import Settings
 
 def test_embedding_config_defaults():
     s = Settings()
-    assert s.EMBEDDING_MODEL == "qwen3-embedding:4b"
-    assert s.EMBEDDING_LLM_PROVIDER == "ollama"
+    assert s.EMBEDDING_MODEL == "nomic-embed-text"
 
 
 def test_neo4j_config_defaults():

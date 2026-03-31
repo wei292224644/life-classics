@@ -12,11 +12,7 @@ from workflow_product_analysis.product_agent.nodes import (
 
 
 class MockSettings:
-    ANALYSIS_LLM_PROVIDER = "anthropic"
-    ANALYSIS_DEMOGRAPHICS_MODEL = "claude-sonnet-4-20250514"
-    ANALYSIS_SCENARIOS_MODEL = "claude-sonnet-4-20250514"
-    ANALYSIS_ADVICE_MODEL = "claude-sonnet-4-20250514"
-    ANALYSIS_VERDICT_MODEL = "claude-opus-4-20250514"
+    DEFAULT_MODEL = "MiniMax-2.7"
     ANALYSIS_REFERENCES_ALLOWLIST = "GB 2760,GB 7718,GB 28050"
 
 
