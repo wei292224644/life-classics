@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.product.models import IngredientResponse, ProductResponse
-from api.product.service import IngredientService, ProductService
+from api.product.service import ProductService
+from api.ingredients.service import IngredientService
 from database.session import get_async_session
 from db_repositories.food import FoodRepository
 from db_repositories.ingredient import IngredientRepository
@@ -47,9 +48,7 @@ async def get_ingredient_by_id(
     svc: IngredientService = Depends(get_ingredient_service),
 ):
     """通过配料 ID 查询配料详情（支持从搜索/对话等独立入口访问）。"""
-    try:
-        return await svc.get_ingredient_by_id(ingredient_id)
-    except ValueError as e:
-        if str(e) == "not_found":
-            raise HTTPException(status_code=404, detail="Ingredient not found")
-        raise
+    result = await svc.get_detail_by_id(ingredient_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Ingredient not found")
+    return result

@@ -1,14 +1,10 @@
+from enums import RiskLevel
 from api.product.models import (
-    AnalysisResponse,
-    IngredientResponse,
     ProductIngredient,
     ProductIngredientAnalysis,
     ProductResponse,
-    RelatedProductSimple,
 )
-from enums import RiskLevel
 from db_repositories.food import FoodDetail, FoodRepository, ProductIngredientDetail
-from db_repositories.ingredient import IngredientDetail, IngredientRepository
 
 
 class ProductService:
@@ -63,47 +59,3 @@ class ProductService:
                 reason=i.analysis.reason,
             )
         return ProductIngredient(id=i.id, name=i.name, level=RiskLevel.UNKNOWN, reason=None)
-
-
-class IngredientService:
-    def __init__(self, ingredient_repo: IngredientRepository):
-        self._ingredient_repo = ingredient_repo
-
-    async def get_ingredient_by_id(self, ingredient_id: int) -> IngredientResponse:
-        """通过配料 ID 查询配料详情。查不到时由 Router 抛 404。"""
-        detail = await self._ingredient_repo.fetch_by_id(ingredient_id)
-        if detail is None:
-            raise ValueError("not_found")
-        return self._to_ingredient_response(detail)
-
-    def _to_ingredient_response(self, d: IngredientDetail) -> IngredientResponse:
-        return IngredientResponse(
-            id=d.id,
-            name=d.name,
-            alias=d.alias,
-            description=d.description,
-            is_additive=d.is_additive,
-            additive_code=d.additive_code,
-            standard_code=d.standard_code,
-            who_level=d.who_level,
-            allergen_info=d.allergen_info,
-            function_type=d.function_type,
-            origin_type=d.origin_type,
-            limit_usage=d.limit_usage,
-            legal_region=d.legal_region,
-            cas=d.cas,
-            applications=d.applications,
-            notes=d.notes,
-            safety_info=d.safety_info,
-            analyses=[
-                AnalysisResponse(
-                    analysis_type=a["analysis_type"],
-                    result=a["result"],
-                    source=a.get("source"),
-                    level=RiskLevel.from_str(a["level"]),
-                    confidence_score=a["confidence_score"],
-                )
-                for a in d.analyses
-            ],
-            related_products=[RelatedProductSimple(**p) for p in d.related_products],
-        )

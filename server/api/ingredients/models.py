@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Any
 
+from enums import WhoLevel
+
 
 class IngredientCreate(BaseModel):
     """创建/更新配料请求体（upsert 用）."""
@@ -9,7 +11,7 @@ class IngredientCreate(BaseModel):
     is_additive: bool | None = None
     additive_code: str | None = None
     standard_code: str | None = None
-    who_level: str | None = None
+    who_level: WhoLevel | None = None
     allergen_info: list[str] = []
     function_type: list[str] = []
     origin_type: str | None = None
@@ -28,7 +30,7 @@ class IngredientUpdate(BaseModel):
     is_additive: bool | None = None
     additive_code: str | None = None
     standard_code: str | None = None
-    who_level: str | None = None
+    who_level: WhoLevel | None = None
     allergen_info: list[str] = []
     function_type: list[str] = []
     origin_type: str | None = None
@@ -47,7 +49,7 @@ class IngredientPatch(BaseModel):
     is_additive: bool | None = None
     additive_code: str | None = None
     standard_code: str | None = None
-    who_level: str | None = None
+    who_level: WhoLevel | None = None
     allergen_info: list[str] | None = None
     function_type: list[str] | None = None
     origin_type: str | None = None

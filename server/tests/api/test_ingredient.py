@@ -2,7 +2,7 @@
 import pytest
 
 from db_repositories.ingredient import IngredientDetail
-from api.product.service import IngredientService
+from api.ingredients.service import IngredientService
 
 
 def _make_detail(analyses: list[dict]) -> IngredientDetail:
@@ -32,7 +32,7 @@ def _make_detail(analyses: list[dict]) -> IngredientDetail:
 def test_ingredient_response_analyses_empty():
     """无分析记录时 analyses 为空列表。"""
     svc = IngredientService(None)
-    resp = svc._to_ingredient_response(_make_detail([]))
+    resp = svc._to_detail_response(_make_detail([]))
     assert resp.analyses == []
 
 
@@ -55,7 +55,7 @@ def test_ingredient_response_analyses_multiple():
             "confidence_score": 85,
         },
     ])
-    resp = svc._to_ingredient_response(detail)
+    resp = svc._to_detail_response(detail)
     assert len(resp.analyses) == 2
     types = [a.analysis_type for a in resp.analyses]
     assert "ingredient_summary" in types
@@ -74,6 +74,6 @@ def test_ingredient_response_overall_risk_level():
             "confidence_score": 90,
         },
     ])
-    resp = svc._to_ingredient_response(detail)
+    resp = svc._to_detail_response(detail)
     overall = next(a for a in resp.analyses if a.analysis_type == "overall_risk")
     assert overall.level.value == "t3"
