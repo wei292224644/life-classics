@@ -12,12 +12,12 @@
 
 - 新增 `ingredient_aliases` 表存储配料别名
 - 预处理规则层标准化原始配料名
-- 别名精确匹配优先于向量检索
-- 匹配流程：预处理 → 别名匹配 → 向量检索兜底
+- 别名精确匹配
 
 ### 1.2 Out of Scope
 
-- LLM fallback 匹配（本方案仅实现别名表 + 向量检索）
+- 向量检索（本方案仅实现别名精确匹配）
+- LLM fallback 匹配（未来扩展方向）
 - 别名自动推荐/生成
 - 跨语言翻译（英文 ↔ 中文由别名表覆盖，不做机器翻译）
 
@@ -90,20 +90,17 @@ class IngredientAlias(Base):
 [preprocess] 标准化
     ↓
 [alias_match] 查询 ingredient_aliases（精确匹配标准化后的名称）
-    ↓ 命中 → 返回 ingredient_id
-[vector_search] 现有向量检索（阈值过滤）
     ↓
-[result] 匹配结果（含 unmatched 未匹配列表）
+[result] 匹配结果（matched / unmatched）
 ```
 
 ### 4.1 优先级
 
-1. **预处理后别名精确匹配** — 最高优先级
-2. **向量检索** — 兜底
+1. **预处理后别名精确匹配** — 唯一匹配方式
 
 ### 4.2 修改点
 
-`match_ingredients()` 函数签名不变，内部增加别名匹配分支。
+`match_ingredients()` 函数简化为：预处理 → 别名精确匹配 → 未命中标记为 unmatched。移除向量检索依赖。
 
 ---
 
@@ -162,8 +159,8 @@ class IngredientAliasRepository:
 |------|------|------|
 | 别名表 vs JSON 字段 | 单独表 | 1:N 关系，需独立索引，支持多类型扩展 |
 | 别名唯一约束 | alias 唯一 | 防止重复录入，同一个别名不应指向多个配料 |
-| 匹配优先级 | 别名优先于向量 | 别名精确匹配成本低、速度快、准确率高 |
-| 预处理 vs 扩展查询 | 预处理 + 精确匹配 | 不做模糊匹配，保持简单和可解释性 |
+| 匹配方式 | 精确匹配（无模糊） | 保持简单和可解释，未来可扩展 LLM fallback |
+| 向量检索 | 移除 | 当前方案仅用别名匹配，向量检索作为未来扩展 |
 
 ---
 
@@ -178,10 +175,10 @@ class IngredientAliasRepository:
 
 ### 8.2 Matcher 集成测试
 
-- `test_alias_match_before_vector` — 别名优先于向量检索
 - `test_normalize_before_alias_match` — 预处理规则生效
-- `test_alias_unmatched_fallback_vector` — 别名未命中走向量检索
-- `test_mixed_alias_and_vector_matches` — 混合场景
+- `test_alias_match_success` — 别名匹配成功
+- `test_alias_unmatched` — 别名未命中标记为 unmatched
+- `test_mixed_matches` — 部分匹配成功部分未命中
 
 ---
 

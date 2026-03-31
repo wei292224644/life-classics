@@ -50,6 +50,14 @@ CHAT_PROVIDER
 EMBEDDING_LLM_PROVIDER
 ```
 
+**并发配置（4 项）：**
+```
+CLASSIFY_MAX_CONCURRENCY
+STRUCTURE_MAX_CONCURRENCY
+ESCALATE_MAX_CONCURRENCY
+TRANSFORM_MAX_CONCURRENCY
+```
+
 **不再使用的连接配置（3 项）：**
 ```
 DASHSCOPE_API_KEY
@@ -57,12 +65,13 @@ DASHSCOPE_BASE_URL
 OLLAMA_BASE_URL
 ```
 
-### 新增配置（2 项）
+### 新增配置（3 项）
 
 | 配置 | 默认值 | 说明 |
 |------|--------|------|
 | `DEFAULT_MODEL` | `MiniMax-2.7` | 所有 LLM 调用统一使用此模型 |
 | `EMBEDDING_MODEL` | `nomic-embed-text` | Ollama 部署的嵌入模型 |
+| `LLM_MAX_CONCURRENCY` | `10` | 所有 LLM 节点共用并发上限 |
 
 ### 保留配置
 
@@ -72,7 +81,9 @@ OLLAMA_BASE_URL
 | `LLM_API_KEY` / `LLM_BASE_URL` | OpenAI-compatible 备用连接 |
 | `OLLAMA_BASE_URL` | 若 embedding 需从配置读取则保留 |
 
-## 代码改动
+## 代码改动范围
+
+**只改两个地方，不动整体逻辑：**
 
 ### 1. `server/config.py`
 
@@ -81,53 +92,35 @@ OLLAMA_BASE_URL
 DEFAULT_MODEL: str = "MiniMax-2.7"
 EMBEDDING_MODEL: str = "nomic-embed-text"
 
-# 删除所有 *MODEL 和 *PROVIDER 相关配置（见上方列表）
+# 删除（见上方删除列表）
 ```
 
-### 2. LLM 调用点修改
+### 2. 引用处修改
 
-所有直接引用 `settings.ESCALATE_MODEL` 等配置的地方，改为统一使用 `settings.DEFAULT_MODEL`。
+全量搜索所有 `settings.CLASSIFY_MODEL`、`settings.ESCALATE_MODEL` 等旧配置，将其替换为 `settings.DEFAULT_MODEL`。嵌入模型相关引用替换为 `settings.EMBEDDING_MODEL`。
 
-涉及文件（需全量搜索 `settings.` 确认）：
-- `server/worflow_parser_kb/nodes/` — `classify_node`, `escalate_node`, `structure_node`, `transform_node`
-- `server/worflow_parser_kb/llm.py` — `resolve_provider_for_node()` 及相关
-- `server/workflow_product_analysis/nodes.py`
-- `server/workflow_product_analysis/ingredient_parser.py`
-- `server/agent/agent.py`
-- `server/api/search/service.py`
-
-### 3. `server/llm/` 清理
-
-`resolve_provider_for_node()` 等 provider 路由逻辑不再需要，删除或简化为直接使用 `DEFAULT_MODEL`：
-
-```python
-# 简化后的逻辑
-def get_default_model():
-    return settings.DEFAULT_MODEL
-```
-
-### 4. `server/kb/embeddings.py`
-
-确认 embedding 模型来源：
-- 如果 Ollama 连接地址不再通过 `OLLAMA_BASE_URL` 配置，则需确认 `embeddings.py` 如何获取地址
+**不动的地方：**
+- `server/llm/` 目录下的 provider 路由逻辑保持不动
+- 各 workflow 节点的整体调用逻辑保持不动
+- `server/kb/embeddings.py` 不动（`OLLAMA_BASE_URL` 若被使用则保留）
 
 ## 实施步骤
 
-1. 修改 `server/config.py`：新增 2 项，删除 20 项
-2. 全量搜索 `settings.CLASSIFY_MODEL`、`settings.ESCALATE_MODEL` 等，确认所有引用点
-3. 将所有引用点改为 `settings.DEFAULT_MODEL`
-4. 删除 `server/llm/` 中 `resolve_provider_for_node()` 等无用逻辑
-5. 确认 embedding 相关配置是否需要保留 `OLLAMA_BASE_URL`
-6. 运行测试验证
+1. 修改 `server/config.py`：
+   - 新增 `DEFAULT_MODEL`、`EMBEDDING_MODEL`、`LLM_MAX_CONCURRENCY`（3 项）
+   - 删除 19 项旧配置（10 模型 + 5 Provider + 4 并发）
+2. 全量搜索旧配置引用点并替换：
+   - `settings.XXX_MODEL` → `settings.DEFAULT_MODEL`
+   - `settings.EMBEDDING_LLM_PROVIDER` → 删除（embedding 独立走 Ollama）
+   - `settings.XXX_MAX_CONCURRENCY` → `settings.LLM_MAX_CONCURRENCY`
+3. 运行测试验证
 
 ## 风险评估
 
-- **低风险**：所有 LLM 实际均走同一模型，合并后行为不变
-- **低风险**：删除未使用的 provider 路由逻辑
-- **需确认**：`OLLAMA_BASE_URL` 是否被 `embeddings.py` 实际使用，如使用则保留
+- **低风险**：所有 LLM 实际均走同一模型，替换后行为完全一致
+- 不动 `server/llm/` 和 workflow 逻辑，影响范围可控
 
 ## 验收标准
 
 - `uv run pytest tests/` 全部通过
 - Parser workflow / Analysis / Agent Chat / Parse 所有功能正常
-- config.py 模型配置项从 ~15 项降至 2 项
