@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import asyncio
-import logging
+
+import structlog
 
 from worflow_parser_kb.structured_llm.client_factory import get_structured_client
 from workflow_product_analysis.product_agent.types import (
@@ -11,7 +12,7 @@ from workflow_product_analysis.product_agent.types import (
 )
 from workflow_product_analysis.types import DemographicItem, ScenarioItem
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def _build_ingredients_summary(ingredients) -> str:
