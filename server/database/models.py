@@ -230,6 +230,10 @@ class Ingredient(Base):
         "metadata", JSONB, default=dict
     )  # 扩展字段
 
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     food_ingredients: Mapped[list[FoodIngredient]] = relationship(
         back_populates="ingredient", lazy="selectin"
     )
