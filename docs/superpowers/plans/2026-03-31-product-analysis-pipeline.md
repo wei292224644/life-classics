@@ -31,7 +31,7 @@
 
 ```
 server/
-├── analysis/                          # [NEW] 分析管道核心模块
+├── workflow_product_analysis/             # [NEW] 分析管道核心模块
 │   ├── __init__.py
 │   ├── types.py                       # [NEW] 所有共享 TypedDict / Pydantic 类型
 │   ├── redis_store.py                 # [NEW] Redis 任务状态机
@@ -221,7 +221,7 @@ FOOD_NAME_MATCH_THRESHOLD: float = 0.80
 **目标：** 在 `workflow_product_analysis/types.py` 中定义管道各组件间流转的所有数据类型，作为整个分析模块的类型中枢。
 
 **文件：**
-- Create: `server/workflow_product_workflow_product_analysis/types.py`
+- Create: `server/workflow_product_analysis/types.py`
 
 **需定义的类型（TypedDict + Literal）：**
 
@@ -291,7 +291,7 @@ class AnalysisTask(TypedDict):
 
 **步骤：**
 - [ ] 创建 `server/workflow_product_analysis/__init__.py`（空文件）
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/types.py`，定义上述所有类型
+- [ ] 创建 `server/workflow_product_analysis/types.py`，定义上述所有类型
 - [ ] 运行 `uv run python3 -c "from workflow_product_analysis.types import ProductAnalysisResult, AnalysisTask; print('OK')"`
 - [ ] commit: `feat(analysis): add shared type definitions`
 
@@ -302,7 +302,7 @@ class AnalysisTask(TypedDict):
 **目标：** 实现 `workflow_product_analysis/redis_store.py`，封装对 Redis 中分析任务 JSON 的读写，提供创建、更新、查询任务状态的接口。
 
 **文件：**
-- Create: `server/workflow_product_workflow_product_analysis/redis_store.py`
+- Create: `server/workflow_product_analysis/redis_store.py`
 - Create: `server/tests/workflow_product_analysis/test_redis_store.py`
 
 **函数签名与说明：**
@@ -343,7 +343,7 @@ async def get_redis_client() -> Redis
 
 **步骤：**
 - [ ] 安装依赖：`cd server && uv add redis fakeredis`
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/redis_store.py`，实现上述 5 个函数
+- [ ] 创建 `server/workflow_product_analysis/redis_store.py`，实现上述 5 个函数
 - [ ] 创建 `server/tests/workflow_product_analysis/__init__.py` 和 `server/tests/workflow_product_analysis/test_redis_store.py`
 - [ ] 运行 `uv run pytest tests/workflow_product_analysis/test_redis_store.py -v`，确保全部通过
 - [ ] commit: `feat(analysis): add Redis task state store`
@@ -355,7 +355,7 @@ async def get_redis_client() -> Redis
 **目标：** 实现 `workflow_product_analysis/ocr_client.py`，向独立部署的 PaddleOCR-VL-1.5 服务发送图片，返回原始 OCR 文字。
 
 **文件：**
-- Create: `server/workflow_product_workflow_product_analysis/ocr_client.py`
+- Create: `server/workflow_product_analysis/ocr_client.py`
 - Create: `server/tests/workflow_product_analysis/test_ocr_client.py`
 
 **函数签名与说明：**
@@ -385,7 +385,7 @@ class OcrServiceError(Exception):
 
 **步骤：**
 - [ ] 安装：`uv add httpx respx`（若未安装）
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/ocr_client.py`，实现 `run_ocr` 和 `OcrServiceError`
+- [ ] 创建 `server/workflow_product_analysis/ocr_client.py`，实现 `run_ocr` 和 `OcrServiceError`
 - [ ] 创建 `server/tests/workflow_product_analysis/test_ocr_client.py`
 - [ ] 运行 `uv run pytest tests/workflow_product_analysis/test_ocr_client.py -v`
 - [ ] commit: `feat(analysis): add OCR client (component 1)`
@@ -397,7 +397,7 @@ class OcrServiceError(Exception):
 **目标：** 实现 `workflow_product_analysis/ingredient_parser.py`，用 LLM + Instructor 从 OCR 文字中提取成分名列表（兼做商品品名提取用于 food_id 匹配）。
 
 **文件：**
-- Create: `server/workflow_product_workflow_product_analysis/ingredient_parser.py`
+- Create: `server/workflow_product_analysis/ingredient_parser.py`
 - Create: `server/tests/workflow_product_analysis/test_ingredient_parser.py`
 
 **函数签名与说明：**
@@ -435,7 +435,7 @@ Mock Instructor 客户端，测试：
 - 成分名去掉括号内容："阿斯巴甜（甜味剂）" → "阿斯巴甜"（若由 LLM 处理，mock LLM 返回正确格式即可）
 
 **步骤：**
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/ingredient_parser.py`
+- [ ] 创建 `server/workflow_product_analysis/ingredient_parser.py`
 - [ ] 创建 `server/tests/workflow_product_analysis/test_ingredient_parser.py`
 - [ ] 运行 `uv run pytest tests/workflow_product_analysis/test_ingredient_parser.py -v`
 - [ ] commit: `feat(analysis): add LLM ingredient parser (component 2)`
@@ -447,7 +447,7 @@ Mock Instructor 客户端，测试：
 **目标：** 实现 `workflow_product_analysis/ingredient_matcher.py`，将成分名列表通过向量检索匹配到配料库（`ingredients` 表），返回 matched + unmatched 结果。
 
 **文件：**
-- Create: `server/workflow_product_workflow_product_analysis/ingredient_matcher.py`
+- Create: `server/workflow_product_analysis/ingredient_matcher.py`
 - Create: `server/tests/workflow_product_analysis/test_ingredient_matcher.py`
 
 **函数签名与说明：**
@@ -487,7 +487,7 @@ Mock ChromaDB 客户端和 DB session，测试：
 - ingredient 无 IngredientAnalysis → level 为 "unknown"
 
 **步骤：**
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/ingredient_matcher.py`
+- [ ] 创建 `server/workflow_product_analysis/ingredient_matcher.py`
 - [ ] 创建 `server/tests/workflow_product_analysis/test_ingredient_matcher.py`
 - [ ] 运行 `uv run pytest tests/workflow_product_analysis/test_ingredient_matcher.py -v`
 - [ ] commit: `feat(analysis): add embedding ingredient matcher (component 3)`
@@ -570,9 +570,9 @@ async def get_history_by_ingredient_id(
 **目标：** 在 `workflow_product_analysis/product_agent/` 中定义 LangGraph State 和 4 个节点函数，每个节点通过 Instructor 调用 LLM 生成结构化输出。
 
 **文件：**
-- Create: `server/workflow_product_workflow_product_analysis/product_agent/__init__.py`
-- Create: `server/workflow_product_workflow_product_analysis/product_agent/types.py`
-- Create: `server/workflow_product_workflow_product_analysis/product_agent/nodes.py`
+- Create: `server/workflow_product_analysis/product_agent/__init__.py`
+- Create: `server/workflow_product_analysis/product_agent/types.py`
+- Create: `server/workflow_product_analysis/product_agent/nodes.py`
 - Create: `server/tests/workflow_product_analysis/product_agent/test_nodes.py`
 
 **`types.py` 定义：**
@@ -637,9 +637,9 @@ Mock Instructor 客户端，测试每个节点：
 - `verdict_node` 的 references 白名单过滤逻辑（有效标准号保留，无效丢弃，全部无效返回 `[]`）
 
 **步骤：**
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/product_agent/__init__.py`
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/product_agent/types.py`
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/product_agent/nodes.py`，实现 4 个节点函数
+- [ ] 创建 `server/workflow_product_analysis/product_agent/__init__.py`
+- [ ] 创建 `server/workflow_product_analysis/product_agent/types.py`
+- [ ] 创建 `server/workflow_product_analysis/product_agent/nodes.py`，实现 4 个节点函数
 - [ ] 创建 `server/tests/workflow_product_analysis/product_agent/__init__.py` 和 `test_nodes.py`
 - [ ] 运行 `uv run pytest tests/workflow_product_analysis/product_agent/test_nodes.py -v`
 - [ ] commit: `feat(analysis): add product analysis agent nodes`
@@ -651,7 +651,7 @@ Mock Instructor 客户端，测试每个节点：
 **目标：** 在 `workflow_product_analysis/product_agent/graph.py` 中将 4 个节点按 DAG 拓扑（A/B 并行 → C → D）编译为 LangGraph 图，并提供顶层调用入口。
 
 **文件：**
-- Create: `server/workflow_product_workflow_product_analysis/product_agent/graph.py`
+- Create: `server/workflow_product_analysis/product_agent/graph.py`
 - Create: `server/tests/workflow_product_analysis/product_agent/test_graph.py`
 
 **函数签名：**
@@ -686,7 +686,7 @@ Mock 4 个节点函数，测试：
 - 节点异常 → 抛出 `ProductAgentError`
 
 **步骤：**
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/product_agent/graph.py`
+- [ ] 创建 `server/workflow_product_analysis/product_agent/graph.py`
 - [ ] 创建 `server/tests/workflow_product_analysis/product_agent/test_graph.py`
 - [ ] 运行 `uv run pytest tests/workflow_product_analysis/product_agent/test_graph.py -v`
 - [ ] commit: `feat(analysis): compile product analysis LangGraph`
@@ -698,7 +698,7 @@ Mock 4 个节点函数，测试：
 **目标：** 实现 `workflow_product_analysis/assembler.py`，将管道各阶段产物（DB 记录 + MatchResult + Agent 输出）组装成 `ProductAnalysisResult`，供 API 层直接返回。
 
 **文件：**
-- Create: `server/workflow_product_workflow_product_analysis/assembler.py`
+- Create: `server/workflow_product_analysis/assembler.py`
 - Create: `server/tests/workflow_product_analysis/test_assembler.py`
 
 **函数签名：**
@@ -742,7 +742,7 @@ Mock DB session，测试：
 - alternatives 仅包含 level >= t2 的成分
 
 **步骤：**
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/assembler.py`
+- [ ] 创建 `server/workflow_product_analysis/assembler.py`
 - [ ] 创建 `server/tests/workflow_product_analysis/test_assembler.py`
 - [ ] 运行 `uv run pytest tests/workflow_product_analysis/test_assembler.py -v`
 - [ ] commit: `feat(analysis): add result assembler`
@@ -754,7 +754,7 @@ Mock DB session，测试：
 **目标：** 实现管道中从「可选 food_id 参数 + OCR 品名」到确定性 food_id 的解析逻辑（spec §2.6）。
 
 **文件：**
-- Create: `server/workflow_product_workflow_product_analysis/food_resolver.py`
+- Create: `server/workflow_product_analysis/food_resolver.py`
 - Create: `server/tests/workflow_product_analysis/test_food_resolver.py`
 
 **函数签名：**
@@ -794,7 +794,7 @@ Mock DB session，测试：
 - 无 explicit_food_id，品名无匹配 → 创建占位并返回新 food_id
 
 **步骤：**
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/food_resolver.py`
+- [ ] 创建 `server/workflow_product_analysis/food_resolver.py`
 - [ ] 创建 `server/tests/workflow_product_analysis/test_food_resolver.py`
 - [ ] 运行 `uv run pytest tests/workflow_product_analysis/test_food_resolver.py -v`
 - [ ] commit: `feat(analysis): add food_id resolver`
@@ -806,7 +806,7 @@ Mock DB session，测试：
 **目标：** 实现 `workflow_product_analysis/pipeline.py`，将四组件串联为完整的异步任务函数，在 BackgroundTask 中执行，通过 Redis 实时更新状态。
 
 **文件：**
-- Create: `server/workflow_product_workflow_product_analysis/pipeline.py`
+- Create: `server/workflow_product_analysis/pipeline.py`
 - Create: `server/tests/workflow_product_analysis/test_pipeline.py`
 
 **函数签名：**
@@ -874,7 +874,7 @@ Mock 所有依赖（redis_store、ocr_client、ingredient_parser、ingredient_ma
 - DB 缓存命中 → 跳过 Agent，source="db_cache"
 
 **步骤：**
-- [ ] 创建 `server/workflow_product_workflow_product_analysis/pipeline.py`
+- [ ] 创建 `server/workflow_product_analysis/pipeline.py`
 - [ ] 创建 `server/tests/workflow_product_analysis/test_pipeline.py`
 - [ ] 运行 `uv run pytest tests/workflow_product_analysis/test_pipeline.py -v`
 - [ ] commit: `feat(analysis): add pipeline orchestrator`
