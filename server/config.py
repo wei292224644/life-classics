@@ -104,9 +104,6 @@ class Settings(BaseSettings):
     OCR_SERVICE_URL: str = "http://localhost:8100"  # PaddleOCR-VL-1.5 内部地址
     OCR_TIMEOUT_SECONDS: int = 30
 
-    # ── Embedding 成分匹配 ──────────────────────────────────────────────────────
-    INGREDIENT_MATCH_THRESHOLD: float = 0.85  # 低于此相似度归入 unmatched
-
     # ── references 白名单（逗号分隔）────────────────────────────────────────────
     ANALYSIS_REFERENCES_ALLOWLIST: str = "GB 2760,GB 7718,GB 28050,GB 14880,GB 2762,GB 31650"
 
