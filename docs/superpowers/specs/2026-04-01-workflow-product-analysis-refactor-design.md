@@ -122,10 +122,10 @@ api/analysis/service.py（编排层）
 
 ## 数据类型
 
-### 新增：`IngredientInput`
+### 既有类型（保留）：`IngredientInput`
 
 ```python
-# workflow_product_analysis/types.py（已存在，保留）
+# workflow_product_analysis/types.py（已存在，不修改）
 class IngredientInput(TypedDict):
     ingredient_id: int  # 0 表示未匹配成分
     name: str
@@ -136,8 +136,10 @@ class IngredientInput(TypedDict):
 
 ### 新增：`AgentOutput`
 
+`AgentOutput` 是 graph 输出的核心字段集合，等同于 `ProductAnalysisState` 中的 LLM 生成部分。它不是独立的计算单元，而是 `final_state` 中关键字段的视图。
+
 ```python
-# workflow_product_analysis/types.py
+# workflow_product_analysis/types.py（新增）
 class AgentOutput(TypedDict):
     verdict_level: str  # RiskLevel
     verdict_description: str
@@ -170,7 +172,7 @@ class ProductAnalysisResult(TypedDict):
 
 | 文件 | 改动 |
 |------|------|
-| `product_agent/graph.py` | 移除 `session` 依赖，只接收 `ingredient_inputs` 和 `settings` |
+| `product_agent/graph.py` | 移除 `session` 依赖；重命名 `run_product_analysis_agent` → `build_product_analysis_graph`，与 `worflow_parser_kb/graph.py` 命名一致 |
 | `product_agent/nodes/` | 将 `nodes.py` 拆分为 `verdict_node.py`、`demographics_node.py`、`scenarios_node.py`、`advice_node.py`，各节点移除 `session` 依赖 |
 | `types.py` | 新增 `AgentOutput` TypedDict 类型；补充 `IngredientRiskLevel` 导出 |
 
