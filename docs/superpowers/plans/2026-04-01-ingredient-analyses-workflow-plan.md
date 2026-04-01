@@ -533,7 +533,7 @@ from observability.metrics import (
 )
 from workflow_ingredient_analysis.models import WorkflowState
 from workflow_ingredient_analysis.nodes.output import AnalyzeOutput
-from workflow_parser_kb.structured_gateway import invoke_structured
+from worflow_parser_kb.structured_gateway import invoke_structured
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
@@ -739,7 +739,7 @@ from observability.metrics import (
 )
 from workflow_ingredient_analysis.models import WorkflowState
 from workflow_ingredient_analysis.nodes.output import ComposeOutput
-from workflow_parser_kb.structured_gateway import invoke_structured
+from worflow_parser_kb.structured_gateway import invoke_structured
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
