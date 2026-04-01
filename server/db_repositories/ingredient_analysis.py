@@ -59,7 +59,6 @@ class IngredientAnalysisRepository:
         new_record = IngredientAnalysis(
             ingredient_id=ingredient_id,
             ai_model=data["ai_model"],
-            version=data["version"],
             level=data.get("level", "unknown"),
             safety_info=data.get("safety_info", ""),
             alternatives=data.get("alternatives", []),

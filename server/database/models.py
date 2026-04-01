@@ -475,7 +475,6 @@ class IngredientAnalysis(Base):
         BigInteger, ForeignKey("ingredients.id"), nullable=False
     )
     ai_model: Mapped[str] = mapped_column(String(255), nullable=False)
-    version: Mapped[str] = mapped_column(String(50), nullable=False)
     level: Mapped[str] = mapped_column(level_enum, nullable=False, default="unknown")
     safety_info: Mapped[str] = mapped_column(Text, nullable=False, default="")
     alternatives: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
