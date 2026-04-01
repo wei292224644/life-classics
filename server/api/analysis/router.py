@@ -17,7 +17,7 @@ from api.analysis.service import (
     submit_feedback,
 )
 from database.session import get_async_session
-from workflow_product_analysis.redis_store import get_redis_client
+from api.analysis.redis_store import get_redis_client
 
 router = APIRouter()
 
