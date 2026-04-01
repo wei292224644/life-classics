@@ -7,6 +7,8 @@ import type {
   UpdateDocumentPayload,
   AgentChatRequest,
   AgentResponse,
+  IngredientInfo,
+  IngredientResponse,
 } from './types'
 
 const BASE = '/api'
@@ -112,5 +114,23 @@ export const api = {
   agent: {
     chat: (payload: AgentChatRequest): Promise<AgentResponse> =>
       request<AgentResponse>('/agent/chat', { method: 'POST', body: JSON.stringify(payload) }),
+  },
+  ingredients: {
+    list: (params: { name?: string; limit?: number; offset?: number }) => {
+      const q = new URLSearchParams()
+      if (params.name) q.set('name', params.name)
+      q.set('limit', String(params.limit ?? 100))
+      q.set('offset', String(params.offset ?? 0))
+      return request<{ items: IngredientInfo[]; total: number; limit: number; offset: number }>(
+        `/ingredients?${q}`
+      )
+    },
+    get: (id: number) =>
+      request<IngredientResponse>(`/ingredients/${id}`),
+    triggerAnalysis: (id: number) =>
+      request<{ task_id: string; ingredient_id: number; status: string }>(
+        `/ingredients/${id}/analyze`,
+        { method: 'POST' }
+      ),
   },
 }
