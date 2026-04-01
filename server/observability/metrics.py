@@ -32,3 +32,36 @@ parser_workflow_duration_seconds = Histogram(
     ["doc_type"],
     buckets=[0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0],
 )
+
+# ── Ingredient Analysis Workflow ─────────────────────────────────────────────
+
+ingredient_analysis_run_total = Counter(
+    "ingredient_analysis_run_total",
+    "Ingredient analysis workflow 执行总次数",
+    ["status"],  # succeeded | failed
+)
+
+ingredient_analysis_node_duration_seconds = Histogram(
+    "ingredient_analysis_node_duration_seconds",
+    "Ingredient analysis 各节点处理耗时（秒）",
+    ["node"],
+    buckets=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0],
+)
+
+ingredient_analysis_duration_seconds = Histogram(
+    "ingredient_analysis_duration_seconds",
+    "Ingredient analysis 完整 workflow 耗时（秒）",
+    buckets=[0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0],
+)
+
+ingredient_analysis_llm_calls_total = Counter(
+    "ingredient_analysis_llm_calls_total",
+    "Ingredient analysis LLM 调用总次数",
+    ["node", "model"],
+)
+
+ingredient_analysis_unknown_rate = Counter(
+    "ingredient_analysis_unknown_rate",
+    "Ingredient analysis 返回 unknown 等级的总次数",
+    [],
+)
