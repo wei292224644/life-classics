@@ -4,9 +4,10 @@
 
 **Goal:** 实现纯计算层的 `ingredient_analyses` LangGraph workflow——输入配料数据，通过 async generator 输出进度事件和最终结果。**Workflow 本身不调用任何 API、不操作任何数据库**。编排逻辑（查配料 → 调用 workflow → 写结果）由调用方负责，调用方决定如何处理进度事件（存 Redis / SSE / 忽略）。
 
-**Architecture:** 线性 3 节点 LangGraph workflow（`retrieve_evidence` → `analyze` → `compose_output`），无状态、无依赖。
 
+**Architecture:** 线性 3 节点 LangGraph workflow（`retrieve_evidence` → `analyze` → `compose_output`），无状态、无依赖。
 **调用方式（由 API 层 / BackgroundTask 负责编排）：**
+
 
 ```
 调用方：
@@ -20,7 +21,6 @@
 > 当前 plan 简化版，`run_ingredient_analysis` 返回 `dict`。后续改为 async generator 模式后，每个节点完成时 yield `ProgressEvent`，调用方实时感知进度。
 
 **Tech Stack:** LangGraph, Pydantic, `invoke_structured` (anthropic), ChromaDB (via `kb/retriever`)
-
 ---
 
 ## 文件结构
@@ -35,13 +35,13 @@ server/
 │   └── nodes/
 │       ├── __init__.py
 │       ├── output.py                      # Pydantic response models
+
 │       ├── retrieve_evidence_node.py       # 调用 kb/retriever.search()
 │       ├── analyze_node.py                # 调用 invoke_structured
 │       └── compose_output_node.py          # 调用 invoke_structured
 ├── api/ingredients/
 │   ├── router.py                          # 修改：追加 analyze endpoint
-│   └── service.py                         # 修改：追加 analyze 相关服务
-└── tests/
+│   └── service.py                         # 修改：追加 analyze 相关服务└── tests/
     └── workflow_ingredient_analysis/
         ├── __init__.py
         └── test_workflow.py               # 集成测试
@@ -68,8 +68,8 @@ POST /api/ingredients/{ingredient_id}/analyze
 }
 ```
 
-**API 层编排逻辑（BackgroundTask）：**
 
+**API 层编排逻辑（BackgroundTask）：**
 ```python
 async def trigger_analysis(ingredient_id):
     # 1. 查配料数据
@@ -150,6 +150,27 @@ class ProgressEvent(BaseModel):
     error: str | None = None               # 失败时的错误信息
 ```
 
+### 写入分析结果（内部 API，供 background task 调用）
+
+```
+POST /api/ingredient-analyses/{ingredient_id}
+```
+
+**Request:**
+```json
+{
+  "ai_model": "claude-opus-4-6",
+  "level": "t2",
+  "safety_info": "...",
+  "alternatives": [...],
+  "confidence_score": 0.85,
+  "evidence_refs": [...],
+  "decision_trace": {...}
+}
+```
+
+**Response:** `201 Created`
+
 ---
 
 ## Task 1: 创建 workflow_ingredient_analysis 基础结构
@@ -174,8 +195,8 @@ __all__ = ["run_ingredient_analysis"]
 """Workflow state and types for ingredient_analysis."""
 from __future__ import annotations
 
-from typing import Literal, TypedDict
 
+from typing import Literal, TypedDict
 
 class WorkflowState(TypedDict):
     """ingredient_analyses workflow state — flows through all 3 nodes."""
@@ -306,8 +327,8 @@ git commit -m "feat(ingredient_analysis): add Pydantic output models"
 
 ---
 
-## Task 3: 实现 `retrieve_evidence_node`
 
+## Task 3: 实现 `retrieve_evidence_node`
 **Files:**
 - Create: `server/workflow_ingredient_analysis/nodes/retrieve_evidence_node.py`
 
@@ -866,7 +887,11 @@ git commit -m "feat(ingredient_analysis): implement compose_output_node"
 
 ---
 
+
 ## Task 6: 编译 LangGraph 并导出 entry 函数
+**entry.py 负责：**
+1. 调用 workflow
+2. workflow 结束后，通过 API 写入分析结果（调用 `POST /api/ingredient-analyses/{ingredient_id}`）
 
 **Files:**
 - Create: `server/workflow_ingredient_analysis/graph.py`
@@ -935,8 +960,8 @@ ingredient_analysis_graph = _build_graph()
 from __future__ import annotations
 
 import uuid
-import time as time_module
-import structlog
+
+import time as time_moduleimport structlog
 from opentelemetry import trace
 
 from observability.metrics import (
@@ -952,16 +977,17 @@ _logger = structlog.get_logger(__name__)
 
 
 async def run_ingredient_analysis(
-    ingredient: dict,
-    task_id: str,
+
+    ingredient: dict,    task_id: str,
+    repo: Any,  # IngredientRepository — 持有 AsyncSession
     ai_model: str = "unknown",
 ) -> dict:
     """
     执行 ingredient_analyses workflow（纯计算层）。
 
+
     Workflow 本身不调用任何 API、不操作数据库。
     编排逻辑（查配料 → 调用 workflow → 写结果）由调用方负责。
-
     Returns:
         dict，含 keys: status, ingredient_id, task_id, errors, analysis_output, composed_output
     """
@@ -1016,6 +1042,14 @@ async def run_ingredient_analysis(
                 duration_ms=round(elapsed * 1000, 2),
             )
 
+            # 通过 API 写入分析结果（不走 DB 直接写入）
+            if final_status == "succeeded":
+                result_data = result_state.get("result_data", {})
+                result_data["ai_model"] = ai_model
+                from api.ingredient_analysis.service import IngredientAnalysisService
+                svc = IngredientAnalysisService(result_data.get("_session"))
+                await svc.create(ingredient_id, result_data)
+
             return {
                 "status": final_status,
                 "ingredient_id": ingredient_id,
@@ -1069,10 +1103,10 @@ git commit -m "feat(ingredient_analysis): compile LangGraph and export entry fun
 
 ---
 
+
 ## Task 7: 创建 `api/ingredient_analysis` 模块
 
 **所有 DB 写操作必须走这里。Workflow 不直接操作数据库。**
-
 **Files:**
 - Create: `server/api/ingredient_analysis/__init__.py`
 - Create: `server/api/ingredient_analysis/models.py`
@@ -1144,8 +1178,8 @@ class IngredientAnalysisService:
 
 ```python
 # server/api/ingredient_analysis/router.py
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+
+from fastapi import APIRouter, Dependsfrom sqlalchemy.ext.asyncio import AsyncSession
 
 from api.ingredient_analysis.models import IngredientAnalysisCreate, IngredientAnalysisResponse
 from api.ingredient_analysis.service import IngredientAnalysisService
@@ -1164,8 +1198,8 @@ async def create_ingredient_analysis(
     body: IngredientAnalysisCreate,
     svc: IngredientAnalysisService = Depends(get_service),
 ):
-    """写入配料分析结果（供调用方在 workflow 结束后调用）。"""
-    return await svc.create(ingredient_id, body.model_dump())
+
+    """写入配料分析结果（供调用方在 workflow 结束后调用）。"""    return await svc.create(ingredient_id, body.model_dump())
 ```
 
 - [ ] **Commit**
@@ -1177,18 +1211,16 @@ git commit -m "feat(ingredient_analysis): add api/ingredient_analysis module for
 
 ---
 
-## Task 8: 添加 API 接口（触发分析 + 编排逻辑）
 
+## Task 8: 添加 API 接口（触发分析 + 编排逻辑）
 **Files:**
 - Modify: `server/api/ingredients/router.py`
 - Modify: `server/api/ingredients/service.py`
-- Modify: `server/api/main.py`（注册 ingredient_analysis router）
 
+- Modify: `server/api/main.py`（注册 ingredient_analysis router）
 ### Router 层
 
 - [ ] **Step 1: Add `POST /{ingredient_id}/analyze` endpoint**
-
-在 `server/api/ingredients/router.py` 中追加：
 
 ```python
 @router.post("/{ingredient_id}/analyze", status_code=202)
@@ -1224,8 +1256,8 @@ async def trigger_analysis(
     ingredient_id: int,
     background_tasks: BackgroundTasks,
 ) -> dict | None:
-    """检查配料存在，返回 task_id，编排 BackgroundTask 执行完整流程。"""
-    ingredient = await self.repo.get_by_id(ingredient_id)
+
+    """检查配料存在，返回 task_id，编排 BackgroundTask 执行完整流程。"""    ingredient = await self.repo.get_by_id(ingredient_id)
     if ingredient is None:
         return None
 
@@ -1234,6 +1266,7 @@ async def trigger_analysis(
     async def _run_workflow():
         from workflow_ingredient_analysis.entry import run_ingredient_analysis
         from database.session import async_session_maker
+
         from api.ingredient_analysis.service import IngredientAnalysisService
 
         # 1. 构造 ingredient dict
@@ -1270,10 +1303,10 @@ async def trigger_analysis(
             async with async_session_maker() as session:
                 svc = IngredientAnalysisService(session)
                 await svc.create(ingredient_id, write_payload)
-
     background_tasks.add_task(_run_workflow)
     return {"task_id": task_id, "ingredient_id": ingredient_id, "status": "queued"}
 ```
+
 
 ### 注册 router
 
@@ -1289,8 +1322,7 @@ app.include_router(ingredient_analysis_router)
 
 ```bash
 git add server/api/ingredients/router.py server/api/ingredients/service.py server/api/main.py
-git commit -m "feat(ingredients): add POST /{id}/analyze endpoint with workflow orchestration"
-```
+git commit -m "feat(ingredients): add POST /{id}/analyze endpoint with workflow orchestration"```
 
 ---
 
@@ -1400,6 +1432,7 @@ pytestmark = pytest.mark.asyncio
 
 async def test_e2e_happy_path():
     """完整流程：有证据 → 全部节点正常执行 → succeeded."""
+
     ingredient = {
         "ingredient_id": 1,
         "name": "焦糖色",
@@ -1432,19 +1465,18 @@ async def test_e2e_happy_path():
                     "final_conclusion": "中等风险",
                 },
             )
-
             with patch("workflow_ingredient_analysis.nodes.compose_output_node.invoke_structured") as mock_compose:
                 mock_compose.return_value = ComposeOutput(
                     safety_info="适量食用安全",
                     alternatives=[],
                 )
 
+
                 result = await run_ingredient_analysis(
                     ingredient=ingredient,
                     task_id="test-task",
                     ai_model="claude-opus-4-6",
                 )
-
     assert result["status"] == "succeeded"
     assert result["ingredient_id"] == 1
     assert result["analysis_output"]["level"] == "t2"
@@ -1501,6 +1533,7 @@ git commit -m "test(ingredient_analysis): add e2e integration tests"
 ## 自检清单
 
 ### 死规定检查
+
 - [x] Workflow 本身不调用任何 API、不操作数据库
 - [x] `run_ingredient_analysis(ingredient, task_id, ai_model)` — 纯计算，输入 dict，返回 dict
 - [x] 所有 DB 写操作通过 `POST /api/ingredient-analyses/{id}`
@@ -1517,7 +1550,6 @@ git commit -m "test(ingredient_analysis): add e2e integration tests"
 - [x] BackgroundTasks 后台执行 — Task 8
 - [x] `api/ingredient_analysis` 模块 — Task 7
 - [x] 可观测性指标 — Task 10
-
 ### 类型一致性检查
 - `WorkflowState` 中 `ingredient: dict` — 由调用方注入，节点直接使用
 - `analyze_node` 输出 `AnalyzeOutput` 的 `level` 字段为 `Literal["t0", "t1", "t2", "t3", "t4", "unknown"]` — 与 ORM `level_enum` 对应
