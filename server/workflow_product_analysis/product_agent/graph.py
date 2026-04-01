@@ -17,7 +17,7 @@ class ProductAgentError(Exception):
     """Raised when any agent node fails."""
 
 
-def build_product_analysis_graph(settings) -> StateGraph:
+def build_product_analysis_graph() -> StateGraph:
     """
     Build the product analysis DAG:
 

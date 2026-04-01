@@ -4,7 +4,6 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Request, UploadFile
-from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.analysis.models import (
@@ -17,7 +16,6 @@ from api.analysis.service import (
     submit_feedback,
 )
 from database.session import get_async_session
-from api.analysis.redis_store import get_redis_client
 
 router = APIRouter()
 
@@ -30,7 +28,6 @@ router = APIRouter()
 )
 async def api_start_analysis(
     background_tasks: BackgroundTasks,
-    redis: Annotated[Redis, Depends(get_redis_client)],
     session: Annotated[AsyncSession, Depends(get_async_session)],
     image: UploadFile = File(...),
     food_id: int | None = Form(default=None),
@@ -48,7 +45,6 @@ async def api_start_analysis(
         image_bytes=image_bytes,
         food_id=food_id,
         background_tasks=background_tasks,
-        redis=redis,
         session=session,
         settings=app_settings,
     )

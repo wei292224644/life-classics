@@ -1,7 +1,7 @@
 """Tests for LangGraph product analysis graph."""
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -12,20 +12,15 @@ from workflow_product_analysis.product_agent.graph import (
 from workflow_product_analysis.product_agent.types import ProductAnalysisState
 
 
-@pytest.fixture
-def mock_settings():
-    return MagicMock()
-
-
-def test_build_graph_returns_compiled(mock_settings):
+def test_build_graph_returns_compiled():
     """build_product_analysis_graph returns a compiled StateGraph."""
-    graph = build_product_analysis_graph(mock_settings)
+    graph = build_product_analysis_graph()
     assert graph is not None
     assert hasattr(graph, "invoke")
 
 
 @pytest.mark.asyncio
-async def test_invoke_returns_all_fields(mock_settings):
+async def test_invoke_returns_all_fields():
     """graph.ainvoke returns all expected fields from final_state."""
     ingredients = [
         {
@@ -46,19 +41,17 @@ async def test_invoke_returns_all_fields(mock_settings):
         references=None,
     )
 
-    graph = build_product_analysis_graph(mock_settings)
-
     with patch(
-        "workflow_product_analysis.product_agent.nodes.demographics_node",
+        "workflow_product_analysis.product_agent.graph.demographics_node",
         new_callable=AsyncMock,
     ) as mock_d, patch(
-        "workflow_product_analysis.product_agent.nodes.scenarios_node",
+        "workflow_product_analysis.product_agent.graph.scenarios_node",
         new_callable=AsyncMock,
     ) as mock_s, patch(
-        "workflow_product_analysis.product_agent.nodes.advice_node",
+        "workflow_product_analysis.product_agent.graph.advice_node",
         new_callable=AsyncMock,
     ) as mock_a, patch(
-        "workflow_product_analysis.product_agent.nodes.verdict_node",
+        "workflow_product_analysis.product_agent.graph.verdict_node",
         new_callable=AsyncMock,
     ) as mock_v:
 
@@ -71,6 +64,7 @@ async def test_invoke_returns_all_fields(mock_settings):
             "references": [],
         }
 
+        graph = build_product_analysis_graph()
         result = await graph.ainvoke(initial_state)
 
         assert "demographics" in result

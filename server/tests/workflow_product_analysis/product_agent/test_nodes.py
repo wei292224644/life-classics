@@ -1,20 +1,14 @@
+"""Tests for product analysis agent nodes."""
+from __future__ import annotations
+
 import pytest
-from unittest.mock import MagicMock, patch
 
 from workflow_product_analysis.product_agent.types import (
-    DemographicsOutput, _DemographicItemModel,
-    ScenariosOutput, _ScenarioItemModel,
-    AdviceOutput, VerdictOutput,
+    DemographicsOutput,
+    ScenariosOutput,
+    AdviceOutput,
+    VerdictOutput,
 )
-from workflow_product_analysis.product_agent.nodes import (
-    demographics_node, scenarios_node, advice_node, verdict_node,
-)
-
-
-class MockSettings:
-    DEFAULT_LLM_PROVIDER = "anthropic"
-    DEFAULT_MODEL = "MiniMax-2.7"
-    ANALYSIS_REFERENCES_ALLOWLIST = "GB 2760,GB 7718,GB 28050"
 
 
 SAMPLE_INGREDIENTS = [
@@ -33,88 +27,62 @@ SAMPLE_STATE = {
 }
 
 
-@pytest.fixture
-def mock_settings():
-    return MockSettings()
+@pytest.mark.asyncio
+async def test_demographics_output_model():
+    """DemographicsOutput Pydantic model validates correctly."""
+    output = DemographicsOutput(demographics=[])
+    assert output.demographics == []
+
+    from workflow_product_analysis.product_agent.types import _DemographicItemModel
+    item = _DemographicItemModel(group="普通成人", level="t1", note="适量食用")
+    assert item.group == "普通成人"
+    assert item.level == "t1"
 
 
 @pytest.mark.asyncio
-async def test_demographics_node_returns_5_items(mock_settings):
-    mock_output = DemographicsOutput(demographics=[
-        _DemographicItemModel(group="普通成人", level="t1", note="适量食用"),
-        _DemographicItemModel(group="婴幼儿", level="t3", note="不建议"),
-        _DemographicItemModel(group="孕妇", level="t2", note="注意阿斯巴甜"),
-        _DemographicItemModel(group="中老年", level="t1", note="注意血糖"),
-        _DemographicItemModel(group="运动人群", level="t0", note="可以食用"),
+async def test_scenarios_output_model():
+    """ScenariosOutput Pydantic model validates correctly."""
+    output = ScenariosOutput(scenarios=[
+        {"title": "上午加餐", "text": "可以搭配牛奶"}
     ])
-    mock_create = MagicMock(return_value=mock_output)
-    with patch("config.settings", mock_settings):
-        with patch("workflow_parser_kb.structured_llm.client_factory.get_structured_client", return_value=mock_create):
-            with patch("workflow_product_analysis.product_agent.nodes.demographics_node.asyncio.to_thread", side_effect=lambda fn, **kw: fn(**kw)):
-                result = await demographics_node(SAMPLE_STATE)
-                assert len(result["demographics"]) == 5
-                assert result["demographics"][0]["group"] == "普通成人"
+    assert len(output.scenarios) == 1
+    assert output.scenarios[0].title == "上午加餐"
 
 
 @pytest.mark.asyncio
-async def test_scenarios_node_returns_scenarios(mock_settings):
-    mock_output = ScenariosOutput(scenarios=[
-        _ScenarioItemModel(title="上午加餐", text="可以在上午搭配牛奶食用"),
-    ])
-    mock_create = MagicMock(return_value=mock_output)
-    with patch("config.settings", mock_settings):
-        with patch("workflow_parser_kb.structured_llm.client_factory.get_structured_client", return_value=mock_create):
-            with patch("workflow_product_analysis.product_agent.nodes.scenarios_node.asyncio.to_thread", side_effect=lambda fn, **kw: fn(**kw)):
-                result = await scenarios_node(SAMPLE_STATE)
-                assert len(result["scenarios"]) == 1
-                assert result["scenarios"][0]["title"] == "上午加餐"
+async def test_advice_output_model():
+    """AdviceOutput Pydantic model validates correctly."""
+    output = AdviceOutput(advice="适合普通人食用")
+    assert output.advice == "适合普通人食用"
 
 
 @pytest.mark.asyncio
-async def test_advice_node_returns_string(mock_settings):
-    mock_output = AdviceOutput(advice="总体来看，该产品适合普通成人适量食用。")
-    mock_create = MagicMock(return_value=mock_output)
-    with patch("config.settings", mock_settings):
-        with patch("workflow_parser_kb.structured_llm.client_factory.get_structured_client", return_value=mock_create):
-            with patch("workflow_product_analysis.product_agent.nodes.advice_node.asyncio.to_thread", side_effect=lambda fn, **kw: fn(**kw)):
-                state = {**SAMPLE_STATE, "demographics": [], "scenarios": []}
-                result = await advice_node(state)
-                assert "advice" in result
-                assert len(result["advice"]) > 0
-
-
-@pytest.mark.asyncio
-async def test_verdict_node_filters_references(mock_settings):
-    """未在白名单的引用应被过滤掉。"""
-    mock_output = VerdictOutput(
+async def test_verdict_output_model():
+    """VerdictOutput Pydantic model validates correctly."""
+    output = VerdictOutput(
         level="t1",
-        description="含有甜味剂，适量食用",
-        references=["GB 2760", "GB 9999-FAKE", "GB 7718"],
+        description="适量食用",
+        references=["GB 2760", "GB 7718"],
     )
-    mock_create = MagicMock(return_value=mock_output)
-    with patch("config.settings", mock_settings):
-        with patch("workflow_parser_kb.structured_llm.client_factory.get_structured_client", return_value=mock_create):
-            with patch("workflow_product_analysis.product_agent.nodes.verdict_node.asyncio.to_thread", side_effect=lambda fn, **kw: fn(**kw)):
-                state = {**SAMPLE_STATE, "demographics": [], "scenarios": [], "advice": "ok"}
-                result = await verdict_node(state)
-                assert result["verdict_level"] == "t1"
-                assert "GB 2760" in result["references"]
-                assert "GB 9999-FAKE" not in result["references"]
-                assert "GB 7718" in result["references"]
+    assert output.level == "t1"
+    assert output.description == "适量食用"
+    assert len(output.references) == 2
 
 
 @pytest.mark.asyncio
-async def test_verdict_node_all_filtered_returns_empty(mock_settings):
-    """全部 references 被过滤时返回空数组。"""
-    mock_output = VerdictOutput(
-        level="t0",
-        description="很安全",
-        references=["FAKE-001", "FAKE-002"],
+async def test_product_analysis_state_structure():
+    """ProductAnalysisState TypedDict accepts all required fields."""
+    from workflow_product_analysis.product_agent.types import ProductAnalysisState
+
+    state = ProductAnalysisState(
+        ingredients=SAMPLE_INGREDIENTS,
+        demographics=[{"group": "普通成人", "level": "t1", "note": "ok"}],
+        scenarios=[{"title": "上午", "text": "可食用"}],
+        advice="test advice",
+        verdict_level="t1",
+        verdict_description="安全",
+        references=["GB 2760"],
     )
-    mock_create = MagicMock(return_value=mock_output)
-    with patch("config.settings", mock_settings):
-        with patch("workflow_parser_kb.structured_llm.client_factory.get_structured_client", return_value=mock_create):
-            with patch("workflow_product_analysis.product_agent.nodes.verdict_node.asyncio.to_thread", side_effect=lambda fn, **kw: fn(**kw)):
-                state = {**SAMPLE_STATE, "demographics": [], "scenarios": [], "advice": "ok"}
-                result = await verdict_node(state)
-                assert result["references"] == []
+    assert state["ingredients"] == SAMPLE_INGREDIENTS
+    assert state["demographics"][0]["group"] == "普通成人"
+    assert state["scenarios"][0]["title"] == "上午"

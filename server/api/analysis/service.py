@@ -24,9 +24,6 @@ from workflow_product_analysis.product_agent.graph import (
 from workflow_product_analysis.product_agent.types import ProductAnalysisState
 from workflow_product_analysis.types import IngredientInput
 
-if TYPE_CHECKING:
-    import redis.asyncio as redis
-
 
 class AnalysisError(Exception):
     """通用分析错误（不区分具体类型，供 router 捕获转换为 HTTP 状态码）。"""
@@ -37,6 +34,7 @@ class AnalysisError(Exception):
 
 
 class TaskNotFoundError(Exception):
+    """保留供后续 SSE 端点使用。"""
     pass
 
 
@@ -44,7 +42,6 @@ async def start_analysis(
     image_bytes: bytes,
     food_id: int | None,
     background_tasks: BackgroundTasks,
-    redis: "redis.Redis",
     session: AsyncSession,
     settings: Settings,
 ) -> str:
@@ -58,7 +55,6 @@ async def start_analysis(
         task_id=task_id,
         image_bytes=image_bytes,
         explicit_food_id=food_id,
-        redis=redis,
         session=session,
         settings=settings,
     )
@@ -69,7 +65,6 @@ async def run_analysis_in_background(
     task_id: str,
     image_bytes: bytes,
     explicit_food_id: int | None,
-    redis: "redis.Redis",
     session: AsyncSession,
     settings: Settings,
 ) -> None:
@@ -164,7 +159,7 @@ async def run_analysis_sync(
 
     # ⑦ Agent 分析
     try:
-        graph = build_product_analysis_graph(settings)
+        graph = build_product_analysis_graph()
         initial_state = ProductAnalysisState(
             ingredients=ingredient_inputs,
             demographics=None,
