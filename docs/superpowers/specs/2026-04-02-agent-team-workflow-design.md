@@ -265,16 +265,48 @@ facilitator 汇总 → summary.md
 
 ---
 
-## Skills 分配
+## Skills 架构
 
-### 人工阶段（执行阶段前，保持现有流程）
+### 设计原则：包装模式
 
-| Skill | 用途 |
-|-------|------|
-| `superpowers:brainstorming` | 产出 spec.md + api-contract.md |
-| `superpowers:writing-plans` | 产出 plan.md |
+上层 skill 定义行为约束，底层 skill 负责执行。以后调整行为只改上层包装，不动底层。
 
-### 执行阶段（agent team）
+```
+agent-workflow:spec   →  包装  superpowers:brainstorming
+agent-workflow:plan   →  包装  superpowers:writing-plans
+```
+
+### 完整 Skill 列表
+
+```
+agent-workflow/
+├── spec.md                ← 人工阶段：包装 brainstorming，规范 spec 输出格式
+├── plan.md                ← 人工阶段：包装 writing-plans，禁止代码实现细节
+├── facilitator.md         ← 执行阶段：主理流程编排逻辑
+└── code-review-rubric.md  ← 执行阶段：reviewer 4 维打分 + few-shot 校准
+```
+
+### 人工阶段 Skills
+
+**`agent-workflow:spec`（包装 `superpowers:brainstorming`）**
+
+在 brainstorming 基础上增加约束：
+- spec.md 必须包含 `## API Contract` 章节（新增/修改接口、跨 workspace 依赖）
+- 格式固定，facilitator 可直接解析
+
+**`agent-workflow:plan`（包装 `superpowers:writing-plans`）**
+
+在 writing-plans 基础上增加约束：
+- 只写到任务边界，禁止包含代码实现细节
+
+| plan.md 应包含 | plan.md 禁止包含 |
+|--------------|----------------|
+| 需要创建哪些模块 | 函数签名 |
+| 任务依赖关系 | 具体实现逻辑 |
+| 验收标准 | 代码片段 |
+| 所属 workspace | 数据库 schema 细节 |
+
+### 执行阶段 Skills
 
 **复用已有 Skill：**
 
@@ -286,12 +318,14 @@ facilitator 汇总 → summary.md
 | `superpowers:using-git-worktrees` | 子任务隔离 |
 | `superpowers:dispatching-parallel-agents` | facilitator（并行子任务）|
 
-**新建 Skill（共 2 个）：**
+**新建 `agent-workflow` Skill：**
 
-| Skill | 用于 | 说明 |
-|-------|------|------|
-| `agent-workflow:facilitator` | facilitator | 主理流程编排逻辑 |
-| `agent-workflow:code-review-rubric` | reviewer | 4 维打分流程 + few-shot 校准示例 |
+| Skill | 用于 | 底层依赖 |
+|-------|------|---------|
+| `agent-workflow:spec` | 人工阶段 spec 产出 | `superpowers:brainstorming` |
+| `agent-workflow:plan` | 人工阶段 plan 产出 | `superpowers:writing-plans` |
+| `agent-workflow:facilitator` | facilitator 编排 | 无 |
+| `agent-workflow:code-review-rubric` | reviewer 打分 | `superpowers:requesting-code-review` |
 
 ---
 
@@ -363,10 +397,9 @@ facilitator 汇总 → summary.md
 
 ## 实现路径
 
-1. 编写 `.claude/standards/python.md`、`frontend.md`、`cross-workspace.md`
-2. 定义 7 个 agent 的 `.claude/agents/*.md` 配置文件
-3. 新建 `agent-workflow:facilitator` skill
-4. 新建 `agent-workflow:code-review-rubric` skill（含 few-shot 示例）
-5. 建立 `.agent-workspace/` 目录结构模板
-6. 用一个真实子任务跑通完整流程（验证阶段）
-7. 根据运行结果调整 agent prompt 和 harness 结构
+1. 编写技术规范文档 `.claude/standards/python.md`、`frontend.md`、`cross-workspace.md`
+2. 新建 4 个 `agent-workflow` skill（`spec`、`plan`、`facilitator`、`code-review-rubric`）
+3. 定义 7 个 agent 的 `.claude/agents/*.md` 配置文件
+4. 建立 `.agent-workspace/` 目录结构模板
+5. 用一个真实子任务跑通完整流程（验证阶段）
+6. 根据运行结果调整 agent prompt 和 harness 结构
