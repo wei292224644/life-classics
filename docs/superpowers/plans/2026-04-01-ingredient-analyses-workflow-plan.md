@@ -82,9 +82,8 @@ async def trigger_analysis(ingredient_id):
     # 3. 写分析结果
     if result["status"] == "succeeded":
         await POST /api/ingredient-analyses/{ingredient_id}  # 走写 API
-        await set_task_done(redis, task_id, result)
     else:
-        await set_task_failed(redis, task_id, result["error_code"])
+        pass  # 失败由调用方自行处理（如写入错误日志）
 
     # 4. 返回 task_id
     return {"task_id": task_id, "status": "queued"}
@@ -534,7 +533,7 @@ from observability.metrics import (
 )
 from workflow_ingredient_analysis.models import WorkflowState
 from workflow_ingredient_analysis.nodes.output import AnalyzeOutput
-from worflow_parser_kb.structured_gateway import invoke_structured
+from workflow_parser_kb.structured_gateway import invoke_structured
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
@@ -625,7 +624,7 @@ async def analyze_node(state: WorkflowState) -> dict:
         prompt = _build_analyze_prompt(ingredient, evidence_context)
 
         try:
-            result = invoke_structured(
+            result = await invoke_structured(
                 node_name="analyze_node",
                 prompt=prompt,
                 response_model=AnalyzeOutput,
@@ -740,7 +739,7 @@ from observability.metrics import (
 )
 from workflow_ingredient_analysis.models import WorkflowState
 from workflow_ingredient_analysis.nodes.output import ComposeOutput
-from worflow_parser_kb.structured_gateway import invoke_structured
+from workflow_parser_kb.structured_gateway import invoke_structured
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
@@ -816,7 +815,7 @@ async def compose_output_node(state: WorkflowState) -> dict:
         prompt = _build_compose_prompt(ingredient, analysis_output, evidence_refs)
 
         try:
-            result = invoke_structured(
+            result = await invoke_structured(
                 node_name="compose_output_node",
                 prompt=prompt,
                 response_model=ComposeOutput,
