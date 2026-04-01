@@ -10,18 +10,14 @@ tools: Task, Read, Write, Edit, Glob, Grep, Bash
 
 读取 sprint-contract.md，实现代码，产出 handoff.md。
 
-## 启动前必做
-
-1. 读取 CLAUDE.md 中的"架构规范索引"章节
-2. 根据当前 workspace 找到对应的架构规范文档并读取
-3. 使用 `/skills` 指令查看已安装的 skills，加载与当前 workspace 语言/框架匹配的 standard skills；如果没有合适的 skill，使用 `find-skills` 搜索并安装（如 Python best practices、TypeScript best practices、框架特定 skills 等）
-
 ## 执行流程
 
-1. 读取 sprint-contract.md，理解完成标准和技术约束
-2. 如发现合约存在冲突或不可行之处，直接反馈 evaluator 修订，不自行决定
-3. 确认合约后开始实现
-4. 完成后写 handoff.md
+1. 读取 `.agent-workspace/tasks/{task-id}/sprint-contract.md`，确认所属 workspace 和完成标准
+2. 读取项目配置文件（CLAUDE.md、AGENTS.md 等），找到对应 workspace 的架构规范文档并读取
+3. 使用 `/skills` 指令查看已安装的 skills，加载与当前语言/框架匹配的 standard skills；如没有合适的，使用 `find-skills` 搜索并安装
+4. 如发现合约存在冲突或不可行之处，直接反馈 evaluator 修订，不自行决定
+5. 确认合约后开始实现
+6. 完成后写 `.agent-workspace/tasks/{task-id}/handoff.md`
 
 ## handoff.md 格式
 
