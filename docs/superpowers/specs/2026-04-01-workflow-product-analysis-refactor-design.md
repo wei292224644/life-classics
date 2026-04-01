@@ -17,9 +17,9 @@
 
 ---
 
-## `workflow_product_analysis/` 重构后内部结构（对齐 worflow_parser_kb 模式）
+## `workflow_product_analysis/` 重构后内部结构（对齐 workflow_parser_kb 模式）
 
-`workflow_product_analysis/` 重构后保持 **LangGraph 组件结构**，与 `worflow_parser_kb/` 一致：
+`workflow_product_analysis/` 重构后保持 **LangGraph 组件结构**，与 `workflow_parser_kb/` 一致：
 
 ```
 workflow_product_analysis/
@@ -161,7 +161,7 @@ class ProductAnalysisResult(TypedDict):
 
 | 文件 | 改动 |
 |------|------|
-| `product_agent/graph.py` | 移除 `session` 依赖；重命名 `run_product_analysis_agent` → `build_product_analysis_graph`，与 `worflow_parser_kb/graph.py` 命名一致 |
+| `product_agent/graph.py` | 移除 `session` 依赖；重命名 `run_product_analysis_agent` → `build_product_analysis_graph`，与 `workflow_parser_kb/graph.py` 命名一致 |
 | `product_agent/nodes/` | 将 `nodes.py` 拆分为 `verdict_node.py`、`demographics_node.py`、`scenarios_node.py`、`advice_node.py`，各节点移除 `session` 依赖 |
 | `types.py` | 保留 `ProductAnalysisState`、`IngredientInput`、`ProductAnalysisResult` 等既有类型，不新增 `AgentOutput` |
 
@@ -293,7 +293,7 @@ start_analysis(image_bytes, food_id, session, settings)
 
 ## 两个 workflow 模块架构对比
 
-| 维度 | `worflow_parser_kb/` | `workflow_product_analysis/`（重构后） |
+| 维度 | `workflow_parser_kb/` | `workflow_product_analysis/`（重构后） |
 |------|----------------------|----------------------------------------|
 | 图结构 | 线性链式（parse→clean→...→merge→END） | 并行→串行（START→demographics+scenarios→advice→verdict→END） |
 | 状态类型 | `WorkflowState`（TypedDict） | `ProductAnalysisState`（TypedDict） |
@@ -313,4 +313,4 @@ start_analysis(image_bytes, food_id, session, settings)
 
 - Redis 进度轮询机制（SSE 等）
 - 图片上传对象存储
-- 其他 workflow 模块（`worflow_parser_kb/` 等）
+- 其他 workflow 模块（`workflow_parser_kb/` 等）

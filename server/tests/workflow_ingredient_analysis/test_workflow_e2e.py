@@ -1,6 +1,6 @@
 """End-to-end integration test for ingredient_analysis workflow."""
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 from workflow_ingredient_analysis.entry import run_ingredient_analysis
 from workflow_ingredient_analysis.models import WorkflowState
 from workflow_ingredient_analysis.nodes.output import AnalyzeOutput, AnalysisDecisionTrace, AnalysisDecisionStep, ComposeOutput, AlternativeItem

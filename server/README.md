@@ -5,7 +5,7 @@
 ## 技术栈
 
 - **Web**：FastAPI、SSE 流式响应  
-- **解析**：LangGraph 流水线、`server/worflow_parser_kb/rules/` 规则与 Anthropic Streaming Tool Use 结构化输出  
+- **解析**：LangGraph 流水线、`server/workflow_parser_kb/rules/` 规则与 Anthropic Streaming Tool Use 结构化输出  
 - **知识库**：ChromaDB（向量）+ SQLite FTS（BM25）+ Reranker  
 - **依赖管理**：**uv**（`pyproject.toml`，勿用 pip 直接装依赖）
 
@@ -50,7 +50,7 @@ uv run pytest tests/core/parser_workflow/test_workflow.py -v
 | 层级 | 路径 | 说明 |
 |------|------|------|
 | API | `api/` | REST：`/api/*`；健康与前端日志等 |
-| 解析流水线 | `worflow_parser_kb/` | LangGraph 图定义、`nodes/`、`rules/`、`structured_llm/` |
+| 解析流水线 | `workflow_parser_kb/` | LangGraph 图定义、`nodes/`、`rules/`、`structured_llm/` |
 | 知识库 | `kb/` | `writer/`（Chroma + FTS）、`retriever/`、嵌入与客户端 |
 | Agent | `agent/` | 对话与工具、`agent/skills/` |
 | LLM 适配 | `llm/` | 各厂商 OpenAI 兼容接口 |
@@ -89,7 +89,7 @@ flowchart TB
 ### 1. 文档入库（上传 → 解析 → 写入）
 
 1. 客户端 **`POST /api/documents`**，上传文件正文（服务端按 **UTF-8** 解码，通常为 **Markdown** 源码）。  
-2. 返回 **SSE** 流，内部调用 `run_parser_workflow_stream`（`worflow_parser_kb/graph.py`）。  
+2. 返回 **SSE** 流，内部调用 `run_parser_workflow_stream`（`workflow_parser_kb/graph.py`）。  
 3. 流水线结束时若产生 `DocumentChunk[]`，则并行写入：  
    - **ChromaDB**（`kb/writer/chroma_writer`）  
    - **SQLite FTS**（`kb/writer/fts_writer`）
@@ -114,15 +114,15 @@ flowchart TB
 
 ## 解析流水线（Parser Workflow）
 
-有向图（`worflow_parser_kb/graph.py`）概览：
+有向图（`workflow_parser_kb/graph.py`）概览：
 
 ```
 Markdown → parse → clean → structure → slice → classify → [escalate] → enrich → transform → merge → DocumentChunk[]
 ```
 
-各节点位于 `worflow_parser_kb/nodes/`（`parse_node`、`clean_node`、`structure_node`、`slice_node`、`classify_node`、`escalate_node`、`enrich_node`、`transform_node`、`merge_node`）。
+各节点位于 `workflow_parser_kb/nodes/`（`parse_node`、`clean_node`、`structure_node`、`slice_node`、`classify_node`、`escalate_node`、`enrich_node`、`transform_node`、`merge_node`）。
 
-### 核心类型（`worflow_parser_kb/models.py`）
+### 核心类型（`workflow_parser_kb/models.py`）
 
 - **`DocumentChunk`**：`chunk_id`、`doc_metadata`、`section_path`、`structure_type`、`semantic_type`、`content`、`raw_content`、`meta`  
 - **`TypedSegment`**：`structure_type`（段落/列表/表/公式/标题等）与 `semantic_type`（metadata、scope、limit 等）双维度  
@@ -196,7 +196,7 @@ Markdown → parse → clean → structure → slice → classify → [escalate]
 | `CHUNK_SOFT_MAX` / `CHUNK_HARD_MAX` / `CHUNK_MIN_SIZE` | 1500 / 3000 / 200 | 分块参数 |
 | `CONFIDENCE_THRESHOLD` | `0.7` | 分类置信度阈值 |
 | `SLICE_HEADING_LEVELS` | `[2,3,4]` | 标题层级 |
-| `RULES_DIR` | `worflow_parser_kb/rules` | 规则目录 |
+| `RULES_DIR` | `workflow_parser_kb/rules` | 规则目录 |
 
 ### 嵌入与 Rerank
 

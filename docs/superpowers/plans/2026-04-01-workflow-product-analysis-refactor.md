@@ -62,7 +62,7 @@ from __future__ import annotations
 
 import asyncio
 
-from worflow_parser_kb.structured_llm.client_factory import get_structured_client
+from workflow_parser_kb.structured_llm.client_factory import get_structured_client
 from workflow_product_analysis.product_agent.types import DemographicsOutput, ProductAnalysisState
 
 
@@ -114,7 +114,7 @@ from __future__ import annotations
 
 import asyncio
 
-from worflow_parser_kb.structured_llm.client_factory import get_structured_client
+from workflow_parser_kb.structured_llm.client_factory import get_structured_client
 from workflow_product_analysis.product_agent.types import ProductAnalysisState, ScenariosOutput
 
 
@@ -161,7 +161,7 @@ from __future__ import annotations
 
 import asyncio
 
-from worflow_parser_kb.structured_llm.client_factory import get_structured_client
+from workflow_parser_kb.structured_llm.client_factory import get_structured_client
 from workflow_product_analysis.product_agent.types import AdviceOutput, ProductAnalysisState
 
 
@@ -216,7 +216,7 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from worflow_parser_kb.structured_llm.client_factory import get_structured_client
+from workflow_parser_kb.structured_llm.client_factory import get_structured_client
 from workflow_product_analysis.product_agent.types import ProductAnalysisState, VerdictOutput
 
 logger = logging.getLogger(__name__)

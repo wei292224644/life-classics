@@ -34,11 +34,11 @@
 | `server/agent/agent.py` | CHAT_MODEL → DEFAULT_MODEL |
 | `server/api/search/service.py` | CHAT_PROVIDER/CHAT_MODEL → 删除 provider，model → DEFAULT_MODEL |
 | `server/kb/embeddings.py` | EMBEDDING_LLM_PROVIDER fallback 逻辑删除 |
-| `server/worflow_parser_kb/structured_gateway.py` | provider 解析 → 直接硬编码 "anthropic" |
-| `server/worflow_parser_kb/nodes/classify_node.py` | CLASSIFY_MODEL / CLASSIFY_MAX_CONCURRENCY |
-| `server/worflow_parser_kb/nodes/structure_node.py` | DOC_TYPE_LLM_MODEL / STRUCTURE_MAX_CONCURRENCY |
-| `server/worflow_parser_kb/nodes/escalate_node.py` | ESCALATE_MODEL / ESCALATE_MAX_CONCURRENCY |
-| `server/worflow_parser_kb/nodes/transform_node.py` | TRANSFORM_MODEL / TRANSFORM_MAX_CONCURRENCY |
+| `server/workflow_parser_kb/structured_gateway.py` | provider 解析 → 直接硬编码 "anthropic" |
+| `server/workflow_parser_kb/nodes/classify_node.py` | CLASSIFY_MODEL / CLASSIFY_MAX_CONCURRENCY |
+| `server/workflow_parser_kb/nodes/structure_node.py` | DOC_TYPE_LLM_MODEL / STRUCTURE_MAX_CONCURRENCY |
+| `server/workflow_parser_kb/nodes/escalate_node.py` | ESCALATE_MODEL / ESCALATE_MAX_CONCURRENCY |
+| `server/workflow_parser_kb/nodes/transform_node.py` | TRANSFORM_MODEL / TRANSFORM_MAX_CONCURRENCY |
 | `server/tests/core/kb/test_embeddings.py` | mock EMBEDDING_LLM_PROVIDER / PARSER_LLM_PROVIDER 相关测试用例调整 |
 | `server/tests/core/parser_workflow/test_llm.py` | 清理已注释掉的 PARSER_LLM_PROVIDER 用例 |
 
@@ -112,10 +112,10 @@ git commit -m "refactor(config): 合并 20+ 项模型/provider/并发配置为 3
 ## Task 2: 更新 Parser workflow 节点引用
 
 **文件:**
-- `server/worflow_parser_kb/nodes/classify_node.py:169,222,251`
-- `server/worflow_parser_kb/nodes/structure_node.py:91,116`
-- `server/worflow_parser_kb/nodes/escalate_node.py:98,114,140`
-- `server/worflow_parser_kb/nodes/transform_node.py:33,148`
+- `server/workflow_parser_kb/nodes/classify_node.py:169,222,251`
+- `server/workflow_parser_kb/nodes/structure_node.py:91,116`
+- `server/workflow_parser_kb/nodes/escalate_node.py:98,114,140`
+- `server/workflow_parser_kb/nodes/transform_node.py:33,148`
 
 - [ ] **Step 1: 更新 classify_node.py**
 
@@ -166,10 +166,10 @@ semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENCY)
 - [ ] **Step 5: 提交**
 
 ```bash
-git add server/worflow_parser_kb/nodes/classify_node.py \
-  server/worflow_parser_kb/nodes/structure_node.py \
-  server/worflow_parser_kb/nodes/escalate_node.py \
-  server/worflow_parser_kb/nodes/transform_node.py
+git add server/workflow_parser_kb/nodes/classify_node.py \
+  server/workflow_parser_kb/nodes/structure_node.py \
+  server/workflow_parser_kb/nodes/escalate_node.py \
+  server/workflow_parser_kb/nodes/transform_node.py
 git commit -m "refactor(parser): 统一 model 和 concurrency 配置引用"
 ```
 
@@ -177,7 +177,7 @@ git commit -m "refactor(parser): 统一 model 和 concurrency 配置引用"
 
 ## Task 3: 更新 structured_gateway.py
 
-**文件:** `server/worflow_parser_kb/structured_gateway.py:58`
+**文件:** `server/workflow_parser_kb/structured_gateway.py:58`
 
 - [ ] **Step 1: 简化 provider 解析**
 
@@ -194,7 +194,7 @@ provider = "anthropic"
 - [ ] **Step 2: 提交**
 
 ```bash
-git add server/worflow_parser_kb/structured_gateway.py
+git add server/workflow_parser_kb/structured_gateway.py
 git commit -m "refactor(structured_gateway): 硬编码 provider 为 anthropic"
 ```
 

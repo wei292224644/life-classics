@@ -1,6 +1,6 @@
 """Tests for analyze_node."""
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import MagicMock, patch
 from workflow_ingredient_analysis.nodes.analyze_node import analyze_node
 from workflow_ingredient_analysis.models import WorkflowState
 from workflow_ingredient_analysis.nodes.output import AnalyzeOutput, AnalysisDecisionTrace, AnalysisDecisionStep
@@ -50,7 +50,7 @@ async def test_analyze_node_success():
     )
     with patch(
         "workflow_ingredient_analysis.nodes.analyze_node.invoke_structured",
-        new_callable=AsyncMock,
+        new_callable=MagicMock,
     ) as mock_invoke:
         mock_invoke.return_value = mock_output
         result = await analyze_node(state)
@@ -84,7 +84,7 @@ async def test_analyze_node_empty_evidence():
     )
     with patch(
         "workflow_ingredient_analysis.nodes.analyze_node.invoke_structured",
-        new_callable=AsyncMock,
+        new_callable=MagicMock,
     ) as mock_invoke:
         mock_invoke.return_value = mock_output
         result = await analyze_node(state)
@@ -119,7 +119,7 @@ async def test_analyze_node_llm_error():
     )
     with patch(
         "workflow_ingredient_analysis.nodes.analyze_node.invoke_structured",
-        new_callable=AsyncMock,
+        new_callable=MagicMock,
     ) as mock_invoke:
         mock_invoke.side_effect = Exception("LLM unavailable")
         result = await analyze_node(state)

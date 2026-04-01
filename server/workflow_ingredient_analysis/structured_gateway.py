@@ -1,3 +1,4 @@
+"""LLM structured output gateway for ingredient_analysis workflow."""
 from __future__ import annotations
 
 from typing import Any, TypeVar
@@ -14,35 +15,11 @@ from llm.anthropic import (
 )
 from llm.anthropic import create_structured as create_anthropic_structured
 from observability.metrics import llm_tokens_total
-from workflow_parser_kb.structured_llm.errors import (
-    JsonOutputParseError,
-    StructuredOutputError,
-)
+from workflow_parser_kb.structured_llm.errors import JsonOutputParseError, StructuredOutputError
 
 _logger = structlog.get_logger(__name__)
 _create_structured_fn = create_anthropic_structured()
 T = TypeVar("T", bound=BaseModel)
-
-# node_name -> (provider_key, model_key)
-
-
-def resolve_provider_for_node(
-    node_provider: str | None, global_provider: str | None
-) -> str:
-    if node_provider:
-        return node_provider
-    if global_provider:
-        return global_provider
-    return "anthropic"
-
-
-def resolve_model_for_node(node_name: str, node_model: str, fallback_model: str) -> str:
-    if node_name == "transform_node" and not node_model:
-        return fallback_model
-    return node_model
-
-
-
 
 
 def invoke_structured(
@@ -62,24 +39,12 @@ def invoke_structured(
     resolved_model = model or settings.DEFAULT_MODEL
 
     if resolved_provider != "anthropic":
-        raise ValueError(
-            f"structured output 仅支持 anthropic，当前 provider={resolved_provider!r}"
-        )
+        raise ValueError(f"structured output 仅支持 anthropic，当前 provider={resolved_provider!r}")
 
-    max_retries = (
-        max_retries
-        if max_retries is not None
-        else settings.PARSER_STRUCTURED_MAX_RETRIES
-    )
-    temperature = (
-        temperature
-        if temperature is not None
-        else settings.PARSER_STRUCTURED_TEMPERATURE
-    )
+    max_retries = max_retries if max_retries is not None else settings.PARSER_STRUCTURED_MAX_RETRIES
+    temperature = temperature if temperature is not None else settings.PARSER_STRUCTURED_TEMPERATURE
     timeout_seconds = (
-        timeout_seconds
-        if timeout_seconds is not None
-        else settings.PARSER_STRUCTURED_TIMEOUT_SECONDS
+        timeout_seconds if timeout_seconds is not None else settings.PARSER_STRUCTURED_TIMEOUT_SECONDS
     )
 
     try:
@@ -95,19 +60,18 @@ def invoke_structured(
         )
         usage = getattr(result, "usage", None)
         if usage:
-            llm_tokens_total.labels(
-                node=node_name, model=resolved_model, type="prompt"
-            ).inc(usage.prompt_tokens or 0)
-            llm_tokens_total.labels(
-                node=node_name, model=resolved_model, type="completion"
-            ).inc(usage.completion_tokens or 0)
+            llm_tokens_total.labels(node=node_name, model=resolved_model, type="prompt").inc(
+                usage.prompt_tokens or 0
+            )
+            llm_tokens_total.labels(node=node_name, model=resolved_model, type="completion").inc(
+                usage.completion_tokens or 0
+            )
         return result
     except AnthropicJsonOutputParseError as e:
-        # usually consumed by retry in create_fn; keep mapping for direct failures
         raise JsonOutputParseError(str(e)) from e
     except AnthropicStructuredOutputError as e:
         _logger.error(
-            "structured_gateway_error",
+            "ingredient_analysis_gateway_error",
             node_name=node_name,
             provider=e.provider,
             model=e.model,

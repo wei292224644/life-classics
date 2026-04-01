@@ -2,8 +2,8 @@
 
 ## 背景
 
-之前已将 `worflow_parser_kb` 中的 LLM 调用逻辑迁移到 `server/llm/`，但保留了部分保守操作：
-- `worflow_parser_kb/llm.py` 中的 `resolve_provider()` 未被使用（死代码）
+之前已将 `workflow_parser_kb` 中的 LLM 调用逻辑迁移到 `server/llm/`，但保留了部分保守操作：
+- `workflow_parser_kb/llm.py` 中的 `resolve_provider()` 未被使用（死代码）
 - `invoker.py` 与 `structured_gateway.py` 逻辑重复
 - `structured_llm/__init__.py` 仅重新导出，无实际作用
 - `client_factory.py` 仍直接调用 Anthropic SDK，未使用 `server/llm/`
@@ -18,7 +18,7 @@ workflow_product_analysis/
        └─ client_factory.get_structured_client() [重构]
             └─ llm.anthropic.create_structured() [server/llm/]
 
-worflow_parser_kb/nodes/
+workflow_parser_kb/nodes/
   └─ classify_node / escalate_node / structure_node / transform_node
        └─ structured_gateway.invoke_structured()
             └─ llm.anthropic.create_structured() [server/llm/]
@@ -33,7 +33,7 @@ errors.py [保留]
 
 | 文件 | 操作 |
 |------|------|
-| `worflow_parser_kb/llm.py` | 删除 - `resolve_provider()` 无任何导入 |
+| `workflow_parser_kb/llm.py` | 删除 - `resolve_provider()` 无任何导入 |
 | `invoker.py` | 删除 - 与 structured_gateway 重复，nodes 不使用 |
 | `structured_llm/__init__.py` | 删除 - 仅重新导出 |
 
@@ -76,8 +76,8 @@ Tests 中对 `structured_llm/__init__.py` 的导入需改为直接导入 `errors
 
 ## 实施步骤
 
-1. 检查 `worflow_parser_kb/llm.py` 确认无任何外部导入
-2. 删除 `worflow_parser_kb/llm.py`
+1. 检查 `workflow_parser_kb/llm.py` 确认无任何外部导入
+2. 删除 `workflow_parser_kb/llm.py`
 3. 删除 `invoker.py`
 4. 删除 `structured_llm/__init__.py`
 5. 重构 `client_factory.py` 使用 `server/llm/`
@@ -86,12 +86,12 @@ Tests 中对 `structured_llm/__init__.py` 的导入需改为直接导入 `errors
 
 ## 风险评估
 
-- **低风险**：`worflow_parser_kb/llm.py` 确认无导入，删除安全
+- **低风险**：`workflow_parser_kb/llm.py` 确认无导入，删除安全
 - **低风险**：`invoker.py` 与 `structured_gateway.py` 重复确认，nodes 不使用
 - **中风险**：`structured_llm/__init__.py` 删除后需更新 tests 导入
 
 ## 验收标准
 
 - `workflow_product_analysis/` 仍正常工作
-- `worflow_parser_kb/nodes/` 仍正常工作
+- `workflow_parser_kb/nodes/` 仍正常工作
 - 所有 tests 通过

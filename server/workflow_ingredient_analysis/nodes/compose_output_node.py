@@ -12,7 +12,7 @@ from observability.metrics import (
 )
 from workflow_ingredient_analysis.models import WorkflowState
 from workflow_ingredient_analysis.nodes.output import ComposeOutput
-from worflow_parser_kb.structured_gateway import invoke_structured
+from workflow_ingredient_analysis.structured_gateway import invoke_structured
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
@@ -98,7 +98,7 @@ async def compose_output_node(state: WorkflowState) -> dict:
         prompt = _build_compose_prompt(ingredient, analysis_output, evidence_refs)
 
         try:
-            result = await invoke_structured(
+            result = invoke_structured(
                 node_name="compose_output_node",
                 prompt=prompt,
                 response_model=ComposeOutput,

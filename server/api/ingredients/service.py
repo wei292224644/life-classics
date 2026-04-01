@@ -104,7 +104,7 @@ class IngredientService:
 
         async def _run_workflow():
             from workflow_ingredient_analysis.entry import run_ingredient_analysis
-            from database.session import async_session_maker
+            from database.session import get_async_session 
             from api.ingredient_analysis.service import IngredientAnalysisService
 
             # 1. 构造 ingredient dict
@@ -137,7 +137,7 @@ class IngredientService:
                     "evidence_refs": result["evidence_refs"] or [],
                     "decision_trace": analysis_output.get("decision_trace", {}),
                 }
-                async with async_session_maker() as session:
+                async with get_async_session() as session:
                     svc = IngredientAnalysisService(session)
                     await svc.create(ingredient_id, write_payload)
 

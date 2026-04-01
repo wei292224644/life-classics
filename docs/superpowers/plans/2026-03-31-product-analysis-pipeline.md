@@ -19,7 +19,7 @@
 ## 全局约定
 
 - 所有异步数据库操作使用 `AsyncSession`（与 `database/session.py` 现有约定一致）
-- 所有 LLM 调用通过 Instructor 做结构化输出，使用 `worflow_parser_kb/structured_llm/` 中已有的 `client_factory` 模式
+- 所有 LLM 调用通过 Instructor 做结构化输出，使用 `workflow_parser_kb/structured_llm/` 中已有的 `client_factory` 模式
 - Redis key 格式：`analysis:{task_id}`，TTL 终态后 3600s
 - 配置项统一在 `config.py` 的 `Settings` 类追加，通过 `.env` 读取
 - 测试优先使用 unit test + mock，只有必要时才做集成测试
@@ -408,7 +408,7 @@ class ParseResult(TypedDict):
     product_name: str | None     # 从 OCR 提取的商品品名，可能为 None
 
 async def parse_ingredients(ocr_text: str, settings: Settings) -> ParseResult
-# 使用已有 structured_llm 模块（worflow_parser_kb/structured_llm/client_factory）
+# 使用已有 structured_llm 模块（workflow_parser_kb/structured_llm/client_factory）
 # 向 LLM 发送 prompt，要求提取配料表成分名（去掉括号内功能说明）和商品品名
 # 用 Instructor 保证结构化输出
 # 若 LLM 返回空成分列表 → raise NoIngredientsFoundError

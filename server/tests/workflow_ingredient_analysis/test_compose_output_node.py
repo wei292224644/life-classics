@@ -1,6 +1,6 @@
 """Tests for compose_output_node."""
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import MagicMock, patch
 from workflow_ingredient_analysis.nodes.compose_output_node import compose_output_node
 from workflow_ingredient_analysis.models import WorkflowState
 from workflow_ingredient_analysis.nodes.output import ComposeOutput, AlternativeItem
@@ -48,7 +48,7 @@ async def test_compose_output_node_success():
     )
     with patch(
         "workflow_ingredient_analysis.nodes.compose_output_node.invoke_structured",
-        new_callable=AsyncMock,
+        new_callable=MagicMock,
     ) as mock_invoke:
         mock_invoke.return_value = mock_output
         result = await compose_output_node(state)
@@ -80,7 +80,7 @@ async def test_compose_output_node_llm_error():
     )
     with patch(
         "workflow_ingredient_analysis.nodes.compose_output_node.invoke_structured",
-        new_callable=AsyncMock,
+        new_callable=MagicMock,
     ) as mock_invoke:
         mock_invoke.side_effect = Exception("LLM unavailable")
         result = await compose_output_node(state)

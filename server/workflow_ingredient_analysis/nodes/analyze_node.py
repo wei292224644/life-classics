@@ -12,7 +12,7 @@ from observability.metrics import (
 )
 from workflow_ingredient_analysis.models import WorkflowState
 from workflow_ingredient_analysis.nodes.output import AnalyzeOutput
-from worflow_parser_kb.structured_gateway import invoke_structured
+from workflow_ingredient_analysis.structured_gateway import invoke_structured
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
@@ -103,7 +103,7 @@ async def analyze_node(state: WorkflowState) -> dict:
         prompt = _build_analyze_prompt(ingredient, evidence_context)
 
         try:
-            result = await invoke_structured(
+            result = invoke_structured(
                 node_name="analyze_node",
                 prompt=prompt,
                 response_model=AnalyzeOutput,
