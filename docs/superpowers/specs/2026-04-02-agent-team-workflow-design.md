@@ -291,8 +291,8 @@ agent-workflow/
 **`agent-workflow:spec`（包装 `superpowers:brainstorming`）**
 
 在 brainstorming 基础上增加约束：
-- spec.md 必须包含 `## API Contract` 章节（新增/修改接口、跨 workspace 依赖）
-- 格式固定，facilitator 可直接解析
+- 输出格式固定，facilitator 可直接解析
+- 章节内容由实际需求决定，不强制特定章节（不限定业务形态）
 
 **`agent-workflow:plan`（包装 `superpowers:writing-plans`）**
 
