@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from kb.clients import get_chroma_client
+from kb.clients import get_chroma_client, KB_COLLECTION_NAME
 from kb.writer import fts_writer
 
 
 def get_collection():
-    return get_chroma_client().get_or_create_collection("knowledge_base")
+    return get_chroma_client().get_or_create_collection(KB_COLLECTION_NAME)
 
 
 class KBService:

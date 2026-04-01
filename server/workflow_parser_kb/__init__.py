@@ -1,5 +1,5 @@
 from workflow_parser_kb.graph import parser_graph, run_parser_workflow
-from workflow_parser_kb.models import DocumentChunk, ParserResult
+from workflow_parser_kb.models import ParserChunk, ParserResult
 
-__all__ = ["parser_graph", "run_parser_workflow", "ParserResult", "DocumentChunk"]
+__all__ = ["parser_graph", "run_parser_workflow", "ParserResult", "ParserChunk"]
 

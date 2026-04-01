@@ -3,7 +3,23 @@ from __future__ import annotations
 import hashlib
 from typing import List, TypedDict
 
-from kb.models import DocumentChunk
+
+class ParserChunk(TypedDict):
+    """
+    Parser 工作流输出的内部 chunk 数据结构。
+
+    该类型是 GB 标准解析流水线各阶段处理的数据格式，
+    不应与知识库的存储格式（kb.models.DocumentChunk）混淆。
+    """
+
+    chunk_id: str
+    doc_metadata: dict
+    section_path: List[str]
+    structure_type: str
+    semantic_type: str
+    content: str
+    raw_content: str
+    meta: dict
 
 
 class RawChunk(TypedDict):
@@ -30,7 +46,7 @@ class ClassifiedChunk(TypedDict):
     has_unknown: bool
 
 class ParserResult(TypedDict):
-    chunks: List[DocumentChunk]
+    chunks: List[ParserChunk]
     doc_metadata: dict
     errors: List[str]
     stats: dict
@@ -43,7 +59,7 @@ class WorkflowState(TypedDict):
     rules_dir: str
     raw_chunks: List[RawChunk]
     classified_chunks: List[ClassifiedChunk]
-    final_chunks: List[DocumentChunk]
+    final_chunks: List[ParserChunk]
     errors: List[str]
 
 

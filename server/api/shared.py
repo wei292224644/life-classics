@@ -1,13 +1,12 @@
-from typing import Generic, TypeVar
+import logging
 
-from pydantic import BaseModel
+from fastapi import HTTPException
 
-T = TypeVar("T")
+logger = logging.getLogger(__name__)
 
 
-class Paginated(BaseModel, Generic[T]):
-    items: list[T]
-    total: int
-    offset: int
-    limit: int
-    has_more: bool
+def safe_http_exception(status_code: int, code: str, message: str, *, exc: Exception | None = None) -> HTTPException:
+    """构造安全的 HTTP 异常，内部错误仅记录日志，不泄露给客户端."""
+    if exc is not None:
+        logger.exception("API error %s [%d]: %s", code, status_code, str(exc))
+    raise HTTPException(status_code=status_code, detail={"code": code, "message": message})

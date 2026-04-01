@@ -1,15 +1,20 @@
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import StreamingResponse
 
-from api.documents.models import DocumentsListResponse, DocumentInfo, UpdateDocumentRequest
+from api.documents.models import DocumentsListResponse, DocumentInfo, UpdateDocumentRequest, DeleteDocumentResponse, ClearDocumentsResponse
 from api.documents.service import DocumentsService
+from api.shared import safe_http_exception
 
 router = APIRouter()
 
 
+def get_documents_service() -> DocumentsService:
+    return DocumentsService()
+
+
 @router.get("", response_model=DocumentsListResponse)
-def list_documents():
-    docs = DocumentsService.get_all_documents()
+async def list_documents(svc: DocumentsService = Depends(get_documents_service)):
+    docs = await svc.get_all_documents()
     return DocumentsListResponse(
         documents=[DocumentInfo(**d) for d in docs],
         total=len(docs),
@@ -19,10 +24,11 @@ def list_documents():
 @router.post("")
 async def upload_document(
     file: UploadFile = File(...),
+    svc: DocumentsService = Depends(get_documents_service),
 ):
     content = await file.read()
     return StreamingResponse(
-        DocumentsService.upload_document_stream(
+        svc.upload_document_stream(
             file_content=content,
             filename=file.filename or "unknown",
         ),
@@ -35,31 +41,34 @@ async def upload_document(
     )
 
 
-@router.delete("/clear")
-def clear_all_documents():
+@router.delete("/clear", response_model=ClearDocumentsResponse)
+async def clear_all_documents(svc: DocumentsService = Depends(get_documents_service)):
     try:
-        return DocumentsService.clear_all()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return await svc.clear_all()
+    except Exception as exc:
+        safe_http_exception(500, "CLEAR_DOCUMENTS_FAILED", "Failed to clear documents", exc=exc)
 
 
-@router.delete("/{doc_id}")
-def delete_document(doc_id: str):
+@router.delete("/{doc_id}", response_model=DeleteDocumentResponse)
+async def delete_document(doc_id: str, svc: DocumentsService = Depends(get_documents_service)):
     try:
-        return DocumentsService.delete_document(doc_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return await svc.delete_document(doc_id)
+    except ValueError as exc:
+        safe_http_exception(404, "DOCUMENT_NOT_FOUND", str(exc), exc=exc)
+    except Exception as exc:
+        safe_http_exception(500, "DELETE_DOCUMENT_FAILED", "Failed to delete document", exc=exc)
 
 
 @router.patch("/{doc_id}", response_model=DocumentInfo)
-def update_document(doc_id: str, body: UpdateDocumentRequest):
+async def update_document(
+    doc_id: str,
+    body: UpdateDocumentRequest,
+    svc: DocumentsService = Depends(get_documents_service),
+):
     try:
-        result = DocumentsService.update_document(
-            doc_id,
-            body.model_dump(exclude_none=True),
-        )
+        result = await svc.update_document(doc_id, body.model_dump(exclude_none=True))
         return DocumentInfo(**result)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except ValueError as exc:
+        safe_http_exception(404, "DOCUMENT_NOT_FOUND", str(exc), exc=exc)
+    except Exception as exc:
+        safe_http_exception(500, "UPDATE_DOCUMENT_FAILED", "Failed to update document", exc=exc)

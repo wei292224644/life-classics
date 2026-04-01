@@ -11,7 +11,7 @@ from observability.metrics import (
     parser_node_duration_seconds,
 )
 from workflow_parser_kb.models import (
-    DocumentChunk,
+    ParserChunk,
     WorkflowState,
     make_chunk_id,
 )
@@ -20,17 +20,17 @@ _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
 
 
-def _chunks_from_same_raw(a: DocumentChunk, b: DocumentChunk) -> bool:
+def _chunks_from_same_raw(a: ParserChunk, b: ParserChunk) -> bool:
     """比较两个 chunk 的 raw_content 是否相同"""
     return a["raw_content"] == b["raw_content"]
 
 
-def _same_classification(a: DocumentChunk, b: DocumentChunk) -> bool:
+def _same_classification(a: ParserChunk, b: ParserChunk) -> bool:
     """比较两个 chunk 的 section_path 和 semantic_type 是否相同"""
     return a["section_path"] == b["section_path"] and a["semantic_type"] == b["semantic_type"]
 
 
-def _merge_two(a: DocumentChunk, b: DocumentChunk) -> DocumentChunk:
+def _merge_two(a: ParserChunk, b: ParserChunk) -> ParserChunk:
     """将两个 chunk 合并为一个"""
     # content / meta.segment_raw_content — \n\n 拼接
     merged_content = f"{a['content']}\n\n{b['content']}"
@@ -49,7 +49,7 @@ def _merge_two(a: DocumentChunk, b: DocumentChunk) -> DocumentChunk:
     merged_chunk_id = make_chunk_id(doc_id, a["section_path"], merged_content)
 
     # section_path / semantic_type / structure_type / doc_metadata — 取第一个 chunk 的值
-    return DocumentChunk(
+    return ParserChunk(
         chunk_id=merged_chunk_id,
         doc_metadata=a["doc_metadata"],
         section_path=a["section_path"],
@@ -85,7 +85,7 @@ def merge_node(state: WorkflowState) -> dict:
             span.set_attribute("workflow_parser_kb.chunk_count.out", chunks_out)
             return {"final_chunks": [], "doc_metadata": state.get("doc_metadata", {})}
 
-        merged: List[DocumentChunk] = []
+        merged: List[ParserChunk] = []
         i = 0
         while i < len(chunks):
             # 从当前 chunk 开始，一直向后合并直到不能合并为止

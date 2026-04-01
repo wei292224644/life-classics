@@ -1,25 +1,32 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from collections.abc import AsyncGenerator
-from typing import Any
+from typing import Any, Callable
 
 from config import settings
-from kb.clients import get_chroma_client
+from kb.clients import get_chroma_client, KB_COLLECTION_NAME
 from kb.writer import chroma_writer, fts_writer
 from workflow_parser_kb.graph import run_parser_workflow_stream
 
 
-def get_collection():
-    return get_chroma_client().get_or_create_collection("knowledge_base")
+def _default_collection_getter():
+    return get_chroma_client().get_or_create_collection(KB_COLLECTION_NAME)
 
 
 class DocumentsService:
+    """Knowledge Base 文档管理，可通过构造参数注入 mock 实现单测。"""
 
-    @staticmethod
-    def get_all_documents() -> list[dict[str, Any]]:
-        result = get_collection().get(include=["metadatas"])
+    def __init__(
+        self,
+        collection_getter: Callable = _default_collection_getter,
+    ):
+        self._get_collection = collection_getter
+
+    def get_all_documents(self) -> list[dict[str, Any]]:
+        result = self._get_collection().get(include=["metadatas"])
         metadatas = result.get("metadatas") or []
 
         doc_map: dict[str, dict] = {}
@@ -37,15 +44,25 @@ class DocumentsService:
 
         return sorted(doc_map.values(), key=lambda d: d["doc_id"])
 
-    @staticmethod
-    def delete_document(doc_id: str) -> dict[str, Any]:
-        get_collection().delete(where={"doc_id": {"$eq": doc_id}})
+    def delete_document(self, doc_id: str) -> dict[str, Any]:
+        result = self._get_collection().get(where={"doc_id": {"$eq": doc_id}}, include=["metadatas"])
+        ids = result.get("ids") or []
+        if not ids:
+            raise ValueError(f"Document '{doc_id}' not found")
+        self._get_collection().delete(where={"doc_id": {"$eq": doc_id}})
         errors: list[str] = []
         fts_writer.delete_by_doc_id(doc_id, errors)
         return {"doc_id": doc_id, "errors": errors}
 
-    @staticmethod
+    async def create_document(self, chunks: list, doc_metadata: dict) -> None:
+        """将解析后的 chunks 写入知识库（先删旧数据再写入）。"""
+        doc_id = doc_metadata.get("doc_id")
+        await asyncio.to_thread(self.delete_document, doc_id)
+        await chroma_writer.write(chunks, doc_metadata)
+        fts_writer.write(chunks, doc_metadata)
+
     async def upload_document_stream(
+        self,
         file_content: bytes,
         filename: str,
     ) -> AsyncGenerator[str, None]:
@@ -69,8 +86,7 @@ class DocumentsService:
                     chunks = event["chunks"]
                     doc_metadata = event["doc_metadata"]
                     if chunks:
-                        await chroma_writer.write(chunks, doc_metadata)
-                        fts_writer.write(chunks, doc_metadata)
+                        await self.create_document(chunks, doc_metadata)
                     yield f"data: {json.dumps({'type': 'done', 'chunks_count': len(chunks)})}\n\n"
                 else:
                     yield f"data: {json.dumps(event)}\n\n"
@@ -78,14 +94,9 @@ class DocumentsService:
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
-    @staticmethod
-    def update_document(doc_id: str, fields: dict[str, Any]) -> dict[str, Any]:
-        """
-        更新该文档所有 chunks 的指定 metadata 字段。
-        fields: 只包含要更新的键（title / standard_no / doc_type），不传的字段保持原值。
-        Raises ValueError if doc_id not found.
-        """
-        collection = get_collection()
+    def update_document(self, doc_id: str, fields: dict[str, Any]) -> dict[str, Any]:
+        """更新该文档所有 chunks 的指定 metadata 字段。"""
+        collection = self._get_collection()
         result = collection.get(
             where={"doc_id": {"$eq": doc_id}},
             include=["metadatas"],
@@ -115,30 +126,18 @@ class DocumentsService:
             "chunks_count": len(ids),
         }
 
-    @staticmethod
-    def clear_all() -> dict[str, Any]:
-        """
-        清空所有文档和 chunks（ChromaDB + FTS）。
-        Returns:
-            {
-                "status": "success",
-                "deleted_documents": int,
-                "deleted_chunks": int,
-            }
-        """
-        # 获取删除前的统计
-        collection = get_collection()
+    def clear_all(self) -> dict[str, Any]:
+        """清空所有文档和 chunks（ChromaDB + FTS）。"""
+        collection = self._get_collection()
         all_results = collection.get(include=["metadatas"])
         metadatas = all_results.get("metadatas") or []
         doc_ids = {m.get("doc_id") for m in metadatas if m.get("doc_id")}
         total_chunks = len(all_results.get("ids") or [])
 
-        # 清空 ChromaDB（用 ids 批量删除，避免 where={} 不被支持）
         all_ids = all_results.get("ids") or []
         if all_ids:
             collection.delete(ids=all_ids)
 
-        # 清空 FTS
         fts_writer.clear_all()
 
         return {

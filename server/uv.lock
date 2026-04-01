@@ -15,7 +15,9 @@ members = [
     "llm",
     "observability",
     "server",
+    "workflow-ingredient-analysis",
     "workflow-parser-kb",
+    "workflow-product-analysis",
 ]
 
 [[package]]
@@ -1342,14 +1344,10 @@ version = "0.1.0"
 source = { editable = "kb" }
 dependencies = [
     { name = "llm" },
-    { name = "workflow-parser-kb" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "llm", editable = "llm" },
-    { name = "workflow-parser-kb", editable = "workflow_parser_kb" },
-]
+requires-dist = [{ name = "llm", editable = "llm" }]
 
 [[package]]
 name = "kubernetes"
@@ -3465,7 +3463,9 @@ dependencies = [
     { name = "torch" },
     { name = "transformers" },
     { name = "uvicorn", extra = ["standard"] },
+    { name = "workflow-ingredient-analysis" },
     { name = "workflow-parser-kb" },
+    { name = "workflow-product-analysis" },
 ]
 
 [package.dev-dependencies]
@@ -3518,7 +3518,9 @@ requires-dist = [
     { name = "torch", specifier = ">=2.10.0" },
     { name = "transformers", specifier = ">=4.57.6" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.38.0" },
+    { name = "workflow-ingredient-analysis", editable = "workflow_ingredient_analysis" },
     { name = "workflow-parser-kb", editable = "workflow_parser_kb" },
+    { name = "workflow-product-analysis", editable = "workflow_product_analysis" },
 ]
 
 [package.metadata.requires-dev]
@@ -4126,6 +4128,23 @@ wheels = [
 ]
 
 [[package]]
+name = "workflow-ingredient-analysis"
+version = "0.1.0"
+source = { editable = "workflow_ingredient_analysis" }
+dependencies = [
+    { name = "kb" },
+    { name = "llm" },
+    { name = "observability" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "kb", editable = "kb" },
+    { name = "llm", editable = "llm" },
+    { name = "observability", editable = "observability" },
+]
+
+[[package]]
 name = "workflow-parser-kb"
 version = "0.1.0"
 source = { editable = "workflow_parser_kb" }
@@ -4135,6 +4154,11 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [{ name = "llm", editable = "llm" }]
+
+[[package]]
+name = "workflow-product-analysis"
+version = "0.1.0"
+source = { editable = "workflow_product_analysis" }
 
 [[package]]
 name = "wrapt"

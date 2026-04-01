@@ -11,7 +11,7 @@ from opentelemetry import trace
 _tracer = trace.get_tracer(__name__)
 
 from workflow_parser_kb.models import (
-    DocumentChunk,
+    ParserChunk,
     TypedSegment,
     WorkflowState,
     make_chunk_id,
@@ -73,12 +73,12 @@ def apply_strategy(
     segments: List[TypedSegment],
     raw_chunk,
     doc_metadata: dict,
-) -> List[DocumentChunk]:
+) -> List[ParserChunk]:
     """
     当前版本：无论 strategy 为何，都统一通过 LLM 转写为向量化文本。
     未来如果需要区分不同策略，可以在此处分支。
     """
-    results: List[DocumentChunk] = []
+    results: List[ParserChunk] = []
 
     for seg in segments:
         # 纯标题行信息已通过 section_path 携带，不生成独立 chunk
@@ -113,7 +113,7 @@ def apply_strategy(
                 transform_fallback = True
 
         results.append(
-            DocumentChunk(
+            ParserChunk(
                 chunk_id=make_chunk_id(
                     doc_metadata.get("doc_id", ""),
                     raw_chunk["section_path"],
@@ -147,7 +147,7 @@ async def transform_node(state: WorkflowState) -> dict:
 
     semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENCY)
 
-    async def limited_apply(classified: dict) -> list[DocumentChunk] | Exception:
+    async def limited_apply(classified: dict) -> list[ParserChunk] | Exception:
         async with semaphore:
             return await asyncio.to_thread(
                 apply_strategy, classified["segments"], classified["raw_chunk"], state["doc_metadata"]

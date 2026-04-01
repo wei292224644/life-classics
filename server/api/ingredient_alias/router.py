@@ -11,6 +11,7 @@ from api.ingredient_alias.models import (
     AliasResponse,
 )
 from api.ingredient_alias.service import IngredientAliasService
+from api.shared import safe_http_exception
 from database.session import get_async_session
 
 
@@ -33,8 +34,8 @@ async def create_alias(
             alias=req.alias,
             alias_type=req.alias_type,
         )
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as exc:
+        safe_http_exception(404, "INGREDIENT_NOT_FOUND", str(exc), exc=exc)
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Alias already exists")
 

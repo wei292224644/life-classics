@@ -1,19 +1,17 @@
-from enums import RiskLevel
 from api.product.models import (
     ProductIngredient,
-    ProductIngredientAnalysis,
     ProductResponse,
 )
-from db_repositories.food import FoodDetail, FoodRepository, ProductIngredientDetail
+from db_repositories.food import FoodDetail, FoodRepository
 
 
 class ProductService:
     def __init__(self, food_repo: FoodRepository):
         self._food_repo = food_repo
 
-    async def get_product_by_barcode(self, barcode: str) -> ProductResponse:
-        """通过条形码查询产品信息。查不到时由 Router 抛 404。"""
-        detail = await self._food_repo.fetch_by_barcode(barcode)
+    async def get_product_by_id(self, food_id: int) -> ProductResponse:
+        """通过产品 ID 查询产品信息。查不到时由 Router 抛 404。"""
+        detail = await self._food_repo.fetch_by_id(food_id)
         if detail is None:
             raise ValueError("not_found")
         return self._to_product_response(detail)
@@ -37,25 +35,8 @@ class ProductService:
                 }
                 for n in d.nutritions
             ],
-            ingredients=[self._to_product_ingredient(i) for i in d.ingredients],
-            analysis=[
-                {
-                    "analysis_type": a.analysis_type,
-                    "result": a.result,
-                    "source": a.source,
-                    "level": a.level,
-                    "confidence_score": a.confidence_score,
-                }
-                for a in d.analysis
+            ingredients=[
+                ProductIngredient(id=i.id, name=i.name)
+                for i in d.ingredients
             ],
         )
-
-    def _to_product_ingredient(self, i: ProductIngredientDetail) -> ProductIngredient:
-        if i.analysis:
-            return ProductIngredient(
-                id=i.id,
-                name=i.name,
-                level=RiskLevel.from_str(i.analysis.level),
-                reason=i.analysis.reason,
-            )
-        return ProductIngredient(id=i.id, name=i.name, level=RiskLevel.UNKNOWN, reason=None)

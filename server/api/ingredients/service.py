@@ -1,21 +1,17 @@
 import uuid
 
-from api.ingredients.models import IngredientCreate, IngredientUpdate, IngredientPatch
-from api.product.models import (
-    AnalysisResponse,
-    IngredientResponse,
-    RelatedProductSimple,
-)
+from api.ingredients.models import IngredientCreate, IngredientUpdate, IngredientPatch, IngredientResponse
 from config import settings
-from db_repositories.ingredient import IngredientDetail, IngredientRepository
-from enums import RiskLevel
+from db_repositories.ingredient import IngredientRepository
+from db_repositories.ingredient_analysis import IngredientAnalysisRepository
 
 
 class IngredientService:
-    def __init__(self, repo: IngredientRepository):
+    def __init__(self, repo: IngredientRepository, analysis_repo: IngredientAnalysisRepository):
         self._repo = repo
+        self._analysis_repo = analysis_repo
 
-    def _to_response(self, ingredient) -> IngredientResponse:
+    def _to_response(self, ingredient, analyses: list | None = None) -> IngredientResponse:
         return IngredientResponse(
             id=ingredient.id,
             name=ingredient.name,
@@ -34,7 +30,7 @@ class IngredientService:
             applications=ingredient.applications,
             notes=ingredient.notes,
             safety_info=ingredient.safety_info,
-            analyses=[],
+            analyses=analyses or [],
             related_products=[],
         )
 
@@ -47,7 +43,17 @@ class IngredientService:
         ingredient = await self._repo.fetch_by_id(ingredient_id)
         if ingredient is None:
             return None
-        return self._to_response(ingredient)
+        analysis = await self._analysis_repo.get_active_by_ingredient_id(ingredient_id)
+        analyses = []
+        if analysis:
+            analyses = [{
+                "analysis_type": "ingredient_summary",
+                "result": analysis.safety_info or "",
+                "source": analysis.ai_model or "unknown",
+                "level": analysis.level or "unknown",
+                "confidence_score": analysis.confidence_score or 0.0,
+            }]
+        return self._to_response(ingredient, analyses)
 
     async def list_(
         self,
@@ -87,13 +93,6 @@ class IngredientService:
         """软删除，幂等."""
         return await self._repo.soft_delete(ingredient_id)
 
-    async def get_detail_by_id(self, ingredient_id: int) -> IngredientResponse | None:
-        """配料详情（含分析记录与关联产品），用于分析展示."""
-        detail = await self._repo.fetch_detail_by_id(ingredient_id)
-        if detail is None:
-            return None
-        return self._to_detail_response(detail)
-
     async def trigger_analysis(self, ingredient_id: int, background_tasks) -> dict | None:
         """检查配料存在，返回 task_id，编排 BackgroundTask 执行完整流程."""
         ingredient = await self._repo.fetch_by_id(ingredient_id)
@@ -104,7 +103,7 @@ class IngredientService:
 
         async def _run_workflow():
             from workflow_ingredient_analysis.entry import run_ingredient_analysis
-            from database.session import get_async_session_cm 
+            from database.session import get_async_session_cm
             from api.ingredient_analysis.service import IngredientAnalysisService
 
             # 1. 构造 ingredient dict
@@ -143,35 +142,3 @@ class IngredientService:
 
         background_tasks.add_task(_run_workflow)
         return {"task_id": task_id, "ingredient_id": ingredient_id, "status": "queued"}
-
-    def _to_detail_response(self, d: IngredientDetail) -> IngredientResponse:
-        return IngredientResponse(
-            id=d.id,
-            name=d.name,
-            alias=d.alias,
-            description=d.description,
-            is_additive=d.is_additive,
-            additive_code=d.additive_code,
-            standard_code=d.standard_code,
-            who_level=d.who_level,
-            allergen_info=d.allergen_info,
-            function_type=d.function_type,
-            origin_type=d.origin_type,
-            limit_usage=d.limit_usage,
-            legal_region=d.legal_region,
-            cas=d.cas,
-            applications=d.applications,
-            notes=d.notes,
-            safety_info=d.safety_info,
-            analyses=[
-                AnalysisResponse(
-                    analysis_type=a["analysis_type"],
-                    result=a["result"],
-                    source=a.get("source"),
-                    level=RiskLevel.from_str(a["level"]),
-                    confidence_score=a["confidence_score"],
-                )
-                for a in d.analyses
-            ],
-            related_products=[RelatedProductSimple(**p) for p in d.related_products],
-        )

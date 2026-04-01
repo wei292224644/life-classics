@@ -1,10 +1,11 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from typing import Optional
 
-from api.ingredients.models import IngredientCreate, IngredientUpdate, IngredientPatch, IngredientsListResponse
-from api.product.models import IngredientResponse
+from api.ingredients.models import IngredientCreate, IngredientUpdate, IngredientPatch
+from api.ingredients.models import IngredientsListResponse, IngredientResponse
 from database.session import get_async_session
 from db_repositories.ingredient import IngredientRepository
+from db_repositories.ingredient_analysis import IngredientAnalysisRepository
 from api.ingredients.service import IngredientService
 
 
@@ -15,8 +16,15 @@ def get_repo(session=Depends(get_async_session)):
     return IngredientRepository(session)
 
 
-def get_service(repo: IngredientRepository = Depends(get_repo)) -> IngredientService:
-    return IngredientService(repo)
+def get_analysis_repo(session=Depends(get_async_session)):
+    return IngredientAnalysisRepository(session)
+
+
+def get_service(
+    repo: IngredientRepository = Depends(get_repo),
+    analysis_repo: IngredientAnalysisRepository = Depends(get_analysis_repo),
+) -> IngredientService:
+    return IngredientService(repo, analysis_repo)
 
 
 @router.post("", response_model=IngredientResponse, status_code=201)
@@ -38,7 +46,7 @@ async def list_ingredients(
 ):
     """配料列表查询（分页 + 过滤）."""
     items, total = await svc.list_(limit=limit, offset=offset, name=name, is_additive=is_additive)
-    return IngredientsListResponse(items=items, total=total, limit=limit, offset=offset)
+    return IngredientsListResponse(items=items, total=total, limit=limit, offset=offset, has_more=offset + len(items) < total)
 
 
 @router.get("/{ingredient_id}", response_model=IngredientResponse)

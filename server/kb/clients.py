@@ -10,6 +10,8 @@ from config import settings
 _chroma_client: Any = None  # chromadb.api.ClientAPI，PersistentClient 是工厂函数非类
 _neo4j_driver: AsyncDriver | None = None
 
+KB_COLLECTION_NAME = "knowledge_base"
+
 
 def get_chroma_client():
     """返回 ChromaDB PersistentClient 单例（chromadb.api.ClientAPI）。"""

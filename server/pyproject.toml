@@ -29,6 +29,8 @@ dependencies = [
     "agent",
     "llm",
     "observability",
+    "workflow_ingredient_analysis",
+    "workflow_product_analysis",
     "structlog>=25.5.0",
     "opentelemetry-sdk>=1.40.0",
     "opentelemetry-exporter-otlp-proto-http>=1.40.0",
@@ -52,6 +54,8 @@ workflow_parser_kb = { workspace = true }
 agent = { workspace = true }
 llm = { workspace = true }
 observability = { workspace = true }
+workflow_ingredient_analysis = { workspace = true }
+workflow_product_analysis = { workspace = true }
 
 [tool.uv.workspace]
 members = [
@@ -61,6 +65,8 @@ members = [
     "kb",
     "workflow_parser_kb",
     "observability",
+    "workflow_ingredient_analysis",
+    "workflow_product_analysis",
 ]
 
 [tool.pytest.ini_options]

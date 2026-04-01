@@ -11,7 +11,7 @@ from api.ingredient_analysis.models import (
 from api.ingredient_analysis.service import IngredientAnalysisService
 from database.session import get_async_session
 
-router = APIRouter(prefix="/api/ingredient-analyses", tags=["IngredientAnalysis"])
+router = APIRouter(prefix="/ingredient-analyses", tags=["IngredientAnalysis"])
 
 
 def get_service(

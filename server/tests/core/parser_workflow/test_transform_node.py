@@ -12,7 +12,7 @@ from workflow_parser_kb.nodes.transform_node import (
 )
 from workflow_parser_kb.models import (
     ClassifiedChunk,
-    DocumentChunk,
+    ParserChunk,
     RawChunk,
     TypedSegment,
     WorkflowState,
@@ -86,7 +86,7 @@ def test_call_llm_transform_invoke_structured_fails_raises():
 
 
 def test_apply_strategy_returns_document_chunks():
-    """apply_strategy 对每个 segment 调用 LLM 转化并返回 DocumentChunk 列表"""
+    """apply_strategy 对每个 segment 调用 LLM 转化并返回 ParserChunk 列表"""
     raw_chunk: RawChunk = {
         "content": "原始文本",
         "section_path": ["1", "1.1"],
@@ -305,7 +305,7 @@ def test_apply_strategy_llm_failure_falls_back_to_seg_content():
 
 
 def test_apply_strategy_writes_cross_refs_to_meta():
-    """apply_strategy 应将 seg 的 cross_refs 写入 DocumentChunk.meta"""
+    """apply_strategy 应将 seg 的 cross_refs 写入 ParserChunk.meta"""
     raw_chunk: RawChunk = {
         "content": "原始文本",
         "section_path": ["1", "1.1"],

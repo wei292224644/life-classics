@@ -1,22 +1,28 @@
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.chunks.models import ChunksListResponse, ChunkResponse, UpdateChunkRequest
 from api.chunks.service import ChunksService
+from api.shared import safe_http_exception
 
 router = APIRouter()
 
 
+def get_chunks_service() -> ChunksService:
+    return ChunksService()
+
+
 @router.get("", response_model=ChunksListResponse)
-def list_chunks(
+async def list_chunks(
     doc_id: Optional[str] = Query(None),
     semantic_type: Optional[str] = Query(None),
     section_path: Optional[str] = Query(None),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    svc: ChunksService = Depends(get_chunks_service),
 ):
-    chunks, total = ChunksService.get_chunks(
+    chunks, total = await svc.get_chunks(
         doc_id=doc_id,
         semantic_type=semantic_type,
         section_path=section_path,
@@ -28,47 +34,61 @@ def list_chunks(
         total=total,
         limit=limit,
         offset=offset,
+        has_more=offset + len(chunks) < total,
     )
 
 
 @router.get("/{chunk_id}", response_model=ChunkResponse)
-def get_chunk(chunk_id: str):
-    chunk = ChunksService.get_chunk_by_id(chunk_id)
+async def get_chunk(
+    chunk_id: str,
+    svc: ChunksService = Depends(get_chunks_service),
+):
+    chunk = await svc.get_chunk_by_id(chunk_id)
     if chunk is None:
         raise HTTPException(status_code=404, detail="chunk not found")
     return ChunkResponse(**chunk)
 
 
 @router.put("/{chunk_id}", response_model=ChunkResponse)
-async def update_chunk(chunk_id: str, body: UpdateChunkRequest):
+async def update_chunk(
+    chunk_id: str,
+    body: UpdateChunkRequest,
+    svc: ChunksService = Depends(get_chunks_service),
+):
     try:
-        result = await ChunksService.update_chunk(
+        result = await svc.update_chunk(
             chunk_id=chunk_id,
             content=body.content,
             semantic_type=body.semantic_type,
             section_path=body.section_path,
         )
         return ChunkResponse(**result)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except ValueError as exc:
+        safe_http_exception(404, "CHUNK_NOT_FOUND", str(exc), exc=exc)
+    except Exception as exc:
+        safe_http_exception(500, "CHUNK_UPDATE_FAILED", "Failed to update chunk", exc=exc)
 
 
 @router.delete("/{chunk_id}", status_code=204)
-def delete_chunk(chunk_id: str):
+async def delete_chunk(
+    chunk_id: str,
+    svc: ChunksService = Depends(get_chunks_service),
+):
     try:
-        ChunksService.delete_chunk(chunk_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        await svc.delete_chunk(chunk_id)
+    except Exception as exc:
+        safe_http_exception(500, "CHUNK_DELETE_FAILED", "Failed to delete chunk", exc=exc)
 
 
 @router.post("/{chunk_id}/reparse", response_model=ChunkResponse)
-async def reparse_chunk(chunk_id: str):
+async def reparse_chunk(
+    chunk_id: str,
+    svc: ChunksService = Depends(get_chunks_service),
+):
     try:
-        result = await ChunksService.reparse_chunk(chunk_id)
+        result = await svc.reparse_chunk(chunk_id)
         return ChunkResponse(**result)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except ValueError as exc:
+        safe_http_exception(404, "CHUNK_NOT_FOUND", str(exc), exc=exc)
+    except Exception as exc:
+        safe_http_exception(500, "CHUNK_REPARSE_FAILED", "Failed to reparse chunk", exc=exc)

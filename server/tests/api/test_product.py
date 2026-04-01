@@ -1,14 +1,9 @@
-"""测试 GET /api/product 端点（通过 patch service 层）。"""
+"""测试 GET /api/product/{food_id} 端点（通过 mock service 层）。"""
 
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
-from db_repositories.food import (
-    AnalysisSummary,
-    FoodDetail,
-    NutritionDetail,
-    ProductIngredientDetail,
-)
+from db_repositories.food import FoodDetail, NutritionDetail, ProductIngredientDetail
 from api.product.models import ProductResponse
 
 
@@ -37,20 +32,9 @@ MOCK_FOOD = FoodDetail(
         ProductIngredientDetail(
             id=1,
             name="小麦粉",
-            who_level="Unknown",
+            who_level=None,
             function_type=None,
-            allergen_info="含麸质",
-            analysis=None,
-        )
-    ],
-    analysis=[
-        AnalysisSummary(
-            id=1,
-            analysis_type="health_summary",
-            result="普通零食",
-            source="WHO评估报告",
-            confidence_score=85,
-            level="t1",
+            allergen_info=None,
         )
     ],
 )
@@ -61,14 +45,14 @@ MOCK_FOOD = FoodDetail(
 
 @pytest.mark.asyncio
 async def test_product_found_returns_200():
-    """存在的条形码返回 200 和完整数据。"""
+    """存在的产品 ID 返回 200 和完整数据。"""
     from api.product.service import ProductService
 
     mock_repo = AsyncMock()
-    mock_repo.fetch_by_barcode.return_value = MOCK_FOOD
+    mock_repo.fetch_by_id.return_value = MOCK_FOOD
 
     svc = ProductService(mock_repo)
-    result = await svc.get_product_by_barcode("6901234567890")
+    result = await svc.get_product_by_id(1)
 
     assert result.barcode == "6901234567890"
     assert result.name == "测试饼干"
@@ -76,15 +60,15 @@ async def test_product_found_returns_200():
 
 @pytest.mark.asyncio
 async def test_product_not_found_raises_404():
-    """条形码未收录时 service 抛出 ValueError。"""
+    """产品 ID 不存在时 service 抛出 ValueError。"""
     from api.product.service import ProductService
 
     mock_repo = AsyncMock()
-    mock_repo.fetch_by_barcode.return_value = None
+    mock_repo.fetch_by_id.return_value = None
 
     svc = ProductService(mock_repo)
     with pytest.raises(ValueError, match="not_found"):
-        await svc.get_product_by_barcode("0000000000000")
+        await svc.get_product_by_id(999)
 
 
 def test_product_response_contains_nutritions():
@@ -108,19 +92,6 @@ def test_product_response_contains_ingredients():
 
     assert len(response.ingredients) == 1
     assert response.ingredients[0].name == "小麦粉"
-    assert response.ingredients[0].level.value == "unknown"
-    # 精简版不应包含 full ingredient 的字段
-    assert not hasattr(response.ingredients[0], "alias")
-    assert not hasattr(response.ingredients[0], "is_additive")
-
-
-def test_product_response_contains_analysis():
-    """响应中包含 analysis 列表。"""
-    from api.product.service import ProductService
-
-    svc = ProductService(None)
-    response = svc._to_product_response(MOCK_FOOD)
-
-    assert len(response.analysis) == 1
-    assert response.analysis[0].analysis_type == "health_summary"
-    assert response.analysis[0].level == "t1"
+    # 精简版只含 id 和 name
+    assert not hasattr(response.ingredients[0], "who_level")
+    assert not hasattr(response.ingredients[0], "function_type")

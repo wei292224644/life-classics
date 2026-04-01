@@ -22,7 +22,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from database.base import Base
 from database.models import (
     Food, Ingredient, FoodIngredient, NutritionTable,
-    FoodNutritionEntry, AnalysisDetail,
+    FoodNutritionEntry,
     IarcAgent, IarcCancerSite, IarcAgentLink,
     IngredientAnalysis, ProductAnalysis, AnalysisFeedback,
     IngredientAlias,
@@ -108,7 +108,7 @@ async def create_tables() -> None:
         # 导入所有 model 以确保它们被注册到 Base.metadata
         for model in [
             Food, Ingredient, FoodIngredient, NutritionTable,
-            FoodNutritionEntry, AnalysisDetail,
+            FoodNutritionEntry,
             IarcAgent, IarcCancerSite, IarcAgentLink,
             IngredientAnalysis, ProductAnalysis, AnalysisFeedback,
             IngredientAlias,

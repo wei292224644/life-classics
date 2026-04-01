@@ -70,6 +70,7 @@ class IngredientAnalysisRepository:
         )
         self._session.add(new_record)
         await self._session.flush()
+        await self._session.commit()
         return new_record
 
     async def get_history_by_ingredient_id(

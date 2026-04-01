@@ -16,6 +16,7 @@ from llm.ollama import (
     create_chat as create_chat_ollama,
     create_embedding as create_embedding_ollama,
 )
+from llm.anthropic import create_structured
 
 
 def get_llm(provider_name: str, model: str, **kwargs) -> BaseChatModel:
@@ -195,4 +196,5 @@ __all__ = [
     "get_multimodal",
     "chat",
     "chat_stream",
+    "create_structured",
 ]

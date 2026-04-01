@@ -124,7 +124,7 @@ async def run_parser_workflow_stream(
 
     Yields:
         {"type": "stage", "stage": str, "status": "active" | "done"}
-        {"type": "workflow_done", "chunks": list[DocumentChunk]}
+        {"type": "workflow_done", "chunks": list[ParserChunk]}
     """
     start_time = time.perf_counter()
     doc_id = str(uuid.uuid4())

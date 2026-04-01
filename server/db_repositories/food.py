@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from database.models import AnalysisDetail, Food, FoodIngredient, FoodNutritionEntry
+from database.models import Food, FoodIngredient, FoodNutritionEntry
 
 
 @dataclass
@@ -18,29 +18,12 @@ class NutritionDetail:
 
 
 @dataclass
-class ProductIngredientAnalysisDetail:
-    level: str
-    reason: str | None
-
-
-@dataclass
 class ProductIngredientDetail:
     id: int
     name: str
     who_level: str | None
     function_type: str | None
     allergen_info: str | None
-    analysis: "ProductIngredientAnalysisDetail | None"
-
-
-@dataclass
-class AnalysisSummary:
-    id: int
-    analysis_type: str
-    result: str
-    source: str | None
-    level: str
-    confidence_score: int
 
 
 @dataclass
@@ -55,17 +38,16 @@ class FoodDetail:
     image_url_list: list[str]
     nutritions: list[NutritionDetail]
     ingredients: list[ProductIngredientDetail]
-    analysis: list[AnalysisSummary]
 
 
 class FoodRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def fetch_by_barcode(self, barcode: str) -> FoodDetail | None:
+    async def fetch_by_id(self, food_id: int) -> FoodDetail | None:
         result = await self._session.execute(
             select(Food)
-            .where(Food.barcode == barcode)
+            .where(Food.id == food_id, Food.deleted_at.is_(None))
             .options(
                 selectinload(Food.food_ingredients).selectinload(FoodIngredient.ingredient),
                 selectinload(Food.food_nutrition_entries).selectinload(
@@ -77,56 +59,16 @@ class FoodRepository:
         if food is None:
             return None
 
-        # 查询 food 级别的 analysis (target_id == food.id and analysis_target == 'food')
-        analysis_result = await self._session.execute(
-            select(AnalysisDetail).where(
-                AnalysisDetail.target_id == food.id,
-                AnalysisDetail.analysis_target == "food",
-            )
-        )
-        food_analyses = analysis_result.scalars().all()
-
-        # 查询每个 ingredient 的 ingredient_summary analysis
-        ingredient_ids = [fi.ingredient_id for fi in food.food_ingredients]
-        ingredient_analysis_map: dict[int, AnalysisSummary | None] = {}
-        if ingredient_ids:
-            ing_analysis_result = await self._session.execute(
-                select(AnalysisDetail).where(
-                    AnalysisDetail.target_id.in_(ingredient_ids),
-                    AnalysisDetail.analysis_target == "ingredient",
-                    AnalysisDetail.analysis_type == "ingredient_summary",
-                )
-            )
-            for a in ing_analysis_result.scalars().all():
-                if a.target_id is not None:
-                    ingredient_analysis_map[a.target_id] = AnalysisSummary(
-                        id=a.id,
-                        analysis_type=a.analysis_type,
-                        result=a.result,
-                        source=a.source,
-                        level=a.level,
-                        confidence_score=a.confidence_score,
-                    )
-
-        ingredients = []
-        for fi in food.food_ingredients:
-            ing_analysis = ingredient_analysis_map.get(fi.ingredient.id)
-            if ing_analysis:
-                analysis = ProductIngredientAnalysisDetail(
-                    level=ing_analysis.level,
-                    reason=ing_analysis.result,
-                )
-            else:
-                analysis = None
-
-            ingredients.append(ProductIngredientDetail(
+        ingredients = [
+            ProductIngredientDetail(
                 id=fi.ingredient.id,
                 name=fi.ingredient.name,
                 who_level=fi.ingredient.who_level,
                 function_type=fi.ingredient.function_type,
                 allergen_info=fi.ingredient.allergen_info,
-                analysis=analysis,
-            ))
+            )
+            for fi in food.food_ingredients
+        ]
 
         nutritions = [
             NutritionDetail(
@@ -140,18 +82,6 @@ class FoodRepository:
             for fn in food.food_nutrition_entries
         ]
 
-        analysis = [
-            AnalysisSummary(
-                id=a.id,
-                analysis_type=a.analysis_type,
-                result=a.result,
-                source=a.source,
-                level=a.level,
-                confidence_score=a.confidence_score,
-            )
-            for a in food_analyses
-        ]
-
         return FoodDetail(
             id=food.id,
             barcode=food.barcode,
@@ -163,5 +93,4 @@ class FoodRepository:
             image_url_list=food.image_url_list or [],
             nutritions=nutritions,
             ingredients=ingredients,
-            analysis=analysis,
         )

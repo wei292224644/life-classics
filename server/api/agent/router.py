@@ -5,6 +5,7 @@ Agent 路由：/api/agent/chat
 from fastapi import APIRouter, HTTPException
 
 from api.agent.models import AgentRequest, AgentResponse
+from api.shared import safe_http_exception
 from agent.session_store import get_session_store
 
 router = APIRouter()
@@ -36,5 +37,5 @@ async def agent_chat(request: AgentRequest) -> AgentResponse:
 
         content = response.content if hasattr(response, "content") else str(response)
         return AgentResponse(content=content or "", session_id=session_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        safe_http_exception(500, "AGENT_FAILED", "Agent execution failed", exc=exc)

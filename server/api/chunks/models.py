@@ -13,6 +13,7 @@ class ChunksListResponse(BaseModel):
     total: int
     limit: int
     offset: int
+    has_more: bool
 
 
 class UpdateChunkRequest(BaseModel):

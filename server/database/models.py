@@ -348,32 +348,6 @@ class FoodNutritionEntry(Base):
     )
 
 
-# ── 分析详情表（通用分析结果）──────────────────────────────────────────────
-
-
-class AnalysisDetail(Base):
-    __tablename__ = "analysis_details"
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    target_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    analysis_target: Mapped[str] = mapped_column(analysis_target_enum, nullable=False)
-    analysis_type: Mapped[str] = mapped_column(analysis_type_enum, nullable=False)
-    analysis_version: Mapped[str] = mapped_column(analysis_version_enum, nullable=False)
-    ai_model: Mapped[str] = mapped_column(String(255), nullable=False)
-
-    result: Mapped[str] = mapped_column(Text, nullable=False)
-    source: Mapped[str | None] = mapped_column(Text, nullable=True)
-    level: Mapped[str] = mapped_column(level_enum, nullable=False, default="unknown")
-    confidence_score: Mapped[int] = mapped_column(Integer, nullable=False)
-
-    raw_output: Mapped[dict] = mapped_column(JSONB, nullable=False)
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=datetime.utcnow
-    )
-    created_by_user: Mapped[str] = mapped_column(Uuid, nullable=False)
-
-
 # ── IARC 致癌物表 ─────────────────────────────────────────────────────────
 
 
