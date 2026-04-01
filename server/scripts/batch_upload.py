@@ -24,7 +24,7 @@ SOURCE_DIR = Path("/Users/wwj/Desktop/myself/download_test/reorganized")
 API_BASE = "http://localhost:9999"
 CONCURRENCY = 2
 TIMEOUT_PER_FILE = 12000  # 秒
-DELAY_BETWEEN_FILES = 60 * 10  # 秒，每个文件完成后等待
+DELAY_BETWEEN_FILES = 60 * 30  # 秒，每个文件完成后等待
 DELAY_BEFORE_START = 0 # 秒，启动前等待
 
 logging.basicConfig(
