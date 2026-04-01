@@ -31,7 +31,7 @@ tools: Read, Write, Bash
 
 ## 验收方式
 - 测试类型: {单元测试 / 集成测试 / E2E 测试}
-- 测试命令: {如 uv run pytest tests/xxx -v}
+- 测试命令: {项目实际使用的测试命令，如 pytest、npm test、go test 等}
 
 ## 超出范围
 {明确列出不在这个子任务里做的事}
