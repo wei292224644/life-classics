@@ -37,7 +37,7 @@
 
 **为什么这样分：**
 - spec 质量决定执行质量，人机协作产出的 spec 远优于 agent 自己推断的
-- brainstorming/writing-plans 是交互式的，不适合在 agent 内部循环调用
+- 人工阶段 skills 是交互式的，不适合在 agent 内部循环调用
 - agent team 专注于"执行正确"，人工阶段专注于"方向正确"
 
 **因此 architect 角色不再需要**，spec 和 plan 由人工阶段产出。
@@ -118,7 +118,7 @@ facilitator 汇总 → summary.md
 
 ### evaluator（子任务层）
 
-- **职责 1（开始前）：** 读 spec → 起草 `sprint-contract.md`
+- **职责 1（开始前）：** 读 `spec.md` + `subtasks.md` → 起草 `sprint-contract.md`
 - **职责 2（结束后）：** 读 `test-result.md` → 按合约验收，输出 `verdict.md`
 - **工具权限：** Read、Write、Bash（只读测试结果）
 - **边界：** 不写业务代码，不修改测试
@@ -212,7 +212,7 @@ facilitator 汇总 → summary.md
 |------|--------|--------|--------|
 | `spec.md` | 人工阶段 | 所有 agent | 否 |
 | `plan.md` | 人工阶段 | 所有 agent | 否 |
-| `subtasks.md` | decomposer | facilitator | 否 |
+| `subtasks.md` | decomposer | facilitator、evaluator | 否 |
 | `context.md` | context-manager | 所有 agent | 是 |
 | `sprint-contract.md` | evaluator | coder、tester | 否 |
 | `handoff.md` | coder | reviewer、tester | 是（每轮追加）|
@@ -291,7 +291,6 @@ agent-workflow/
 **`agent-workflow:spec`（包装 `superpowers:brainstorming`）**
 
 在 brainstorming 基础上增加约束：
-- 输出格式固定，facilitator 可直接解析
 - 章节内容由实际需求决定，不强制特定章节（不限定业务形态）
 
 **`agent-workflow:plan`（包装 `superpowers:writing-plans`）**
