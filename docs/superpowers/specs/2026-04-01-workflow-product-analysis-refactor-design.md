@@ -58,6 +58,7 @@ demographics  scenarios    （并行）
 API 层调用：
 ```python
 from workflow_product_analysis.product_agent.graph import build_product_analysis_graph
+from workflow_product_analysis.product_agent.types import ProductAnalysisState
 
 graph = build_product_analysis_graph(settings)
 initial_state = ProductAnalysisState(
@@ -70,6 +71,7 @@ initial_state = ProductAnalysisState(
     references=None,
 )
 final_state = await graph.ainvoke(initial_state)
+# final_state 包含: demographics, scenarios, advice, verdict_level, verdict_description, references
 ```
 
 ---
@@ -111,7 +113,7 @@ api/analysis/service.py（编排层）
   ├── 查 ProductAnalysis 缓存
   │     命中 → assemble_from_db_cache() → 直接返回
   │     未命中 → build_product_analysis_graph(settings).ainvoke()
-  │                 → assemble_from_agent_output()
+  │                 → assemble_from_agent_output()  ← 依赖 session 组装最终结果
   │                 → 写 ProductAnalysis 缓存
   └── 返回客户端
 ```
@@ -176,22 +178,24 @@ class ProductAnalysisResult(TypedDict):
 
 | 文件 | 去向 |
 |------|------|
-| `food_resolver.py` | 迁至 `api/analysis/service.py`（或 `api/analysis/food_resolver.py`） |
-| `ingredient_matcher.py` | 迁至 `api/analysis/service.py` |
-| `assembler.py` | 迁至 `api/analysis/service.py` |
-| `pipeline.py` | 删除，或仅保留骨架 |
-| `redis_store.py` | 迁至 `api/analysis/service.py`（或废弃） |
-| `ocr_client.py` | 迁至 `api/analysis/service.py` |
-| `ingredient_parser.py` | 迁至 `api/analysis/service.py` |
+| `food_resolver.py` | 迁至 `api/analysis/food_resolver.py` |
+| `ingredient_matcher.py` | 迁至 `api/analysis/service.py`（或 `ingredient_matcher.py`） |
+| `assembler.py` | 迁至 `api/analysis/assembler.py`；`assemble_from_agent_output` / `assemble_from_db_cache` 依赖 `session` 查 Ingredient / IngredientAnalysis 表 |
+| `pipeline.py` | 删除 |
+| `redis_store.py` | 废弃（移除 Redis 轮询机制，改为同步响应） |
+| `ocr_client.py` | 迁至 `api/analysis/ocr_client.py` |
+| `ingredient_parser.py` | 迁至 `api/analysis/ingredient_parser.py` |
 
 ### 3. API 层新增/修改
 
 | 文件 | 职责 |
 |------|------|
 | `api/analysis/service.py` | 完整编排逻辑（OCR → Parse → Resolve → Match → Agent → Assemble） |
-| `api/analysis/food_resolver.py` | 从 `food_resolver.py` 迁入 |
-| `api/analysis/ocr_client.py` | 从 `ocr_client.py` 迁入 |
-| `api/analysis/ingredient_parser.py` | 从 `ingredient_parser.py` 迁入 |
+| `api/analysis/food_resolver.py` | 从 `workflow_product_analysis/food_resolver.py` 迁入 |
+| `api/analysis/ocr_client.py` | 从 `workflow_product_analysis/ocr_client.py` 迁入 |
+| `api/analysis/ingredient_parser.py` | 从 `workflow_product_analysis/ingredient_parser.py` 迁入 |
+| `api/analysis/assembler.py` | 从 `workflow_product_analysis/assembler.py` 迁入 |
+| `api/analysis/models.py` | 补充 `AgentOutput`、`ProductAnalysisState` 导入 |
 | `api/analysis/models.py` | 补充 `AgentOutput` 导入（从 workflow 导入） |
 
 ---
@@ -206,13 +210,28 @@ start_analysis(image_bytes, food_id, session, settings)
   ③ food_id = await resolve_food_id(product_name=parse_result.product_name,
                                      explicit_food_id=food_id, ...)
   ④ match_result = await match_ingredients(parse_result.ingredients, session)
-  ⑤ ingredient_inputs = await build_ingredient_inputs(match_result, session)
+      # 返回: {matched: [MatchedIngredient], unmatched: [str]}
+  ⑤ ingredient_inputs = []
+      # 对每条 matched 记录：查 Ingredient 表（category）+ IngredientAnalysis 表（level、safety_info）
+      for m in match_result.matched:
+          details = await fetch_ingredient_details(m.ingredient_id, session)
+          ingredient_inputs.append(IngredientInput(
+              ingredient_id=m.ingredient_id, name=m.name,
+              category=details.category, level=details.level,
+              safety_info=details.safety_info,
+          ))
+      # unmatched 成分：ingredient_id=0, level="unknown", safety_info=""
+      for name in match_result.unmatched:
+          ingredient_inputs.append(IngredientInput(ingredient_id=0, name=name,
+                             category="", level="unknown", safety_info=""))
   │
   ⑥ 查 ProductAnalysis 缓存（按 food_id）
   │     命中 → return assemble_from_db_cache(product_analysis, matched_ids, session)
   │     未命中 →
-  ⑦ agent_output = await run_agent_analysis(ingredient_inputs, settings)
-  ⑧ result = await assemble_from_agent_output(agent_output, matched_ids, session)
+  ⑦ graph = build_product_analysis_graph(settings)
+      final_state = await graph.ainvoke(initial_state)
+      # final_state 含: demographics, scenarios, advice, verdict_level, verdict_description, references
+  ⑧ result = await assemble_from_agent_output(final_state, matched_ids, session)
   ⑨ await product_analysis_repo.insert_if_absent(food_id, data, ...)
  ⑩ return result
 ```
@@ -259,6 +278,7 @@ start_analysis(image_bytes, food_id, session, settings)
 
 - `workflow_product_analysis/` 单元测试：Mock `Settings`，验证 `build_product_analysis_graph(settings).ainvoke(state)` 输入输出
 - 各节点独立测试：给定 `ingredient_inputs`，验证节点返回符合预期的结构
+- `assembler` 测试：Mock `session`，验证 `assemble_from_agent_output` 和 `assemble_from_db_cache` 输出的 `ProductAnalysisResult` 结构正确
 - API 层集成测试：Mock OCR HTTP、Mock DB，验证完整编排流程
 - 不在 workflow 内部 mock 数据库
 
