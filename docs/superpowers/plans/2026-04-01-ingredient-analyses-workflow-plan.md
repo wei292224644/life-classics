@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 实现纯计算层的 `ingredient_analyses` LangGraph workflow——输入配料数据，输出分析结果。**Workflow 本身不调用任何 API、不操作任何数据库**。编排逻辑（查配料 → 调用 workflow → 写结果）由调用方负责。
+**Goal:** 实现纯计算层的 `ingredient_analyses` LangGraph workflow——输入配料数据，通过 async generator 输出进度事件和最终结果。**Workflow 本身不调用任何 API、不操作任何数据库**。编排逻辑（查配料 → 调用 workflow → 写结果）由调用方负责，调用方决定如何处理进度事件（存 Redis / SSE / 忽略）。
 
 **Architecture:** 线性 3 节点 LangGraph workflow（`retrieve_evidence` → `analyze` → `compose_output`），无状态、无依赖。
 
@@ -12,9 +12,12 @@
 调用方：
   1. 通过 API 查询配料数据（GET /api/ingredients/{id}）
   2. 构造 ingredient dict，调用 run_ingredient_analysis(ingredient, task_id, ai_model)
-  3. workflow 返回结果后，调用写 API（POST /api/ingredient-analyses/{id}）写入 DB
-  4. 更新 Redis 任务状态
+  3. 遍历 async generator，每 yield 一次处理进度事件（如更新 Redis / 推送 SSE）
+  4. workflow 结束后，调用写 API（POST /api/ingredient-analyses/{id}）写入 DB
 ```
+
+> **进度事件（待 `workflow_product_analysis` 同步迁移后实现）：**
+> 当前 plan 简化版，`run_ingredient_analysis` 返回 `dict`。后续改为 async generator 模式后，每个节点完成时 yield `ProgressEvent`，调用方实时感知进度。
 
 **Tech Stack:** LangGraph, Pydantic, `invoke_structured` (anthropic), ChromaDB (via `kb/retriever`)
 
@@ -87,13 +90,12 @@ async def trigger_analysis(ingredient_id):
     return {"task_id": task_id, "status": "queued"}
 ```
 
-### 查询状态
+### 状态追踪
 
-```
-GET /api/analysis/{task_id}/status
-```
-
-复用 `workflow_product_analysis/redis_store` 中的 `get_task()`。
+**由调用方自行决定是否用 Redis。** Workflow 只 yield 进度事件，调用方可以：
+- 将事件写入 Redis，前端轮询 `GET /api/analysis/{task_id}/status`
+- 通过 SSE 实时推送事件给前端
+- 完全忽略进度事件
 
 ### 写入分析结果
 
@@ -135,6 +137,15 @@ class WorkflowState(TypedDict):
     status: Literal["running", "succeeded", "failed"]
     error_code: str | None
     errors: list[str]
+
+
+## ProgressEvent 模型
+
+```python
+class ProgressEvent(BaseModel):
+    node: str                              # "retrieve_evidence" | "analyze" | "compose_output"
+    status: Literal["done", "failed"]     # "done"=节点成功完成, "failed"=节点失败
+    error: str | None = None               # 失败时的错误信息
 ```
 
 ---
@@ -950,18 +961,6 @@ async def run_ingredient_analysis(
     Workflow 本身不调用任何 API、不操作数据库。
     编排逻辑（查配料 → 调用 workflow → 写结果）由调用方负责。
 
-    Args:
-        ingredient: 配料数据字典（来自 API 查询结果），必须包含：
-            - ingredient_id: int
-            - name: str
-            - function_type: list[str]
-            - origin_type: str
-            - limit_usage: str
-            - safety_info: str
-            - cas: str
-        task_id: Redis 任务 ID（由调用方生成）
-        ai_model: 使用的 LLM 模型名称
-
     Returns:
         dict，含 keys: status, ingredient_id, task_id, errors, analysis_output, composed_output
     """
@@ -1048,6 +1047,8 @@ async def run_ingredient_analysis(
             "evidence_refs": None,
         }
 ```
+
+> **Note:** `ProgressEvent` 模型待 `workflow_product_analysis` 迁移到 async generator 模式后，再同步更新本 workflow。届时 `run_ingredient_analysis` 改为 `AsyncGenerator[ProgressEvent, dict]` 形式。
 
 - [ ] **Step 3: Update `server/workflow_ingredient_analysis/__init__.py` to re-export**
 
@@ -1201,10 +1202,10 @@ async def trigger_ingredient_analysis(
     编排逻辑：
     1. 查配料数据（GET /api/ingredients/{id}）
     2. 调用 workflow（纯计算）
-    3. 写分析结果（POST /api/ingredient-analyses/{id}）
-    4. 更新 Redis 状态
+    3. 遍历 progress events，可选更新 Redis / SSE
+    4. 写分析结果（POST /api/ingredient-analyses/{id}）
 
-    返回 task_id，状态通过 GET /api/analysis/{task_id}/status 查询。
+    返回 task_id，状态通过 GET /api/analysis/{task_id}/status 查询（若调用方写入了 Redis）。
     """
     result = await svc.trigger_analysis(ingredient_id, background_tasks)
     if result is None:
@@ -1228,7 +1229,6 @@ async def trigger_analysis(
         return None
 
     task_id = str(uuid.uuid4())
-    await set_task_pending(self.redis, task_id, ingredient_id, ttl=_PIPELINE_TTL_SECONDS)
 
     async def _run_workflow():
         from workflow_ingredient_analysis.entry import run_ingredient_analysis
@@ -1247,6 +1247,8 @@ async def trigger_analysis(
         }
 
         # 2. 调用 workflow（纯计算）
+        # 注意：当前 plan 简化版，节点不 yield progress event，
+        # 进度追踪在 workflow_product_analysis 改为 async generator 模式后同步更新
         result = await run_ingredient_analysis(
             ingredient=ingredient_dict,
             task_id=task_id,
@@ -1267,14 +1269,6 @@ async def trigger_analysis(
             async with async_session_maker() as session:
                 svc = IngredientAnalysisService(session)
                 await svc.create(ingredient_id, write_payload)
-            await set_task_done(self.redis, task_id, result, ttl=_PIPELINE_TTL_SECONDS)
-        else:
-            await set_task_failed(
-                self.redis,
-                task_id,
-                result.get("error_code", "unknown"),
-                ttl=_PIPELINE_TTL_SECONDS,
-            )
 
     background_tasks.add_task(_run_workflow)
     return {"task_id": task_id, "ingredient_id": ingredient_id, "status": "queued"}
@@ -1507,9 +1501,10 @@ git commit -m "test(ingredient_analysis): add e2e integration tests"
 
 ### 死规定检查
 - [x] Workflow 本身不调用任何 API、不操作数据库
-- [x] `run_ingredient_analysis(ingredient, task_id, ai_model)` — 纯计算，输入输出都是 dict
+- [x] `run_ingredient_analysis(ingredient, task_id, ai_model)` — 纯计算，输入 dict，返回 dict
 - [x] 所有 DB 写操作通过 `POST /api/ingredient-analyses/{id}`
-- [x] API 层负责编排完整流程（查配料 → workflow → 写结果 → 更新 Redis）
+- [x] API 层负责编排完整流程（查配料 → workflow → 写结果）
+- [x] 进度追踪由调用方决定（Redis / SSE / 忽略），Workflow 不依赖任何存储
 
 ### Spec 覆盖检查
 - [x] 3 节点（retrieve_evidence → analyze → compose_output）— Task 3/4/5
@@ -1518,7 +1513,6 @@ git commit -m "test(ingredient_analysis): add e2e integration tests"
 - [x] `ComposeOutput` + `AlternativeItem` — Task 5
 - [x] `version` 字段移除 — Task 9
 - [x] 异步接口 `POST /ingredients/{id}/analyze` — Task 8
-- [x] 复用 `GET /api/analysis/{task_id}/status` — Task 8
 - [x] BackgroundTasks 后台执行 — Task 8
 - [x] `api/ingredient_analysis` 模块 — Task 7
 - [x] 可观测性指标 — Task 10
