@@ -21,7 +21,7 @@ tools: Read, Write, Bash
 {一句话描述这个子任务做什么}
 
 ## 技术约束
-- 所属 workspace: {server / web/console / web/uniapp}
+- 所属 workspace: {当前项目的 workspace 名称，从 CLAUDE.md 或项目结构中确定}
 - 依赖的上游接口: {引用 spec.md 中相关接口描述，无则省略}
 - 不允许修改的文件: {列表，无则填 none}
 

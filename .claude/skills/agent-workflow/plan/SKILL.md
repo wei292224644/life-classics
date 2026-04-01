@@ -23,7 +23,7 @@ spec.md 经用户确认后使用，产出 plan.md 作为 decomposer 的输入。
 plan.md 应包含：
 - 需要创建或修改哪些模块
 - 各子任务的依赖关系
-- 各子任务所属的 workspace（server / web/console / web/uniapp）
+- 各子任务所属的 workspace（从项目结构或 CLAUDE.md 中确定）
 - 每个子任务的验收标准（描述性，不含代码）
 
 plan.md 禁止包含：

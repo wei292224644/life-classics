@@ -18,7 +18,7 @@ tools: Read, Write
 # Subtasks
 
 ## {task-id}: {任务名称}
-- workspace: {server / web/console / web/uniapp}
+- workspace: {当前项目的 workspace 名称，如 server、frontend、mobile 等}
 - 依赖: {依赖的 task-id，无则填 none}
 - 描述: {一句话说明这个子任务做什么}
 - 验收标准: {从 plan.md 中提取的验收标准}
