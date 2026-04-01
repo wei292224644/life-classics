@@ -8,7 +8,6 @@ from workflow_product_analysis.product_agent.nodes import (
     verdict_node,
 )
 from workflow_product_analysis.product_agent.types import ProductAnalysisState
-from workflow_product_analysis.types import IngredientInput
 
 # LangGraph imports
 from langgraph.graph import END, StateGraph, START
@@ -50,48 +49,3 @@ def build_product_analysis_graph(settings) -> StateGraph:
     graph.add_edge("verdict_node", END)
 
     return graph.compile()
-
-
-async def run_product_analysis_agent(
-    ingredients: list[IngredientInput],
-    settings,
-) -> dict:
-    """
-    Invoke the product analysis agent.
-
-    Args:
-        ingredients: List of IngredientInput from the pipeline
-        settings: Application settings (contains LLM model configs)
-
-    Returns:
-        dict with keys: demographics, scenarios, advice,
-                        verdict_level, verdict_description, references
-
-    Raises:
-        ProductAgentError: if any node raises an exception
-    """
-    graph = build_product_analysis_graph(settings)
-
-    initial_state = ProductAnalysisState(
-        ingredients=ingredients,
-        demographics=None,
-        scenarios=None,
-        advice=None,
-        verdict_level=None,
-        verdict_description=None,
-        references=None,
-    )
-
-    try:
-        final_state = await graph.ainvoke(initial_state)
-    except Exception as exc:  # noqa: BLE001
-        raise ProductAgentError(f"Agent failed: {exc}") from exc
-
-    return {
-        "demographics": final_state.get("demographics"),
-        "scenarios": final_state.get("scenarios"),
-        "advice": final_state.get("advice"),
-        "verdict_level": final_state.get("verdict_level"),
-        "verdict_description": final_state.get("verdict_description"),
-        "references": final_state.get("references"),
-    }
