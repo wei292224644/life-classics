@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from typing import Optional
 
 from api.ingredients.models import IngredientCreate, IngredientUpdate, IngredientPatch, IngredientsListResponse
@@ -87,3 +87,25 @@ async def delete_ingredient(
     """软删除配料（幂等）."""
     await svc.delete(ingredient_id)
     return None
+
+
+@router.post("/{ingredient_id}/analyze", status_code=202)
+async def trigger_ingredient_analysis(
+    ingredient_id: int,
+    background_tasks: BackgroundTasks,
+    svc: IngredientService = Depends(get_service),
+):
+    """
+    触发配料分析（异步）。
+
+    编排逻辑：
+    1. 查配料数据
+    2. 调用 workflow（纯计算）
+    3. 写分析结果
+
+    返回 task_id，状态通过 GET /api/analysis/{task_id}/status 查询（若调用方写入了 Redis）。
+    """
+    result = await svc.trigger_analysis(ingredient_id, background_tasks)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Ingredient not found")
+    return result
