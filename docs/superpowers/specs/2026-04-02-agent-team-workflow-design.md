@@ -27,9 +27,9 @@
 整个开发流程分为**人工阶段**和**执行阶段**，agent team 只负责执行阶段。
 
 ```
-人工阶段（现有 superpowers 流程，保持不变）
-  用户 + superpowers:brainstorming  → spec.md（功能规范）
-  用户 + superpowers:writing-plans  → plan.md（实现计划）
+人工阶段
+  用户 + agent-workflow:spec   → spec.md（功能规范）
+  用户 + agent-workflow:plan   → plan.md（实现计划）
         ↓ 用户确认 spec + plan
 执行阶段（agent team 接管）
   facilitator 读 spec.md + plan.md → 开始执行
@@ -94,7 +94,7 @@ facilitator 汇总 → summary.md
 ### 任务粒度
 
 - **主任务**：对应一个完整需求（可跨多个 workspace），作为追踪容器
-- **子任务**：对应单个 workspace 的实现单元，是 7 角色流程的最小执行单位
+- **子任务**：对应单个 workspace 的实现单元，子任务 harness 内由 4 个角色执行（evaluator、coder、reviewer、tester）
 - **依赖关系**：如 server 子任务完成后，web 子任务才可并行开始
 
 ---
@@ -232,7 +232,7 @@ facilitator 汇总 → summary.md
 
 ## 技术约束
 - 所属 workspace: {server / web/console / web/uniapp}
-- 依赖的上游接口: {引用 spec.md 中相关接口描述}
+- 依赖的上游接口: {引用 spec.md 中相关接口描述，无则省略}
 - 不允许修改的文件: {列表}
 
 ## 完成标准（可测试）
@@ -324,7 +324,7 @@ agent-workflow/
 |-------|------|---------|
 | `agent-workflow:spec` | 人工阶段 spec 产出 | `superpowers:brainstorming` |
 | `agent-workflow:plan` | 人工阶段 plan 产出 | `superpowers:writing-plans` |
-| `agent-workflow:facilitator` | facilitator 编排 | 无 |
+| `agent-workflow:facilitator` | facilitator 编排 | `superpowers:dispatching-parallel-agents` |
 | `agent-workflow:code-review-rubric` | reviewer 打分 | `superpowers:requesting-code-review` |
 
 ---
