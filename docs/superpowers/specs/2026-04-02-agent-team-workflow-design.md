@@ -116,21 +116,45 @@ facilitator 汇总 → summary.md
 - **工具权限：** All
 - **边界：** 不写测试，不做验收判断
 - **合约冲突：** 发现合约不可行时，直接反馈 evaluator 修订，不自行决定
+- **规范来源：** System prompt（约束性规则）+ 引用 CLAUDE.md
+
+**Coder 硬性规则（写入 system prompt）：**
+1. 只实现 sprint-contract 范围内的代码，禁止额外功能
+2. 不写测试文件
+3. handoff.md 必须如实填写已知问题，不得隐瞒
+4. 遵循 CLAUDE.md 中所有约定（YAGNI、不过度抽象、安全规范等）
 
 ### reviewer（子任务层）
 
-- **职责：** 读 `handoff.md` + 代码 → 写 `review.md`
-- **输出：** 问题列表（按严重程度分级：blocking / major / minor）
+- **职责：** 读 `handoff.md` + 代码 → 按 4 维评分 → 写 `review.md`
+- **输出：** 各维度分数 + 问题列表（按 blocking / major / minor 分级）
 - **工具权限：** Read、Glob、Grep、Write
 - **边界：** 只评论，不改代码
-- **复用：** `superpowers:requesting-code-review` skill
+- **Skill：** `agent-workflow:code-review-rubric`（新建）+ `superpowers:requesting-code-review`（基础）
+
+**4 维评分标准（写入 `agent-workflow:code-review-rubric` skill）：**
+
+| 维度 | 含义 | Blocking 阈值 |
+|------|------|--------------|
+| **正确性** | 是否实现了 sprint-contract 的每条完成标准 | < 3 分即 blocking |
+| **安全性** | 有无 OWASP top 10、注入、权限漏洞 | 任何问题即 blocking |
+| **代码质量** | 风格一致性、命名清晰、不过度复杂 | < 3 分为 major |
+| **可维护性** | 边界清晰、不引入隐式耦合、不引入未来负债 | < 3 分为 major |
+
+评分 1-5 分，每个维度必须给出分数 + 具体问题说明。Skill 中包含 few-shot 示例用于校准判断标准。
 
 ### tester（子任务层）
 
 - **职责：** 读 `sprint-contract.md` + 代码 → 写测试 + 执行 → 写 `test-result.md`
 - **工具权限：** Read、Write、Bash
 - **边界：** 只写测试，不改业务代码
-- **复用：** `superpowers:test-driven-development` skill
+- **Skill：** `superpowers:test-driven-development`（复用，无需新建）
+
+**Tester 硬性规则（写入 system prompt）：**
+1. 按 sprint-contract 完成标准**逐条覆盖**，每条对应 happy path + edge case + error case
+2. 集成测试必须打真实数据库，禁止 mock DB
+3. 测试命令必须与 sprint-contract 中指定的一致
+4. 测试文件与被测文件在同一 workspace
 
 ### context-manager（贯穿层）
 
@@ -238,7 +262,12 @@ facilitator 汇总 → summary.md
 | `superpowers:using-git-worktrees` | 子任务隔离 |
 | `superpowers:dispatching-parallel-agents` | facilitator（并行子任务）|
 
-**新建 Skill（仅 1 个）：** `agent-workflow:facilitator` — 主理流程编排逻辑
+**新建 Skill（共 2 个）：**
+
+| Skill | 用于 | 说明 |
+|-------|------|------|
+| `agent-workflow:facilitator` | facilitator | 主理流程编排逻辑 |
+| `agent-workflow:code-review-rubric` | reviewer | 4 维打分流程 + few-shot 校准示例 |
 
 ---
 
