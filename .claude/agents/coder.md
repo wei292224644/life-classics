@@ -14,7 +14,7 @@ tools: Task, Read, Write, Edit, Glob, Grep, Bash
 
 1. 读取 CLAUDE.md 中的"架构规范索引"章节
 2. 根据当前 workspace 找到对应的架构规范文档并读取
-3. 使用 `/skills` 指令查看已安装的 skills，加载与当前 workspace 语言/框架匹配的 standard skills（如 Python best practices、TypeScript best practices、框架特定 skills 等）
+3. 使用 `/skills` 指令查看已安装的 skills，加载与当前 workspace 语言/框架匹配的 standard skills；如果没有合适的 skill，使用 `find-skills` 搜索并安装（如 Python best practices、TypeScript best practices、框架特定 skills 等）
 
 ## 执行流程
 
