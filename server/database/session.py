@@ -4,6 +4,8 @@ SQLAlchemy 异步 Session 工厂与 FastAPI 依赖注入。
 
 from collections.abc import AsyncGenerator
 
+from contextlib import asynccontextmanager
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from config import settings
@@ -28,5 +30,12 @@ _session_factory = async_sessionmaker(_engine, expire_on_commit=False)
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     """FastAPI 依赖注入：提供一次请求作用域的异步 Session。"""
+    async with _session_factory() as session:
+        yield session
+
+
+@asynccontextmanager
+async def get_async_session_cm():
+    """异步上下文管理器版本，用于非 Depends() 场景下的 async with。"""
     async with _session_factory() as session:
         yield session

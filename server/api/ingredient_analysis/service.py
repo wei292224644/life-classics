@@ -1,6 +1,7 @@
 """Service layer for ingredient_analysis API — DB writes only."""
 from __future__ import annotations
 
+from config import settings
 from db_repositories.ingredient_analysis import IngredientAnalysisRepository
 
 
@@ -12,7 +13,7 @@ class IngredientAnalysisService:
         record = await self._repo.insert_new_version(
             ingredient_id=ingredient_id,
             data=data,
-            created_by_user="workflow",
+            created_by_user=settings.SYSTEM_USER_ID,
         )
         return {
             "id": record.id,

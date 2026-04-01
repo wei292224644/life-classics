@@ -38,7 +38,7 @@ async def test_e2e_happy_path():
 
         with patch(
             "workflow_ingredient_analysis.nodes.analyze_node.invoke_structured",
-            new_callable=AsyncMock,
+            new_callable=MagicMock,
         ) as mock_analyze:
             mock_analyze.return_value = AnalyzeOutput(
                 level="t2",
@@ -58,7 +58,7 @@ async def test_e2e_happy_path():
 
             with patch(
                 "workflow_ingredient_analysis.nodes.compose_output_node.invoke_structured",
-                new_callable=AsyncMock,
+                new_callable=MagicMock,
             ) as mock_compose:
                 mock_compose.return_value = ComposeOutput(
                     safety_info="适量食用安全",
@@ -97,7 +97,7 @@ async def test_e2e_no_evidence_skips_analyze():
 
         with patch(
             "workflow_ingredient_analysis.nodes.compose_output_node.invoke_structured",
-            new_callable=AsyncMock,
+            new_callable=MagicMock,
         ) as mock_compose:
             mock_compose.return_value = ComposeOutput(
                 safety_info="无相关证据，请咨询专业人士",
