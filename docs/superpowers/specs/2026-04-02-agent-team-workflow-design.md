@@ -95,7 +95,7 @@ facilitator 汇总 → summary.md
 
 - **主任务**：对应一个完整需求（可跨多个 workspace），作为追踪容器
 - **子任务**：对应单个 workspace 的实现单元，是 7 角色流程的最小执行单位
-- **依赖关系**：如 server 子任务完成（API contract 确认）后，web 子任务才可并行开始
+- **依赖关系**：如 server 子任务完成后，web 子任务才可并行开始
 
 ---
 
@@ -232,7 +232,7 @@ facilitator 汇总 → summary.md
 
 ## 技术约束
 - 所属 workspace: {server / web/console / web/uniapp}
-- 依赖的 API contract: {引用 api-contract.md 相关部分}
+- 依赖的上游接口: {引用 spec.md 中相关接口描述}
 - 不允许修改的文件: {列表}
 
 ## 完成标准（可测试）
@@ -367,7 +367,7 @@ agent-workflow/
 
 ### 阶段一：启动版（当前）
 
-所有 8 个 agent 全部启用，积累数据，观察哪些角色产生真实价值。
+所有 7 个 agent 全部启用，积累数据，观察哪些角色产生真实价值。
 
 ### 阶段二：精简版（3 个月后评估）
 
