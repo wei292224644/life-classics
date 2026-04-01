@@ -74,3 +74,10 @@ out/
 .agent-workspace/context.md
 .agent-workspace/summary.md
 .agent-workspace/tasks/
+
+# Claude Code skills (symlinked to ~/.agents/skills/, not tracked in repo)
+.claude/skills/api-design-principles
+.claude/skills/api-security-best-practices
+.claude/skills/fastapi-python
+.claude/skills/python-best-practices
+.claude/skills/typescript-best-practices
