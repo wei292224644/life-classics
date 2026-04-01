@@ -172,14 +172,14 @@ class ProductAnalysisResult(TypedDict):
 |------|------|
 | `product_agent/graph.py` | 移除 `session` 依赖，只接收 `ingredient_inputs` 和 `settings` |
 | `product_agent/nodes/` | 将 `nodes.py` 拆分为 `verdict_node.py`、`demographics_node.py`、`scenarios_node.py`、`advice_node.py`，各节点移除 `session` 依赖 |
-| `types.py` | 补充 `AgentOutput` 类型定义 |
+| `types.py` | 新增 `AgentOutput` TypedDict 类型；补充 `IngredientRiskLevel` 导出 |
 
 ### 2. `workflow_product_analysis/` 删除/迁出
 
 | 文件 | 去向 |
 |------|------|
 | `food_resolver.py` | 迁至 `api/analysis/food_resolver.py` |
-| `ingredient_matcher.py` | 迁至 `api/analysis/service.py`（或 `ingredient_matcher.py`） |
+| `ingredient_matcher.py` | 迁至 `api/analysis/ingredient_matcher.py` |
 | `assembler.py` | 迁至 `api/analysis/assembler.py`；`assemble_from_agent_output` / `assemble_from_db_cache` 依赖 `session` 查 Ingredient / IngredientAnalysis 表 |
 | `pipeline.py` | 删除 |
 | `redis_store.py` | 废弃（移除 Redis 轮询机制，改为同步响应） |
@@ -196,7 +196,7 @@ class ProductAnalysisResult(TypedDict):
 | `api/analysis/ingredient_parser.py` | 从 `workflow_product_analysis/ingredient_parser.py` 迁入 |
 | `api/analysis/assembler.py` | 从 `workflow_product_analysis/assembler.py` 迁入 |
 | `api/analysis/models.py` | 补充 `AgentOutput`、`ProductAnalysisState` 导入 |
-| `api/analysis/models.py` | 补充 `AgentOutput` 导入（从 workflow 导入） |
+| `api/analysis/ingredient_matcher.py` | 从 `workflow_product_analysis/ingredient_matcher.py` 迁入 |
 
 ---
 
@@ -286,14 +286,13 @@ start_analysis(image_bytes, food_id, session, settings)
 
 ## 实施顺序
 
-1. 新增 `AgentOutput` 类型，修改 `workflow_product_analysis/types.py`
-2. 将 `product_agent/nodes.py` 拆分为独立文件（`verdict_node.py`、`demographics_node.py`、`scenarios_node.py`、`advice_node.py`），移除各节点的 `session` 依赖
-3. 修改 `product_agent/graph.py` — 移除 `session` 依赖，验证 LangGraph 仍可正常编译
-4. 将迁出文件（`food_resolver.py`、`ingredient_matcher.py`、`assembler.py`、`pipeline.py`、`redis_store.py`、`ocr_client.py`、`ingredient_parser.py`）复制到 `api/analysis/`
-5. 在 `api/analysis/service.py` 编写编排逻辑，替换原有 `start_analysis`
-6. 删除 `workflow_product_analysis/` 中的迁出文件
-7. 更新 API router（如有参数签名变化）
-8. 运行测试，修复问题
+1. 新增 `AgentOutput` TypedDict 类型，修改 `workflow_product_analysis/types.py`
+2. **同步进行**：将 `product_agent/nodes.py` 拆分为独立文件（`verdict_node.py`、`demographics_node.py`、`scenarios_node.py`、`advice_node.py`），同时修改 `product_agent/graph.py` 中的节点引用，移除各节点的 `session` 依赖，验证 LangGraph 仍可正常编译
+3. 将迁出文件（`food_resolver.py`、`ingredient_matcher.py`、`assembler.py`、`pipeline.py`、`redis_store.py`、`ocr_client.py`、`ingredient_parser.py`）复制到 `api/analysis/`
+4. 在 `api/analysis/service.py` 编写编排逻辑，替换原有 `start_analysis`
+5. 删除 `workflow_product_analysis/` 中的迁出文件
+6. 更新 API router（如有参数签名变化）
+7. 运行测试，修复问题
 
 ---
 
