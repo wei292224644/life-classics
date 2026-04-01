@@ -38,6 +38,9 @@ server/
 │       ├── retrieve_evidence_node.py       # 调用 kb/retriever.search()
 │       ├── analyze_node.py                # 调用 invoke_structured
 │       └── compose_output_node.py          # 调用 invoke_structured
+├── api/ingredients/
+│   ├── router.py                          # 修改：追加 analyze endpoint
+│   └── service.py                         # 修改：追加 analyze 相关服务
 └── tests/
     └── workflow_ingredient_analysis/
         ├── __init__.py
@@ -210,7 +213,6 @@ __all__ = [
 ```
 
 - [ ] **Commit**
-
 ```bash
 git add server/workflow_ingredient_analysis/
 git commit -m "feat(ingredient_analysis): scaffold workflow directory and models"
