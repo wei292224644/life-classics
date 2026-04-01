@@ -22,6 +22,28 @@
 
 ---
 
+## 两阶段开发模式
+
+整个开发流程分为**人工阶段**和**执行阶段**，agent team 只负责执行阶段。
+
+```
+人工阶段（现有 superpowers 流程，保持不变）
+  用户 + superpowers:brainstorming  → spec.md（功能规范 + API contract）
+  用户 + superpowers:writing-plans  → plan.md（实现计划）
+        ↓ 用户确认 spec + plan
+执行阶段（agent team 接管）
+  facilitator 读 spec.md + plan.md → 开始执行
+```
+
+**为什么这样分：**
+- spec 质量决定执行质量，人机协作产出的 spec 远优于 agent 自己推断的
+- brainstorming/writing-plans 是交互式的，不适合在 agent 内部循环调用
+- agent team 专注于"执行正确"，人工阶段专注于"方向正确"
+
+**因此 architect 角色不再需要**，spec 和 plan 由人工阶段产出。
+
+---
+
 ## 核心设计原则
 
 1. **生成与评估永远分离** — 自我评估有盲区，evaluator 必须独立于 coder
@@ -34,22 +56,22 @@
 
 ## 整体架构
 
-### 三个层级
+### 层级结构（7 个 Agent）
 
 | 层级 | 角色 | 边界 |
 |------|------|------|
 | 主任务层 | facilitator | 全局协调，不写代码，不做技术判断 |
-| 规划层 | architect、decomposer | 只产出文档，不触碰代码 |
+| 规划层 | decomposer | 基于 plan.md 拆子任务，不从零规划 |
 | 子任务层 | coder、reviewer、tester、evaluator | 独立运行，通过文件跨层交接 |
 | 贯穿层 | context-manager | 维护共享上下文，不做决策 |
 
 ### 主流程
 
 ```
-用户需求
+用户提供 spec.md + plan.md
     ↓
 facilitator（最外层 Harness）
-    ├── 调用 architect → spec.md + api-contract.md
+    ├── 读取并确认理解 spec.md + plan.md
     ├── 调用 decomposer → subtasks.md
     │
     └── 按依赖顺序执行每个子任务：
@@ -81,25 +103,18 @@ facilitator 汇总 → summary.md
 
 ### facilitator（主任务层）
 
-- **职责：** 编排全流程，判断跳过哪些角色，处理升级场景
+- **职责：** 读取 spec.md + plan.md，确认理解后编排全流程，处理升级场景
 - **工具权限：** All（但不写业务代码）
 - **边界：** 不写代码，不做技术判断，只做流程决策
 - **升级条件：** reviewer-coder 循环超过 3 轮；evaluator 验收失败超过 2 次
-
-### architect（规划层）
-
-- **职责：** 将用户需求扩展为功能规范和接口契约
-- **输出：** `spec.md`、`api-contract.md`
-- **工具权限：** Read、Glob、Grep、Write
-- **边界：** 只产出文档，禁止写业务代码
-- **可跳过：** 小任务（bug fix）可由 facilitator 判断跳过
+- **入口约定：** 必须先读取并确认 spec.md + plan.md，再调用 decomposer
 
 ### decomposer（规划层）
 
-- **职责：** 将 spec 拆分为子任务列表，标注依赖关系和所属 workspace
+- **职责：** 基于 plan.md 拆分子任务列表，标注依赖关系和所属 workspace
 - **输出：** `subtasks.md`
 - **工具权限：** Read、Write
-- **边界：** 只拆任务，不判断实现细节
+- **边界：** 只拆任务，不判断实现细节，不重新规划已有 plan
 
 ### evaluator（子任务层）
 
@@ -250,14 +265,23 @@ facilitator 汇总 → summary.md
 
 ---
 
-## 复用已有 Skills
+## Skills 分配
 
-| 已有 Skill | 映射角色 |
-|-----------|---------|
-| `superpowers:brainstorming` | architect |
-| `superpowers:writing-plans` | decomposer |
+### 人工阶段（执行阶段前，保持现有流程）
+
+| Skill | 用途 |
+|-------|------|
+| `superpowers:brainstorming` | 产出 spec.md + api-contract.md |
+| `superpowers:writing-plans` | 产出 plan.md |
+
+### 执行阶段（agent team）
+
+**复用已有 Skill：**
+
+| Skill | 映射角色 |
+|-------|---------|
 | `superpowers:test-driven-development` | tester |
-| `superpowers:requesting-code-review` | reviewer |
+| `superpowers:requesting-code-review` | reviewer（基础） |
 | `superpowers:verification-before-completion` | evaluator（验收） |
 | `superpowers:using-git-worktrees` | 子任务隔离 |
 | `superpowers:dispatching-parallel-agents` | facilitator（并行子任务）|
@@ -339,8 +363,10 @@ facilitator 汇总 → summary.md
 
 ## 实现路径
 
-1. 定义 8 个 agent 的 `.claude/agents/*.md` 配置文件
-2. 新建 `agent-workflow:facilitator` skill
-3. 建立 `.agent-workspace/` 目录结构模板
-4. 用一个真实子任务跑通完整流程（验证阶段）
-5. 根据运行结果调整 agent prompt 和 harness 结构
+1. 编写 `.claude/standards/python.md`、`frontend.md`、`cross-workspace.md`
+2. 定义 7 个 agent 的 `.claude/agents/*.md` 配置文件
+3. 新建 `agent-workflow:facilitator` skill
+4. 新建 `agent-workflow:code-review-rubric` skill（含 few-shot 示例）
+5. 建立 `.agent-workspace/` 目录结构模板
+6. 用一个真实子任务跑通完整流程（验证阶段）
+7. 根据运行结果调整 agent prompt 和 harness 结构
