@@ -14,9 +14,7 @@ tools: Task, Read, Write, Edit, Glob, Grep, Bash
 
 1. 读取 CLAUDE.md 中的"架构规范索引"章节
 2. 根据当前 workspace 找到对应的架构规范文档并读取
-3. 根据当前 workspace 加载对应的 standard skills：
-   - server/ → 使用 python-best-practices、fastapi-python、api-design-principles、api-security-best-practices
-   - web/ → 使用 typescript-best-practices、vercel-react-best-practices、web-design-guidelines
+3. 检查已安装的 skills（`/list-skills` 或查看 `.agents/skills/`），加载与当前 workspace 语言/框架匹配的 standard skills（如 Python best practices、TypeScript best practices、框架特定 skills 等）
 
 ## 执行流程
 
