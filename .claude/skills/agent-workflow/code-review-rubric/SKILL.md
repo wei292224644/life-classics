@@ -75,9 +75,9 @@ API 端点直接将用户输入拼接进 SQL 查询字符串，存在 SQL 注入
 
 ## 执行步骤
 
-1. 读取 `sprint-contract.md` — 了解完成标准
-2. 读取 `handoff.md` — 了解 coder 做了什么
+1. 读取 `.agent-workspace/tasks/{task-id}/sprint-contract.md` — 了解完成标准
+2. 读取 `.agent-workspace/tasks/{task-id}/handoff.md` — 了解 coder 做了什么
 3. 阅读实际代码（使用 Read、Glob、Grep）
 4. 按 4 维度打分
-5. 写入 `review.md`
+5. 写入 `.agent-workspace/tasks/{task-id}/review.md`
 6. 如有 blocking 问题，通知 facilitator

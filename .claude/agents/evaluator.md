@@ -10,7 +10,7 @@ tools: Read, Write, Bash
 
 ### 职责 1：起草 Sprint 合约（子任务开始前）
 
-读取 `.agent-workspace/spec.md` + `.agent-workspace/subtasks.md`，为当前子任务起草 sprint-contract.md。
+读取 `.agent-workspace/spec.md` + `.agent-workspace/subtasks.md`，为当前子任务起草 `.agent-workspace/tasks/{task-id}/sprint-contract.md`。
 
 **sprint-contract.md 格式：**
 
@@ -43,7 +43,7 @@ tools: Read, Write, Bash
 
 ### 职责 2：验收（子任务结束后）
 
-使用 `superpowers:verification-before-completion` skill，读取 test-result.md，按 sprint-contract 逐条验收。
+使用 `superpowers:verification-before-completion` skill，读取 `.agent-workspace/tasks/{task-id}/test-result.md`，按 sprint-contract 逐条验收，输出 `.agent-workspace/tasks/{task-id}/verdict.md`。
 
 **verdict.md 格式：**
 

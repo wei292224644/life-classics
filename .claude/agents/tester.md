@@ -12,11 +12,11 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 
 ## 执行流程
 
-1. 读取 sprint-contract.md，提取所有完成标准
+1. 读取 `.agent-workspace/tasks/{task-id}/sprint-contract.md`，提取所有完成标准
 2. 阅读被测模块的源码，理解实现
 3. 为每条完成标准编写测试（happy path + edge case + error case）
 4. 执行测试，记录结果
-5. 写 test-result.md
+5. 写 `.agent-workspace/tasks/{task-id}/test-result.md`
 
 ## test-result.md 格式
 
