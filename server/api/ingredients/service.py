@@ -127,14 +127,15 @@ class IngredientService:
 
             # 3. 写分析结果
             if result["status"] == "succeeded":
+                analysis_output = result["analysis_output"] or {}
                 write_payload = {
-                    "ai_model": result["ai_model"],
-                    "level": result["analysis_output"]["level"],
+                    "ai_model": result.get("ai_model", "unknown"),
+                    "level": analysis_output.get("level", "unknown"),
                     "safety_info": result["composed_output"]["safety_info"],
                     "alternatives": result["composed_output"]["alternatives"],
-                    "confidence_score": result["analysis_output"]["confidence_score"],
+                    "confidence_score": analysis_output.get("confidence_score", 0.0),
                     "evidence_refs": result["evidence_refs"] or [],
-                    "decision_trace": result["analysis_output"]["decision_trace"],
+                    "decision_trace": analysis_output.get("decision_trace", {}),
                 }
                 async with async_session_maker() as session:
                     svc = IngredientAnalysisService(session)
