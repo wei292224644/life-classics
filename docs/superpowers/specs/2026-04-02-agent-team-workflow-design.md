@@ -95,7 +95,7 @@ facilitator 汇总 → summary.md
 
 - **主任务**：对应一个完整需求（可跨多个 workspace），作为追踪容器
 - **子任务**：对应单个 workspace 的实现单元，子任务 harness 内由 4 个角色执行（evaluator、coder、reviewer、tester）
-- **依赖关系**：如 server 子任务完成后，web 子任务才可并行开始
+- **依赖关系**：如 server 子任务完成后，web 子任务才可开始（多个 web 子任务之间可并行）
 
 ---
 
@@ -131,7 +131,7 @@ facilitator 汇总 → summary.md
 - **工具权限：** All
 - **边界：** 不写测试，不做验收判断
 - **合约冲突：** 发现合约不可行时，直接反馈 evaluator 修订，不自行决定
-- **规范来源：** System prompt（约束性规则）+ 引用 CLAUDE.md
+- **规范来源：** System prompt（约束性规则）+ 读取 CLAUDE.md 架构规范索引 → 加载对应架构文档
 
 **Coder 硬性规则（写入 system prompt）：**
 1. 只实现 sprint-contract 范围内的代码，禁止额外功能
@@ -214,7 +214,7 @@ facilitator 汇总 → summary.md
 | `plan.md` | 人工阶段 | 所有 agent | 否 |
 | `subtasks.md` | decomposer | facilitator、evaluator | 否 |
 | `context.md` | context-manager | 所有 agent | 是 |
-| `sprint-contract.md` | evaluator | coder、tester | 否 |
+| `sprint-contract.md` | evaluator | coder、tester、evaluator | 否 |
 | `handoff.md` | coder | reviewer、tester | 是（每轮追加）|
 | `review.md` | reviewer | coder | 是（每轮追加）|
 | `test-result.md` | tester | evaluator | 否 |
