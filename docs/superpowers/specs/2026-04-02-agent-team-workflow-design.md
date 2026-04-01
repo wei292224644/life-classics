@@ -28,7 +28,7 @@
 
 ```
 人工阶段（现有 superpowers 流程，保持不变）
-  用户 + superpowers:brainstorming  → spec.md（功能规范 + API contract）
+  用户 + superpowers:brainstorming  → spec.md（功能规范）
   用户 + superpowers:writing-plans  → plan.md（实现计划）
         ↓ 用户确认 spec + plan
 执行阶段（agent team 接管）
@@ -94,7 +94,7 @@ facilitator 汇总 → summary.md
 ### 任务粒度
 
 - **主任务**：对应一个完整需求（可跨多个 workspace），作为追踪容器
-- **子任务**：对应单个 workspace 的实现单元，是 8 角色流程的最小执行单位
+- **子任务**：对应单个 workspace 的实现单元，是 7 角色流程的最小执行单位
 - **依赖关系**：如 server 子任务完成（API contract 确认）后，web 子任务才可并行开始
 
 ---
@@ -191,8 +191,8 @@ facilitator 汇总 → summary.md
 
 ```
 .agent-workspace/
-├── spec.md                    # architect 写，所有人只读
-├── api-contract.md            # architect 写，所有人只读
+├── spec.md                    # 人工阶段产出，所有人只读
+├── plan.md                    # 人工阶段产出，所有人只读
 ├── subtasks.md                # decomposer 写
 ├── context.md                 # context-manager 维护
 ├── summary.md                 # facilitator 写（完成后）
@@ -210,8 +210,8 @@ facilitator 汇总 → summary.md
 
 | 文件 | 写入者 | 读取者 | 可追加 |
 |------|--------|--------|--------|
-| `spec.md` | architect | 所有 agent | 否 |
-| `api-contract.md` | architect | 所有 agent | 否 |
+| `spec.md` | 人工阶段 | 所有 agent | 否 |
+| `plan.md` | 人工阶段 | 所有 agent | 否 |
 | `subtasks.md` | decomposer | facilitator | 否 |
 | `context.md` | context-manager | 所有 agent | 是 |
 | `sprint-contract.md` | evaluator | coder、tester | 否 |
@@ -333,9 +333,8 @@ agent-workflow/
 
 ```
 .claude/
-├── agents/                      # 各 agent 的 system prompt
+├── agents/                      # 各 agent 的 system prompt（7 个）
 │   ├── facilitator.md
-│   ├── architect.md
 │   ├── decomposer.md
 │   ├── context-manager.md
 │   ├── coder.md
@@ -360,7 +359,7 @@ agent-workflow/
 - `CLAUDE.md` 保持现状，不再追加技术规范
 - `coder.md` 只写角色边界规则，技术规范通过引用 `standards/` 获取
 - `standards/` 各文件独立演进，python 规范更新不影响前端规范
-- architect、reviewer 等 agent 同样可以引用 `standards/` 了解技术约束
+- reviewer 等 agent 同样可以引用 `standards/` 了解技术约束
 
 ---
 
@@ -382,7 +381,7 @@ agent-workflow/
 | 任务规模 | 流程 |
 |---------|------|
 | 小（bug fix）| facilitator → coder → tester |
-| 中（新接口）| facilitator → architect → coder → reviewer → tester → evaluator |
+| 中（新接口）| facilitator → decomposer → coder → reviewer → tester → evaluator |
 | 大（跨 workspace）| 全流程 |
 
 ### 核心原则
