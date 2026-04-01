@@ -76,4 +76,4 @@ description: agent team 执行阶段的主理编排逻辑。读取 spec.md + pla
 | 中（新功能，单 workspace）| decomposer → evaluator → coder → reviewer → tester → evaluator |
 | 大（跨 workspace）| 全流程 |
 
-如判断为小任务，可跳过 decomposer 和 reviewer，直接进入子任务 harness。
+如判断为小任务，可跳过 decomposer 和 reviewer，但 facilitator 需自行基于 spec.md 为该任务生成一条 subtasks.md 条目，再进入子任务 harness。

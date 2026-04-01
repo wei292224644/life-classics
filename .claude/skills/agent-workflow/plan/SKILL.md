@@ -30,8 +30,7 @@ plan.md 禁止包含：
 - 函数签名或方法定义
 - 具体实现逻辑或算法
 - 代码片段（任何语言）
-- 数据库 schema 细节
-- 数据存储实现细节（SQL、ORM、查询语句等）
+- 数据存储实现细节（schema、SQL、ORM、查询语句等）
 
 ## 自检步骤
 
@@ -43,3 +42,5 @@ plan.md 禁止包含：
 ## 保存位置
 
 `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`
+
+完成后同时复制一份到 `.agent-workspace/plan.md`，供 facilitator 读取。

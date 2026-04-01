@@ -34,6 +34,8 @@ description: 在 brainstorming 基础上增加约束，产出格式规范的 spe
 
 `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
 
+完成后同时复制一份到 `.agent-workspace/spec.md`，供 facilitator 读取。
+
 ## 与 agent-workflow:plan 的关系
 
 spec.md 完成并经用户确认后，使用 `agent-workflow:plan` 产出 plan.md，两者共同作为 facilitator 的输入。
