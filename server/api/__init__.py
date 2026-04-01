@@ -14,6 +14,7 @@ from api.product.router import router as product_router
 from api.analysis.router import router as analysis_router
 from api.ingredient_alias.router import router as ingredient_alias_router
 from api.ingredients.router import router as ingredients_router
+from api.ingredient_analysis.router import router as ingredient_analysis_router
 
 router = APIRouter()
 
@@ -27,3 +28,4 @@ router.include_router(product_router, tags=["Product"])
 router.include_router(analysis_router, prefix="/analysis", tags=["Analysis"])
 router.include_router(ingredient_alias_router, prefix="/ingredient-aliases", tags=["Ingredient Alias"])
 router.include_router(ingredients_router, prefix="/ingredients", tags=["Ingredient"])
+router.include_router(ingredient_analysis_router, tags=["IngredientAnalysis"])
