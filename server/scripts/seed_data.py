@@ -4,33 +4,26 @@ Seed 脚本：向 PostgreSQL 插入大量假数据，供前端联调使用。
 用法：
     cd server
     uv run python scripts/seed_data.py
-
-依赖：
-    pip install faker
-    （已在 pyproject.toml 中声明 faker）
 """
 
 from __future__ import annotations
 
 import asyncio
 import os
+import random
 import sys
 import uuid
 from datetime import datetime
 
-# 确保 server/ 目录在 sys.path 中（支持 `python scripts/seed_data.py` 方式运行）
 _server_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _server_dir not in sys.path:
     sys.path.insert(0, _server_dir)
 
 from faker import Faker
-
-# 初始化中文 Faker
 fake = Faker("zh_CN")
-# 固定 seed，保证每次运行生成相同数据（方便复现）
 Faker.seed(42)
 
-from sqlalchemy import select, delete
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.session import _session_factory
@@ -40,12 +33,12 @@ from database.models import (
     FoodIngredient,
     NutritionTable,
     FoodNutritionEntry,
-    AnalysisDetail,
+    IarcAgent,
+    IarcCancerSite,
+    IarcAgentLink,
+    IngredientAlias,
 )
-from enums import RiskLevel
 
-
-# ── 固定 UUID（模拟同一个系统用户）───────────────────────────────────────────
 
 SYSTEM_USER = uuid.UUID("00000000-0000-0000-0000-000000000000")
 
@@ -53,24 +46,12 @@ SYSTEM_USER = uuid.UUID("00000000-0000-0000-0000-000000000000")
 # ── 数据生成函数 ────────────────────────────────────────────────────────────
 
 def make_food(index: int) -> Food:
-    """生成一条 Food 记录。"""
-    categories = [
-        "零食", "饮料", "调味品", "乳制品", "肉制品",
-        "糕点", "糖果", "方便食品", "坚果炒货", "酒类",
-    ]
-    manufacturers = [
-        "伊利实业集团有限公司", "蒙牛乳业（集团）股份有限公司", "康师傅控股有限公司",
-        "统一企业（中国）投资有限公司", "娃哈哈集团有限公司", "农夫山泉股份有限公司",
-        "可口可乐饮料（上海）有限公司", "百事可乐（中国）有限公司", "亿滋（中国）有限公司",
-        "上海太太乐食品有限公司", "李锦记（广州）食品有限公司", "海底捞调味品有限公司",
-    ]
+    categories = ["零食", "饮料", "调味品", "乳制品", "肉制品", "糕点", "糖果", "方便食品", "坚果炒货", "酒类"]
+    manufacturers = ["伊利实业集团有限公司", "蒙牛乳业（集团）股份有限公司", "康师傅控股有限公司", "统一企业（中国）投资有限公司", "娃哈哈集团有限公司", "农夫山泉股份有限公司", "可口可乐饮料（上海）有限公司", "百事可乐（中国）有限公司", "亿滋（中国）有限公司", "上海太太乐食品有限公司", "李锦记（广州）食品有限公司", "海底捞调味品有限公司"]
     return Food(
         barcode=f"69{str(index + 1).zfill(10)}",
         name=fake.catch_phrase() + " " + fake.random_element(elements=["礼盒装", "家庭装", "迷你装", "量贩装", ""]),
-        image_url_list=[
-            f"https://picsum.photos/seed/{index}/400/400",
-            f"https://picsum.photos/seed/{index + 1000}/400/400",
-        ],
+        image_url_list=[f"https://picsum.photos/seed/{index}/400/400", f"https://picsum.photos/seed/{index + 1000}/400/400"],
         manufacturer=fake.random_element(manufacturers),
         production_address=fake.address(),
         origin_place=fake.random_element(["中国", "日本", "韩国", "美国", "德国", "意大利", "法国"]),
@@ -84,25 +65,12 @@ def make_food(index: int) -> Food:
 
 
 def make_ingredient(index: int) -> Ingredient:
-    """生成一条 Ingredient 记录。"""
     additive_codes = [None, "F202", "E330", "E951", "E500", "E452", "E300", "E322"]
     who_levels = ["Group 1", "Group 2A", "Group 2B", "Group 3", "Group 4"]
-    function_types = [
-        "防腐剂", "增稠剂", "乳化剂", "抗氧化剂", "着色剂",
-        "甜味剂", "酸度调节剂", "香料", "营养强化剂", "稳定剂",
-    ]
-    allergen_infos = [
-        "含有麸质", "含有乳糖", "含有大豆", "含有花生", "含有甲壳类",
-        "含有鱼类", "含有蛋类", "含有坚果",
-    ]
+    function_types = ["防腐剂", "增稠剂", "乳化剂", "抗氧化剂", "着色剂", "甜味剂", "酸度调节剂", "香料", "营养强化剂", "稳定剂"]
+    allergen_infos = ["含有麸质", "含有乳糖", "含有大豆", "含有花生", "含有甲壳类", "含有鱼类", "含有蛋类", "含有坚果"]
     origin_types = ["天然", "合成", "半合成"]
-    descriptions = [
-        "这是一种广泛使用的食品配料，具有增香、防腐或改善口感的作用。",
-        "天然提取物，来自植物或动物来源，经过精制加工而成。",
-        "人工合成添加剂，在合法范围内使用安全性已得到验证。",
-        "常见的食品添加剂之一，主要用于改善食品的色泽、口感和保质期。",
-        "营养强化剂，可补充食品中的特定营养成分，满足人体健康需求。",
-    ]
+    descriptions = ["这是一种广泛使用的食品配料，具有增香、防腐或改善口感的作用。", "天然提取物，来自植物或动物来源，经过精制加工而成。", "人工合成添加剂，在合法范围内使用安全性已得到验证。", "常见的食品添加剂之一，主要用于改善食品的色泽、口感和保质期。", "营养强化剂，可补充食品中的特定营养成分，满足人体健康需求。"]
     is_additive = fake.boolean(chance_of_getting_true=60)
     return Ingredient(
         name=fake.unique.first_name() + fake.random_element(["酸", "酯", "醇", "盐", "糖", "素"]),
@@ -117,11 +85,15 @@ def make_ingredient(index: int) -> Ingredient:
         origin_type=fake.random_element(origin_types) if fake.boolean() else None,
         limit_usage=f"{fake.random_int(1, 100)}mg/kg" if fake.boolean() else None,
         legal_region=fake.random_element(["中国", "欧盟", "美国", "日本", "Codex"]),
+        cas=f"{fake.random_int(min=100, max=999)}-{fake.random_int(min=10, max=99)}-{fake.random_int(min=1, max=9)}" if fake.boolean() else None,
+        applications=fake.sentence(nb_words=8) if fake.boolean() else None,
+        notes=fake.sentence(nb_words=12) if fake.boolean() else None,
+        safety_info=fake.text(max_nb_chars=100) if fake.boolean() else None,
+        meta={},
     )
 
 
 def make_nutrition(index: int) -> NutritionTable:
-    """生成一条 NutritionTable 记录。"""
     categories = ["宏量营养素", "维生素", "矿物质", "膳食纤维", "其他"]
     return NutritionTable(
         name=fake.random_element([
@@ -142,20 +114,12 @@ def make_nutrition(index: int) -> NutritionTable:
             "能量来源", "组织修复", "免疫功能", "骨骼健康", "血红蛋白合成",
             "抗氧化", "酶的辅因子", "神经传导", "水平衡", "糖代谢",
         ]),
+        meta={},
         created_by_user=SYSTEM_USER,
     )
 
 
 def make_food_ingredient(food_id: int, ingredient_id: int) -> FoodIngredient:
-    """生成一条 FoodIngredient 关联记录。"""
-    levels = ["t4", "t3", "t2", "t1", "t0", "unknown"]
-    reasons = [
-        "在允许范围内使用，符合国家标准",
-        "天然存在，非人为添加",
-        "适量摄入对人体无害",
-        None,
-        None,
-    ]
     return FoodIngredient(
         food_id=food_id,
         ingredient_id=ingredient_id,
@@ -164,7 +128,6 @@ def make_food_ingredient(food_id: int, ingredient_id: int) -> FoodIngredient:
 
 
 def make_food_nutrition(food_id: int, nutrition_id: int) -> FoodNutritionEntry:
-    """生成一条 FoodNutritionEntry 记录。"""
     units = ["g", "mg", "kcal", "mL", "kJ"]
     ref_types = ["PER_100_WEIGHT", "PER_100_ENERGY", "PER_SERVING", "PER_DAY"]
     ref_units = ["g", "mg", "kcal", "mL", "kJ", "serving", "day"]
@@ -179,67 +142,76 @@ def make_food_nutrition(food_id: int, nutrition_id: int) -> FoodNutritionEntry:
     )
 
 
-def make_analysis_detail(target_id: int, target_type: str, index: int, analysis_type: str | None = None) -> AnalysisDetail:
-    """生成一条 AnalysisDetail 记录。"""
-    analysis_types = [
-        "usage_advice_summary", "health_summary", "pregnancy_safety",
-        "risk_summary", "recent_risk_summary", "ingredient_summary",
-    ]
-    levels = ["t4", "t3", "t2", "t1", "t0", "unknown"]
-    health_benefits = [
-        "适量摄入有助于补充人体所需营养素",
-        "可促进肠道蠕动，维持肠道健康",
-        "为人体提供必需的能量来源",
-        "参与代谢过程，有助于维持身体机能",
-        "含有的活性成分对健康有一定益处",
-    ]
-    reasons = [
-        "在允许范围内使用，符合国家标准",
-        "天然存在，非人为添加",
-        "适量摄入对人体无害",
-        "经权威机构认证，安全性已验证",
-    ]
-    risk_factors_list = [
-        "过量摄入可能对特定人群产生不良影响",
-        "部分人群可能出现过敏反应",
-        "长期大量摄入需注意",
-    ]
-    suggestions_list = [
-        {"text": "正常烹饪用量在成人中是安全的", "type": "positive"},
-        {"text": "特定人群请遵医嘱食用", "type": "conditional"},
-        {"text": "注意控制每日摄入量", "type": "warning"},
-    ]
+def make_ingredient_alias(ingredient_id: int, index: int) -> IngredientAlias:
+    """生成一条 IngredientAlias 记录"""
+    alias_types = ["chinese", "english", "abbr"]
+    alias_name = fake.unique.name()
+    return IngredientAlias(
+        ingredient_id=ingredient_id,
+        alias=alias_name,
+        normalized_alias=alias_name,
+        alias_type=fake.random_element(alias_types),
+    )
 
-    # 如果未指定类型，则随机选择
-    if analysis_type is None:
-        analysis_type = fake.random_element(analysis_types)
 
-    import json
-    # ingredient_summary 类型的 result 需要是包含 summary/risk_factors/suggestions 的对象
-    if analysis_type == "ingredient_summary":
-        result = json.dumps({
-            "summary": fake.sentence(nb_words=20),
-            "risk_factors": fake.random_elements(risk_factors_list, length=min(2, len(risk_factors_list)), unique=True),
-            "suggestions": suggestions_list,
-        })
-    else:
-        result = fake.sentence(nb_words=15)
+# IARC 相关
 
-    return AnalysisDetail(
-        target_id=target_id,
-        analysis_target=target_type,
-        analysis_type=analysis_type,
-        analysis_version="v1",
-        ai_model=fake.random_element(["gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet"]),
-        result=result,
-        source=fake.random_element(["WHO食品添加剂评估", "FAO/JECFA报告", "EFSA评估报告"]) if fake.random.random() > 0.3 else None,
-        level=fake.random_element(levels),
-        confidence_score=fake.random_int(min=60, max=99),
-        raw_output={
-            "model": fake.random_element(["gpt-4o", "gpt-4o-mini"]),
-            "finish_reason": "stop",
-            "raw_text": fake.text(max_nb_chars=300),
-        },
+def make_iarc_agent(index: int) -> IarcAgent:
+    """生成一条 IarcAgent 记录"""
+    groups = ["1", "2A", "2B", "3", "unknown"]
+    agent_names = [
+        "Benzene", "Formaldehyde", "Ethylene oxide", "Asbestos", "Silica dust",
+        "Solar radiation", "Tobacco smoke", "Alcoholic beverages", "Processed meat",
+        "Salt (sodium chloride)", "Beta-carotene supplements", "Fried foods",
+    ]
+    zh_names = [
+        "苯", "甲醛", "环氧乙烷", "石棉", "硅尘",
+        "太阳辐射", "烟草烟雾", "酒精饮料", "加工肉制品",
+        "盐（氯化钠）", "β-胡萝卜素补充剂", "油炸食品",
+    ]
+    return IarcAgent(
+        cas_no=f"{fake.random_int(min=10000, max=99999)}-{fake.random_int(min=10, max=99)}-{fake.random_int(min=1, max=9)}",
+        agent_name=fake.random_element(agent_names) if index >= len(agent_names) else agent_names[index % len(agent_names)],
+        zh_agent_name=fake.random_element(zh_names) if index >= len(zh_names) else zh_names[index % len(zh_names)],
+        group=fake.random_element(groups),
+        volume=f"Volume {fake.random_int(min=1, max=130)}",
+        volume_publication_year=str(fake.random_int(min=1970, max=2024)),
+        evaluation_year=str(fake.random_int(min=1970, max=2024)),
+        additional_information=fake.text(max_nb_chars=100) if fake.boolean() else None,
+        created_by_user=SYSTEM_USER,
+    )
+
+
+def make_iarc_cancer_site(index: int, agent_ids: list[int]) -> IarcCancerSite:
+    """生成一条 IarcCancerSite 记录"""
+    sites = [
+        ("Lung", "肺"),
+        ("Liver", "肝"),
+        ("Breast", "乳腺"),
+        ("Colorectum", "结直肠"),
+        ("Stomach", "胃"),
+    ]
+    name, zh_name = sites[index % len(sites)]
+    random.seed(index)
+    sufficient = random.sample(agent_ids, k=random.randint(0, min(3, len(agent_ids)))) if agent_ids else []
+    limited = random.sample(agent_ids, k=random.randint(0, min(2, len(agent_ids)))) if agent_ids else []
+    return IarcCancerSite(
+        name=name,
+        zh_name=zh_name,
+        description=fake.sentence(nb_words=10) if fake.boolean() else None,
+        sufficient_evidence_agents=sufficient,
+        limited_evidence_agents=limited,
+        created_by_user=SYSTEM_USER,
+    )
+
+
+def make_iarc_agent_link(from_id: int, to_id: int, index: int) -> IarcAgentLink:
+    """生成一条 IarcAgentLink 记录"""
+    link_types = ["see", "see_also"]
+    return IarcAgentLink(
+        from_agent_id=from_id,
+        to_agent_id=to_id,
+        link_type=link_types[index % len(link_types)],
         created_by_user=SYSTEM_USER,
     )
 
@@ -247,62 +219,58 @@ def make_analysis_detail(target_id: int, target_type: str, index: int, analysis_
 # ── 主函数 ──────────────────────────────────────────────────────────────────
 
 async def _clear_tables(session: AsyncSession) -> None:
-    """清空所有相关表（按外键依赖顺序）。"""
+    """按外键依赖顺序清空所有相关表"""
     print("正在清空旧数据...")
     await session.execute(delete(FoodNutritionEntry))
     await session.execute(delete(FoodIngredient))
-    await session.execute(delete(AnalysisDetail))
     await session.execute(delete(Food))
     await session.execute(delete(Ingredient))
     await session.execute(delete(NutritionTable))
+    await session.execute(delete(IngredientAlias))
+    await session.execute(delete(IarcAgentLink))
+    await session.execute(delete(IarcCancerSite))
+    await session.execute(delete(IarcAgent))
     await session.commit()
     print("清空完成。")
 
 
 async def seed():
-    """生成并插入所有假数据。"""
+    """生成并插入所有假数据"""
     async with _session_factory() as session:
-        # 清空
         await _clear_tables(session)
 
-        # ── 1. 生成 Ingredient（先生成，因为 Food 依赖它）────────────────
+        # 1. Ingredient
         print("生成 Ingredient 数据...")
         ingredient_count = 80
         ingredients = [make_ingredient(i) for i in range(ingredient_count)]
         session.add_all(ingredients)
-        await session.flush()  # 获取 ID
-
-        # 提取 Ingredient.id 用于后续关联
+        await session.flush()
         ingredient_ids = [ing.id for ing in ingredients]
         print(f"  完成：{ingredient_count} 条 Ingredient")
 
-        # ── 2. 生成 NutritionTable ───────────────────────────────────────
+        # 2. NutritionTable
         print("生成 NutritionTable 数据...")
-        nutrition_count = 30
+        nutrition_count = 15
         nutritions = [make_nutrition(i) for i in range(nutrition_count)]
         session.add_all(nutritions)
         await session.flush()
-
         nutrition_ids = [n.id for n in nutritions]
         print(f"  完成：{nutrition_count} 条 NutritionTable")
 
-        # ── 3. 生成 Food ──────────────────────────────────────────────────
+        # 3. Food
         print("生成 Food 数据...")
         food_count = 50
         foods = [make_food(i) for i in range(food_count)]
         session.add_all(foods)
         await session.flush()
-
         food_ids = [f.id for f in foods]
         print(f"  完成：{food_count} 条 Food")
 
-        # ── 4. 生成 FoodIngredient 关联 ──────────────────────────────────
+        # 4. FoodIngredient
         print("生成 FoodIngredient 关联数据...")
         food_ingredients = []
         for food_id in food_ids:
-            # 每个食品随机关联 5~15 个配料
-            import random
-            random.seed(food_id)  # 保证可复现
+            random.seed(food_id)
             chosen = random.sample(ingredient_ids, k=random.randint(5, min(15, len(ingredient_ids))))
             for ing_id in chosen:
                 food_ingredients.append(make_food_ingredient(food_id, ing_id))
@@ -310,12 +278,10 @@ async def seed():
         await session.flush()
         print(f"  完成：{len(food_ingredients)} 条 FoodIngredient")
 
-        # ── 5. 生成 FoodNutritionEntry ───────────────────────────────────
+        # 5. FoodNutritionEntry
         print("生成 FoodNutritionEntry 数据...")
         food_nutritions = []
         for food_id in food_ids:
-            # 每个食品随机关联 8~20 个营养项
-            import random
             random.seed(food_id + 1000)
             chosen = random.sample(nutrition_ids, k=random.randint(8, min(20, len(nutrition_ids))))
             for nut_id in chosen:
@@ -324,29 +290,48 @@ async def seed():
         await session.flush()
         print(f"  完成：{len(food_nutritions)} 条 FoodNutritionEntry")
 
-        # ── 6. 生成 AnalysisDetail ────────────────────────────────────────
-        print("生成 AnalysisDetail 数据...")
-        analyses = []
-        # 每个食品生成 8~15 条随机分析 + 1 条 overall_risk
-        for food_id in food_ids:
-            import random
-            random.seed(food_id + 2000)
-            for _ in range(random.randint(8, 15)):
-                analyses.append(make_analysis_detail(food_id, "food", food_id))
-            analyses.append(make_analysis_detail(food_id, "food", food_id, "overall_risk"))
-        # 每个配料生成 4 条分析：ingredient_summary、2 条随机类型、1 条 overall_risk
+        # 6. IngredientAlias
+        print("生成 IngredientAlias 数据...")
+        aliases = []
         for ing_id in ingredient_ids:
-            import random
-            random.seed(ing_id + 3000)
-            # 第1条：ingredient_summary（保证有评级）
-            analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id, "ingredient_summary"))
-            # 第2条和第3条：随机类型
-            analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id))
-            analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id))
-            # 第4条：overall_risk（综合结论）
-            analyses.append(make_analysis_detail(ing_id, "ingredient", ing_id, "overall_risk"))
-        session.add_all(analyses)
-        print(f"  完成：{len(analyses)} 条 AnalysisDetail")
+            random.seed(ing_id + 5000)
+            alias_count = random.randint(0, 3)
+            for j in range(alias_count):
+                aliases.append(make_ingredient_alias(ing_id, ing_id * 10 + j))
+        session.add_all(aliases)
+        await session.flush()
+        print(f"  完成：{len(aliases)} 条 IngredientAlias")
+
+        # 7. IarcAgent
+        print("生成 IarcAgent 数据...")
+        iarc_agent_count = 10
+        iarc_agents = [make_iarc_agent(i) for i in range(iarc_agent_count)]
+        session.add_all(iarc_agents)
+        await session.flush()
+        agent_ids = [a.id for a in iarc_agents]
+        print(f"  完成：{iarc_agent_count} 条 IarcAgent")
+
+        # 8. IarcCancerSite
+        print("生成 IarcCancerSite 数据...")
+        iarc_site_count = 5
+        iarc_sites = [make_iarc_cancer_site(i, agent_ids) for i in range(iarc_site_count)]
+        session.add_all(iarc_sites)
+        await session.flush()
+        print(f"  完成：{iarc_site_count} 条 IarcCancerSite")
+
+        # 9. IarcAgentLink
+        print("生成 IarcAgentLink 数据...")
+        iarc_links = []
+        for i, from_id in enumerate(agent_ids):
+            random.seed(from_id + 7000)
+            link_count = random.randint(0, 2)
+            possible_targets = [a for a in agent_ids if a != from_id]
+            for j in range(link_count):
+                if possible_targets:
+                    to_id = random.choice(possible_targets)
+                    iarc_links.append(make_iarc_agent_link(from_id, to_id, i * 10 + j))
+        session.add_all(iarc_links)
+        print(f"  完成：{len(iarc_links)} 条 IarcAgentLink")
 
         await session.commit()
 
@@ -356,7 +341,10 @@ async def seed():
     print(f"   NutritionTable:     {nutrition_count}")
     print(f"   FoodIngredients:    {len(food_ingredients)}")
     print(f"   FoodNutritionEntry: {len(food_nutritions)}")
-    print(f"   AnalysisDetail:     {len(analyses)}")
+    print(f"   IngredientAlias:     {len(aliases)}")
+    print(f"   IarcAgent:          {iarc_agent_count}")
+    print(f"   IarcCancerSite:     {iarc_site_count}")
+    print(f"   IarcAgentLink:      {len(iarc_links)}")
 
 
 if __name__ == "__main__":
