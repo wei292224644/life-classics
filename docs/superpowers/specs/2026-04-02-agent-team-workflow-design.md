@@ -331,34 +331,52 @@ agent-workflow/
 ## 配置文件结构
 
 ```
-.claude/
-├── agents/                      # 各 agent 的 system prompt（7 个）
-│   ├── facilitator.md
-│   ├── decomposer.md
-│   ├── context-manager.md
-│   ├── coder.md
-│   ├── reviewer.md
-│   ├── tester.md
-│   └── evaluator.md
-└── standards/                   # 技术规范文档，agent 按需引用
-    ├── python.md                # server/ 规范：uv workspace、目录结构、代码约定
-    ├── frontend.md              # web/ 规范：pnpm monorepo、各 app 约定
-    └── cross-workspace.md       # 跨 workspace 规范：API 调用约定、接口契约格式
+/                                    # 项目根目录
+├── CLAUDE.md                        # 执行约定 + 架构规范索引
+├── docs/
+│   └── architecture/                # 项目架构规范（权威来源）
+│       ├── server-architecture.md   # server/ 架构红线与白皮书
+│       └── web-architecture.md      # web/ 架构规范（待补充）
+└── .claude/
+    └── agents/                      # 各 agent 的 system prompt（7 个，跨项目可复用）
+        ├── facilitator.md
+        ├── decomposer.md
+        ├── context-manager.md
+        ├── coder.md
+        ├── reviewer.md
+        ├── tester.md
+        └── evaluator.md
 ```
 
 ### 三层分工
 
-| 层级 | 文件 | 内容 | 修改频率 |
+| 层级 | 文件 | 内容 | 可移植性 |
 |------|------|------|---------|
-| 执行约定 | `CLAUDE.md` | 如何运行命令（uv/pnpm/git 位置） | 低 |
-| 技术规范 | `.claude/standards/*.md` | 如何写代码（架构约束、语言规范） | 中 |
-| 角色边界 | `.claude/agents/*.md` | 角色职责、工具权限、专属规则 | 低 |
+| 执行约定 | `CLAUDE.md` | 如何运行命令 + 架构规范索引 | 项目特定 |
+| 架构规范 | `docs/architecture/*.md` | 项目架构约束、层级规则、禁忌 | 项目特定 |
+| 角色边界 | `.claude/agents/*.md` | 角色职责、工具权限、专属规则 | **跨项目可复用** |
+
+### 关键设计：规范索引机制
+
+**`CLAUDE.md` 新增索引章节：**
+```markdown
+## 架构规范索引
+编写代码前必须读取对应规范：
+- server/ 代码 → docs/architecture/server-architecture.md
+- web/ 代码 → docs/architecture/web-architecture.md
+```
+
+**`coder.md` 写通用查找规则（不硬编码路径）：**
+```markdown
+开始实现前，读取 CLAUDE.md 中的架构规范索引，
+找到当前 workspace 对应的规范文档并加载。
+```
 
 **原则：**
-- `CLAUDE.md` 保持现状，不再追加技术规范
-- `coder.md` 只写角色边界规则，技术规范通过引用 `standards/` 获取
-- `standards/` 各文件独立演进，python 规范更新不影响前端规范
-- reviewer 等 agent 同样可以引用 `standards/` 了解技术约束
+- `.claude/` 完全通用，不引用任何项目内路径，可跨项目复制
+- `CLAUDE.md` 是项目特定的，负责声明"本项目有哪些规范文档"
+- `docs/architecture/` 是规范的权威来源，agent 通过 CLAUDE.md 索引找到它
+- coder、reviewer 的行为是"查 CLAUDE.md 找规范"，不绑定具体路径
 
 ---
 
@@ -395,9 +413,10 @@ agent-workflow/
 
 ## 实现路径
 
-1. 编写技术规范文档 `.claude/standards/python.md`、`frontend.md`、`cross-workspace.md`
-2. 新建 4 个 `agent-workflow` skill（`spec`、`plan`、`facilitator`、`code-review-rubric`）
-3. 定义 7 个 agent 的 `.claude/agents/*.md` 配置文件
-4. 建立 `.agent-workspace/` 目录结构模板
-5. 用一个真实子任务跑通完整流程（验证阶段）
-6. 根据运行结果调整 agent prompt 和 harness 结构
+1. 将 `server/docs/architecture/ARCHITECTURE_STANDARDS.md` 移至 `docs/architecture/server-architecture.md`
+2. 在 `CLAUDE.md` 新增架构规范索引章节
+3. 新建 4 个 `agent-workflow` skill（`spec`、`plan`、`facilitator`、`code-review-rubric`）
+4. 定义 7 个 agent 的 `.claude/agents/*.md` 配置文件（含通用规范查找规则）
+5. 建立 `.agent-workspace/` 目录结构模板
+6. 用一个真实子任务跑通完整流程（验证阶段）
+7. 根据运行结果调整 agent prompt 和 harness 结构
