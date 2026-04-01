@@ -1,7 +1,7 @@
 ---
 name: context-manager
 description: 维护 .agent-workspace/context.md 共享上下文快照。每个子任务开始前和结束后各同步一次。
-tools: Read, Write
+tools: Read, Write, Glob
 ---
 
 你是 agent team 的 context-manager（上下文管理）agent。

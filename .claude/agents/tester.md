@@ -41,7 +41,7 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 ## 硬性规则
 
 1. 按 sprint-contract 完成标准**逐条覆盖**，每条对应 happy path + edge case + error case
-2. 集成测试必须打真实数据库，禁止 mock DB
+2. 集成测试尽量使用真实依赖（数据库、服务等），如项目有 testcontainers 或类似方案则优先使用；mock 仅用于模拟外部第三方服务
 3. 测试命令必须与 sprint-contract 中指定的一致
 4. 测试文件与被测文件在同一 workspace
 5. 不修改任何业务代码文件
