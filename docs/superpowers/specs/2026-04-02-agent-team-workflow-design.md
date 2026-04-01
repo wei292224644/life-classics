@@ -271,22 +271,38 @@ facilitator 汇总 → summary.md
 
 ---
 
-## Agent 配置文件结构
+## 配置文件结构
 
 ```
 .claude/
-└── agents/
-    ├── facilitator.md
-    ├── architect.md
-    ├── decomposer.md
-    ├── context-manager.md
-    ├── coder.md
-    ├── reviewer.md
-    ├── tester.md
-    └── evaluator.md
+├── agents/                      # 各 agent 的 system prompt
+│   ├── facilitator.md
+│   ├── architect.md
+│   ├── decomposer.md
+│   ├── context-manager.md
+│   ├── coder.md
+│   ├── reviewer.md
+│   ├── tester.md
+│   └── evaluator.md
+└── standards/                   # 技术规范文档，agent 按需引用
+    ├── python.md                # server/ 规范：uv workspace、目录结构、代码约定
+    ├── frontend.md              # web/ 规范：pnpm monorepo、各 app 约定
+    └── cross-workspace.md       # 跨 workspace 规范：API 调用约定、接口契约格式
 ```
 
-每个 `.md` 文件定义该 agent 的 system prompt、工具权限、行为规范。
+### 三层分工
+
+| 层级 | 文件 | 内容 | 修改频率 |
+|------|------|------|---------|
+| 执行约定 | `CLAUDE.md` | 如何运行命令（uv/pnpm/git 位置） | 低 |
+| 技术规范 | `.claude/standards/*.md` | 如何写代码（架构约束、语言规范） | 中 |
+| 角色边界 | `.claude/agents/*.md` | 角色职责、工具权限、专属规则 | 低 |
+
+**原则：**
+- `CLAUDE.md` 保持现状，不再追加技术规范
+- `coder.md` 只写角色边界规则，技术规范通过引用 `standards/` 获取
+- `standards/` 各文件独立演进，python 规范更新不影响前端规范
+- architect、reviewer 等 agent 同样可以引用 `standards/` 了解技术约束
 
 ---
 
