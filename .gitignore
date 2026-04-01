@@ -66,3 +66,11 @@ out/
 # Docker
 **/postgres_data/
 .worktrees/
+
+# agent-workspace runtime files
+.agent-workspace/spec.md
+.agent-workspace/plan.md
+.agent-workspace/subtasks.md
+.agent-workspace/context.md
+.agent-workspace/summary.md
+.agent-workspace/tasks/
