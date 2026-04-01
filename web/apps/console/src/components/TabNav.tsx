@@ -20,6 +20,7 @@ export function TabNav({ onClearChat }: TabNavProps) {
       <NavLink end to="/chunks" className={linkClass}>Chunks</NavLink>
       <NavLink end to="/upload" className={linkClass}>上传</NavLink>
       <NavLink end to="/chat" className={linkClass}>对话</NavLink>
+      <NavLink end to="/ingredients" className={linkClass}>配料</NavLink>
       {isChat && onClearChat && (
         <button
           onClick={onClearChat}
