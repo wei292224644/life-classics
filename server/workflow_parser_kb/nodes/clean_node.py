@@ -10,7 +10,7 @@ from observability.metrics import (
     parser_chunks_processed_total,
     parser_node_duration_seconds,
 )
-from worflow_parser_kb.models import WorkflowState
+from workflow_parser_kb.models import WorkflowState
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
@@ -44,13 +44,13 @@ def clean_node(state: WorkflowState) -> dict:
     _logger.info("clean_node_start", node="clean_node", doc_id=doc_id, chunks_in=1)
 
     with _tracer.start_as_current_span("clean_node") as span:
-        span.set_attribute("worflow_parser_kb.node", "clean_node")
-        span.set_attribute("worflow_parser_kb.doc_id", doc_id)
-        span.set_attribute("worflow_parser_kb.chunk_count.in", 1)
+        span.set_attribute("workflow_parser_kb.node", "clean_node")
+        span.set_attribute("workflow_parser_kb.doc_id", doc_id)
+        span.set_attribute("workflow_parser_kb.chunk_count.in", 1)
 
         cleaned = _clean_md_content(state["md_content"])
 
-        span.set_attribute("worflow_parser_kb.chunk_count.out", 1)
+        span.set_attribute("workflow_parser_kb.chunk_count.out", 1)
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="clean_node").observe(duration)

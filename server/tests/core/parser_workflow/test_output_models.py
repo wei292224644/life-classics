@@ -1,5 +1,5 @@
 # tests/core/parser_workflow/test_output_models.py
-from worflow_parser_kb.nodes.output import SegmentItem, ClassifyOutput
+from workflow_parser_kb.nodes.output import SegmentItem, ClassifyOutput
 
 
 def test_segment_item_has_structure_and_semantic_type():

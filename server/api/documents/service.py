@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import AsyncGenerator
-from pathlib import Path
 from typing import Any
 
+from config import settings
 from kb.clients import get_chroma_client
 from kb.writer import chroma_writer, fts_writer
-from worflow_parser_kb.graph import run_parser_workflow_stream
+from workflow_parser_kb.graph import run_parser_workflow_stream
 
 
 def get_collection():
@@ -57,7 +57,7 @@ class DocumentsService:
             return
 
         doc_title = os.path.splitext(filename)[0]
-        rules_dir = str(Path(__file__).parent.parent.parent / "parser" / "rules")
+        rules_dir = settings.RULES_DIR
 
         try:
             async for event in run_parser_workflow_stream(

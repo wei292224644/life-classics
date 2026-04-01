@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import patch
 
-from worflow_parser_kb.models import (
+from workflow_parser_kb.models import (
     ClassifiedChunk, RawChunk, TypedSegment, WorkflowState,
 )
-from worflow_parser_kb.nodes.output import TransformOutput
-from worflow_parser_kb.nodes.transform_node import transform_node
+from workflow_parser_kb.nodes.output import TransformOutput
+from workflow_parser_kb.nodes.transform_node import transform_node
 
 # 长段文本（> 50 字符），确保触发 LLM 调用路径（apply_strategy 中 len(content) < 50 短路）
 _SEG1_CONTENT = "称取 $4\\mathrm{g}$ 试样，精确至 0.0001 g，置于已恒重的蒸发皿中，加入适量蒸馏水使其完全溶解"
@@ -42,7 +42,7 @@ def _make_state(structure_type: str, semantic_type: str) -> WorkflowState:
 async def test_transform_node_output_chunk_has_dual_type_fields():
     """transform_node 产出的 DocumentChunk 应包含 structure_type + semantic_type"""
     with patch(
-        "worflow_parser_kb.nodes.transform_node._call_llm_transform",
+        "workflow_parser_kb.nodes.transform_node._call_llm_transform",
         return_value="规范化文本",
     ):
         result = await transform_node(_make_state("list", "procedure"))
@@ -109,7 +109,7 @@ async def test_transform_node_raw_content_is_raw_chunk_content():
         captured_args.append({"content": content, "transform_params": transform_params})
         return content
 
-    with patch("worflow_parser_kb.nodes.transform_node._call_llm_transform", side_effect=capture_transform):
+    with patch("workflow_parser_kb.nodes.transform_node._call_llm_transform", side_effect=capture_transform):
         state = _make_state_for_transform(latex_text, ["5.1"], "GB 5009.3")
         result = await transform_node(state)
 
@@ -130,9 +130,9 @@ async def test_transform_node_raw_content_is_raw_chunk_content():
 @pytest.mark.asyncio
 async def test_transform_node_concurrent_execution_with_exceptions():
     """transform_node 并发执行时，return_exceptions=True 保证部分失败不影响整体"""
-    from worflow_parser_kb.nodes.transform_node import transform_node
+    from workflow_parser_kb.nodes.transform_node import transform_node
     from kb.models import DocumentChunk
-    from worflow_parser_kb.models import WorkflowState, ClassifiedChunk, RawChunk, TypedSegment
+    from workflow_parser_kb.models import WorkflowState, ClassifiedChunk, RawChunk, TypedSegment
 
     # 3 个 classified chunks：2 个成功，1 个超时
     classified_chunks = [
@@ -220,7 +220,7 @@ async def test_transform_node_concurrent_execution_with_exceptions():
 
     mock_to_thread.call_count = 0
 
-    with patch("worflow_parser_kb.nodes.transform_node.asyncio.to_thread", side_effect=mock_to_thread):
+    with patch("workflow_parser_kb.nodes.transform_node.asyncio.to_thread", side_effect=mock_to_thread):
         result = await transform_node(state)
 
     assert len(result["final_chunks"]) == 2  # 2 个成功

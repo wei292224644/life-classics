@@ -4,11 +4,12 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from worflow_parser_kb.structured_llm.client_factory import get_structured_client
+from workflow_parser_kb.structured_llm.client_factory import get_structured_client
 from workflow_product_analysis.product_agent.types import (
     ProductAnalysisState,
     VerdictOutput,
 )
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ def _build_ingredients_summary(ingredients) -> str:
     return "\n".join(lines) if lines else "（无成分信息）"
 
 
-async def verdict_node(state: ProductAnalysisState, settings) -> dict:
+async def verdict_node(state: ProductAnalysisState) -> dict:
     """
     Node D：整体判断。
     输入：全部前序产物

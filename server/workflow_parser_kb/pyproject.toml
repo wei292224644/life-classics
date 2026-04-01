@@ -1,5 +1,5 @@
 [project]
-name = "worflow_parser_kb"
+name = "workflow_parser_kb"
 version = "0.1.0"
 dependencies = [
     "llm",
@@ -10,7 +10,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["worflow_parser_kb"]
+packages = ["workflow_parser_kb"]
 
 [tool.uv.sources]
 llm = { workspace = true }

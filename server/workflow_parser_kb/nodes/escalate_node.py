@@ -10,10 +10,10 @@ from opentelemetry import trace
 
 _tracer = trace.get_tracer(__name__)
 
-from worflow_parser_kb.models import ClassifiedChunk, TypedSegment, WorkflowState
-from worflow_parser_kb.rules import RulesStore
-from worflow_parser_kb.nodes.output import EscalateOutput
-from worflow_parser_kb.structured_gateway import invoke_structured
+from workflow_parser_kb.models import ClassifiedChunk, TypedSegment, WorkflowState
+from workflow_parser_kb.rules import RulesStore
+from workflow_parser_kb.nodes.output import EscalateOutput
+from workflow_parser_kb.structured_gateway import invoke_structured
 from config import settings
 from observability.metrics import (
     llm_calls_total,
@@ -76,9 +76,9 @@ async def escalate_node(state: WorkflowState) -> dict:
     _logger.info("escalate_node_start", chunk_count=chunks_in)
 
     with _tracer.start_as_current_span("escalate_node") as span:
-        span.set_attribute("worflow_parser_kb.node", "escalate_node")
-        span.set_attribute("worflow_parser_kb.doc_id", state.get("doc_metadata", {}).get("doc_id", ""))
-        span.set_attribute("worflow_parser_kb.chunk_count.in", chunks_in)
+        span.set_attribute("workflow_parser_kb.node", "escalate_node")
+        span.set_attribute("workflow_parser_kb.doc_id", state.get("doc_metadata", {}).get("doc_id", ""))
+        span.set_attribute("workflow_parser_kb.chunk_count.in", chunks_in)
         store = RulesStore(state["rules_dir"])
         config = state.get("config", {})
         classified_chunks: List[ClassifiedChunk] = [

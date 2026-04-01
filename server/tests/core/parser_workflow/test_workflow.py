@@ -5,17 +5,17 @@
 
 # import pytest
 
-# from worflow_parser_kb import worflow_parser_kb_graph
-# from worflow_parser_kb.nodes.classify_node import classify_node
-# from worflow_parser_kb.nodes.clean_node import clean_node
-# from worflow_parser_kb.nodes.enrich_node import enrich_node
-# from worflow_parser_kb.nodes.escalate_node import escalate_node
-# from worflow_parser_kb.nodes.parse_node import parse_node
-# from worflow_parser_kb.nodes.slice_node import slice_node
-# from worflow_parser_kb.nodes.structure_node import structure_node
-# from worflow_parser_kb.nodes.transform_node import transform_node
-# from worflow_parser_kb.models import WorkflowState
-# from worflow_parser_kb.rules import RulesStore
+# from workflow_parser_kb import workflow_parser_kb_graph
+# from workflow_parser_kb.nodes.classify_node import classify_node
+# from workflow_parser_kb.nodes.clean_node import clean_node
+# from workflow_parser_kb.nodes.enrich_node import enrich_node
+# from workflow_parser_kb.nodes.escalate_node import escalate_node
+# from workflow_parser_kb.nodes.parse_node import parse_node
+# from workflow_parser_kb.nodes.slice_node import slice_node
+# from workflow_parser_kb.nodes.structure_node import structure_node
+# from workflow_parser_kb.nodes.transform_node import transform_node
+# from workflow_parser_kb.models import WorkflowState
+# from workflow_parser_kb.rules import RulesStore
 # from kb.writer import store_to_kb
 # from pydantic import BaseModel
 # from tests.core.parser_workflow.test_utils import (

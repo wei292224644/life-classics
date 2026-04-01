@@ -4,7 +4,7 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 from config import Settings
-from worflow_parser_kb.structured_llm.client_factory import get_structured_client
+from workflow_parser_kb.structured_llm.client_factory import get_structured_client
 
 
 class NoIngredientsFoundError(Exception):

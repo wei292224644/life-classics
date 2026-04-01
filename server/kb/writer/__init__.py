@@ -6,7 +6,7 @@ from typing import List
 from typing_extensions import TypedDict
 
 from kb.writer import chroma_writer, fts_writer
-from worflow_parser_kb.models import WorkflowState
+from workflow_parser_kb.models import WorkflowState
 
 _db_initialized = False
 

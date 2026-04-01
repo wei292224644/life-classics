@@ -1,5 +1,5 @@
 import pytest
-from worflow_parser_kb.rules import RulesStore
+from workflow_parser_kb.rules import RulesStore
 
 
 @pytest.fixture

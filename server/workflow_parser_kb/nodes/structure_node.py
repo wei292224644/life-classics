@@ -13,10 +13,10 @@ from observability.metrics import (
     parser_chunks_processed_total,
     parser_node_duration_seconds,
 )
-from worflow_parser_kb.models import WorkflowState
-from worflow_parser_kb.nodes.output import DocTypeOutput
-from worflow_parser_kb.rules import RulesStore
-from worflow_parser_kb.structured_gateway import invoke_structured
+from workflow_parser_kb.models import WorkflowState
+from workflow_parser_kb.nodes.output import DocTypeOutput
+from workflow_parser_kb.rules import RulesStore
+from workflow_parser_kb.structured_gateway import invoke_structured
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
@@ -101,9 +101,9 @@ async def structure_node(state: WorkflowState) -> dict:
     )
 
     with _tracer.start_as_current_span("structure_node") as span:
-        span.set_attribute("worflow_parser_kb.node", "structure_node")
-        span.set_attribute("worflow_parser_kb.doc_id", doc_id)
-        span.set_attribute("worflow_parser_kb.chunk_count.in", 1)
+        span.set_attribute("workflow_parser_kb.node", "structure_node")
+        span.set_attribute("workflow_parser_kb.doc_id", doc_id)
+        span.set_attribute("workflow_parser_kb.chunk_count.in", 1)
 
         meta = dict(state["doc_metadata"])
         errors = list(state.get("errors", []))
@@ -131,7 +131,7 @@ async def structure_node(state: WorkflowState) -> dict:
             meta["doc_type"] = new_rule["id"]
             meta["doc_type_source"] = "llm"
 
-        span.set_attribute("worflow_parser_kb.chunk_count.out", 1)
+        span.set_attribute("workflow_parser_kb.chunk_count.out", 1)
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="structure_node").observe(duration)

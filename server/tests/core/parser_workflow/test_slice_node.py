@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from worflow_parser_kb.nodes.slice_node import (
+from workflow_parser_kb.nodes.slice_node import (
     _has_body_content,
     recursive_slice,
 )

@@ -25,7 +25,7 @@ dependencies = [
     "cachetools>=7.0.5",
     "api",
     "kb",
-    "worflow_parser_kb",
+    "workflow_parser_kb",
     "agent",
     "llm",
     "observability",
@@ -48,7 +48,7 @@ dependencies = [
 [tool.uv.sources]
 api = { workspace = true }
 kb = { workspace = true }
-worflow_parser_kb = { workspace = true }
+workflow_parser_kb = { workspace = true }
 agent = { workspace = true }
 llm = { workspace = true }
 observability = { workspace = true }
@@ -59,7 +59,7 @@ members = [
     "api",
     "agent",
     "kb",
-    "worflow_parser_kb",
+    "workflow_parser_kb",
     "observability",
 ]
 

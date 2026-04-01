@@ -12,7 +12,7 @@ from observability.metrics import (
     parser_chunks_processed_total,
     parser_node_duration_seconds,
 )
-from worflow_parser_kb.models import RawChunk, WorkflowState
+from workflow_parser_kb.models import RawChunk, WorkflowState
 
 _tracer = trace.get_tracer(__name__)
 _logger = structlog.get_logger(__name__)
@@ -179,9 +179,9 @@ def slice_node(state: WorkflowState) -> dict:
     _logger.info("slice_node_start", node="slice_node", doc_id=doc_id, chunks_in=chunks_in)
 
     with _tracer.start_as_current_span("slice_node") as span:
-        span.set_attribute("worflow_parser_kb.node", "slice_node")
-        span.set_attribute("worflow_parser_kb.doc_id", doc_id)
-        span.set_attribute("worflow_parser_kb.chunk_count.in", chunks_in)
+        span.set_attribute("workflow_parser_kb.node", "slice_node")
+        span.set_attribute("workflow_parser_kb.doc_id", doc_id)
+        span.set_attribute("workflow_parser_kb.chunk_count.in", chunks_in)
 
         soft_max = settings.CHUNK_SOFT_MAX
         hard_max = settings.CHUNK_HARD_MAX
@@ -222,7 +222,7 @@ def slice_node(state: WorkflowState) -> dict:
 
         raw_chunks.extend(recursive_slice(md, levels, [], soft_max, hard_max, min_chunk_size, errors))
         chunks_out = len(raw_chunks)
-        span.set_attribute("worflow_parser_kb.chunk_count.out", chunks_out)
+        span.set_attribute("workflow_parser_kb.chunk_count.out", chunks_out)
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="slice_node").observe(duration)

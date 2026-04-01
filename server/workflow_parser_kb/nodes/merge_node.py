@@ -10,7 +10,7 @@ from observability.metrics import (
     parser_chunks_processed_total,
     parser_node_duration_seconds,
 )
-from worflow_parser_kb.models import (
+from workflow_parser_kb.models import (
     DocumentChunk,
     WorkflowState,
     make_chunk_id,
@@ -75,14 +75,14 @@ def merge_node(state: WorkflowState) -> dict:
     _logger.info("merge_node_start", node="merge_node", doc_id=doc_id, chunks_in=chunks_in)
 
     with _tracer.start_as_current_span("merge_node") as span:
-        span.set_attribute("worflow_parser_kb.node", "merge_node")
-        span.set_attribute("worflow_parser_kb.doc_id", doc_id)
-        span.set_attribute("worflow_parser_kb.chunk_count.in", chunks_in)
+        span.set_attribute("workflow_parser_kb.node", "merge_node")
+        span.set_attribute("workflow_parser_kb.doc_id", doc_id)
+        span.set_attribute("workflow_parser_kb.chunk_count.in", chunks_in)
 
         chunks = state["final_chunks"]
         if not chunks:
             chunks_out = 0
-            span.set_attribute("worflow_parser_kb.chunk_count.out", chunks_out)
+            span.set_attribute("workflow_parser_kb.chunk_count.out", chunks_out)
             return {"final_chunks": [], "doc_metadata": state.get("doc_metadata", {})}
 
         merged: List[DocumentChunk] = []
@@ -100,7 +100,7 @@ def merge_node(state: WorkflowState) -> dict:
             i = j
 
         chunks_out = len(merged)
-        span.set_attribute("worflow_parser_kb.chunk_count.out", chunks_out)
+        span.set_attribute("workflow_parser_kb.chunk_count.out", chunks_out)
 
     duration = time.perf_counter() - _start
     parser_node_duration_seconds.labels(node="merge_node").observe(duration)

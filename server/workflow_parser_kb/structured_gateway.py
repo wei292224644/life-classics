@@ -14,7 +14,7 @@ from llm.anthropic import (
 )
 from llm.anthropic import create_structured as create_anthropic_structured
 from observability.metrics import llm_tokens_total
-from worflow_parser_kb.structured_llm.errors import JsonOutputParseError, StructuredOutputError
+from workflow_parser_kb.structured_llm.errors import JsonOutputParseError, StructuredOutputError
 
 _logger = structlog.get_logger(__name__)
 _create_structured_fn = create_anthropic_structured()

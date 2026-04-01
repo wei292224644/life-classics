@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     CONFIDENCE_THRESHOLD: float = 0.7
     SLICE_HEADING_LEVELS: List[int] = [2, 3, 4]
     # 规则文件目录（运行时动态追加新规则）
-    RULES_DIR: str = "worflow_parser_kb/rules"
+    RULES_DIR: str = "workflow_parser_kb/rules"
 
     # ── Neo4j 连接 ────────────────────────────────────────────────────────────
     NEO4J_URI: str = "bolt://localhost:7687"

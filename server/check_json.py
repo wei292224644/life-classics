@@ -1,6 +1,6 @@
 import json
 
-with open('worflow_parser_kb/rules/content_type_rules.json', encoding='utf-8') as f:
+with open('workflow_parser_kb/rules/content_type_rules.json', encoding='utf-8') as f:
     content = f.read()
 
 try:

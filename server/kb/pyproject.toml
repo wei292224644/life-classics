@@ -3,7 +3,7 @@ name = "kb"
 version = "0.1.0"
 dependencies = [
     "llm",
-    "worflow_parser_kb",
+    "workflow_parser_kb",
 ]
 
 [build-system]
@@ -15,4 +15,4 @@ packages = ["kb"]
 
 [tool.uv.sources]
 llm = { workspace = true }
-worflow_parser_kb = { workspace = true }
+workflow_parser_kb = { workspace = true }

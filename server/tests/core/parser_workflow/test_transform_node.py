@@ -4,13 +4,13 @@ from unittest.mock import patch
 
 import pytest
 
-from worflow_parser_kb.structured_llm.errors import StructuredOutputError
-from worflow_parser_kb.nodes.transform_node import (
+from workflow_parser_kb.structured_llm.errors import StructuredOutputError
+from workflow_parser_kb.nodes.transform_node import (
     _call_llm_transform,
     apply_strategy,
     transform_node,
 )
-from worflow_parser_kb.models import (
+from workflow_parser_kb.models import (
     ClassifiedChunk,
     DocumentChunk,
     RawChunk,
@@ -24,12 +24,12 @@ from worflow_parser_kb.models import (
 
 def test_call_llm_transform_returns_content():
     """_call_llm_transform 调用 invoke_structured 后返回 content 字段"""
-    from worflow_parser_kb.nodes.output import TransformOutput
+    from workflow_parser_kb.nodes.output import TransformOutput
 
     mock_resp = TransformOutput(content="转化后的文本")
 
     with patch(
-        "worflow_parser_kb.nodes.transform_node.invoke_structured",
+        "workflow_parser_kb.nodes.transform_node.invoke_structured",
         return_value=mock_resp,
     ) as mock_invoke:
         result = _call_llm_transform(
@@ -43,12 +43,12 @@ def test_call_llm_transform_returns_content():
 
 def test_call_llm_transform_uses_invoke_structured():
     """_call_llm_transform 通过 invoke_structured 调用 LLM"""
-    from worflow_parser_kb.nodes.output import TransformOutput
+    from workflow_parser_kb.nodes.output import TransformOutput
 
     mock_resp = TransformOutput(content="output")
 
     with patch(
-        "worflow_parser_kb.nodes.transform_node.invoke_structured",
+        "workflow_parser_kb.nodes.transform_node.invoke_structured",
         return_value=mock_resp,
     ) as mock_invoke:
         _call_llm_transform("内容", {"strategy": "s", "prompt_template": "p"})
@@ -71,7 +71,7 @@ def test_call_llm_transform_invoke_structured_fails_raises():
         raw_error="validation error",
     )
     with patch(
-        "worflow_parser_kb.nodes.transform_node.invoke_structured",
+        "workflow_parser_kb.nodes.transform_node.invoke_structured",
         side_effect=err,
     ):
         with pytest.raises(StructuredOutputError) as exc_info:
@@ -106,7 +106,7 @@ def test_apply_strategy_returns_document_chunks():
     doc_metadata = {"standard_no": "GB/T-001", "title": "测试标准"}
 
     with patch(
-        "worflow_parser_kb.nodes.transform_node._call_llm_transform",
+        "workflow_parser_kb.nodes.transform_node._call_llm_transform",
         return_value="转化结果",
     ):
         result = apply_strategy([seg], raw_chunk, doc_metadata)
@@ -160,7 +160,7 @@ async def test_transform_node_processes_all_chunks():
     }
 
     with patch(
-        "worflow_parser_kb.nodes.transform_node._call_llm_transform",
+        "workflow_parser_kb.nodes.transform_node._call_llm_transform",
         return_value="最终文本",
     ):
         result = await transform_node(state)
@@ -172,7 +172,7 @@ async def test_transform_node_processes_all_chunks():
 
 def test_call_llm_transform_appends_ref_context_to_prompt():
     """ref_context 非空时，prompt 应包含表格内容"""
-    from worflow_parser_kb.nodes.output import TransformOutput
+    from workflow_parser_kb.nodes.output import TransformOutput
 
     mock_resp = TransformOutput(content="转化后的文本")
     captured_prompt = {}
@@ -182,7 +182,7 @@ def test_call_llm_transform_appends_ref_context_to_prompt():
         return mock_resp
 
     with patch(
-        "worflow_parser_kb.nodes.transform_node.invoke_structured",
+        "workflow_parser_kb.nodes.transform_node.invoke_structured",
         side_effect=capture_invoke,
     ):
         _call_llm_transform(
@@ -197,7 +197,7 @@ def test_call_llm_transform_appends_ref_context_to_prompt():
 
 def test_call_llm_transform_no_ref_context_unchanged():
     """ref_context 为空时，prompt 不包含额外表格内容"""
-    from worflow_parser_kb.nodes.output import TransformOutput
+    from workflow_parser_kb.nodes.output import TransformOutput
 
     mock_resp = TransformOutput(content="转化后的文本")
     captured_prompt = {}
@@ -207,7 +207,7 @@ def test_call_llm_transform_no_ref_context_unchanged():
         return mock_resp
 
     with patch(
-        "worflow_parser_kb.nodes.transform_node.invoke_structured",
+        "workflow_parser_kb.nodes.transform_node.invoke_structured",
         side_effect=capture_invoke,
     ):
         _call_llm_transform(
@@ -236,7 +236,7 @@ def test_apply_strategy_raw_content_is_raw_chunk_content():
         "ref_context": "",
         "failed_table_refs": [],
     }
-    with patch("worflow_parser_kb.nodes.transform_node._call_llm_transform", return_value="转化结果"):
+    with patch("workflow_parser_kb.nodes.transform_node._call_llm_transform", return_value="转化结果"):
         result = apply_strategy([seg], raw_chunk, {"doc_id": "d1"})
     assert result[0]["raw_content"] == raw_chunk["content"]
     assert result[0]["meta"]["segment_raw_content"] == seg["content"]
@@ -260,16 +260,16 @@ def test_apply_strategy_chunk_id_is_stable_across_llm_outputs():
         "ref_context": "",
         "failed_table_refs": [],
     }
-    with patch("worflow_parser_kb.nodes.transform_node._call_llm_transform", return_value="LLM输出版本A，表述不同"):
+    with patch("workflow_parser_kb.nodes.transform_node._call_llm_transform", return_value="LLM输出版本A，表述不同"):
         result_a = apply_strategy([seg], raw_chunk, {"doc_id": "d1"})
-    with patch("worflow_parser_kb.nodes.transform_node._call_llm_transform", return_value="LLM输出版本B，表述也不同"):
+    with patch("workflow_parser_kb.nodes.transform_node._call_llm_transform", return_value="LLM输出版本B，表述也不同"):
         result_b = apply_strategy([seg], raw_chunk, {"doc_id": "d1"})
     assert result_a[0]["chunk_id"] == result_b[0]["chunk_id"]
 
 
 def test_apply_strategy_llm_failure_falls_back_to_seg_content():
     """LLM 调用失败时，apply_strategy 不应丢弃 chunk，应 fallback 到 seg["content"]"""
-    from worflow_parser_kb.structured_llm.errors import StructuredOutputError
+    from workflow_parser_kb.structured_llm.errors import StructuredOutputError
 
     raw_chunk: RawChunk = {
         "content": "# 7 测定步骤\n\n称取试料（5 ± 0.05）g，于50 mL离心管中，加乙酸乙酯20 mL，振荡10 min，4000 r/min离心。",
@@ -296,7 +296,7 @@ def test_apply_strategy_llm_failure_falls_back_to_seg_content():
         retry_count=3,
         raw_error="timeout",
     )
-    with patch("worflow_parser_kb.nodes.transform_node._call_llm_transform", side_effect=err):
+    with patch("workflow_parser_kb.nodes.transform_node._call_llm_transform", side_effect=err):
         result = apply_strategy([seg], raw_chunk, {"doc_id": "d1"})
 
     assert len(result) == 1, "LLM 失败不应丢弃 chunk"
@@ -325,7 +325,7 @@ def test_apply_strategy_writes_cross_refs_to_meta():
     doc_metadata = {"standard_no": "GB/T-001", "title": "测试标准"}
 
     with patch(
-        "worflow_parser_kb.nodes.transform_node._call_llm_transform",
+        "workflow_parser_kb.nodes.transform_node._call_llm_transform",
         return_value="转化结果",
     ):
         result = apply_strategy([seg], raw_chunk, doc_metadata)
@@ -352,6 +352,6 @@ def test_apply_strategy_extracts_cross_ref_standards_to_meta():
         "ref_context": "",
         "failed_table_refs": [],
     }
-    with patch("worflow_parser_kb.nodes.transform_node._call_llm_transform", return_value="转化结果"):
+    with patch("workflow_parser_kb.nodes.transform_node._call_llm_transform", return_value="转化结果"):
         result = apply_strategy([seg], raw_chunk, {"doc_id": "d1"})
     assert "GB14881" in result[0]["meta"].get("cross_ref_standards", [])

@@ -5,10 +5,10 @@ from unittest.mock import patch
 
 import pytest
 
-from worflow_parser_kb.nodes.classify_node import _call_classify_llm, classify_raw_chunk
-from worflow_parser_kb.models import RawChunk
-from worflow_parser_kb.nodes.output import ClassifyOutput, SegmentItem
-from worflow_parser_kb.structured_llm.errors import StructuredOutputError
+from workflow_parser_kb.nodes.classify_node import _call_classify_llm, classify_raw_chunk
+from workflow_parser_kb.models import RawChunk
+from workflow_parser_kb.nodes.output import ClassifyOutput, SegmentItem
+from workflow_parser_kb.structured_llm.errors import StructuredOutputError
 
 
 def test_invoke_structured_fails_raises_structured_output_error():
@@ -26,7 +26,7 @@ def test_invoke_structured_fails_raises_structured_output_error():
     )
 
     with patch(
-        "worflow_parser_kb.nodes.classify_node.invoke_structured",
+        "workflow_parser_kb.nodes.classify_node.invoke_structured",
         side_effect=err,
     ):
         with pytest.raises(StructuredOutputError) as exc_info:
@@ -47,7 +47,7 @@ def test_invoke_structured_succeeds_returns_segments():
     )
 
     with patch(
-        "worflow_parser_kb.nodes.classify_node.invoke_structured",
+        "workflow_parser_kb.nodes.classify_node.invoke_structured",
         return_value=expected,
     ):
         segments = _call_classify_llm("前言", structure_types, semantic_types)
@@ -78,7 +78,7 @@ def test_classify_raw_chunk_builds_typed_segments_with_threshold():
     }
 
     with patch(
-        "worflow_parser_kb.nodes.classify_node._call_classify_llm",
+        "workflow_parser_kb.nodes.classify_node._call_classify_llm",
         return_value=[
             SegmentItem(content="低置信片段", structure_type="paragraph", semantic_type="scope", confidence=0.5),
             SegmentItem(content="高置信片段", structure_type="list", semantic_type="procedure", confidence=0.9),

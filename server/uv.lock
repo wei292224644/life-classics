@@ -15,7 +15,7 @@ members = [
     "llm",
     "observability",
     "server",
-    "worflow-parser-kb",
+    "workflow-parser-kb",
 ]
 
 [[package]]
@@ -25,14 +25,14 @@ source = { editable = "agent" }
 dependencies = [
     { name = "kb" },
     { name = "llm" },
-    { name = "worflow-parser-kb" },
+    { name = "workflow-parser-kb" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "kb", editable = "kb" },
     { name = "llm", editable = "llm" },
-    { name = "worflow-parser-kb", editable = "worflow_parser_kb" },
+    { name = "workflow-parser-kb", editable = "workflow_parser_kb" },
 ]
 
 [[package]]
@@ -238,7 +238,7 @@ dependencies = [
     { name = "agent" },
     { name = "kb" },
     { name = "llm" },
-    { name = "worflow-parser-kb" },
+    { name = "workflow-parser-kb" },
 ]
 
 [package.metadata]
@@ -246,7 +246,7 @@ requires-dist = [
     { name = "agent", editable = "agent" },
     { name = "kb", editable = "kb" },
     { name = "llm", editable = "llm" },
-    { name = "worflow-parser-kb", editable = "worflow_parser_kb" },
+    { name = "workflow-parser-kb", editable = "workflow_parser_kb" },
 ]
 
 [[package]]
@@ -1342,13 +1342,13 @@ version = "0.1.0"
 source = { editable = "kb" }
 dependencies = [
     { name = "llm" },
-    { name = "worflow-parser-kb" },
+    { name = "workflow-parser-kb" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "llm", editable = "llm" },
-    { name = "worflow-parser-kb", editable = "worflow_parser_kb" },
+    { name = "workflow-parser-kb", editable = "workflow_parser_kb" },
 ]
 
 [[package]]
@@ -3465,7 +3465,7 @@ dependencies = [
     { name = "torch" },
     { name = "transformers" },
     { name = "uvicorn", extra = ["standard"] },
-    { name = "worflow-parser-kb" },
+    { name = "workflow-parser-kb" },
 ]
 
 [package.dev-dependencies]
@@ -3518,7 +3518,7 @@ requires-dist = [
     { name = "torch", specifier = ">=2.10.0" },
     { name = "transformers", specifier = ">=4.57.6" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.38.0" },
-    { name = "worflow-parser-kb", editable = "worflow_parser_kb" },
+    { name = "workflow-parser-kb", editable = "workflow_parser_kb" },
 ]
 
 [package.metadata.requires-dev]
@@ -4126,9 +4126,9 @@ wheels = [
 ]
 
 [[package]]
-name = "worflow-parser-kb"
+name = "workflow-parser-kb"
 version = "0.1.0"
-source = { editable = "worflow_parser_kb" }
+source = { editable = "workflow_parser_kb" }
 dependencies = [
     { name = "llm" },
 ]

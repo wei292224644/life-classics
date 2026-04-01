@@ -5,7 +5,7 @@ dependencies = [
     "llm",
     "agent",
     "kb",
-    "worflow_parser_kb",
+    "workflow_parser_kb",
 ]
 
 [build-system]
@@ -19,4 +19,4 @@ packages = ["api"]
 llm = { workspace = true }
 agent = { workspace = true }
 kb = { workspace = true }
-worflow_parser_kb = { workspace = true }
+workflow_parser_kb = { workspace = true }

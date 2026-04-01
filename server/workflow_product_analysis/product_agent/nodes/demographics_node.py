@@ -3,12 +3,13 @@ from __future__ import annotations
 
 import asyncio
 
-from worflow_parser_kb.structured_llm.client_factory import get_structured_client
+from workflow_parser_kb.structured_llm.client_factory import get_structured_client
 from workflow_product_analysis.product_agent.types import (
     ProductAnalysisState,
     DemographicsOutput,
 )
 from workflow_product_analysis.types import DemographicItem
+from config import settings
 
 
 def _build_ingredients_summary(ingredients) -> str:
@@ -21,7 +22,7 @@ def _build_ingredients_summary(ingredients) -> str:
     return "\n".join(lines) if lines else "（无成分信息）"
 
 
-async def demographics_node(state: ProductAnalysisState, settings) -> dict:
+async def demographics_node(state: ProductAnalysisState) -> dict:
     """
     Node A：人群适用性分析。
     输入：state["ingredients"]
