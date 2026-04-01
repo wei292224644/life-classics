@@ -17,6 +17,63 @@
 
 ---
 
+## `workflow_product_analysis/` 重构后内部结构（对齐 worflow_parser_kb 模式）
+
+`workflow_product_analysis/` 重构后保持 **LangGraph 组件结构**，与 `worflow_parser_kb/` 一致：
+
+```
+workflow_product_analysis/
+  ├── product_agent/
+  │     ├── __init__.py
+  │     ├── graph.py          # LangGraph 定义（START → 并行 → 串行 → END）
+  │     ├── nodes/
+  │     │     ├── verdict_node.py
+  │     │     ├── demographics_node.py
+  │     │     ├── scenarios_node.py
+  │     │     └── advice_node.py
+  │     └── types.py          # ProductAnalysisState
+  └── types.py                 # AgentOutput、IngredientInput、ProductAnalysisResult
+```
+
+### 图结构
+
+```
+        START
+          │
+    ┌─────┴─────┐
+    ▼           ▼
+demographics  scenarios    （并行）
+    │           │
+    └─────┬─────┘
+          ▼
+      advice_node
+          │
+          ▼
+     verdict_node
+          │
+          ▼
+         END
+```
+
+API 层调用：
+```python
+from workflow_product_analysis.product_agent.graph import build_product_analysis_graph
+
+graph = build_product_analysis_graph(settings)
+initial_state = ProductAnalysisState(
+    ingredients=ingredient_inputs,
+    demographics=None,
+    scenarios=None,
+    advice=None,
+    verdict_level=None,
+    verdict_description=None,
+    references=None,
+)
+final_state = await graph.ainvoke(initial_state)
+```
+
+---
+
 ## 重构前后对比
 
 ### Before
@@ -36,14 +93,15 @@ pipeline.py（持有 session、redis、settings）
 ### After
 
 ```
-workflow_product_analysis/
-  └── run_agent_analysis(
-          ingredient_inputs: list[IngredientInput],
-          settings: Settings,
-      ) → AgentOutput {
-          verdict_level, verdict_description,
-          advice, demographics, scenarios, references
-        }
+workflow_product_analysis/（纯计算模块）
+  product_agent/
+    graph.py        ← LangGraph（START → 并行 → 串行 → END）
+    nodes/
+      verdict_node.py        ← LLM
+      demographics_node.py   ← LLM
+      scenarios_node.py      ← LLM
+      advice_node.py         ← LLM
+    types.py        ← ProductAnalysisState、AgentOutput
 
 api/analysis/service.py（编排层）
   ├── run_ocr()                      ← HTTP
@@ -52,7 +110,7 @@ api/analysis/service.py（编排层）
   ├── match_ingredients()            ← DB
   ├── 查 ProductAnalysis 缓存
   │     命中 → assemble_from_db_cache() → 直接返回
-  │     未命中 → run_agent_analysis()
+  │     未命中 → build_product_analysis_graph(settings).ainvoke()
   │                 → assemble_from_agent_output()
   │                 → 写 ProductAnalysis 缓存
   └── 返回客户端
@@ -106,12 +164,12 @@ class ProductAnalysisResult(TypedDict):
 
 ## 改动清单
 
-### 1. `workflow_product_analysis/` 保留文件（修改签名）
+### 1. `workflow_product_analysis/` 保留文件（修改签名/结构）
 
 | 文件 | 改动 |
 |------|------|
 | `product_agent/graph.py` | 移除 `session` 依赖，只接收 `ingredient_inputs` 和 `settings` |
-| `product_agent/nodes.py` | 移除 `session`，从 `ingredient_inputs` 获取数据 |
+| `product_agent/nodes/` | 将 `nodes.py` 拆分为 `verdict_node.py`、`demographics_node.py`、`scenarios_node.py`、`advice_node.py`，各节点移除 `session` 依赖 |
 | `types.py` | 补充 `AgentOutput` 类型定义 |
 
 ### 2. `workflow_product_analysis/` 删除/迁出
@@ -199,7 +257,8 @@ start_analysis(image_bytes, food_id, session, settings)
 
 ## 测试策略
 
-- `workflow_product_analysis/` 单元测试：Mock `Settings`，验证 `run_agent_analysis` 输入输出
+- `workflow_product_analysis/` 单元测试：Mock `Settings`，验证 `build_product_analysis_graph(settings).ainvoke(state)` 输入输出
+- 各节点独立测试：给定 `ingredient_inputs`，验证节点返回符合预期的结构
 - API 层集成测试：Mock OCR HTTP、Mock DB，验证完整编排流程
 - 不在 workflow 内部 mock 数据库
 
@@ -207,14 +266,32 @@ start_analysis(image_bytes, food_id, session, settings)
 
 ## 实施顺序
 
-1. 新增 `AgentOutput` 类型，修改 `types.py`
-2. 修改 `product_agent/`（移除 session 依赖）
-3. 修改 `run_agent_analysis` 签名
-4. 将迁出文件复制到 `api/analysis/`
-5. 在 API 层编写编排逻辑
+1. 新增 `AgentOutput` 类型，修改 `workflow_product_analysis/types.py`
+2. 将 `product_agent/nodes.py` 拆分为独立文件（`verdict_node.py`、`demographics_node.py`、`scenarios_node.py`、`advice_node.py`），移除各节点的 `session` 依赖
+3. 修改 `product_agent/graph.py` — 移除 `session` 依赖，验证 LangGraph 仍可正常编译
+4. 将迁出文件（`food_resolver.py`、`ingredient_matcher.py`、`assembler.py`、`pipeline.py`、`redis_store.py`、`ocr_client.py`、`ingredient_parser.py`）复制到 `api/analysis/`
+5. 在 `api/analysis/service.py` 编写编排逻辑，替换原有 `start_analysis`
 6. 删除 `workflow_product_analysis/` 中的迁出文件
-7. 更新 API router（如需）
+7. 更新 API router（如有参数签名变化）
 8. 运行测试，修复问题
+
+---
+
+## 两个 workflow 模块架构对比
+
+| 维度 | `worflow_parser_kb/` | `workflow_product_analysis/`（重构后） |
+|------|----------------------|----------------------------------------|
+| 图结构 | 线性链式（parse→clean→...→merge→END） | 并行→串行（START→demographics+scenarios→advice→verdict→END） |
+| 状态类型 | `WorkflowState`（TypedDict） | `ProductAnalysisState`（TypedDict） |
+| 节点文件 | `nodes/` 目录下单职责文件 | `product_agent/nodes/` 目录下单职责文件 |
+| 外部依赖 | 无（纯 LLM + 规则文件） | 无（纯 LLM + Settings） |
+| 入口调用 | `run_parser_workflow(md_content, doc_metadata, ...)` | `build_product_analysis_graph(settings).ainvoke(initial_state)` |
+| 调用方 | API 层（`api/documents/service.py`） | API 层（`api/analysis/service.py`） |
+
+两者架构模式一致，都是：
+- **外部调用方**负责编排 + I/O
+- **workflow 模块**负责纯计算
+- **LangGraph**定义节点流转
 
 ---
 
