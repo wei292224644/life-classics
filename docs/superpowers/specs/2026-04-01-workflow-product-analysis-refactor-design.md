@@ -32,7 +32,7 @@ workflow_product_analysis/
   │     │     ├── scenarios_node.py
   │     │     └── advice_node.py
   │     └── types.py          # ProductAnalysisState
-  └── types.py                 # AgentOutput、IngredientInput、ProductAnalysisResult
+  └── types.py                 # IngredientInput、ProductAnalysisResult 等既有类型
 ```
 
 ### 图结构
@@ -103,7 +103,7 @@ workflow_product_analysis/（纯计算模块）
       demographics_node.py   ← LLM
       scenarios_node.py      ← LLM
       advice_node.py         ← LLM
-    types.py        ← ProductAnalysisState、AgentOutput
+    types.py        ← ProductAnalysisState
 
 api/analysis/service.py（编排层）
   ├── run_ocr()                      ← HTTP
@@ -134,20 +134,9 @@ class IngredientInput(TypedDict):
     safety_info: str  # 来自 IngredientAnalysis；unknown 成分为空
 ```
 
-### 新增：`AgentOutput`
+### 既有类型（保留）：`ProductAnalysisState`
 
-`AgentOutput` 是 graph 输出的核心字段集合，等同于 `ProductAnalysisState` 中的 LLM 生成部分。它不是独立的计算单元，而是 `final_state` 中关键字段的视图。
-
-```python
-# workflow_product_analysis/types.py（新增）
-class AgentOutput(TypedDict):
-    verdict_level: str  # RiskLevel
-    verdict_description: str
-    advice: str
-    demographics: list[DemographicItem]
-    scenarios: list[ScenarioItem]
-    references: list[str]
-```
+`ProductAnalysisState` 是 graph 的状态类型，包含 `ingredients`（输入）和 LLM 生成的全部字段（`demographics`、`scenarios`、`advice`、`verdict_level`、`verdict_description`、`references`）。assembler 直接从 `final_state`（即 `ProductAnalysisState`）读取 LLM 输出字段进行组装，不需要额外的中间类型。
 
 ### `ProductAnalysisResult`（最终输出，保留）
 
@@ -174,7 +163,7 @@ class ProductAnalysisResult(TypedDict):
 |------|------|
 | `product_agent/graph.py` | 移除 `session` 依赖；重命名 `run_product_analysis_agent` → `build_product_analysis_graph`，与 `worflow_parser_kb/graph.py` 命名一致 |
 | `product_agent/nodes/` | 将 `nodes.py` 拆分为 `verdict_node.py`、`demographics_node.py`、`scenarios_node.py`、`advice_node.py`，各节点移除 `session` 依赖 |
-| `types.py` | 新增 `AgentOutput` TypedDict 类型；补充 `IngredientRiskLevel` 导出 |
+| `types.py` | 保留 `ProductAnalysisState`、`IngredientInput`、`ProductAnalysisResult` 等既有类型，不新增 `AgentOutput` |
 
 ### 2. `workflow_product_analysis/` 删除/迁出
 
@@ -184,7 +173,7 @@ class ProductAnalysisResult(TypedDict):
 | `ingredient_matcher.py` | 迁至 `api/analysis/ingredient_matcher.py` |
 | `assembler.py` | 迁至 `api/analysis/assembler.py`；`assemble_from_agent_output` / `assemble_from_db_cache` 依赖 `session` 查 Ingredient / IngredientAnalysis 表 |
 | `pipeline.py` | 删除 |
-| `redis_store.py` | 废弃（移除 Redis 轮询机制，改为同步响应） |
+| `redis_store.py` | 废弃（`GET /analysis/{task_id}/status` 端点同步删除；后续进度反馈改为 SSE 时由 API 层自行实现） |
 | `ocr_client.py` | 迁至 `api/analysis/ocr_client.py` |
 | `ingredient_parser.py` | 迁至 `api/analysis/ingredient_parser.py` |
 
@@ -197,7 +186,7 @@ class ProductAnalysisResult(TypedDict):
 | `api/analysis/ocr_client.py` | 从 `workflow_product_analysis/ocr_client.py` 迁入 |
 | `api/analysis/ingredient_parser.py` | 从 `workflow_product_analysis/ingredient_parser.py` 迁入 |
 | `api/analysis/assembler.py` | 从 `workflow_product_analysis/assembler.py` 迁入 |
-| `api/analysis/models.py` | 补充 `AgentOutput`、`ProductAnalysisState` 导入 |
+| `api/analysis/models.py` | 补充 `ProductAnalysisResult` 等类型导入 |
 | `api/analysis/ingredient_matcher.py` | 从 `workflow_product_analysis/ingredient_matcher.py` 迁入 |
 
 ---
@@ -240,15 +229,16 @@ start_analysis(image_bytes, food_id, session, settings)
 
 ---
 
-## 进度反馈（暂时搁置）
+## API 路由变化
 
-当前重构**不包含进度反馈机制**：
+**POST /analysis/start**
+- 保持异步：提交图片后立即返回 `task_id`
+- 响应格式：`{"task_id": "..."}`（不变）
+- 后续可改为 SSE 流式推送 `ProductAnalysisResult`（由 API 层实现，不影响 workflow 模块）
 
-- 移除 Redis 任务状态读写
-- 移除前端轮询 `/analysis/{task_id}/status`
-- API 改为**同步响应**（分析完成 → 直接返回 `ProductAnalysisResult`）
-
-后续如需进度反馈（如 SSE 推送），由 API 层透传，不影响 workflow 模块。
+**GET /analysis/{task_id}/status**
+- **删除**（Redis 废弃后无状态可查）
+- 后续进度推送改为 SSE 时，前端改接 SSE 端点即可
 
 ---
 
@@ -288,12 +278,15 @@ start_analysis(image_bytes, food_id, session, settings)
 
 ## 实施顺序
 
-1. 新增 `AgentOutput` TypedDict 类型，修改 `workflow_product_analysis/types.py`
+1. 确认 `workflow_product_analysis/types.py` 既有类型（`IngredientInput`、`ProductAnalysisResult`、`ProductAnalysisState` 等）无需修改；`AgentOutput` 类型的概念不再引入，assembler 直接使用 `ProductAnalysisState`
 2. **同步进行**：将 `product_agent/nodes.py` 拆分为独立文件（`verdict_node.py`、`demographics_node.py`、`scenarios_node.py`、`advice_node.py`），同时修改 `product_agent/graph.py` 中的节点引用，移除各节点的 `session` 依赖，验证 LangGraph 仍可正常编译
 3. 将迁出文件（`food_resolver.py`、`ingredient_matcher.py`、`assembler.py`、`pipeline.py`、`redis_store.py`、`ocr_client.py`、`ingredient_parser.py`）复制到 `api/analysis/`
 4. 在 `api/analysis/service.py` 编写编排逻辑，替换原有 `start_analysis`
 5. 删除 `workflow_product_analysis/` 中的迁出文件
-6. 更新 API router（如有参数签名变化）
+6. 更新 API router：
+   - 删除 `GET /analysis/{task_id}/status` 端点
+   - `POST /analysis/start` 保持异步返回 `task_id`（不变）
+   - 后续 SSE 改造在 API 层进行，不影响 workflow 模块
 7. 运行测试，修复问题
 
 ---
