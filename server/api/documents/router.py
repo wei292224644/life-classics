@@ -14,7 +14,7 @@ def get_documents_service() -> DocumentsService:
 
 @router.get("", response_model=DocumentsListResponse)
 async def list_documents(svc: DocumentsService = Depends(get_documents_service)):
-    docs = await svc.get_all_documents()
+    docs = svc.get_all_documents()
     return DocumentsListResponse(
         documents=[DocumentInfo(**d) for d in docs],
         total=len(docs),
