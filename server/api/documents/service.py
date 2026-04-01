@@ -44,6 +44,10 @@ class DocumentsService:
 
         return sorted(doc_map.values(), key=lambda d: d["doc_id"])
 
+    def document_exists(self, doc_id: str) -> bool:
+        result = self._get_collection().get(where={"doc_id": {"$eq": doc_id}}, include=["metadatas"])
+        return bool(result.get("ids"))
+
     def delete_document(self, doc_id: str) -> dict[str, Any]:
         result = self._get_collection().get(where={"doc_id": {"$eq": doc_id}}, include=["metadatas"])
         ids = result.get("ids") or []
@@ -55,9 +59,7 @@ class DocumentsService:
         return {"doc_id": doc_id, "errors": errors}
 
     async def create_document(self, chunks: list, doc_metadata: dict) -> None:
-        """将解析后的 chunks 写入知识库（先删旧数据再写入）。"""
-        doc_id = doc_metadata.get("doc_id")
-        await asyncio.to_thread(self.delete_document, doc_id)
+        """将解析后的 chunks 写入知识库。"""
         await chroma_writer.write(chunks, doc_metadata)
         fts_writer.write(chunks, doc_metadata)
 
@@ -86,6 +88,9 @@ class DocumentsService:
                     chunks = event["chunks"]
                     doc_metadata = event["doc_metadata"]
                     if chunks:
+                        doc_id = doc_metadata.get("doc_id")
+                        if self.document_exists(doc_id):
+                            await asyncio.to_thread(self.delete_document, doc_id)
                         await self.create_document(chunks, doc_metadata)
                     yield f"data: {json.dumps({'type': 'done', 'chunks_count': len(chunks)})}\n\n"
                 else:
