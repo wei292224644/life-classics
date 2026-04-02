@@ -13,8 +13,9 @@ spec.md 经用户确认后使用，产出 plan.md 作为 decomposer 的输入。
 
 ## 执行步骤
 
-1. 调用 `superpowers:writing-plans` skill 完成完整的计划编写流程
-2. 完成后对 plan.md 做以下约束检查，不符合则修改：
+1. 确认 topic 标识（与 spec 使用相同的 topic，如 `user-auth`）
+2. 调用 `superpowers:writing-plans` skill 完成完整的计划编写流程
+3. 完成后对 plan.md 做以下约束检查，不符合则修改：
 
 ## Plan 输出约束
 
@@ -41,6 +42,9 @@ plan.md 禁止包含：
 
 ## 保存位置
 
-`docs/superpowers/plans/YYYY-MM-DD-<topic>.md`
+同时写入两个位置：
 
-完成后同时复制一份到 `.agent-workspace/plan.md`，供 facilitator 读取。
+1. **存档**：`docs/superpowers/plans/YYYY-MM-DD-<topic>.md`
+2. **执行输入**：`.agent-workspace/runs/YYYY-MM-DD-<topic>/plan.md`
+
+执行阶段以 `.agent-workspace/runs/YYYY-MM-DD-<topic>/plan.md` 为唯一真相来源。

@@ -13,8 +13,9 @@ description: 在 brainstorming 基础上增加约束，产出格式规范的 spe
 
 ## 执行步骤
 
-1. 调用 `superpowers:brainstorming` skill 完成完整的 brainstorming 流程
-2. 确保最终 spec.md 满足以下约束：
+1. 询问用户本次运行的 topic 标识（英文、短横线连接，如 `user-auth`、`search-refactor`）
+2. 调用 `superpowers:brainstorming` skill 完成完整的 brainstorming 流程
+3. 确保最终 spec.md 满足以下约束：
 
 ## Spec 输出约束
 
@@ -32,10 +33,13 @@ description: 在 brainstorming 基础上增加约束，产出格式规范的 spe
 
 ## 保存位置
 
-`docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+同时写入两个位置：
 
-完成后同时复制一份到 `.agent-workspace/spec.md`，供 facilitator 读取。
+1. **存档**：`docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+2. **执行输入**：`.agent-workspace/runs/YYYY-MM-DD-<topic>/spec.md`
 
-## 与 agent-workflow:plan 的关系
+执行阶段以 `.agent-workspace/runs/YYYY-MM-DD-<topic>/spec.md` 为唯一真相来源。
 
-spec.md 完成并经用户确认后，使用 `agent-workflow:plan` 产出 plan.md，两者共同作为 facilitator 的输入。
+## 与 agent-team:plan 的关系
+
+spec.md 完成并经用户确认后，使用 `agent-team:plan` 产出 plan.md，传入相同的 topic 标识，确保两者写入同一个 run 目录。
