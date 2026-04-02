@@ -8,7 +8,7 @@ from typing import Any
 
 from config import settings
 from services.kb_service import KBService
-from workflow_parser_kb.graph import run_parser_workflow_stream
+from services.parser_workflow_service import ParserWorkflowService
 
 
 class DocumentsService:
@@ -17,8 +17,10 @@ class DocumentsService:
     def __init__(
         self,
         kb_service: KBService,
+        parser_workflow_service: ParserWorkflowService,
     ):
         self._kb_service = kb_service
+        self._parser_workflow_service = parser_workflow_service
 
     def get_all_documents(self) -> list[dict[str, Any]]:
         return self._kb_service.get_all_documents()
@@ -49,7 +51,7 @@ class DocumentsService:
         rules_dir = settings.RULES_DIR
 
         try:
-            async for event in run_parser_workflow_stream(
+            async for event in self._parser_workflow_service.run_parse_workflow(
                 md_content=md_content,
                 doc_name=doc_title,
                 rules_dir=rules_dir,

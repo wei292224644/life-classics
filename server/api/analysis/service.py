@@ -20,7 +20,6 @@ from db_repositories.ingredient import IngredientRepository
 from db_repositories.ingredient_analysis import IngredientAnalysisRepository
 from db_repositories.product_analysis import ProductAnalysisRepository
 from services.product_analysis_service import ProductAnalysisService
-from workflow_product_analysis.types import IngredientInput
 
 # Module-level service instance (lazy initialization)
 _product_analysis_svc: ProductAnalysisService | None = None
@@ -127,6 +126,8 @@ async def run_analysis_sync(
     match_result = await match_ingredients(parse_result.ingredients, session)
 
     # ⑤ 构建 ingredient_inputs（含 level、safety_info）
+    from workflow_product_analysis.types import IngredientInput
+
     ingredient_inputs: list[IngredientInput] = []
     matched_ids: list[int] = []
     for m in match_result.matched:
@@ -187,8 +188,7 @@ async def run_analysis_sync(
         svc = _get_product_analysis_svc()
         final_state = await svc.run_product_analysis(ingredient_inputs)
     except Exception as exc:
-        from workflow_product_analysis.product_agent.graph import ProductAgentError
-        raise ProductAgentError(f"Agent failed: {exc}") from exc
+        raise AnalysisError(f"Agent workflow failed: {exc}", http_status=500) from exc
 
     # ⑨ 组装 + 写缓存
     result = await assemble_from_agent_output(
