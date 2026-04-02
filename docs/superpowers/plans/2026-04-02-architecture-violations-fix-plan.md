@@ -235,50 +235,146 @@ git add server/db_repositories/ingredient_analysis.py
 git commit -m "fix(repository): replace commit() with flush() in IngredientAnalysisRepository"
 ```
 
-### Task 4: 修复 `api/ingredient_alias/service.py` 的 2 处 commit
+### Task 4: 修复 `api/ingredient_alias/service.py` 的 commit 和 SQL 查询
 
 **文件:**
-- 修改: `server/api/ingredient_alias/service.py:44,69`
-- 修改: `server/api/ingredient_alias/router.py`（事务上收）
+- 修改: `server/api/ingredient_alias/service.py`
+- 修改: `server/api/ingredient_alias/router.py`
 
-- [ ] **Step 1: 阅读 router.py 确认 commit 应该在哪里**
+本 task 包含两项修复：
+1. **T1 违规**：service 层直接执行 SQL 查询 `select(Ingredient)` 校验 ingredient_id，违反"禁止 API 层 SQL 查询"
+2. **Section IV 违规**：service 层调用 `session.commit()`，违反事务边界
 
-阅读 `server/api/ingredient_alias/router.py`，找到调用 `create_alias()` 和 `delete_alias()` 的 router 方法，确认 session 生命周期。
+- [ ] **Step 1: 阅读确认 router.py 中 create_alias 和 delete_alias 的调用位置**
 
-- [ ] **Step 2: 从 service.py 移除 commit 调用**
+阅读 `server/api/ingredient_alias/router.py` 第 25-40 行（create_alias）和第 65-74 行（delete_alias），确认 session 通过 `Depends(get_async_session)` 注入。
 
-将 `create_alias()` 和 `delete_alias()` 中的 `await self._session.commit()` 删除。
+- [ ] **Step 2: 在 `IngredientAliasRepository` 新增 `exists()` 方法**
 
-- [ ] **Step 3: 在 router 层统一提交事务**
-
-在 router 的 POST/DELETE 端点中，在 service 调用后添加 `await session.commit()`：
+修改 `server/db_repositories/ingredient_alias.py`，在 `IngredientAliasRepository` 中新增：
 
 ```python
-@router.post("/", response_model=AliasResponse)
-async def create_alias(
-    body: AliasCreate,
-    svc: IngredientAliasService = Depends(get_service),
-    session: AsyncSession = Depends(get_async_session),
-):
-    result = await svc.create_alias(session, body)  # session 作为参数传入
-    await session.commit()  # 事务在 L1 提交
-    return result
+async def ingredient_exists(self, ingredient_id: int) -> bool:
+    """校验 ingredient 是否存在，用于 service 层避免直接 SQL 查询."""
+    result = await self._session.execute(
+        select(Ingredient.id).where(Ingredient.id == ingredient_id)
+    )
+    return result.scalar_one_or_none() is not None
 ```
 
-**注意**: 需要将 `session` 作为参数传给 service 的 `create_alias`/`delete_alias` 方法，而非在 service 内部管理。
+- [ ] **Step 3: 修改 `IngredientAliasService.create_alias()` — 移除 SQL 查询，接收 session 参数**
 
-- [ ] **Step 4: 运行测试确认**
+service.py 改后：
+
+```python
+# 改前（行 32-44）
+async def create_alias(self, ingredient_id, alias, alias_type):
+    result = await self._session.execute(
+        select(Ingredient).where(Ingredient.id == ingredient_id)  # ❌ L1 直接查 DB
+    )
+    if result.scalar_one_or_none() is None:
+        raise ValueError(...)
+    new_alias = await self._repo.create(...)
+    await self._session.commit()  # ❌ L1 自己 commit
+
+# 改后
+async def create_alias(
+    self,
+    session: AsyncSession,
+    ingredient_id: int,
+    alias: str,
+    alias_type: str = "chinese",
+) -> AliasResponse:
+    # 校验通过 repo 层
+    exists = await self._repo.ingredient_exists(ingredient_id)
+    if not exists:
+        raise ValueError(f"ingredient_id={ingredient_id} not found")
+    new_alias = await self._repo.create(
+        alias=alias,
+        ingredient_id=ingredient_id,
+        alias_type=alias_type,
+    )
+    # ❌ 不 commit，事务由 router 层统一管理
+    return AliasResponse.model_validate(new_alias)
+```
+
+- [ ] **Step 4: 修改 `IngredientAliasService.delete_alias()` — 移除 commit，接收 session 参数**
+
+```python
+# 改前（行 65-70）
+async def delete_alias(self, alias_id: int) -> bool:
+    deleted = await self._repo.delete(alias_id)
+    if deleted:
+        await self._session.commit()  # ❌ L1 自己 commit
+    return deleted
+
+# 改后
+async def delete_alias(
+    self,
+    session: AsyncSession,
+    alias_id: int,
+) -> bool:
+    deleted = await self._repo.delete(alias_id)
+    # ❌ 不 commit，事务由 router 层统一管理
+    return deleted
+```
+
+- [ ] **Step 5: 修改 router.py — 传入 session，在 router 层统一 commit**
+
+router.py 第 25-40 行 create_alias 端点改为：
+
+```python
+@router.post("", response_model=AliasResponse, status_code=201, tags=["Ingredient Alias"])
+async def create_alias(
+    req: AliasCreateRequest,
+    svc: IngredientAliasService = Depends(get_service),
+    session: AsyncSession = Depends(get_async_session),  # 新增
+):
+    try:
+        result = await svc.create_alias(
+            session,  # 新增：传入 session
+            ingredient_id=req.ingredient_id,
+            alias=req.alias,
+            alias_type=req.alias_type,
+        )
+        await session.commit()  # ✅ 事务在 L1 统一提交
+        return result
+    except ValueError as exc:
+        safe_http_exception(404, "INGREDIENT_NOT_FOUND", str(exc), exc=exc)
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Alias already exists")
+```
+
+router.py 第 65-74 行 delete_alias 端点改为：
+
+```python
+@router.delete("/{alias_id}", tags=["Ingredient Alias"])
+async def delete_alias(
+    alias_id: int,
+    svc: IngredientAliasService = Depends(get_service),
+    session: AsyncSession = Depends(get_async_session),  # 新增
+):
+    deleted = await svc.delete_alias(session, alias_id)  # 传入 session
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Alias not found")
+    await session.commit()  # ✅ 事务在 L1 统一提交
+    return {"ok": True}
+```
+
+同时删除 `api/ingredient_alias/service.py` 顶部的 `from sqlalchemy import select`（不再需要）。
+
+- [ ] **Step 6: 运行测试确认**
 
 ```bash
 cd server
 uv run pytest tests/ -v -x -k "alias"
 ```
 
-- [ ] **Step 5: 提交**
+- [ ] **Step 7: 提交**
 
 ```bash
-git add server/api/ingredient_alias/service.py server/api/ingredient_alias/router.py
-git commit -m "fix(ingredient_alias): move commit to router layer, pass session as param"
+git add server/api/ingredient_alias/service.py server/api/ingredient_alias/router.py server/db_repositories/ingredient_alias.py
+git commit -m "fix(ingredient_alias): remove SQL query and commit from service, route through router"
 ```
 
 ---
@@ -665,7 +761,7 @@ Phase 2 (Task 2, 3, 4)
   └─ 可并行执行：各修各的 commit 越权
 
 Phase 3 (Task 5)
-  └─ 依赖 Phase 2 完成（session 事务上收模式建立后）
+  └─ 可独立执行：与 Phase 2 无依赖（修复的是不同问题）
 
 Phase 4 (Task 6 → 7 → 8 → 9 → 10 → 11)
   └─ Task 6 先行（建 L2 services 基础）
