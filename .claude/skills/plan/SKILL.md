@@ -1,6 +1,9 @@
 ---
 name: plan
 description: 在 writing-plans 基础上增加约束，禁止包含代码实现细节，只写任务边界。人工阶段使用，与 spec.md 共同作为 agent team 执行阶段的输入。
+disable-model-invocation: false
+user-invocable: true
+argument-hint: "<topic>"
 ---
 
 # Agent Workflow: Plan

@@ -1,6 +1,9 @@
 ---
 name: spec
 description: 在 brainstorming 基础上增加约束，产出格式规范的 spec.md。人工阶段使用，用于与 agent team 执行阶段交接。
+disable-model-invocation: false
+user-invocable: true
+argument-hint: "<topic>"
 ---
 
 # Agent Workflow: Spec
@@ -40,6 +43,6 @@ description: 在 brainstorming 基础上增加约束，产出格式规范的 spe
 
 执行阶段以 `.agent-workspace/runs/YYYY-MM-DD-<topic>/spec.md` 为唯一真相来源。
 
-## 与 working-harness-team:plan 的关系
+## 与 plan skill 的关系
 
-spec.md 完成并经用户确认后，使用 `working-harness-team:plan` 产出 plan.md，传入相同的 topic 标识，确保两者写入同一个 run 目录。
+spec.md 完成并经用户确认后，使用 `plan` skill 产出 plan.md，传入相同的 topic 标识，确保两者写入同一个 run 目录。

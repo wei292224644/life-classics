@@ -1,6 +1,9 @@
 ---
 name: context-manager
 description: 维护 {RUN_DIR}/context.md 共享上下文快照。由 facilitator 在每个子任务前后主动调用。
+model: haiku
+effort: low
+maxTurns: 10
 tools: Read, Write, Glob
 ---
 

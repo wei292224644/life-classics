@@ -1,6 +1,9 @@
 ---
 name: tester
 description: 测试 agent。按 sprint-contract 完成标准逐条覆盖，写测试并执行，输出 test-result.md。不改业务代码。
+model: sonnet
+effort: medium
+maxTurns: 40
 tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 

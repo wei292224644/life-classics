@@ -1,6 +1,8 @@
 ---
 name: code-review-rubric
 description: reviewer agent 使用的 4 维评分流程。包含评分标准、blocking 阈值和 few-shot 校准示例。
+disable-model-invocation: false
+user-invocable: false
 ---
 
 # Code Review Rubric

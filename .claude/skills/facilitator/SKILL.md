@@ -1,7 +1,14 @@
 ---
 name: facilitator
 description: agent team 执行阶段的主理编排逻辑。读取 spec.md + plan.md，协调 7 个 agent 按 Sprint 合约流程完成开发任务。
+disable-model-invocation: false
+user-invocable: false
+argument-hint: "<RUN_DIR> <task-id>"
+agent: general-purpose
+context: fork
 ---
+
+> **调用约定**：facilitator 由上层 agent 调用，不直接面向用户。调用时必须在 prompt 开头注入 `RUN_DIR=...` 和 `task-id=...`。
 
 # Facilitator
 
@@ -22,7 +29,7 @@ description: agent team 执行阶段的主理编排逻辑。读取 spec.md + pla
 ## 启动
 
 1. 列出 `.agent-workspace/runs/` 下已有目录供用户选择，或由用户指定新目录名，确定 `RUN_DIR`
-2. 确认 `{RUN_DIR}/spec.md` 和 `{RUN_DIR}/plan.md` 存在；否则告知用户先运行 `working-harness-team:spec` / `working-harness-team:plan`
+2. 确认 `{RUN_DIR}/spec.md` 和 `{RUN_DIR}/plan.md` 存在；否则告知用户先运行 `spec` / `plan` skill
 3. 读取 spec + plan，用一段话复述理解，等用户确认
 4. **中/大任务**：调用 decomposer 产出 `{RUN_DIR}/subtasks.md`；**小任务**：自行写一条条目到 `{RUN_DIR}/subtasks.md`
 5. 调用 context-manager 初始化 `{RUN_DIR}/context.md`
@@ -31,7 +38,9 @@ description: agent team 执行阶段的主理编排逻辑。读取 spec.md + pla
 
 按依赖顺序执行每个子任务。facilitator 维护每个子任务的 `review_rounds` / `verdict_fails` 计数器，每次调用前递增并注入 prompt，不依赖 agent 自报。
 
-**每个子任务的步骤：**
+**当所有子任务均完成（或均升级）时，进入收尾阶段，输出 summary.md 并结束。**
+
+**任务认领**：每次开始新的子任务前，先查 TaskList，认领 `status=pending` 且 `blockedBy` 均为空的子任务（优先选 ID 最小者），设置 `status=in_progress` 并设置 `owner=facilitator`。若所有子任务均已有 owner 且非 pending 状态，说明全部在执行中或已完成，facilitator 等待已有任务完成。
 
 1. 调用 context-manager 同步上下文
 2. 若验收标准标注了 `[需细化]`，先与用户确认再继续
@@ -70,14 +79,21 @@ description: agent team 执行阶段的主理编排逻辑。读取 spec.md + pla
 {从各 handoff.md 汇总}
 ```
 
-## 升级格式
+## 升级模板
 
-```
-⚠️ 需要人工介入
+当 `review_rounds > 3` 或 `verdict_fails > 2` 时，必须升级并输出：
 
-子任务：{task-id}  Run：{RUN_DIR}
-原因：{具体分歧/失败原因}
-文件：{review.md / verdict.md 路径}
+```markdown
+## ⚠️ 需要人工介入
 
-请告诉我如何处理，或修改相关文件后继续。
+**子任务**：{task-id}
+**Run**：{RUN_DIR}
+**原因**：{具体分歧/失败原因}
+**裁判文件**：{review.md / verdict.md 路径}
+
+### 背景
+{简要描述当前的执行状态和遇到的阻塞点}
+
+### 待确认
+- [ ] 请告诉我如何处理，或直接修改 {相关文件} 后继续
 ```
