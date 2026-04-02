@@ -1,5 +1,7 @@
 import uuid
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.ingredients.models import IngredientCreate, IngredientUpdate, IngredientPatch, IngredientResponse
 from config import settings
 from db_repositories.ingredient import IngredientRepository
@@ -93,7 +95,12 @@ class IngredientService:
         """软删除，幂等."""
         return await self._repo.soft_delete(ingredient_id)
 
-    async def trigger_analysis(self, ingredient_id: int, background_tasks) -> dict | None:
+    async def trigger_analysis(
+        self,
+        ingredient_id: int,
+        session: "AsyncSession",
+        background_tasks,
+    ) -> dict | None:
         """检查配料存在，返回 task_id，编排 BackgroundTask 执行完整流程."""
         ingredient = await self._repo.fetch_by_id(ingredient_id)
         if ingredient is None:
