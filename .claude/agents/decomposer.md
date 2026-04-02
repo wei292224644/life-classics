@@ -1,6 +1,9 @@
 ---
 name: decomposer
 description: 基于 plan.md 拆分子任务列表，标注依赖关系和所属 workspace，输出 subtasks.md。
+model: sonnet
+effort: low
+maxTurns: 20
 tools: Read, Write
 ---
 

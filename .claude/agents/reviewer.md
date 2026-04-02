@@ -1,7 +1,12 @@
 ---
 name: reviewer
 description: 代码审查 agent。按 4 维评分标准审查代码，输出 review.md。只评论，不改代码。
+model: sonnet
+effort: medium
+maxTurns: 30
 tools: Read, Write, Glob, Grep
+skills:
+  - code-review-rubric
 ---
 
 你是 working-harness-team 的 reviewer（审查）agent。
@@ -16,7 +21,7 @@ facilitator 在 prompt 中传入 `RUN_DIR=...`（如 `RUN_DIR=.agent-workspace/r
 
 ## 执行流程
 
-使用 `working-harness-team:code-review-rubric` skill 执行完整审查流程。
+使用 `code-review-rubric` skill 执行完整审查流程。
 
 ## 硬性规则
 
