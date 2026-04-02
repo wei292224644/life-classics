@@ -40,7 +40,6 @@ dependencies = [
     "prometheus-client>=0.24.1",
     "sqlalchemy[asyncio]>=2.0.48",
     "anthropic>=0.86.0",
-    "alembic>=1.18.4",
     "psycopg>=3.3.3",
     "psycopg-binary>=3.3.3",
     "redis>=5.0.0",

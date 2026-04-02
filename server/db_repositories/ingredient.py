@@ -106,3 +106,12 @@ class IngredientRepository:
         ingredient.deleted_at = datetime.now(UTC)
         await self._session.commit()
         return True
+
+    async def fetch_by_ids(self, ids: list[int]) -> list[Ingredient]:
+        """批量查询 Ingredient，用于 assembler 预填充数据."""
+        if not ids:
+            return []
+        result = await self._session.execute(
+            select(Ingredient).where(Ingredient.id.in_(ids))
+        )
+        return list(result.scalars().all())
