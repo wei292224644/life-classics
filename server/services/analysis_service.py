@@ -1,30 +1,26 @@
 """Analysis 业务编排服务 — L2 层，编排 OCR、解析、DB 读写和 LLM Agent workflow."""
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import uuid
-from typing import TYPE_CHECKING
+from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.analysis.assembler import assemble_from_agent_output, assemble_from_db_cache
-from api.analysis.food_resolver import InvalidFoodIdError, resolve_food_id
-from api.analysis.ingredient_matcher import fetch_ingredient_details, match_ingredients
 from api.analysis.ingredient_parser import NoIngredientsFoundError, parse_ingredients
 from api.analysis.models import FeedbackRequest, FeedbackResponse
 from api.analysis.ocr_client import run_ocr
 from config import Settings
-from database.models import AnalysisFeedback
-from db_repositories.food import FoodRepository
+from database.models import AnalysisFeedback, Food, Ingredient
 from db_repositories.ingredient import IngredientRepository
-from db_repositories.ingredient_alias import IngredientAliasRepository
+from db_repositories.ingredient_alias import IngredientAliasRepository, normalize_ingredient_name
 from db_repositories.ingredient_analysis import IngredientAnalysisRepository
 from db_repositories.product_analysis import ProductAnalysisRepository
 from services.product_analysis_service import ProductAnalysisService
-from workflow_product_analysis.types import IngredientInput, ProductAnalysisResult
-
-if TYPE_CHECKING:
-    pass
+from workflow_product_analysis.types import IngredientInput
 
 
 class AnalysisError(Exception):
@@ -35,16 +31,21 @@ class AnalysisError(Exception):
         self.http_status = http_status
 
 
+class InvalidFoodIdError(Exception):
+    """显式传入的 food_id 在 DB 中不存在。"""
+    pass
+
+
 class AnalysisService:
     """
     L2: Analysis 业务编排服务。
 
     编排步骤（run_analysis_sync）：
       1. OCR
-      2. 解析成分（parse_ingredients）
-      3. resolve_food_id（暂时仍调 L1 food_resolver，FoodRepository.fetch_by_name_ilike 待 Task 2）
-      4. 成分匹配（match_ingredients，L1 函数，待重构为纯 Repository）
-      5. fetch_ingredient_details（L1 函数，待重构为纯 Repository）
+      2. 解析成分（parse_ingredients，调用 api.analysis.ingredient_parser 工具函数）
+      3. resolve_food_id（使用 FoodRepository，已迁移自 food_resolver.py）
+      4. match_ingredients（使用 IngredientAliasRepository，已迁移自 ingredient_matcher.py）
+      5. fetch_ingredient_details（使用 IngredientRepository + IngredientAnalysisRepository）
       6. IngredientRepository.fetch_by_ids
       7. IngredientAnalysisRepository.fetch_by_ingredient_ids
       8. ProductAnalysisService.run_product_analysis
@@ -69,16 +70,148 @@ class AnalysisService:
         self._product_analysis_repo = product_analysis_repo
         self._product_analysis_svc = product_analysis_svc
 
+    # ── L2 内部方法（迁自 L1 food_resolver.py / ingredient_matcher.py）────────
+
+    async def _resolve_food_id(
+        self,
+        session: AsyncSession,
+        explicit_food_id: int | None,
+        product_name: str | None,
+        task_id: str,
+        settings: Settings,
+    ) -> int:
+        """
+        解析确定性 food_id。
+
+        逻辑优先级：
+        1. explicit_food_id 不为 None → 查 foods 表，存在即返回；不存在抛 InvalidFoodIdError
+        2. product_name 不为 None → ILIKE 模糊匹配 foods.name
+        3. 以上均未命中 → 创建占位 Food 记录（barcode=PHOTO-{task_id}）
+        """
+        # 1. 显式 food_id
+        if explicit_food_id is not None:
+            result = await session.execute(
+                select(Food).where(
+                    Food.id == explicit_food_id,
+                    Food.deleted_at.is_(None),
+                )
+            )
+            food = result.scalar_one_or_none()
+            if food is not None:
+                return food.id
+            raise InvalidFoodIdError(
+                f"explicit_food_id={explicit_food_id} not found or deleted"
+            )
+
+        # 2. 品名模糊匹配
+        if product_name is not None:
+            pattern = f"%{product_name}%"
+            candidates = await self._food_repo.fetch_by_name_ilike(pattern)
+
+            if len(candidates) == 1:
+                threshold = getattr(settings, "FOOD_NAME_MATCH_THRESHOLD", 0.7)
+                if threshold > 0:
+                    return candidates[0].id
+                return candidates[0].id
+            elif len(candidates) > 1:
+                # 多候选：取 name 最长的
+                best = max(candidates, key=lambda f: len(f.name or ""))
+                return best.id
+
+        # 3. 创建占位 Food
+        barcode = f"PHOTO-{task_id}"
+        name = product_name if product_name else "未命名产品"
+        placeholder = Food(
+            barcode=barcode,
+            name=name,
+            metadata={"source": "photo_import", "task_id": task_id},
+            created_by_user=getattr(settings, "SYSTEM_USER_ID", ""),
+        )
+        session.add(placeholder)
+        await session.flush()
+        return placeholder.id
+
+    async def _fetch_ingredient_details(
+        self,
+        session: AsyncSession,
+        ingredient_id: int,
+    ) -> tuple[str, str, str] | None:
+        """
+        按 ingredient_id 查 DB，返回 (name, category_str, level)。
+
+        category_str: function_type 数组拼接
+        level: 来自 active IngredientAnalysis；无记录则返回 "unknown"
+        """
+        result = await session.execute(
+            select(Ingredient).where(Ingredient.id == ingredient_id)
+        )
+        ingredient = result.scalar_one_or_none()
+        if ingredient is None:
+            return None
+
+        function_types: list[str] = ingredient.function_type or []
+        category_str = " · ".join(function_types)
+
+        analysis = await self._ingredient_analysis_repo.get_active_by_ingredient_id(ingredient_id)
+        level: str = analysis.level if analysis else "unknown"
+
+        return ingredient.name, category_str, level
+
+    async def _match_ingredients(
+        self,
+        session: AsyncSession,
+        ingredient_names: list[str],
+    ) -> dict[str, Any]:
+        """
+        将成分名列表通过别名精确匹配到配料库。
+
+        Returns:
+            dict with keys: "matched" (list of dicts with ingredient_id, name, level),
+                            "unmatched" (list of original names)
+        """
+        if not ingredient_names:
+            return {"matched": [], "unmatched": []}
+
+        async def find_match(name: str) -> tuple[str, dict | None]:
+            normalized = normalize_ingredient_name(name)
+            alias_record = await self._ingredient_alias_repo.find_by_normalized_alias(normalized)
+
+            if alias_record is None:
+                return name, None
+
+            ingredient_id = alias_record.ingredient_id
+            details = await self._fetch_ingredient_details(session, ingredient_id)
+            if details is None:
+                return name, None
+
+            name_db, category_str, level = details
+            return name, {
+                "ingredient_id": ingredient_id,
+                "name": name_db,
+                "level": level,
+            }
+
+        results = await asyncio.gather(
+            *[find_match(name) for name in ingredient_names]
+        )
+
+        matched = [m for _, m in results if m is not None]
+        unmatched = [name for name, m in results if m is None]
+
+        return {"matched": matched, "unmatched": unmatched}
+
+    # ── 公开编排方法 ─────────────────────────────────────────────────────────
+
     async def run_analysis_sync(
         self,
         session: AsyncSession,
         image_bytes: bytes,
         explicit_food_id: int | None,
         settings: Settings,
-    ) -> ProductAnalysisResult:
+    ) -> dict[str, Any]:
         """
         同步分析管道（可直接调用，跳过 BackgroundTasks）。
-        返回完整 ProductAnalysisResult。
+        返回完整 dict（assembler 输出格式）。
 
         Raises:
             AnalysisError: 各阶段失败时抛出，含 http_status 供 Router 转换。
@@ -92,27 +225,26 @@ class AnalysisService:
         except NoIngredientsFoundError:
             raise AnalysisError("无法从图片中提取到配料表", http_status=422)
 
-        # ③ resolve_food_id（L1 直接用 session.execute(select(Food))，待 Task 2 改用 FoodRepository）
+        # ③ resolve_food_id（已迁移至 L2 _resolve_food_id）
         try:
-            resolved_food_id = await resolve_food_id(
+            resolved_food_id = await self._resolve_food_id(
+                session=session,
                 explicit_food_id=explicit_food_id,
                 product_name=parse_result.product_name,
                 task_id=str(uuid.uuid4()),
-                session=session,
                 settings=settings,
             )
         except InvalidFoodIdError:
             raise AnalysisError("food_id 无效或不存在", http_status=400)
 
-        # ④ 成分匹配（L1 函数，match_ingredients 内部用 session.execute(select(Ingredient))）
-        match_result = await match_ingredients(parse_result.ingredients, session)
+        # ④ 成分匹配（已迁移至 L2 _match_ingredients）
+        match_result = await self._match_ingredients(session, parse_result.ingredients)
 
-        # ⑤ 构建 ingredient_inputs（含 level、safety_info）
-        # L1 函数 fetch_ingredient_details 内部用 session.execute(select(Ingredient))
+        # ⑤ 构建 ingredient_inputs
         ingredient_inputs: list[IngredientInput] = []
         matched_ids: list[int] = []
-        for m in match_result.matched:
-            details = await fetch_ingredient_details(m["ingredient_id"], session)
+        for m in match_result["matched"]:
+            details = await self._fetch_ingredient_details(session, m["ingredient_id"])
             if details is None:
                 continue
             name_db, category_str, level = details
@@ -126,7 +258,7 @@ class AnalysisService:
                 )
             )
             matched_ids.append(m["ingredient_id"])
-        for name in match_result.unmatched:
+        for name in match_result["unmatched"]:
             ingredient_inputs.append(
                 IngredientInput(
                     ingredient_id=0,
@@ -176,20 +308,18 @@ class AnalysisService:
                 "demographics": final_state.get("demographics", []),
                 "scenarios": final_state.get("scenarios", []),
                 "references": final_state.get("references", []),
-                "unmatched_ingredient_names": match_result.unmatched,
+                "unmatched_ingredient_names": match_result["unmatched"],
             },
             matched_ids=matched_ids,
             ingredients_data=ingredients_data,
             analyses_data=analyses_data,
         )
 
-        # NOTE: data 缺失 "version" 字段（模型要求非空），为与原 run_analysis_sync 行为保持一致，暂传空字符串。
-        # 原代码同样未传 version，这是 ProductAnalysisRepository.insert_if_absent 的潜在 bug，待修复。
         await self._product_analysis_repo.insert_if_absent(
             food_id=resolved_food_id,
             data={
                 "ai_model": settings.DEFAULT_MODEL,
-                "version": "1.0",  # TODO: 从 settings 或 workflow 输出获取版本号
+                "version": "1.0",
                 "level": final_state.get("verdict_level", "t3"),
                 "description": final_state.get("verdict_description", ""),
                 "advice": final_state.get("advice", ""),
