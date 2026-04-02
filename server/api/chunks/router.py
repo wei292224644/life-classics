@@ -5,12 +5,24 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from api.chunks.models import ChunksListResponse, ChunkResponse, UpdateChunkRequest
 from api.chunks.service import ChunksService
 from api.shared import safe_http_exception
+from services.kb_service import KBService
+from services.parser_workflow_service import ParserWorkflowService
 
 router = APIRouter()
 
 
+def get_kb_service() -> KBService:
+    return KBService()
+
+
+def get_parser_workflow_service() -> ParserWorkflowService:
+    return ParserWorkflowService()
+
+
 def get_chunks_service() -> ChunksService:
-    return ChunksService()
+    kb_svc = get_kb_service()
+    pw_svc = get_parser_workflow_service()
+    return ChunksService(kb_service=kb_svc, parser_workflow_service=pw_svc)
 
 
 @router.get("", response_model=ChunksListResponse)

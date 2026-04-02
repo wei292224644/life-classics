@@ -4,12 +4,25 @@ from fastapi.responses import StreamingResponse
 from api.documents.models import DocumentsListResponse, DocumentInfo, UpdateDocumentRequest, DeleteDocumentResponse, ClearDocumentsResponse
 from api.documents.service import DocumentsService
 from api.shared import safe_http_exception
+from services.kb_service import KBService
+from services.parser_workflow_service import ParserWorkflowService
 
 router = APIRouter()
 
 
-def get_documents_service() -> DocumentsService:
-    return DocumentsService()
+def get_kb_service() -> KBService:
+    return KBService()
+
+
+def get_parser_workflow_service() -> ParserWorkflowService:
+    return ParserWorkflowService()
+
+
+def get_documents_service(
+    kb_svc: KBService = Depends(get_kb_service),
+    parser_svc: ParserWorkflowService = Depends(get_parser_workflow_service),
+) -> DocumentsService:
+    return DocumentsService(kb_svc, parser_svc)
 
 
 @router.get("", response_model=DocumentsListResponse)

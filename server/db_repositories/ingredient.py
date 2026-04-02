@@ -27,13 +27,13 @@ class IngredientRepository:
             for key, value in fields.items():
                 if value is not None and value != []:
                     setattr(existing, key, value)
-            await self._session.commit()
+            await self._session.flush()
             await self._session.refresh(existing)
             return existing
         else:
             ingredient = Ingredient(name=name, **fields)
             self._session.add(ingredient)
-            await self._session.commit()
+            await self._session.flush()
             await self._session.refresh(ingredient)
             return ingredient
 
@@ -82,7 +82,7 @@ class IngredientRepository:
             return None
         for key, value in fields.items():
             setattr(ingredient, key, value)
-        await self._session.commit()
+        await self._session.flush()
         await self._session.refresh(ingredient)
         return ingredient
 
@@ -94,7 +94,7 @@ class IngredientRepository:
         for key, value in fields.items():
             if value is not None and value != []:
                 setattr(ingredient, key, value)
-        await self._session.commit()
+        await self._session.flush()
         await self._session.refresh(ingredient)
         return ingredient
 
@@ -104,7 +104,7 @@ class IngredientRepository:
         if ingredient is None:
             return True  # 幂等，已删除视为成功
         ingredient.deleted_at = datetime.now(UTC)
-        await self._session.commit()
+        await self._session.flush()
         return True
 
     async def fetch_by_ids(self, ids: list[int]) -> list[Ingredient]:

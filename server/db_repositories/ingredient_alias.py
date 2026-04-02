@@ -105,3 +105,11 @@ class IngredientAliasRepository:
         """查询所有别名."""
         result = await self._session.execute(select(IngredientAlias))
         return list(result.scalars().all())
+
+    async def ingredient_exists(self, ingredient_id: int) -> bool:
+        """校验 ingredient 是否存在，用于 service 层避免直接 SQL 查询."""
+        from database.models import Ingredient
+        result = await self._session.execute(
+            select(Ingredient.id).where(Ingredient.id == ingredient_id)
+        )
+        return result.scalar_one_or_none() is not None

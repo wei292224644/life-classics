@@ -1,4 +1,5 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from api.ingredients.models import IngredientCreate, IngredientUpdate, IngredientPatch
@@ -101,6 +102,7 @@ async def delete_ingredient(
 async def trigger_ingredient_analysis(
     ingredient_id: int,
     background_tasks: BackgroundTasks,
+    session: AsyncSession = Depends(get_async_session),
     svc: IngredientService = Depends(get_service),
 ):
     """
@@ -113,7 +115,7 @@ async def trigger_ingredient_analysis(
 
     返回 task_id，状态通过 GET /api/analysis/{task_id}/status 查询（若调用方写入了 Redis）。
     """
-    result = await svc.trigger_analysis(ingredient_id, background_tasks)
+    result = await svc.trigger_analysis(ingredient_id, session, background_tasks)
     if result is None:
         raise HTTPException(status_code=404, detail="Ingredient not found")
     return result
