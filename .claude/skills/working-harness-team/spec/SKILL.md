@@ -40,6 +40,6 @@ description: 在 brainstorming 基础上增加约束，产出格式规范的 spe
 
 执行阶段以 `.agent-workspace/runs/YYYY-MM-DD-<topic>/spec.md` 为唯一真相来源。
 
-## 与 agent-team:plan 的关系
+## 与 working-harness-team:plan 的关系
 
-spec.md 完成并经用户确认后，使用 `agent-team:plan` 产出 plan.md，传入相同的 topic 标识，确保两者写入同一个 run 目录。
+spec.md 完成并经用户确认后，使用 `working-harness-team:plan` 产出 plan.md，传入相同的 topic 标识，确保两者写入同一个 run 目录。

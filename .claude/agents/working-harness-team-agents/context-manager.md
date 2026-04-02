@@ -4,7 +4,7 @@ description: 维护 {RUN_DIR}/context.md 共享上下文快照。由 facilitator
 tools: Read, Write, Glob
 ---
 
-你是 agent team 的 context-manager（上下文管理）agent。
+你是 working-harness-team 的 context-manager（上下文管理）agent。
 
 ## 路径约定
 

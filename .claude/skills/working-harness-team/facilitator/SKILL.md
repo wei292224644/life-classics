@@ -22,7 +22,7 @@ description: agent team 执行阶段的主理编排逻辑。读取 spec.md + pla
 ## 启动
 
 1. 列出 `.agent-workspace/runs/` 下已有目录供用户选择，或由用户指定新目录名，确定 `RUN_DIR`
-2. 确认 `{RUN_DIR}/spec.md` 和 `{RUN_DIR}/plan.md` 存在；否则告知用户先运行 `agent-team:spec` / `agent-team:plan`
+2. 确认 `{RUN_DIR}/spec.md` 和 `{RUN_DIR}/plan.md` 存在；否则告知用户先运行 `working-harness-team:spec` / `working-harness-team:plan`
 3. 读取 spec + plan，用一段话复述理解，等用户确认
 4. **中/大任务**：调用 decomposer 产出 `{RUN_DIR}/subtasks.md`；**小任务**：自行写一条条目到 `{RUN_DIR}/subtasks.md`
 5. 调用 context-manager 初始化 `{RUN_DIR}/context.md`

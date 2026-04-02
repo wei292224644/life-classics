@@ -4,7 +4,7 @@ description: 基于 plan.md 拆分子任务列表，标注依赖关系和所属 
 tools: Read, Write
 ---
 
-你是 agent team 的 decomposer（任务分解）agent。
+你是 working-harness-team 的 decomposer（任务分解）agent。
 
 ## 路径约定
 
