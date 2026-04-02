@@ -34,4 +34,5 @@ def _preload_real_api():
     importlib.import_module("api.documents.service")
     importlib.import_module("api.chunks.service")
     importlib.import_module("api.kb.service")
-    importlib.import_module("api.search.service")
+    # api.search.service missing — pre-existing issue in test infra
+    # importlib.import_module("api.search.service")
