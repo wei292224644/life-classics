@@ -89,3 +89,18 @@ class IngredientAnalysisRepository:
             .order_by(IngredientAnalysis.created_at.desc())
         )
         return list(result.scalars().all())
+
+    async def fetch_by_ingredient_ids(
+        self, ingredient_ids: list[int]
+    ) -> list[IngredientAnalysis]:
+        """批量查询活跃的 IngredientAnalysis，用于 assembler 预填充数据."""
+        if not ingredient_ids:
+            return []
+        result = await self._session.execute(
+            select(IngredientAnalysis).where(
+                IngredientAnalysis.ingredient_id.in_(ingredient_ids),
+                IngredientAnalysis.is_active.is_(True),
+                IngredientAnalysis.deleted_at.is_(None),
+            )
+        )
+        return list(result.scalars().all())

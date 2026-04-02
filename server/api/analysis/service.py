@@ -16,6 +16,8 @@ from api.analysis.models import FeedbackRequest, FeedbackResponse
 from api.analysis.ocr_client import run_ocr
 from config import Settings
 from database.models import AnalysisFeedback
+from db_repositories.ingredient import IngredientRepository
+from db_repositories.ingredient_analysis import IngredientAnalysisRepository
 from db_repositories.product_analysis import ProductAnalysisRepository
 from workflow_product_analysis.product_agent.graph import (
     ProductAgentError,
@@ -147,17 +149,34 @@ async def run_analysis_sync(
             )
         )
 
-    # ⑥ 查 ProductAnalysis 缓存
+    # ⑥ 预查 Ingredient 和 IngredientAnalysis 数据
+    ing_repo = IngredientRepository(session)
+    ingredients_raw = await ing_repo.fetch_by_ids(matched_ids)
+    ingredients_data = [
+        {
+            "id": ing.id,
+            "name": ing.name,
+            "function_type": ing.function_type or [],
+        }
+        for ing in ingredients_raw
+    ]
+
+    analysis_repo = IngredientAnalysisRepository(session)
+    analyses_raw = await analysis_repo.fetch_by_ingredient_ids(matched_ids)
+    analyses_data = {a.ingredient_id: a for a in analyses_raw}
+
+    # ⑦ 查 ProductAnalysis 缓存
     product_analysis_repo = ProductAnalysisRepository(session)
     existing = await product_analysis_repo.get_by_food_id(resolved_food_id)
     if existing is not None:
         return await assemble_from_db_cache(
             product_analysis=existing,
             matched_ids=matched_ids,
-            session=session,
+            ingredients_data=ingredients_data,
+            analyses_data=analyses_data,
         )
 
-    # ⑦ Agent 分析
+    # ⑧ Agent 分析
     try:
         graph = build_product_analysis_graph()
         initial_state = ProductAnalysisState(
@@ -173,7 +192,7 @@ async def run_analysis_sync(
     except Exception as exc:
         raise ProductAgentError(f"Agent failed: {exc}") from exc
 
-    # ⑧ 组装 + 写缓存
+    # ⑨ 组装 + 写缓存
     result = await assemble_from_agent_output(
         agent_output={
             "verdict_level": final_state.get("verdict_level"),
@@ -185,7 +204,8 @@ async def run_analysis_sync(
             "unmatched_ingredient_names": match_result.unmatched,
         },
         matched_ids=matched_ids,
-        session=session,
+        ingredients_data=ingredients_data,
+        analyses_data=analyses_data,
     )
 
     await product_analysis_repo.insert_if_absent(
