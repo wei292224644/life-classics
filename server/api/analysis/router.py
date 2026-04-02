@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Request, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,8 +18,10 @@ from db_repositories.ingredient import IngredientRepository
 from db_repositories.ingredient_alias import IngredientAliasRepository
 from db_repositories.ingredient_analysis import IngredientAnalysisRepository
 from db_repositories.product_analysis import ProductAnalysisRepository
-from services.analysis_service import AnalysisService, AnalysisError
-from services.product_analysis_service import ProductAnalysisService
+
+if TYPE_CHECKING:
+    from services.analysis_service import AnalysisService
+    from services.product_analysis_service import ProductAnalysisService
 
 
 # ── 依赖注入工厂 ─────────────────────────────────────────────────────────────
@@ -44,7 +46,8 @@ async def get_product_analysis_repo(session: Annotated[AsyncSession, Depends(get
     return ProductAnalysisRepository(session)
 
 
-def get_product_analysis_svc() -> ProductAnalysisService:
+def get_product_analysis_svc() -> "ProductAnalysisService":
+    from services.product_analysis_service import ProductAnalysisService
     return ProductAnalysisService()
 
 
@@ -54,8 +57,9 @@ async def get_analysis_service(
     ingredient_repo: Annotated[IngredientRepository, Depends(get_ingredient_repo)],
     ingredient_analysis_repo: Annotated[IngredientAnalysisRepository, Depends(get_ingredient_analysis_repo)],
     product_analysis_repo: Annotated[ProductAnalysisRepository, Depends(get_product_analysis_repo)],
-    product_analysis_svc: Annotated[ProductAnalysisService, Depends(get_product_analysis_svc)],
-) -> AnalysisService:
+    product_analysis_svc: Annotated["ProductAnalysisService", Depends(get_product_analysis_svc)],
+) -> "AnalysisService":
+    from services.analysis_service import AnalysisService
     return AnalysisService(
         food_repo=food_repo,
         ingredient_alias_repo=ingredient_alias_repo,
@@ -79,6 +83,7 @@ async def _run_analysis_in_background(
 ) -> None:
     """后台分析管道（由 BackgroundTasks 调用），结果写入 Redis 后由 SSE/轮询端点推送。"""
     from config import settings as app_settings
+    from services.analysis_service import AnalysisService
 
     svc = AnalysisService(
         food_repo=FoodRepository(session),
@@ -147,6 +152,8 @@ async def api_feedback(
 
     反馈类型：ocr_wrong | verdict_wrong | ingredient_wrong | other
     """
+    from services.analysis_service import AnalysisService
+
     client_ip = request.client.host if request.client else ""
     user_agent = request.headers.get("user-agent", "")[:512]
 

@@ -95,6 +95,13 @@ class FoodRepository:
             ingredients=ingredients,
         )
 
+    async def fetch_by_id_simple(self, food_id: int) -> Food | None:
+        """简单查询 Food（无关联加载），仅用于 existence check。"""
+        result = await self._session.execute(
+            select(Food).where(Food.id == food_id, Food.deleted_at.is_(None))
+        )
+        return result.scalar_one_or_none()
+
     async def fetch_by_name_ilike(self, pattern: str) -> list[Food]:
         """模糊查询 Food，匹配 name ilike pattern，返回所有未删除的候选"""
         result = await self._session.execute(

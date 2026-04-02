@@ -6,7 +6,6 @@ import hashlib
 import uuid
 from typing import Any
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.analysis.assembler import assemble_from_agent_output, assemble_from_db_cache
@@ -14,7 +13,7 @@ from api.analysis.ingredient_parser import NoIngredientsFoundError, parse_ingred
 from api.analysis.models import FeedbackRequest, FeedbackResponse
 from api.analysis.ocr_client import run_ocr
 from config import Settings
-from database.models import AnalysisFeedback, Food, Ingredient
+from database.models import AnalysisFeedback, Food
 from db_repositories.ingredient import IngredientRepository
 from db_repositories.ingredient_alias import IngredientAliasRepository, normalize_ingredient_name
 from db_repositories.ingredient_analysis import IngredientAnalysisRepository
@@ -90,13 +89,7 @@ class AnalysisService:
         """
         # 1. 显式 food_id
         if explicit_food_id is not None:
-            result = await session.execute(
-                select(Food).where(
-                    Food.id == explicit_food_id,
-                    Food.deleted_at.is_(None),
-                )
-            )
-            food = result.scalar_one_or_none()
+            food = await self._food_repo.fetch_by_id_simple(explicit_food_id)
             if food is not None:
                 return food.id
             raise InvalidFoodIdError(
@@ -142,10 +135,7 @@ class AnalysisService:
         category_str: function_type 数组拼接
         level: 来自 active IngredientAnalysis；无记录则返回 "unknown"
         """
-        result = await session.execute(
-            select(Ingredient).where(Ingredient.id == ingredient_id)
-        )
-        ingredient = result.scalar_one_or_none()
+        ingredient = await self._ingredient_repo.fetch_by_id(ingredient_id)
         if ingredient is None:
             return None
 
