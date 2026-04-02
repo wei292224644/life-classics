@@ -26,14 +26,18 @@ def get_service(session: AsyncSession = Depends(get_async_session)) -> Ingredien
 async def create_alias(
     req: AliasCreateRequest,
     svc: IngredientAliasService = Depends(get_service),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """创建新别名."""
     try:
-        return await svc.create_alias(
+        result = await svc.create_alias(
+            session,
             ingredient_id=req.ingredient_id,
             alias=req.alias,
             alias_type=req.alias_type,
         )
+        await session.commit()
+        return result
     except ValueError as exc:
         safe_http_exception(404, "INGREDIENT_NOT_FOUND", str(exc), exc=exc)
     except IntegrityError:
@@ -66,9 +70,11 @@ async def list_aliases(
 async def delete_alias(
     alias_id: int,
     svc: IngredientAliasService = Depends(get_service),
+    session: AsyncSession = Depends(get_async_session),
 ):
     """删除别名."""
-    deleted = await svc.delete_alias(alias_id)
+    deleted = await svc.delete_alias(session, alias_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Alias not found")
+    await session.commit()
     return {"ok": True}
