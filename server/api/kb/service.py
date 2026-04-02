@@ -1,47 +1,17 @@
+"""KB API 层 — L1 路由编排，委托 L2 KBService."""
 from __future__ import annotations
 
-from kb.clients import get_chroma_client, KB_COLLECTION_NAME
-from kb.writer import fts_writer
+from services.kb_service import KBService as L2KBService
 
 
-def get_collection():
-    return get_chroma_client().get_or_create_collection(KB_COLLECTION_NAME)
+class KBApiService:
+    """L1: KB API 编排 — 委托 L2 KBService 执行实际操作."""
 
+    def __init__(self, l2_kb_service: L2KBService):
+        self._l2_kb_service = l2_kb_service
 
-class KBService:
+    def get_stats(self) -> dict:
+        return self._l2_kb_service.get_stats()
 
-    @staticmethod
-    def get_stats() -> dict:
-        result = get_collection().get(include=["metadatas"])
-        metadatas = result.get("metadatas") or []
-        ids = result.get("ids") or []
-
-        doc_ids: set = set()
-        semantic_types: dict[str, int] = {}
-        for meta in metadatas:
-            doc_ids.add(meta.get("doc_id", "unknown"))
-            st = meta.get("semantic_type", "unknown")
-            semantic_types[st] = semantic_types.get(st, 0) + 1
-
-        return {
-            "total_chunks": len(ids),
-            "total_documents": len(doc_ids),
-            "semantic_types": semantic_types,
-        }
-
-    @staticmethod
-    def clear_all() -> dict:
-        col = get_collection()
-        result = col.get(include=["metadatas"])
-        ids = result.get("ids") or []
-        metadatas = result.get("metadatas") or []
-
-        if ids:
-            col.delete(ids=ids)
-
-        doc_ids = {m.get("doc_id") for m in metadatas if m.get("doc_id")}
-        errors: list[str] = []
-        for doc_id in doc_ids:
-            fts_writer.delete_by_doc_id(doc_id, errors)
-
-        return {"deleted_chunks": len(ids), "deleted_documents": len(doc_ids), "errors": errors}
+    def clear_all(self) -> dict:
+        return self._l2_kb_service.clear_all()
