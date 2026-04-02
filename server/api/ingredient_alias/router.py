@@ -19,7 +19,9 @@ router = APIRouter()
 
 
 def get_service(session: AsyncSession = Depends(get_async_session)) -> IngredientAliasService:
-    return IngredientAliasService(session)
+    from db_repositories.ingredient_alias import IngredientAliasRepository
+    repo = IngredientAliasRepository(session)
+    return IngredientAliasService(repo)
 
 
 @router.post("", response_model=AliasResponse, status_code=201, tags=["Ingredient Alias"])
@@ -31,7 +33,6 @@ async def create_alias(
     """创建新别名."""
     try:
         result = await svc.create_alias(
-            session,
             ingredient_id=req.ingredient_id,
             alias=req.alias,
             alias_type=req.alias_type,
@@ -73,7 +74,7 @@ async def delete_alias(
     session: AsyncSession = Depends(get_async_session),
 ):
     """删除别名."""
-    deleted = await svc.delete_alias(session, alias_id)
+    deleted = await svc.delete_alias(alias_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Alias not found")
     await session.commit()

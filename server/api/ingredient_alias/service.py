@@ -1,9 +1,6 @@
 """Service layer for ingredient_alias."""
 from __future__ import annotations
 
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from api.ingredient_alias.models import AliasResponse
 from db_repositories.ingredient_alias import IngredientAliasRepository
 
@@ -11,13 +8,11 @@ from db_repositories.ingredient_alias import IngredientAliasRepository
 class IngredientAliasService:
     """配料别名服务."""
 
-    def __init__(self, session: AsyncSession):
-        self._session = session
-        self._repo = IngredientAliasRepository(session)
+    def __init__(self, repo: IngredientAliasRepository):
+        self._repo = repo
 
     async def create_alias(
         self,
-        session: AsyncSession,
         ingredient_id: int,
         alias: str,
         alias_type: str = "chinese",
@@ -59,11 +54,7 @@ class IngredientAliasService:
         items = [AliasResponse.model_validate(a) for a in aliases]
         return items, len(items)
 
-    async def delete_alias(
-        self,
-        session: AsyncSession,
-        alias_id: int,
-    ) -> bool:
+    async def delete_alias(self, alias_id: int) -> bool:
         """删除别名."""
         deleted = await self._repo.delete(alias_id)
         # 不 commit，事务由 router 层统一管理
