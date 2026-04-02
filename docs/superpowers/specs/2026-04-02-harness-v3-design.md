@@ -37,14 +37,16 @@
 
 ### 启动流程
 
+调用方式：`/facilitator <RUN_DIR>`，其中 `RUN_DIR` 是工作目录路径（如 `.agent-workspace/runs/2026-04-02-user-auth`），用户在调用时指定。
+
 ```
-你 → /facilitator skill（main session）
+你 → /facilitator .agent-workspace/runs/YYYY-MM-DD-<topic>
          ↓
-    读 spec.md + plan.md，复述理解，等用户确认
+    确认 {RUN_DIR}/spec.md 和 {RUN_DIR}/plan.md 存在
+    读取两文件，复述理解，等用户确认
          ↓
     从 plan.md 提取子任务列表，确定依赖顺序
-         ↓
-    判断任务规模（见下方规模表）
+    判断每个子任务的规模（见下方规模表）
          ↓
     TeamCreate("harness-team")
     Agent(name="coder",     subagent_type="coder",     background=true, team_name="harness-team")
@@ -61,35 +63,57 @@
 
 ### 子任务循环
 
+**完整流程（中/大任务）：**
+
 ```
 mkdir -p {RUN_DIR}/tasks/{task-id}
          ↓
+── 阶段 1：Sprint Contract ──────────────────────────────
 SendMessage(coder, "提议合约\nTask:{id}\nspec:{path}\nplan:{path}")
-         ↓  等待 coder 完成
+         ↓  收到 coder 完成通知
 sprint-contract.md 写入
          ↓
 SendMessage(evaluator, "审核合约\nsprint-contract:{path}")
-         ↓  等待 evaluator 完成
-evaluator 在 sprint-contract.md 末尾追加审核结论
+         ↓  收到 evaluator 完成通知
+读取 sprint-contract.md 末尾审核结论
          ↓
 approved → 继续
-rejected → facilitator 转给 coder 修订（最多 1 轮）→ 再审 → 仍 rejected → 升级
+rejected → SendMessage(coder, "修改合约:{原因}") → 再审
+           仍 rejected → 升级给用户
          ↓
-SendMessage(coder, "合约已确认\nsprint-contract:{path}")
-         ↓  等待 coder 完成
-handoff.md 写入（coder 若遇合约障碍先写 contract-dispute.md）
+── 阶段 2：实现 ─────────────────────────────────────────
+SendMessage(coder, "合约已确认，开始实现\nsprint-contract:{path}")
+         ↓  收到 coder 完成通知
+检查 contract-dispute.md 是否存在：
+  存在 → 读取内容，仲裁（接受替代方案 → 更新合约重新实现；拒绝 → 通知 coder 继续）
+  不存在 → 继续
+handoff.md 写入
          ↓
+── 阶段 3：验收 ─────────────────────────────────────────
 SendMessage(evaluator, "验收\nhandoff:{path}\nsprint-contract:{path}\n验收轮次:{N}")
-         ↓  等待 evaluator 完成
-verdict.md 写入
+         ↓  收到 evaluator 完成通知
+读取 verdict.md 最后一行
          ↓
-pass → 下一子任务
-fail → SendMessage(coder, "修复:{失败原因}") → verdict_fails++
+pass → 子任务完成，继续下一个
+fail → SendMessage(coder, "修复\nverdict:{path}") → verdict_fails++
        verdict_fails >= 2 → 升级给用户
 ```
 
+**小任务简化流程（bug fix / 单文件改动）：**
+
+```
+mkdir -p {RUN_DIR}/tasks/{task-id}
+SendMessage(coder, "直接实现\nTask:{id}\n描述:{task描述}\nspec:{path}")
+         ↓  收到通知
+检查 contract-dispute.md（同上）
+         ↓
+SendMessage(evaluator, "验收\nhandoff:{path}\n验收轮次:{N}")
+         ↓
+pass / fail（同完整流程）
+```
+
 **同一子任务内复用 agent 实例**（SendMessage resume，保留修复上下文）。  
-**新子任务不重建 team**，复用同一 team 的 agent，保持架构认知连续。
+**新子任务不重建 team**，复用同一 team 的 agent（每次任务 agent 仍会重新读规范文档）。
 
 ---
 
@@ -203,9 +227,6 @@ evaluator 实际执行验证命令后写入。
 ```markdown
 # Verdict: {task-id} — 第 {N} 次验收
 
-## 结论
-{pass / fail}
-
 ## 逐条验证
 | 完成标准 | 验证命令 | 实际输出 | 结果 |
 |---------|---------|---------|------|
@@ -215,10 +236,10 @@ evaluator 实际执行验证命令后写入。
 ## 失败原因（如有）
 {具体描述哪条失败，失败输出是什么}
 
-{pass / fail}
+pass
 ```
 
-> **最后一行必须是 `pass` 或 `fail`**，facilitator 只读最后一行做决策。
+> 最后一行是 `pass` 或 `fail`，facilitator 只读这一行做决策，不读其他内容。
 
 ---
 
