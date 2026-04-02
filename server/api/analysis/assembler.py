@@ -1,14 +1,9 @@
-"""结果组装器 — 将各阶段产物组装为 ProductAnalysisResult（纯数据组装，无 DB 访问）。"""
+"""结果组装器 — 将各阶段产物组装为 dict（纯数据组装，无 DB 访问）。"""
 from __future__ import annotations
 
 from typing import Any
 
 from database.models import ProductAnalysis
-from workflow_product_analysis.types import (
-    AlternativeItem,
-    IngredientItem,
-    ProductAnalysisResult,
-)
 
 
 async def assemble_from_db_cache(
@@ -16,9 +11,9 @@ async def assemble_from_db_cache(
     matched_ids: list[int],
     ingredients_data: list[dict],
     analyses_data: dict[int, object],
-) -> ProductAnalysisResult:
+) -> dict[str, Any]:
     """
-    从 DB 缓存组装 ProductAnalysisResult。
+    从 DB 缓存组装 ProductAnalysisResult（dict 形式）。
 
     source = "db_cache"
     - ingredients[]: 从 matched_ids 组装
@@ -32,7 +27,7 @@ async def assemble_from_db_cache(
     # 构建 ingredient_map（按 id 索引）
     ingredient_map: dict[int, dict] = {d["id"]: d for d in ingredients_data}
 
-    ingredients: list[IngredientItem] = []
+    ingredients: list[dict[str, Any]] = []
     for ing_id in matched_ids:
         d = ingredient_map.get(ing_id)
         if d is None:
@@ -42,16 +37,16 @@ async def assemble_from_db_cache(
         function_types: list[str] = d.get("function_type") or []
         category = " · ".join(function_types)
         ingredients.append(
-            IngredientItem(
-                ingredient_id=ing_id,
-                name=d["name"],
-                category=category,
-                level=level,
-            )
+            {
+                "ingredient_id": ing_id,
+                "name": d["name"],
+                "category": category,
+                "level": level,
+            }
         )
 
     # 构建 alternatives（仅 level ∈ {t2, t3, t4}）
-    alternatives: list[AlternativeItem] = []
+    alternatives: list[dict[str, Any]] = []
     for ing_id in matched_ids:
         analysis = analyses_data.get(ing_id)
         if analysis is None:
@@ -60,11 +55,11 @@ async def assemble_from_db_cache(
             continue
         for alt in analysis.alternatives or []:
             alternatives.append(
-                AlternativeItem(
-                    current_ingredient_id=ing_id,
-                    better_ingredient_id=alt.get("better_ingredient_id", 0),
-                    reason=alt.get("reason", ""),
-                )
+                {
+                    "current_ingredient_id": ing_id,
+                    "better_ingredient_id": alt.get("better_ingredient_id", 0),
+                    "reason": alt.get("reason", ""),
+                }
             )
 
     verdict: dict[str, Any] = {
@@ -72,16 +67,16 @@ async def assemble_from_db_cache(
         "description": product_analysis.description,
     }
 
-    return ProductAnalysisResult(
-        source="db_cache",
-        ingredients=ingredients,
-        verdict=verdict,
-        advice=product_analysis.advice,
-        alternatives=alternatives,
-        demographics=product_analysis.demographics or [],  # type: ignore[arg-type]
-        scenarios=product_analysis.scenarios or [],          # type: ignore[arg-type]
-        references=product_analysis.references or [],      # type: ignore[arg-type]
-    )
+    return {
+        "source": "db_cache",
+        "ingredients": ingredients,
+        "verdict": verdict,
+        "advice": product_analysis.advice,
+        "alternatives": alternatives,
+        "demographics": product_analysis.demographics or [],
+        "scenarios": product_analysis.scenarios or [],
+        "references": product_analysis.references or [],
+    }
 
 
 async def assemble_from_agent_output(
@@ -89,9 +84,9 @@ async def assemble_from_agent_output(
     matched_ids: list[int],
     ingredients_data: list[dict],
     analyses_data: dict[int, object],
-) -> ProductAnalysisResult:
+) -> dict[str, Any]:
     """
-    从 Agent 输出组装 ProductAnalysisResult。
+    从 Agent 输出组装 ProductAnalysisResult（dict 形式）。
 
     source = "agent_generated"
     - ingredients[]: 从 matched_ids 组装（填充 IngredientAnalysis level）
@@ -105,7 +100,7 @@ async def assemble_from_agent_output(
     # 构建 ingredient_map（按 id 索引）
     ingredient_map: dict[int, dict] = {d["id"]: d for d in ingredients_data}
 
-    ingredients: list[IngredientItem] = []
+    ingredients: list[dict[str, Any]] = []
     for ing_id in matched_ids:
         d = ingredient_map.get(ing_id)
         if d is None:
@@ -115,28 +110,28 @@ async def assemble_from_agent_output(
         function_types: list[str] = d.get("function_type") or []
         category = " · ".join(function_types)
         ingredients.append(
-            IngredientItem(
-                ingredient_id=ing_id,
-                name=d["name"],
-                category=category,
-                level=level,
-            )
+            {
+                "ingredient_id": ing_id,
+                "name": d["name"],
+                "category": category,
+                "level": level,
+            }
         )
 
     # unmatched 成分 → level="unknown" 的占位条目
     unmatched_names: list[str] = agent_output.get("unmatched_ingredient_names", [])
     for name in unmatched_names:
         ingredients.append(
-            IngredientItem(
-                ingredient_id=0,
-                name=name,
-                category="",
-                level="unknown",
-            )
+            {
+                "ingredient_id": 0,
+                "name": name,
+                "category": "",
+                "level": "unknown",
+            }
         )
 
     # 构建 alternatives（仅 level ∈ {t2, t3, t4}）
-    alternatives: list[AlternativeItem] = []
+    alternatives: list[dict[str, Any]] = []
     for ing_id in matched_ids:
         analysis = analyses_data.get(ing_id)
         if analysis is None:
@@ -145,11 +140,11 @@ async def assemble_from_agent_output(
             continue
         for alt in analysis.alternatives or []:
             alternatives.append(
-                AlternativeItem(
-                    current_ingredient_id=ing_id,
-                    better_ingredient_id=alt.get("better_ingredient_id", 0),
-                    reason=alt.get("reason", ""),
-                )
+                {
+                    "current_ingredient_id": ing_id,
+                    "better_ingredient_id": alt.get("better_ingredient_id", 0),
+                    "reason": alt.get("reason", ""),
+                }
             )
 
     verdict_level = agent_output.get("verdict_level", "t3")
@@ -160,13 +155,13 @@ async def assemble_from_agent_output(
         "description": verdict_description,
     }
 
-    return ProductAnalysisResult(
-        source="agent_generated",
-        ingredients=ingredients,
-        verdict=verdict,
-        advice=agent_output.get("advice", ""),
-        alternatives=alternatives,
-        demographics=agent_output.get("demographics", []),
-        scenarios=agent_output.get("scenarios", []),
-        references=agent_output.get("references", []),
-    )
+    return {
+        "source": "agent_generated",
+        "ingredients": ingredients,
+        "verdict": verdict,
+        "advice": agent_output.get("advice", ""),
+        "alternatives": alternatives,
+        "demographics": agent_output.get("demographics", []),
+        "scenarios": agent_output.get("scenarios", []),
+        "references": agent_output.get("references", []),
+    }
