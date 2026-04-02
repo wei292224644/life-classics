@@ -1,15 +1,9 @@
 """API models for analysis endpoints."""
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
-
-from workflow_product_analysis.types import (
-    AnalysisError,
-    AnalysisStatus,
-    ProductAnalysisResult,
-)
 
 
 class StartAnalysisRequest(BaseModel):
@@ -20,11 +14,15 @@ class StartAnalysisResponse(BaseModel):
     task_id: str
 
 
+# L1 层自有的 status enum，不引用 Infra types
+AnalysisStatus = Literal["pending", "processing", "completed", "failed"]
+
+
 class AnalysisStatusResponse(BaseModel):
     task_id: str
     status: AnalysisStatus
-    error: AnalysisError | None = None
-    result: ProductAnalysisResult | None = None
+    error: str | None = None
+    result: dict[str, Any] | None = None
 
 
 class FeedbackRequest(BaseModel):
